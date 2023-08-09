@@ -20,42 +20,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.xwiki.parent</groupId>
-        <artifactId>xwikisas-parent-platform</artifactId>
-        <version>13.10-3</version>
-    </parent>
-    <groupId>com.xwiki.admintools</groupId>
-    <artifactId>application-admintools</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
-    <name>Admin Tools Application (Pro) Parent POM</name>
-    <description>Contains administration tools for managing a running XWiki instance</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.xwiki.parent</groupId>
+    <artifactId>xwikisas-parent-platform</artifactId>
+    <version>13.10-3</version>
+  </parent>
+  <groupId>com.xwiki.admintools</groupId>
+  <artifactId>application-admintools</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>Admin Tools Application (Pro) Parent POM</name>
+  <description>The Admin Tools Pro application gives you full control and visibility over your XWiki instance.
+    Use it to manage your XWiki installation. Easily generate configuration reports. Perform sanity checks and show
+    logs history.</description>
 
-    <modules>
-        <module>application-admintools-api</module>
-        <module>application-admintools-default</module>
-        <module>application-admintools-ui</module>
-    </modules>
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://github.com/xwikisas/application-admintools/issues</url>
-    </issueManagement>
-    <scm>
-        <connection>scm:git:git://github.com/xwikisas/application-admintools.git</connection>
-        <developerConnection>scm:git:git@github.com:xwikisas/application-admintools.git</developerConnection>
-        <url>https://github.com/xwikisas/application-admintools/tree/master</url>
-        <tag>HEAD</tag>
-    </scm>
-    <properties>
-        <licensing.version>1.24.1</licensing.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+  <modules>
+    <module>application-admintools-api</module>
+    <module>application-admintools-default</module>
+    <module>application-admintools-ui</module>
+  </modules>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/xwikisas/application-admintools/issues</url>
+  </issueManagement>
+  <scm>
+    <connection>scm:git:git://github.com/xwikisas/application-admintools.git</connection>
+    <developerConnection>scm:git:git@github.com:xwikisas/application-admintools.git</developerConnection>
+    <url>https://github.com/xwikisas/application-admintools/tree/master</url>
+    <tag>HEAD</tag>
+  </scm>
 
 </project>
