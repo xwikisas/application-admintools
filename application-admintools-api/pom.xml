@@ -30,12 +30,4 @@
   <packaging>jar</packaging>
   <name>Admin Tools (Pro) - API</name>
   <description>Provides the Java APIs needed by the Admin tools Application.</description>
-  <dependencies>
-    <dependency>
-      <groupId>org.xwiki.commons</groupId>
-      <artifactId>xwiki-commons-component-api</artifactId>
-      <version>${commons.version}</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
 </project>
