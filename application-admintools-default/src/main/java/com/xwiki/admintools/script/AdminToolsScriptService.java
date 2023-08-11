@@ -28,7 +28,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
-import com.xwiki.admintools.internal.ConfigurationManager;
+import com.xwiki.admintools.internal.AdminToolsManager;
 
 /**
  * Admin Tools script services.
@@ -45,16 +45,15 @@ public class AdminToolsScriptService implements ScriptService
      * Manages the XWiki configuration info.
      */
     @Inject
-    private ConfigurationManager configurationManager;
+    private AdminToolsManager adminToolsManager;
 
     /**
      * Function used to retrieve the configuration info json.
      *
      * @return the configuration info json.
-     * @since 1.0
      */
     public Map<String, String> getConfigurationDetails()
     {
-        return this.configurationManager.generateResults();
+        return this.adminToolsManager.getConfigurationDetails();
     }
 }

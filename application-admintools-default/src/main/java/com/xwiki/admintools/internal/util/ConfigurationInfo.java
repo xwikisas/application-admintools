@@ -24,7 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Singleton;
+
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 
 /**
  * Encapsulates functions used for retrieving configuration data.
@@ -32,61 +35,54 @@ import org.xwiki.component.annotation.Component;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = ConfigurationInfoUtil.class)
+@Component(roles = ConfigurationInfo.class)
 @Singleton
-public class ConfigurationInfoUtil
+public class ConfigurationInfo implements Initializable
 {
     /**
      * Stores the path to the server.
      */
-    private final String serverSystemPath;
+    private String serverSystemPath;
 
     /**
      * Stores the possible paths for tomcat.
      */
-    private final String[] tomcatPossiblePaths;
+    private String[] tomcatPossiblePaths;
 
     /**
      * Stores the possible paths for the XWiki installation.
      */
-    private final String[] xwikiPossiblePaths;
+    private String[] xwikiPossiblePaths;
 
     /**
-     * The class constructor.
+     * The class initializer.
      */
-    public ConfigurationInfoUtil()
+    public void initialize() throws InitializationException
     {
         String catalinaBase = System.getProperty("catalina.base");
         if (catalinaBase != null) {
-            serverSystemPath = catalinaBase;
+            this.serverSystemPath = catalinaBase;
         } else {
-            serverSystemPath = System.getenv("CATALINA_HOME");
+            this.serverSystemPath = System.getenv("CATALINA_HOME");
         }
 
-        tomcatPossiblePaths = new String[] {
-            String.format("%s/conf/server.xml", serverSystemPath),
-            "/usr/local/tomcat/conf/server.xml",
-            "/opt/tomcat/conf/server.xml",
-            "/var/lib/tomcat8/conf/",
-            "/var/lib/tomcat9/conf/",
-            "/var/lib/tomcat/conf/" };
+        this.tomcatPossiblePaths = new String[] { String.format("%s/conf/server.xml", this.serverSystemPath),
+            "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/",
+            "/var/lib/tomcat9/conf/", "/var/lib/tomcat/conf/" };
 
-        xwikiPossiblePaths = new String[] {
-            "/etc/xwiki/xwiki.cfg",
-            String.format("%s/webapps${request.contextPath}/WEB-INF/xwiki.cfg", serverSystemPath),
-            "/usr/local/xwiki/WEB-INF/xwiki.cfg",
-            "/opt/xwiki/WEB-INF/xwiki.cfg",
-            String.format("%s/webapps/ROOT/WEB-INF/xwiki.cfg", serverSystemPath),
-            String.format("%s/webapps/xwiki/WEB-INF/xwiki.cfg", serverSystemPath) };
+        this.xwikiPossiblePaths = new String[] { "/etc/xwiki/xwiki.cfg",
+            String.format("%s/webapps${request.contextPath}/WEB-INF/xwiki.cfg", this.serverSystemPath),
+            "/usr/local/xwiki/WEB-INF/xwiki.cfg", "/opt/xwiki/WEB-INF/xwiki.cfg",
+            String.format("%s/webapps/ROOT/WEB-INF/xwiki.cfg", this.serverSystemPath),
+            String.format("%s/webapps/xwiki/WEB-INF/xwiki.cfg", this.serverSystemPath) };
     }
 
     /**
-     * Function used to retrieve the configuration info json.
+     * Get the configuration info json.
      *
      * @return xwiki configuration info json.
-     * @since 1.0
      */
-    public Map<String, String> getSystemInfo()
+    public Map<String, String> generateConfigurationDetails()
     {
         Map<String, String> systemInfo = new HashMap<>();
 
@@ -99,10 +95,9 @@ public class ConfigurationInfoUtil
     }
 
     /**
-     * Function used to retrieve the configuration file path for the XWiki.
+     * Get the configuration file path for the XWiki.
      *
      * @return the XWiki configuration file path.
-     * @since 1.0
      */
     private String getXwikiCfgPath()
     {
@@ -115,10 +110,9 @@ public class ConfigurationInfoUtil
     }
 
     /**
-     * Function used to retrieve the configuration file path for Tomcat.
+     * Get the configuration file path for Tomcat.
      *
      * @return path to Tomcat configuration file.
-     * @since 1.0
      */
     private String getTomcatConfPath()
     {
@@ -131,10 +125,9 @@ public class ConfigurationInfoUtil
     }
 
     /**
-     * Function used to retrieve the used version of Java.
+     * Get the used version of Java.
      *
      * @return the used Java version.
-     * @since 1.0
      */
     private String getJavaVersion()
     {
@@ -142,10 +135,9 @@ public class ConfigurationInfoUtil
     }
 
     /**
-     * Function used to retrieve info about the OS XWiki is running on.
+     * Get info about the OS XWiki is running on.
      *
      * @return info about the OS.
-     * @since 1.0
      */
     private String getOSInfo()
     {

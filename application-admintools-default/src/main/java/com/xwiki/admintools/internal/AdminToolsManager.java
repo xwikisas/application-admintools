@@ -26,32 +26,31 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.internal.util.ConfigurationInfoUtil;
+import com.xwiki.admintools.internal.util.ConfigurationInfo;
 
 /**
- * Manage existing instances.
+ * Manage existing instances. or admin tools manager
  *
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = ConfigurationManager.class)
+@Component(roles = AdminToolsManager.class)
 @Singleton
-public class ConfigurationManager
+public class AdminToolsManager
 {
     /**
      * Contains useful functions for retrieving configuration data.
      */
     @Inject
-    private final ConfigurationInfoUtil configurationInfoUtil = new ConfigurationInfoUtil();
+    private ConfigurationInfo configurationInfo;
 
     /**
      * Admin Tools script services.
      *
      * @return String
-     * @since 1.0
      */
-    public Map<String, String> generateResults()
+    public Map<String, String> getConfigurationDetails()
     {
-        return this.configurationInfoUtil.getSystemInfo();
+        return this.configurationInfo.generateConfigurationDetails();
     }
 }
