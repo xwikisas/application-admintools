@@ -1,0 +1,3 @@
+com.xwiki.admintools.script.AdminToolsScriptService
+com.xwiki.admintools.internal.ConfigurationManager
+com.xwiki.admintools.internal.util.ConfigurationInfoUtil

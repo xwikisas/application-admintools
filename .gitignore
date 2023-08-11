@@ -2,6 +2,9 @@
 target
 target-eclipse
 
+# VS Code
+.vscode
+
 # IDEA
 *.iml
 *.ipr
