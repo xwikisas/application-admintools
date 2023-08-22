@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -27,6 +28,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.internal.util.ConfigurationInfo;
+import com.xwiki.admintools.internal.util.SecurityInfo;
 
 /**
  * Manage existing instances. or admin tools manager
@@ -45,12 +47,28 @@ public class AdminToolsManager
     private ConfigurationInfo configurationInfo;
 
     /**
-     * Admin Tools script services.
+     * Contains useful functions for retrieving security data.
+     */
+    @Inject
+    private SecurityInfo securityInfo;
+
+    /**
+     * Extract the configuration settings.
      *
-     * @return String
+     * @return a json containing the configuration info
      */
     public Map<String, String> getConfigurationDetails()
     {
         return this.configurationInfo.generateConfigurationDetails();
+    }
+
+    /**
+     * Extract the security settings.
+     *
+     * @return a json containing the security info
+     */
+    public Map<String, String> getSecurityDetails()
+    {
+        return this.securityInfo.generateSecurityDetails();
     }
 }

@@ -56,4 +56,14 @@ public class AdminToolsScriptService implements ScriptService
     {
         return this.adminToolsManager.getConfigurationDetails();
     }
+
+    /**
+     * Function used to retrieve the security info json.
+     *
+     * @return the configuration info json.
+     */
+    public Map<String, String> getSecDetails()
+    {
+        return this.adminToolsManager.getSecurityDetails();
+    }
 }

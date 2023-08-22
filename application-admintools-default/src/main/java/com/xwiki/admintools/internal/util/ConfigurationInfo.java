@@ -23,11 +23,15 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
  * Encapsulates functions used for retrieving configuration data.
@@ -54,16 +58,47 @@ public class ConfigurationInfo implements Initializable
      */
     private String[] xwikiPossiblePaths;
 
+    @Inject
+    private Provider<AdminToolsConfiguration> configurationProvider;
+
     /**
      * The class initializer.
      */
     public void initialize() throws InitializationException
     {
-        String catalinaBase = System.getProperty("catalina.base");
-        if (catalinaBase != null) {
-            this.serverSystemPath = catalinaBase;
+        updatePaths();
+    }
+
+    /**
+     * Get the configuration info json.
+     *
+     * @return xwiki configuration info json.
+     */
+    public Map<String, String> generateConfigurationDetails()
+    {
+        updatePaths();
+        Map<String, String> systemInfo = new HashMap<>();
+
+        systemInfo.put("xwikiCfgPath", this.getXwikiCfgPath());
+        systemInfo.put("tomcatConfPath", this.getTomcatConfPath());
+        systemInfo.put("javaVersion", this.getJavaVersion());
+        systemInfo.put("osInfo", this.getOSInfo());
+
+        return systemInfo;
+    }
+
+    private void updatePaths()
+    {
+        String providedConfigServePath = configurationProvider.get().getServerPath();
+        if (providedConfigServePath != null && !providedConfigServePath.equals("null")) {
+            this.serverSystemPath = providedConfigServePath;
         } else {
-            this.serverSystemPath = System.getenv("CATALINA_HOME");
+            String catalinaBase = System.getProperty("catalina.base");
+            if (catalinaBase != null) {
+                this.serverSystemPath = catalinaBase;
+            } else {
+                this.serverSystemPath = System.getenv("CATALINA_HOME");
+            }
         }
 
         this.tomcatPossiblePaths = new String[] { String.format("%s/conf/server.xml", this.serverSystemPath),
@@ -78,26 +113,7 @@ public class ConfigurationInfo implements Initializable
     }
 
     /**
-     * Get the configuration info json.
-     *
-     * @return xwiki configuration info json.
-     */
-    public Map<String, String> generateConfigurationDetails()
-    {
-        Map<String, String> systemInfo = new HashMap<>();
-
-        systemInfo.put("xwikiCfgPath", this.getXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.getTomcatConfPath());
-        systemInfo.put("javaVersion", this.getJavaVersion());
-        systemInfo.put("osInfo", this.getOSInfo());
-
-        return systemInfo;
-    }
-
-    /**
      * Get the configuration file path for the XWiki.
-     *
-     * @return the XWiki configuration file path.
      */
     private String getXwikiCfgPath()
     {

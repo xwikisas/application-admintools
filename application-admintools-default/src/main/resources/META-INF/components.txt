@@ -1,3 +1,4 @@
 com.xwiki.admintools.script.AdminToolsScriptService
 com.xwiki.admintools.internal.AdminToolsManager
 com.xwiki.admintools.internal.util.ConfigurationInfo
+com.xwiki.admintools.internal.util.SecurityInfo
