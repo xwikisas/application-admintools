@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+/*
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -17,24 +16,37 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
--->
+ */
+package com.xwiki.admintools.internal.configuration;
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <parent>
-    <groupId>com.xwiki.admintools</groupId>
-    <artifactId>application-admintools</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>application-admintools-api</artifactId>
-  <packaging>jar</packaging>
-  <name>Admin Tools (Pro) - API</name>
-  <description>Provides the Java APIs needed by the Admin tools Application.</description>
-  <dependencies>
-    <dependency>
-      <groupId>org.xwiki.commons</groupId>
-      <artifactId>xwiki-commons-component-api</artifactId>
-      <version>${commons.version}</version>
-    </dependency>
-  </dependencies>
-</project>
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
+import org.xwiki.configuration.ConfigurationSource;
+
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+
+/**
+ * Default implementation of {@link AdminToolsConfiguration}.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
+@Component
+@Singleton
+public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
+{
+    private static final String SERVER_LOCATION = "serverLocation";
+
+    @Inject
+    @Named(AdminToolsConfigurationSource.HINT)
+    private ConfigurationSource mainConfiguration;
+
+    @Override
+    public String getServerPath()
+    {
+        return this.mainConfiguration.getProperty(SERVER_LOCATION, String.class);
+    }
+}
