@@ -310,7 +310,7 @@
       <displayInSection>Admin tools</displayInSection>
     </property>
     <property>
-      <heading>$services.localization.render('admin.admintools.configuration')</heading>
+      <heading>$services.localization.render('admin.admintools.description')</heading>
     </property>
     <property>
       <iconAttachment></iconAttachment>

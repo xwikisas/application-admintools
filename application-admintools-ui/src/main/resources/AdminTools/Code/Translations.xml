@@ -35,10 +35,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>~#~#Admin tools translations
-
-    admintools.codeSpace.description=The Admin Tools Pro application gives you full control and visibility over your Wiki instance.
-    admin.admintools.configuration=Add your server installation path
+  <content>##Admin section
+    admin.admintools.description=Add your server installation path
+    AdminTools.Code.ConfigurationClass_serverLocation.hint=Manually add the XWiki server path.
   </content>
   <object>
     <name>AdminTools.Code.Translations</name>

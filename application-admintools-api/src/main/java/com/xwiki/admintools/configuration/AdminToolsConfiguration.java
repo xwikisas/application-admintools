@@ -36,7 +36,6 @@ public interface AdminToolsConfiguration
      * Get the server installation path.
      *
      * @return the server installation path.
-     * @since 1.0
      */
     String getServerPath();
 }

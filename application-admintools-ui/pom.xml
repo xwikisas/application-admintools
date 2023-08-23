@@ -81,7 +81,7 @@
         <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
         <configuration>
           <contentPages>
-            <contentPage>.*/Admintools/WebHome\.xml</contentPage>
+            <contentPage>.*/AdminTools/WebHome\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>
