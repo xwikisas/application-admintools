@@ -19,14 +19,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="Admintools.Code.Configuration" locale="">
-  <web>Admintools.Code</web>
+<xwikidoc version="1.4" reference="AdminTools.Code.Configuration" locale="">
+  <web>AdminTools.Code</web>
   <name>Configuration</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Admintools.Code.WebHome</parent>
+  <parent>AdminTools.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -37,12 +37,12 @@
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>Admintools.Code.Configuration</name>
+    <name>AdminTools.Code.Configuration</name>
     <number>0</number>
-    <className>Admintools.Code.ConfigurationClass</className>
+    <className>AdminTools.Code.ConfigurationClass</className>
     <guid>bab285e4-041d-4e8a-9685-05f5b3dfa57e</guid>
     <class>
-      <name>Admintools.Code.ConfigurationClass</name>
+      <name>AdminTools.Code.ConfigurationClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -70,7 +70,7 @@
     </property>
   </object>
   <object>
-    <name>Admintools.Code.Configuration</name>
+    <name>AdminTools.Code.Configuration</name>
     <number>0</number>
     <className>XWiki.ConfigurableClass</className>
     <guid>ca97112b-bac2-4283-84f5-b6201ea4cacd</guid>
@@ -298,7 +298,7 @@
       <codeToExecute></codeToExecute>
     </property>
     <property>
-      <configurationClass>Admintools.Code.ConfigurationClass</configurationClass>
+      <configurationClass>AdminTools.Code.ConfigurationClass</configurationClass>
     </property>
     <property>
       <displayBeforeCategory></displayBeforeCategory>
@@ -307,10 +307,10 @@
       <displayInCategory></displayInCategory>
     </property>
     <property>
-      <displayInSection>Admintools</displayInSection>
+      <displayInSection>Admin tools</displayInSection>
     </property>
     <property>
-      <heading>$services.localization.render('admin.admintools.description')</heading>
+      <heading>$services.localization.render('admin.admintools.configuration')</heading>
     </property>
     <property>
       <iconAttachment></iconAttachment>

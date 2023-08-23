@@ -46,7 +46,7 @@ public class AdminToolsConfigurationSource extends AbstractDocumentConfiguration
      */
     public static final String HINT = "admintools.configuration.current";
 
-    private static final List<String> SPACE = Arrays.asList("Admintools", "Code");
+    private static final List<String> SPACE = Arrays.asList("AdminTools", "Code");
 
     private static final LocalDocumentReference CONFIG_DOC = new LocalDocumentReference(SPACE, "Configuration");
 

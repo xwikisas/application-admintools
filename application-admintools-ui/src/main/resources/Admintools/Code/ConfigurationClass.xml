@@ -19,8 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="Admintools.Code.ConfigurationClass" locale="">
-  <web>Admintools.Code</web>
+<xwikidoc version="1.4" reference="AdminTools.Code.ConfigurationClass" locale="">
+  <web>AdminTools.Code</web>
   <name>ConfigurationClass</name>
   <language/>
   <defaultLanguage/>
@@ -43,7 +43,7 @@
 #set ($defaultParent = $doc.fullName)
 {{/velocity}}</content>
   <class>
-    <name>Admintools.Code.ConfigurationClass</name>
+    <name>AdminTools.Code.ConfigurationClass</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>
@@ -67,7 +67,7 @@
     </serverLocation>
   </class>
   <object>
-    <name>Admintools.Code.ConfigurationClass</name>
+    <name>AdminTools.Code.ConfigurationClass</name>
     <number>0</number>
     <className>XWiki.DocumentSheetBinding</className>
     <guid>5b614133-80c5-4cf6-ae99-d11ff23d865f</guid>

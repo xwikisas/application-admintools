@@ -1,0 +1,2 @@
+com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
+com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration

@@ -19,8 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="Admintools.WebHome" locale="">
-  <web>Admintools</web>
+<xwikidoc version="1.4" reference="AdminTools.WebHome" locale="">
+  <web>AdminTools</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage>en</defaultLanguage>
@@ -30,17 +30,11 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>Admintools</title>
+  <title>AdminTools</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
-  <content>{{velocity}}
-    #set($installInfo = $services.admintools.getConfigurationDetails())
-    #set($secInfo = $services.admintools.getSecDetails())
-    $secInfo
-    $installInfo
-    $services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-extension-script').id.version.value
-{{/velocity}}
+  <hidden>false</hidden>
+  <content>
   </content>
 </xwikidoc>

@@ -19,14 +19,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="Admintools.Code.Translations" locale="">
-  <web>Admintools.Code</web>
+<xwikidoc version="1.4" reference="AdminTools.Code.Translations" locale="">
+  <web>AdminTools.Code</web>
   <name>Translations</name>
   <language/>
   <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Admintools.Code.WebHome</parent>
+  <parent>AdminTools.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -37,9 +37,11 @@
   <hidden>true</hidden>
   <content>~#~#Admin tools translations
 
-admintools.codeSpace.description=Admin tools Pro pages:</content>
+    admintools.codeSpace.description=The Admin Tools Pro application gives you full control and visibility over your Wiki instance.
+    admin.admintools.configuration=Add your server installation path
+  </content>
   <object>
-    <name>Admintools.Code.Translations</name>
+    <name>AdminTools.Code.Translations</name>
     <number>0</number>
     <className>XWiki.TranslationDocumentClass</className>
     <guid>b9f3e077-6d36-45e6-9556-7dd8c4a90f2c</guid>
@@ -63,8 +65,8 @@ admintools.codeSpace.description=Admin tools Pro pages:</content>
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
+        <separator></separator>
+        <separators>|,</separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
