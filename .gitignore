@@ -9,6 +9,9 @@ target-eclipse
 .idea
 atlassian-ide-plugin.xml
 
+# VS CODE
+.vscode
+
 # Eclipse
 .classpath
 .project
