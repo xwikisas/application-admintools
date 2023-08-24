@@ -62,7 +62,7 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return the configuration info json.
      */
-    public Map<String, String> getSecDetails()
+    public Map<String, String> getSecurityDetails()
     {
         return this.adminToolsManager.getSecurityDetails();
     }

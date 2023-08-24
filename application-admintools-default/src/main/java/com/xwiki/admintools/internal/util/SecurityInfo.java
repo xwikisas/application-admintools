@@ -43,13 +43,11 @@ import com.xpn.xwiki.XWikiContext;
 @Singleton
 public class SecurityInfo
 {
-    private final String[] searchedKeys = { "PWD", "LANG" };
-
     /**
      * Get the security details.
      */
     @Inject
-    private Provider<XWikiContext> xWikiContextProvider;
+    private Provider<XWikiContext> xcontextProvider;
 
     /**
      * Get the security details.
@@ -65,11 +63,14 @@ public class SecurityInfo
      */
     public Map<String, String> generateSecurityDetails()
     {
-        Map<String, String> securityDetails = new HashMap<>(this.getXwikiSecurityInfo());
+        Map<String, String> securityDetails = this.getXwikiSecurityInfo();
+        String workDirectory = "PWD";
+        String language = "LANG";
 
         securityDetails.put("fileEncoding", getFileEncoding());
-        securityDetails.put(searchedKeys[0], System.getenv(searchedKeys[0]));
-        securityDetails.put(searchedKeys[1], System.getenv(searchedKeys[1]));
+        securityDetails.put(workDirectory, System.getenv(workDirectory));
+        securityDetails.put(language, System.getenv(language));
+
         return securityDetails;
     }
 
@@ -92,7 +93,7 @@ public class SecurityInfo
     {
         Map<String, String> results = new HashMap<>();
 
-        XWikiContext wikiContext = xWikiContextProvider.get();
+        XWikiContext wikiContext = xcontextProvider.get();
         XWiki wiki = wikiContext.getWiki();
         String wikiEncoding = wiki.getEncoding();
         String cfgEncoding = configurationSource.getProperty("xwiki.encoding", String.class);

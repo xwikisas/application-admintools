@@ -59,7 +59,7 @@ public class ConfigurationInfo implements Initializable
     private String[] xwikiPossiblePaths;
 
     @Inject
-    private Provider<AdminToolsConfiguration> configurationProvider;
+    private Provider<AdminToolsConfiguration> adminToolsConfig;
 
     /**
      * The class initializer.
@@ -89,9 +89,9 @@ public class ConfigurationInfo implements Initializable
 
     private void updatePaths()
     {
-        String providedConfigServePath = configurationProvider.get().getServerPath();
-        if (providedConfigServePath != null && !providedConfigServePath.equals("null")) {
-            this.serverSystemPath = providedConfigServePath;
+        String providedConfigServerPath = adminToolsConfig.get().getServerPath();
+        if (providedConfigServerPath != null) {
+            this.serverSystemPath = providedConfigServerPath;
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             if (catalinaBase != null) {
