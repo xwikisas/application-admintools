@@ -37,7 +37,7 @@
   <hidden>true</hidden>
   <content>##Admin section
 admin.admintools.description=Configure Admin Tools Application
-AdminTools.Code.ConfigurationClass_serverLocation.hint=Manually add the XWiki server path.
+AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server locationvs
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
   </content>
   <object>
