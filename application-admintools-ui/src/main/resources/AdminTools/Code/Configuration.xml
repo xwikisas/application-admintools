@@ -307,7 +307,7 @@
       <displayInCategory></displayInCategory>
     </property>
     <property>
-      <displayInSection>Admin tools</displayInSection>
+      <displayInSection>Admin Tools</displayInSection>
     </property>
     <property>
       <heading>$services.localization.render('admin.admintools.description')</heading>
