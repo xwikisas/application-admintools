@@ -19,16 +19,16 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-
-import com.xwiki.admintools.internal.util.ConfigurationInfo;
-import com.xwiki.admintools.internal.util.SecurityInfo;
+import org.xwiki.rendering.block.Block;
 
 /**
  * Manage existing instances. or admin tools manager
@@ -44,22 +44,51 @@ public class AdminToolsManager
      * Contains useful functions for retrieving configuration data.
      */
     @Inject
-    private ConfigurationInfo configurationInfo;
+    @Named("configuration")
+    private DataProvider configurationInfo;
 
     /**
      * Contains useful functions for retrieving security data.
      */
     @Inject
-    private SecurityInfo securityInfo;
+    @Named("security")
+    private DataProvider securityInfo;
+
+    @Inject
+    private Provider<List<DataProvider>> dataProviderProvider;
+
+//    /**
+//     * Extract the configuration settings.
+//     *
+//     * @return a json containing the configuration info
+//     */
+//    public Map<String, String> getConfigurationDetails()
+//    {
+//        return this.configurationInfo.provideData();
+//    }
+//
+//    /**
+//     * Extract the security settings.
+//     *
+//     * @return a json containing the security info
+//     */
+//    public Map<String, String> getSecurityDetails()
+//    {
+//        return this.securityInfo.provideData();
+//    }
 
     /**
-     * Extract the configuration settings.
+     * Extract the security settings.
      *
-     * @return a json containing the configuration info
+     * @return a json containing the security info
      */
-    public Map<String, String> getConfigurationDetails()
+    public List<Block> generateData()
     {
-        return this.configurationInfo.generateConfigurationDetails();
+        List<Block> generatedData = new ArrayList<>();
+        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
+            generatedData.add(dataProvider.provideData());
+        }
+        return generatedData;
     }
 
     /**
@@ -67,8 +96,17 @@ public class AdminToolsManager
      *
      * @return a json containing the security info
      */
-    public Map<String, String> getSecurityDetails()
+    public List<Block> generateConfigData()
     {
-        return this.securityInfo.generateSecurityDetails();
+        return configurationInfo.provideData().getChildren();
     }
+
+//    public Map<String, String> generateData(String hint)
+//    {
+//        Map<String, String> generatedData = new HashMap<>();
+//        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
+//            generatedData.putAll(dataProvider.provideData());
+//        }
+//        return generatedData;
+//    }
 }

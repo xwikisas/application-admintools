@@ -19,13 +19,14 @@
  */
 package com.xwiki.admintools.script;
 
-import java.util.Map;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.rendering.block.Block;
 import org.xwiki.script.service.ScriptService;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
@@ -47,14 +48,34 @@ public class AdminToolsScriptService implements ScriptService
     @Inject
     private AdminToolsManager adminToolsManager;
 
+//    /**
+//     * Function used to retrieve the configuration info json.
+//     *
+//     * @return the configuration info json.
+//     */
+//    public Map<String, String> getConfigurationDetails()
+//    {
+//        return this.adminToolsManager.getConfigurationDetails();
+//    }
+//
+//    /**
+//     * Function used to retrieve the security info json.
+//     *
+//     * @return the configuration info json.
+//     */
+//    public Map<String, String> getSecurityDetails()
+//    {
+//        return this.adminToolsManager.getSecurityDetails();
+//    }
+
     /**
-     * Function used to retrieve the configuration info json.
+     * Function used to retrieve the security info json.
      *
      * @return the configuration info json.
      */
-    public Map<String, String> getConfigurationDetails()
+    public List<Block> getAllData()
     {
-        return this.adminToolsManager.getConfigurationDetails();
+        return this.adminToolsManager.generateData();
     }
 
     /**
@@ -62,8 +83,8 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return the configuration info json.
      */
-    public Map<String, String> getSecurityDetails()
+    public List<Block> getConfigData()
     {
-        return this.adminToolsManager.getSecurityDetails();
+        return this.adminToolsManager.generateConfigData();
     }
 }

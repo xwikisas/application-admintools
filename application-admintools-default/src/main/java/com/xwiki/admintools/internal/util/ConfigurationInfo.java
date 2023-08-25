@@ -24,13 +24,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.rendering.block.Block;
+import org.xwiki.template.Template;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
@@ -39,9 +43,10 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = ConfigurationInfo.class)
+@Component
+@Named("configuration")
 @Singleton
-public class ConfigurationInfo implements Initializable
+public class ConfigurationInfo extends AbstractDataProvider
 {
     /**
      * Stores the path to the server.
@@ -74,17 +79,26 @@ public class ConfigurationInfo implements Initializable
      *
      * @return xwiki configuration info json.
      */
-    public Map<String, String> generateConfigurationDetails()
+    public Block provideData()
     {
         updatePaths();
         Map<String, String> systemInfo = new HashMap<>();
+        XWikiContext xcontext = xcontextProvider.get();
 
         systemInfo.put("xwikiCfgPath", this.getXwikiCfgPath());
         systemInfo.put("tomcatConfPath", this.getTomcatConfPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.put("osInfo", this.getOSInfo());
 
-        return systemInfo;
+        Template customTemplate = this.templateManager.getTemplate("configurationTemplate.vm");
+        try {
+            // Set a document in the context to act as the current document when the template is rendered.
+
+            return this.templateManager.execute(customTemplate);
+        } catch (Exception e) {
+            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+        }
+        return null;
     }
 
     private void updatePaths()
