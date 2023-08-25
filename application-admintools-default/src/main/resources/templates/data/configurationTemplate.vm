@@ -18,6 +18,11 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 
+{{html}}
 <div>
   <p>test config class</p>
 </div>
+{{/html}}
+
+
+$configuration

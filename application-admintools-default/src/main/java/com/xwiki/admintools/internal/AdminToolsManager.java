@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -28,7 +27,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.rendering.block.Block;
 
 /**
  * Manage existing instances. or admin tools manager
@@ -41,72 +39,43 @@ import org.xwiki.rendering.block.Block;
 public class AdminToolsManager
 {
     /**
-     * Contains useful functions for retrieving configuration data.
+     * A list of all the data providers for Admin Tools.
      */
-    @Inject
-    @Named("configuration")
-    private DataProvider configurationInfo;
-
-    /**
-     * Contains useful functions for retrieving security data.
-     */
-    @Inject
-    @Named("security")
-    private DataProvider securityInfo;
-
     @Inject
     private Provider<List<DataProvider>> dataProviderProvider;
 
-//    /**
-//     * Extract the configuration settings.
-//     *
-//     * @return a json containing the configuration info
-//     */
-//    public Map<String, String> getConfigurationDetails()
-//    {
-//        return this.configurationInfo.provideData();
-//    }
-//
-//    /**
-//     * Extract the security settings.
-//     *
-//     * @return a json containing the security info
-//     */
-//    public Map<String, String> getSecurityDetails()
-//    {
-//        return this.securityInfo.provideData();
-//    }
-
     /**
-     * Extract the security settings.
+     * Merges all the templates.
      *
-     * @return a json containing the security info
+     * @return a string containing all templates.
      */
-    public List<Block> generateData()
+    public String generateData()
     {
-        List<Block> generatedData = new ArrayList<>();
+        StringBuilder strBuilder = new StringBuilder();
+
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            generatedData.add(dataProvider.provideData());
+            strBuilder.append(dataProvider.provideData());
+            strBuilder.append("\n");
         }
-        return generatedData;
+        return strBuilder.toString();
     }
 
     /**
-     * Extract the security settings.
+     * Extract a specific template.
      *
-     * @return a json containing the security info
+     * @param hint represents the data provider identifier.
+     * @return a String representing a template
      */
-    public List<Block> generateConfigData()
+    public String generateData(String hint)
     {
-        return configurationInfo.provideData().getChildren();
-    }
+        StringBuilder strBuilder = new StringBuilder();
 
-//    public Map<String, String> generateData(String hint)
-//    {
-//        Map<String, String> generatedData = new HashMap<>();
-//        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-//            generatedData.putAll(dataProvider.provideData());
-//        }
-//        return generatedData;
-//    }
+        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
+            if (dataProvider.getIdentifier().equals(hint)) {
+                strBuilder.append(dataProvider.provideData());
+                return strBuilder.toString();
+            }
+        }
+        return null;
+    }
 }

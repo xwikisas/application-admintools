@@ -28,13 +28,9 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.rendering.block.Block;
-import org.xwiki.template.Template;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
@@ -44,10 +40,15 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * @since 1.0
  */
 @Component
-@Named("configuration")
+@Named(ConfigurationDataProvider.HINT)
 @Singleton
-public class ConfigurationInfo extends AbstractDataProvider
+public class ConfigurationDataProvider extends AbstractDataProvider
 {
+    /**
+     * Stores the possible paths for the XWiki installation.
+     */
+    public static final String HINT = "configuration";
+
     /**
      * Stores the path to the server.
      */
@@ -63,6 +64,9 @@ public class ConfigurationInfo extends AbstractDataProvider
      */
     private String[] xwikiPossiblePaths;
 
+    /**
+     * Stores the possible paths for the XWiki installation.
+     */
     @Inject
     private Provider<AdminToolsConfiguration> adminToolsConfig;
 
@@ -79,28 +83,33 @@ public class ConfigurationInfo extends AbstractDataProvider
      *
      * @return xwiki configuration info json.
      */
-    public Block provideData()
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
+    }
+
+    /**
+     * Get the configuration info json.
+     *
+     * @return xwiki configuration info json.
+     */
+    public String provideData()
     {
         updatePaths();
         Map<String, String> systemInfo = new HashMap<>();
-        XWikiContext xcontext = xcontextProvider.get();
 
         systemInfo.put("xwikiCfgPath", this.getXwikiCfgPath());
         systemInfo.put("tomcatConfPath", this.getTomcatConfPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.put("osInfo", this.getOSInfo());
 
-        Template customTemplate = this.templateManager.getTemplate("configurationTemplate.vm");
-        try {
-            // Set a document in the context to act as the current document when the template is rendered.
-
-            return this.templateManager.execute(customTemplate);
-        } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-        }
-        return null;
+        return templateGenerator(systemInfo, "data/configurationTemplate.vm", HINT);
     }
-
+    /**
+     * Get the configuration info json.
+     *
+     */
     private void updatePaths()
     {
         String providedConfigServerPath = adminToolsConfig.get().getServerPath();

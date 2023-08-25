@@ -1,6 +1,6 @@
 com.xwiki.admintools.script.AdminToolsScriptService
 com.xwiki.admintools.internal.AdminToolsManager
-com.xwiki.admintools.internal.util.ConfigurationInfo
-com.xwiki.admintools.internal.util.SecurityInfo
+com.xwiki.admintools.internal.util.ConfigurationDataProvider
+com.xwiki.admintools.internal.util.SecurityDataProvider
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration

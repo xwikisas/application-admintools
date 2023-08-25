@@ -26,11 +26,8 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.rendering.block.Block;
-import org.xwiki.template.Template;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -42,10 +39,16 @@ import com.xpn.xwiki.XWikiContext;
  * @since 1.0
  */
 @Component
-@Named("security")
+@Named(SecurityDataProvider.HINT)
 @Singleton
-public class SecurityInfo extends AbstractDataProvider
+public class SecurityDataProvider extends AbstractDataProvider
 {
+    /**
+     * Get the configuration info json.
+     *
+     */
+    public static final  String HINT = "security";
+
     /**
      * Get the security details.
      */
@@ -58,7 +61,7 @@ public class SecurityInfo extends AbstractDataProvider
      *
      * @return the security details of the xwiki
      */
-    public Block provideData()
+    public String provideData()
     {
         Map<String, String> securityDetails = this.getXwikiSecurityInfo();
         String workDirectory = "PWD";
@@ -67,18 +70,14 @@ public class SecurityInfo extends AbstractDataProvider
         securityDetails.put("fileEncoding", getFileEncoding());
         securityDetails.put(workDirectory, System.getenv(workDirectory));
         securityDetails.put(language, System.getenv(language));
-        XWikiContext xcontext = xcontextProvider.get();
 
-        Template customTemplate = this.templateManager.getTemplate("configurationTemplate.vm");
-        try {
-            // Set a document in the context to act as the current document when the template is rendered.
-            xcontext.setDoc(xcontext.getWiki().getDocument(ADMINTOOLS_DOC, xcontext));
+        return templateGenerator(securityDetails, "data/securityTemplate.vm", HINT);
+    }
 
-            return this.templateManager.execute(customTemplate);
-        } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-        }
-        return null;
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
     }
 
     /**

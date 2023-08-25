@@ -19,12 +19,19 @@
  */
 package com.xwiki.admintools.internal.util;
 
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.script.ScriptContext;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.script.ScriptContextManager;
+import org.xwiki.template.Template;
 import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
@@ -38,8 +45,6 @@ import com.xwiki.admintools.internal.DataProvider;
  */
 public abstract class AbstractDataProvider implements DataProvider
 {
-    protected static final LocalDocumentReference ADMINTOOLS_DOC = new LocalDocumentReference("AdminTools", "WebHome");
-
     @Inject
     protected TemplateManager templateManager;
 
@@ -52,9 +57,48 @@ public abstract class AbstractDataProvider implements DataProvider
     @Inject
     protected Logger logger;
 
+    @Inject
+    private ScriptContextManager scriptContextManager;
+
+    /**
+     * Used if needed by the extending classes to initialize the resources.
+     *
+     * @throws InitializationException
+     */
     @Override
     public void initialize() throws InitializationException
     {
         // Overwrite to initialize a component
+    }
+
+    /**
+     * Generates the template of a data provider.
+     *
+     * @param data contains the data to be shown in the template.
+     * @param template path to the template.
+     * @param hint data provider identifier.
+     * @return String containing the generated template.
+     */
+    protected String templateGenerator(Map<String, String> data, String template, String hint)
+    {
+        Writer writer = new StringWriter();
+        Template customTemplate = this.templateManager.getTemplate(template);
+        try {
+            // Set a document in the context to act as the current document when the template is rendered.
+            this.bindData(hint, data);
+            this.templateManager.render(customTemplate, writer);
+            return writer.toString();
+        } catch (Exception e) {
+            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+        }
+        return null;
+    }
+
+
+    private void bindData(String key, Map<String, String> data)
+    {
+        ScriptContext scriptContext = scriptContextManager.getScriptContext();
+
+        scriptContext.setAttribute(key, data, ScriptContext.ENGINE_SCOPE);
     }
 }

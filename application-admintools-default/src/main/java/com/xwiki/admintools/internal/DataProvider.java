@@ -21,7 +21,6 @@ package com.xwiki.admintools.internal;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.component.phase.InitializationException;
-import org.xwiki.rendering.block.Block;
 
 /**
  * Allows data gathering.
@@ -33,14 +32,21 @@ import org.xwiki.rendering.block.Block;
 public interface DataProvider
 {
     /**
-     * Extract the security settings.
+     * Provides the template of a specific type.
      *
-     * @return a json containing the security info
+     * @return a data provider template
      */
-    Block provideData();
+    String provideData();
 
     /**
-     * Extract the security settings.
+     * If needed, it is used to initialize a template
      */
     void initialize() throws InitializationException;
+
+    /**
+     * Extract the hint of a component.
+     *
+     * @return component hint
+     */
+    String getIdentifier();
 }

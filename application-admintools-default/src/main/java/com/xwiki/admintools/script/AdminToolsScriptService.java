@@ -19,14 +19,11 @@
  */
 package com.xwiki.admintools.script;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.rendering.block.Block;
 import org.xwiki.script.service.ScriptService;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
@@ -48,43 +45,24 @@ public class AdminToolsScriptService implements ScriptService
     @Inject
     private AdminToolsManager adminToolsManager;
 
-//    /**
-//     * Function used to retrieve the configuration info json.
-//     *
-//     * @return the configuration info json.
-//     */
-//    public Map<String, String> getConfigurationDetails()
-//    {
-//        return this.adminToolsManager.getConfigurationDetails();
-//    }
-//
-//    /**
-//     * Function used to retrieve the security info json.
-//     *
-//     * @return the configuration info json.
-//     */
-//    public Map<String, String> getSecurityDetails()
-//    {
-//        return this.adminToolsManager.getSecurityDetails();
-//    }
-
     /**
-     * Function used to retrieve the security info json.
+     * Function used to retrieve all the templates of Admin Tools.
      *
-     * @return the configuration info json.
+     * @return all templates.
      */
-    public List<Block> getAllData()
+    public String getAllData()
     {
         return this.adminToolsManager.generateData();
     }
 
     /**
-     * Function used to retrieve the security info json.
+     * Get sa specific data provider.
      *
-     * @return the configuration info json.
+     * @param hint represents the data provider
+     * @return the template of a specific data provider
      */
-    public List<Block> getConfigData()
+    public String getSpecificData(String hint)
     {
-        return this.adminToolsManager.generateConfigData();
+        return this.adminToolsManager.generateData(hint);
     }
 }
