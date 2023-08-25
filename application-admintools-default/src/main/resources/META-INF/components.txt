@@ -1,2 +1,4 @@
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
+com.xwiki.admintools.script.AdminToolsScriptService
+com.xwiki.admintools.internal.AdminToolsManager
