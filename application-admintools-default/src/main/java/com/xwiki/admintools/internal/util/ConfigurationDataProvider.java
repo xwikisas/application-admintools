@@ -45,7 +45,7 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 public class ConfigurationDataProvider extends AbstractDataProvider
 {
     /**
-     * Stores the possible paths for the XWiki installation.
+     * The hint for the component.
      */
     public static final String HINT = "configuration";
 
@@ -65,24 +65,21 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     private String[] xwikiPossiblePaths;
 
     /**
-     * Stores the possible paths for the XWiki installation.
+     * Provides the XWiki configuration data.
      */
     @Inject
     private Provider<AdminToolsConfiguration> adminToolsConfig;
 
     /**
-     * The class initializer.
+     * Initialize the component.
+     *
+     * @throws InitializationException
      */
     public void initialize() throws InitializationException
     {
         updatePaths();
     }
 
-    /**
-     * Get the configuration info json.
-     *
-     * @return xwiki configuration info json.
-     */
     @Override
     public String getIdentifier()
     {
@@ -106,9 +103,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
         return templateGenerator(systemInfo, "data/configurationTemplate.vm", HINT);
     }
+
     /**
-     * Get the configuration info json.
-     *
+     * Function used to update the possible paths to the xwiki and tomcat installations.
      */
     private void updatePaths()
     {

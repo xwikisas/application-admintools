@@ -48,9 +48,6 @@ public abstract class AbstractDataProvider implements DataProvider
     @Inject
     protected TemplateManager templateManager;
 
-    /**
-     * Get the security details.
-     */
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
 
@@ -60,11 +57,6 @@ public abstract class AbstractDataProvider implements DataProvider
     @Inject
     private ScriptContextManager scriptContextManager;
 
-    /**
-     * Used if needed by the extending classes to initialize the resources.
-     *
-     * @throws InitializationException
-     */
     @Override
     public void initialize() throws InitializationException
     {
@@ -94,7 +86,12 @@ public abstract class AbstractDataProvider implements DataProvider
         return null;
     }
 
-
+    /**
+     * Binds the data provided by the DataProvider to the template.
+     *
+     * @param key
+     * @param data
+     */
     private void bindData(String key, Map<String, String> data)
     {
         ScriptContext scriptContext = scriptContextManager.getScriptContext();

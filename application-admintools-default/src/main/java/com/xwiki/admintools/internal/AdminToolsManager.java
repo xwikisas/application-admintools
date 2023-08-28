@@ -22,7 +22,6 @@ package com.xwiki.admintools.internal;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 

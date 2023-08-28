@@ -39,7 +39,9 @@ public interface DataProvider
     String provideData();
 
     /**
-     * If needed, it is used to initialize a template
+     * If needed, it is used to initialize a template.
+     *
+     * @throws InitializationException
      */
     void initialize() throws InitializationException;
 

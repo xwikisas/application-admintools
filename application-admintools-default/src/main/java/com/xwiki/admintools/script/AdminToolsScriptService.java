@@ -56,7 +56,7 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * Get sa specific data provider.
+     * Get a specific data provider template.
      *
      * @param hint represents the data provider
      * @return the template of a specific data provider

@@ -44,13 +44,12 @@ import com.xpn.xwiki.XWikiContext;
 public class SecurityDataProvider extends AbstractDataProvider
 {
     /**
-     * Get the configuration info json.
-     *
+     * The hint for the component.
      */
-    public static final  String HINT = "security";
+    public static final String HINT = "security";
 
     /**
-     * Get the security details.
+     * XWiki configuration file source.
      */
     @Inject
     @Named("xwikicfg")
