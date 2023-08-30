@@ -46,11 +46,11 @@ public class AdminToolsScriptService implements ScriptService
     private AdminToolsManager adminToolsManager;
 
     /**
-     * Function used to retrieve all the templates of Admin Tools.
+     * Function used to retrieve all the configuration info templates of Admin Tools.
      *
      * @return all templates.
      */
-    public String getAllData()
+    public String getAllConfigurationTemplates()
     {
         return this.adminToolsManager.generateData();
     }

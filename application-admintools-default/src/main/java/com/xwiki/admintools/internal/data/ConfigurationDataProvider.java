@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.util;
+package com.xwiki.admintools.internal.data;
 
 import java.io.File;
 import java.util.HashMap;
@@ -55,6 +55,11 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     private String serverSystemPath;
 
     /**
+     * Saves the server type.
+     */
+    private String serverType;
+
+    /**
      * Stores the possible paths for tomcat.
      */
     private String[] tomcatPossiblePaths;
@@ -75,6 +80,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @throws InitializationException
      */
+    @Override
     public void initialize() throws InitializationException
     {
         updatePaths();
@@ -102,6 +108,15 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         systemInfo.put("osInfo", this.getOSInfo());
 
         return templateGenerator(systemInfo, "data/configurationTemplate.vm", HINT);
+    }
+
+    public Map<String, String> getServerIdentifiers()
+    {
+        Map<String, String> serverIdentifiers = new HashMap<>();
+        serverIdentifiers.put("serverPath", serverSystemPath);
+        serverIdentifiers.put("serverType", serverType);
+
+        return serverIdentifiers;
     }
 
     /**

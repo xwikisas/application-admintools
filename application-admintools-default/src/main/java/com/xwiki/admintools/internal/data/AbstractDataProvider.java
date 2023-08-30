@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.util;
+package com.xwiki.admintools.internal.data;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -29,13 +29,14 @@ import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.Template;
 import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.internal.DataProvider;
+import com.xwiki.admintools.DataProvider;
 
 /**
  * To be extended by {@link DataProvider} implementations to simplify the code.
@@ -43,7 +44,7 @@ import com.xwiki.admintools.internal.DataProvider;
  * @version $Id$
  * @since 1.0
  */
-public abstract class AbstractDataProvider implements DataProvider
+public abstract class AbstractDataProvider implements DataProvider, Initializable
 {
     @Inject
     protected TemplateManager templateManager;

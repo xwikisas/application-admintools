@@ -27,6 +27,8 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.DataProvider;
+
 /**
  * Manage existing instances. or admin tools manager
  *

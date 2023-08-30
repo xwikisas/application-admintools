@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.util;
+package com.xwiki.admintools.internal.data;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +48,10 @@ public class SecurityDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "security";
 
+    private static final String workDirectory = "PWD";
+
+    private static final String language = "LANG";
+
     /**
      * XWiki configuration file source.
      */
@@ -63,12 +67,8 @@ public class SecurityDataProvider extends AbstractDataProvider
     public String provideData()
     {
         Map<String, String> securityDetails = this.getXwikiSecurityInfo();
-        String workDirectory = "PWD";
-        String language = "LANG";
 
-        securityDetails.put("fileEncoding", getFileEncoding());
-        securityDetails.put(workDirectory, System.getenv(workDirectory));
-        securityDetails.put(language, System.getenv(language));
+        securityDetails.putAll(getEnvironmentInfo());
 
         return templateGenerator(securityDetails, "data/securityTemplate.vm", HINT);
     }
@@ -77,16 +77,6 @@ public class SecurityDataProvider extends AbstractDataProvider
     public String getIdentifier()
     {
         return HINT;
-    }
-
-    /**
-     * Get the encoding used for the files.
-     *
-     * @return the file encoding
-     */
-    private String getFileEncoding()
-    {
-        return System.getProperty("file.encoding");
     }
 
     /**
@@ -105,6 +95,22 @@ public class SecurityDataProvider extends AbstractDataProvider
 
         results.put("activeEncoding", wikiEncoding);
         results.put("configurationEncoding", cfgEncoding);
+        results.put("fileEncoding", System.getProperty("file.encoding"));
+
+        return results;
+    }
+
+    /**
+     * Get the security info regarding the environment.
+     *
+     * @return environment security info.
+     */
+    private Map<String, String> getEnvironmentInfo()
+    {
+        Map<String, String> results = new HashMap<>();
+
+        results.put(workDirectory, System.getenv(workDirectory));
+        results.put(language, System.getenv(language));
 
         return results;
     }

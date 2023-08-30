@@ -17,10 +17,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal;
+package com.xwiki.admintools;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.component.phase.InitializationException;
 
 /**
  * Allows data gathering.
@@ -37,13 +36,6 @@ public interface DataProvider
      * @return a data provider template
      */
     String provideData();
-
-    /**
-     * If needed, it is used to initialize a template.
-     *
-     * @throws InitializationException
-     */
-    void initialize() throws InitializationException;
 
     /**
      * Extract the hint of a component.
