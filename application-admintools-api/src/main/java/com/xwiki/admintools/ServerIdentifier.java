@@ -17,41 +17,59 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.configuration;
+package com.xwiki.admintools;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import java.util.Map;
 
-import org.xwiki.component.annotation.Component;
-import org.xwiki.configuration.ConfigurationSource;
-
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+import org.xwiki.component.annotation.Role;
 
 /**
- * Default implementation of {@link AdminToolsConfiguration}.
+ * TBC.
  *
  * @version $Id$
  * @since 1.0
  */
-@Component
-@Named(DefaultAdminToolsConfiguration.HINT)
-@Singleton
-public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
+@Role
+public interface ServerIdentifier
 {
     /**
-     * Component identifier.
+     * TBC.
+     * @param providedConfigServerPath TBC
+     * @return TBC
      */
-    public static final String HINT = "defaultConfiguration";
-    private static final String SERVER_LOCATION = "serverLocation";
+    boolean isUsed(String providedConfigServerPath);
 
-    @Inject
-    @Named(AdminToolsConfigurationSource.HINT)
-    private ConfigurationSource mainConfiguration;
+    /**
+     * Extract the hint of a component.
+     *
+     * @return component hint
+     */
+    String getIdentifier();
 
-    @Override
-    public String getServerPath()
-    {
-        return this.mainConfiguration.getProperty(SERVER_LOCATION, String.class);
-    }
+    /**
+     * TBC.
+     *
+     * @return TBC
+     */
+    String getServerCfgPath();
+
+    /**
+     * TBC.
+     *
+     * @return TBC
+     */
+    String getXwikiCfgPath();
+
+    /**
+     * TBC.
+     *
+     * @param providedConfigServerPath TBC
+     */
+    void updatePaths(String providedConfigServerPath);
+
+    /**
+     * TBC.
+     * @return TBC
+     */
+    Map<String, String> getServerIdentifiers();
 }

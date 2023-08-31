@@ -19,19 +19,16 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.InitializationException;
 
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Encapsulates functions used for retrieving configuration data.
@@ -50,41 +47,10 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     public static final String HINT = "configuration";
 
     /**
-     * Stores the path to the server.
-     */
-    private String serverSystemPath;
-
-    /**
-     * Saves the server type.
-     */
-    private String serverType;
-
-    /**
-     * Stores the possible paths for tomcat.
-     */
-    private String[] tomcatPossiblePaths;
-
-    /**
-     * Stores the possible paths for the XWiki installation.
-     */
-    private String[] xwikiPossiblePaths;
-
-    /**
-     * Provides the XWiki configuration data.
+     * Collection of functions used to retrieve info about the current server paths and type.
      */
     @Inject
-    private Provider<AdminToolsConfiguration> adminToolsConfig;
-
-    /**
-     * Initialize the component.
-     *
-     * @throws InitializationException
-     */
-    @Override
-    public void initialize() throws InitializationException
-    {
-        updatePaths();
-    }
+    private CurrentServer usedServer;
 
     @Override
     public String getIdentifier()
@@ -93,86 +59,21 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Get the configuration info json.
+     * Get the configuration info template.
      *
      * @return xwiki configuration info json.
      */
+    @Override
     public String provideData()
     {
-        updatePaths();
+        usedServer.updatePaths();
         Map<String, String> systemInfo = new HashMap<>();
-
-        systemInfo.put("xwikiCfgPath", this.getXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.getTomcatConfPath());
+        systemInfo.put("xwikiCfgPath", usedServer.getXwikiCfgPath());
+        systemInfo.put("tomcatConfPath", this.usedServer.getServerCfgPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.put("osInfo", this.getOSInfo());
 
-        return templateGenerator(systemInfo, "data/configurationTemplate.vm", HINT);
-    }
-
-    public Map<String, String> getServerIdentifiers()
-    {
-        Map<String, String> serverIdentifiers = new HashMap<>();
-        serverIdentifiers.put("serverPath", serverSystemPath);
-        serverIdentifiers.put("serverType", serverType);
-
-        return serverIdentifiers;
-    }
-
-    /**
-     * Function used to update the possible paths to the xwiki and tomcat installations.
-     */
-    private void updatePaths()
-    {
-        String providedConfigServerPath = adminToolsConfig.get().getServerPath();
-        if (providedConfigServerPath != null) {
-            this.serverSystemPath = providedConfigServerPath;
-        } else {
-            String catalinaBase = System.getProperty("catalina.base");
-            if (catalinaBase != null) {
-                this.serverSystemPath = catalinaBase;
-            } else {
-                this.serverSystemPath = System.getenv("CATALINA_HOME");
-            }
-        }
-
-        this.tomcatPossiblePaths = new String[] { String.format("%s/conf/server.xml", this.serverSystemPath),
-            "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/",
-            "/var/lib/tomcat9/conf/", "/var/lib/tomcat/conf/" };
-
-        this.xwikiPossiblePaths = new String[] { "/etc/xwiki/xwiki.cfg",
-            String.format("%s/webapps${request.contextPath}/WEB-INF/xwiki.cfg", this.serverSystemPath),
-            "/usr/local/xwiki/WEB-INF/xwiki.cfg", "/opt/xwiki/WEB-INF/xwiki.cfg",
-            String.format("%s/webapps/ROOT/WEB-INF/xwiki.cfg", this.serverSystemPath),
-            String.format("%s/webapps/xwiki/WEB-INF/xwiki.cfg", this.serverSystemPath) };
-    }
-
-    /**
-     * Get the configuration file path for the XWiki.
-     */
-    private String getXwikiCfgPath()
-    {
-        for (String xwCfgPath : xwikiPossiblePaths) {
-            if ((new File(xwCfgPath)).exists()) {
-                return xwCfgPath;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get the configuration file path for Tomcat.
-     *
-     * @return path to Tomcat configuration file.
-     */
-    private String getTomcatConfPath()
-    {
-        for (String tomConfPath : tomcatPossiblePaths) {
-            if ((new File(tomConfPath)).exists()) {
-                return tomConfPath;
-            }
-        }
-        return null;
+        return getRenderedTemplate("data/configurationTemplate.vm", systemInfo, HINT);
     }
 
     /**
