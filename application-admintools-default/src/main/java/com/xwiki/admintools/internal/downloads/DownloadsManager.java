@@ -36,7 +36,13 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.FilesDownloader;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -50,11 +56,17 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Singleton
 public class DownloadsManager implements Initializable
 {
+    @Inject
+    protected Provider<XWikiContext> xcontextProvider;
+
     /**
      * TBC.
      */
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private ContextualAuthorizationManager authorizationManager;
 
     /**
      * A list of all the data providers for Admin Tools.
@@ -92,12 +104,26 @@ public class DownloadsManager implements Initializable
     }
 
     /**
+     * @return
+     */
+    public boolean isAdmin()
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWiki wiki = wikiContext.getWiki();
+        DocumentReference a = wikiContext.getUserReference();
+        WikiReference b = wikiContext.getWikiReference();
+        boolean c = this.authorizationManager.hasAccess(Right.ADMIN);
+        String d = "";
+        return c;
+    }
+
+    /**
      * TBC.
      *
      * @param filters TBC
      * @return TBC
      */
-    public Object downloadLogs(Map<String, String> filters)
+    public byte[] downloadLogs(Map<String, String> filters)
     {
         return callLogsDownloader(serverType + "Logs", filters);
     }
@@ -138,11 +164,11 @@ public class DownloadsManager implements Initializable
         return stringBuilder.toString().getBytes();
     }
 
-    private Object callLogsDownloader(String hint, Map<String, String> filter)
+    private byte[] callLogsDownloader(String hint, Map<String, String> filter)
     {
         for (FilesDownloader specificFilesDownloader : this.filesDownloader.get()) {
             if (specificFilesDownloader.getIdentifier().equals(hint)) {
-                return specificFilesDownloader.getLogs(filter, serverPath);
+                return specificFilesDownloader.generateLogsArchive(filter, serverPath);
             }
         }
         return null;

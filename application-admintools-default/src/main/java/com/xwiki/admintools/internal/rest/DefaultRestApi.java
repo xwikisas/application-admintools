@@ -19,16 +19,28 @@
  */
 package com.xwiki.admintools.internal.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.inject.Inject;
-import javax.ws.rs.Produces;
+import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.rest.XWikiRestException;
+import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
+import org.xwiki.security.authorization.AuthorizationManager;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.internal.downloads.DownloadsManager;
 import com.xwiki.admintools.rest.AdminToolsRestApi;
 
@@ -38,8 +50,13 @@ import com.xwiki.admintools.rest.AdminToolsRestApi;
  * @version $Id$
  * @since 1.0
  */
-public class DefaultRestApi implements AdminToolsRestApi
+@Component
+@Named("com.xwiki.admintools.internal.rest.DefaultRestApi")
+@Singleton
+public class DefaultRestApi extends ModifiablePageResource implements AdminToolsRestApi
 {
+    private final String contentDisposition = "Content-Disposition";
+
     @Inject
     private Logger logger;
 
@@ -47,24 +64,26 @@ public class DefaultRestApi implements AdminToolsRestApi
     private DownloadsManager downloadsManager;
 
     @Override
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getConfigs(String type, String token) throws XWikiRestException
+    public Response getConfigs(String type) throws XWikiRestException
     {
-//        if (token == null || !fileTokenManager.hasAccess(token)) {
-//            logger.warn("Failed to get file [{}] due to invalid token or restricted rights.", fileId);
-//            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-//        }
+//        boolean a = request.isUserInRole("admin");
+        if (downloadsManager.isAdmin()) {
+            logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
         try {
             byte[] xWikiFile = downloadsManager.downloadXWikiFile(type);
-            String contentDisposition = "Content-Disposition";
+            InputStream inputStream = new ByteArrayInputStream(xWikiFile);
+            Response.ResponseBuilder response = Response.ok(inputStream);
+            response.type(MediaType.TEXT_PLAIN_TYPE);
             if (type.equals("properties")) {
-                return Response.ok(xWikiFile, MediaType.APPLICATION_OCTET_STREAM)
-                    .header(contentDisposition, "attachment; filename = xwiki.properties").build();
-            } else if (type.equals("configuration")) {
-                return Response.ok(xWikiFile, MediaType.APPLICATION_OCTET_STREAM)
-                    .header(contentDisposition, "attachment; filename = xwiki.cfg").build();
+                response.header(contentDisposition, "attachment; filename=xwiki.properties");
+                return response.build();
+            } else if (type.equals("config")) {
+                response.header(contentDisposition, "attachment; filename=xwiki.cfg");
+                return response.build();
             } else {
-                return Response.status(401).build();
+                return Response.status(404).build();
             }
         } catch (Exception e) {
             logger.warn("Failed to get file [{}]. Root cause: [{}]", type, ExceptionUtils.getRootCauseMessage(e));
@@ -75,14 +94,30 @@ public class DefaultRestApi implements AdminToolsRestApi
     /**
      * TBC.
      *
-     * @param type
-     * @param token
      * @return TBC
      * @throws XWikiRestException
      */
     @Override
-    public Response getLogs(String type, String token) throws XWikiRestException
+    public Response getLogs(String from, String to) throws XWikiRestException
     {
-        return null;
+        try {
+            Map<String, String> filters = new HashMap<>();
+            filters.put("from", from);
+            filters.put("to", to);
+            byte[] logsArchive = downloadsManager.downloadLogs(filters);
+            if (logsArchive != null) {
+                // Set the appropriate response headers to indicate a file download.
+                Response.ResponseBuilder response = Response.ok(logsArchive);
+                response.header("Content-Type", "application/zip");
+                response.header(contentDisposition, "attachment; filename=logs_archive.zip");
+                return response.build();
+            } else {
+                // Handle the case when no logs are found or an error occurs.
+                return Response.status(Response.Status.NOT_FOUND).entity("No logs found.").build();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 }

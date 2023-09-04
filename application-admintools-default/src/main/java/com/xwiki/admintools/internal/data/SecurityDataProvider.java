@@ -28,6 +28,8 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -48,9 +50,9 @@ public class SecurityDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "security";
 
-    private static final String workDirectory = "PWD";
+    private static final String WORK_DIRECTORY = "PWD";
 
-    private static final String language = "LANG";
+    private static final String LANGUAGE = "LANG";
 
     /**
      * XWiki configuration file source.
@@ -64,13 +66,14 @@ public class SecurityDataProvider extends AbstractDataProvider
      *
      * @return the security details of the xwiki
      */
+    @Override
     public String provideData()
     {
         Map<String, String> securityDetails = this.getXwikiSecurityInfo();
 
         securityDetails.putAll(getEnvironmentInfo());
 
-        return templateGenerator(securityDetails, "data/securityTemplate.vm", HINT);
+        return getRenderedTemplate("data/securityTemplate.vm", securityDetails, HINT);
     }
 
     @Override
@@ -90,11 +93,10 @@ public class SecurityDataProvider extends AbstractDataProvider
 
         XWikiContext wikiContext = xcontextProvider.get();
         XWiki wiki = wikiContext.getWiki();
-        String wikiEncoding = wiki.getEncoding();
-        String cfgEncoding = configurationSource.getProperty("xwiki.encoding", String.class);
-
-        results.put("activeEncoding", wikiEncoding);
-        results.put("configurationEncoding", cfgEncoding);
+        DocumentReference a = wikiContext.getUserReference();
+        WikiReference b = wikiContext.getWikiReference();
+        results.put("activeEncoding", wiki.getEncoding());
+        results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
         results.put("fileEncoding", System.getProperty("file.encoding"));
 
         return results;
@@ -109,8 +111,8 @@ public class SecurityDataProvider extends AbstractDataProvider
     {
         Map<String, String> results = new HashMap<>();
 
-        results.put(workDirectory, System.getenv(workDirectory));
-        results.put(language, System.getenv(language));
+        results.put(WORK_DIRECTORY, System.getenv(WORK_DIRECTORY));
+        results.put(LANGUAGE, System.getenv(LANGUAGE));
 
         return results;
     }

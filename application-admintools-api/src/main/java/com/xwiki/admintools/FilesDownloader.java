@@ -20,6 +20,7 @@
 package com.xwiki.admintools;
 
 import java.util.Map;
+import java.util.zip.ZipEntry;
 
 import org.xwiki.component.annotation.Role;
 
@@ -40,7 +41,7 @@ public interface FilesDownloader
      * @param path
      * @return TBC
      */
-    Object getLogs(Map<String, String> filter, String path);
+    byte[] generateLogsArchive(Map<String, String> filter, String path);
 
     /**
      * Extract the hint of a component.

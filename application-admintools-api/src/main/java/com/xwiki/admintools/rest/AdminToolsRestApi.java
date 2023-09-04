@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.rest;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,26 +40,24 @@ public interface AdminToolsRestApi extends XWikiRestComponent
 {
     /**
      * TBC.
+     *
      * @param type
-     * @param token
      * @return TBC
      * @throws XWikiRestException
      */
     @GET
     @Path("/configs/{fileType}")
-    Response getConfigs(@PathParam("fileType") String type, @QueryParam("access_token") String token)
+    Response getConfigs(@PathParam("fileType") String type)
         throws XWikiRestException;
 
     /**
      * TBC.
      *
-     * @param type
-     * @param token
      * @return TBC
      * @throws XWikiRestException
      */
     @GET
     @Path("/logs")
-    Response getLogs(@PathParam("fileType") String type, @QueryParam("access_token") String token)
+    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to)
         throws XWikiRestException;
 }

@@ -2,7 +2,10 @@ com.xwiki.admintools.script.AdminToolsScriptService
 com.xwiki.admintools.internal.AdminToolsManager
 com.xwiki.admintools.internal.data.ConfigurationDataProvider
 com.xwiki.admintools.internal.data.SecurityDataProvider
-com.xwiki.admintools.internal.downloads.TomcatFilesDownloader
+com.xwiki.admintools.internal.downloads.TomcatLogsDownloader
 com.xwiki.admintools.internal.downloads.DownloadsManager
+com.xwiki.admintools.internal.data.identifiers.CurrentServer
+com.xwiki.admintools.internal.data.identifiers.TomcatIdentifier
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
+com.xwiki.admintools.internal.rest.DefaultRestApi

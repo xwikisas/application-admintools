@@ -19,14 +19,17 @@
  */
 package com.xwiki.admintools.internal.downloads;
 
+import java.io.File;
 import java.util.Map;
+import java.util.regex.Pattern;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
-
-import com.xwiki.admintools.FilesDownloader;
+import org.xwiki.logging.Logger;
 
 /**
  * Encapsulates functions used for downloading configuration files.
@@ -34,24 +37,30 @@ import com.xwiki.admintools.FilesDownloader;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = TomcatFilesDownloader.class)
-@Named(TomcatFilesDownloader.HINT)
+@Component
+@Named(TomcatLogsDownloader.HINT)
 @Singleton
-public class TomcatFilesDownloader implements FilesDownloader
+public class TomcatLogsDownloader extends AbstractLogsDownloader
 {
     /**
      * The hint for the component.
      */
     public static final String HINT = "tomcatLogs";
 
+
+
     /**
      * @param filter
      * @return
      */
     @Override
-    public Object getLogs(Map<String, String> filter, String path)
+    public byte[] generateLogsArchive(Map<String, String> filter, String serverPath)
     {
-        return null;
+        File logsFolder = new File(serverPath + "/logs");
+        File[] listOfFiles = logsFolder.listFiles();
+        Pattern pattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+
+        return this.generateArchive(filter, listOfFiles, pattern);
     }
 
     @Override

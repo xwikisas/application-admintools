@@ -72,12 +72,12 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
      * @param hint data provider identifier.
      * @return String containing the generated template.
      */
-    protected String templateGenerator(Map<String, String> data, String template, String hint)
+    protected String getRenderedTemplate(String template, Map<String, String> data, String hint)
     {
         Writer writer = new StringWriter();
         Template customTemplate = this.templateManager.getTemplate(template);
         try {
-            // Set a document in the context to act as the current document when the template is rendered.
+            // Binds the data provided to the template.
             this.bindData(hint, data);
             this.templateManager.render(customTemplate, writer);
             return writer.toString();
@@ -96,7 +96,6 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     private void bindData(String key, Map<String, String> data)
     {
         ScriptContext scriptContext = scriptContextManager.getScriptContext();
-
         scriptContext.setAttribute(key, data, ScriptContext.ENGINE_SCOPE);
     }
 }

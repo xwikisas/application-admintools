@@ -50,7 +50,7 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return all templates.
      */
-    public String getAllConfigurationTemplates()
+    public String getConfigurationData()
     {
         return this.adminToolsManager.generateData();
     }
@@ -61,7 +61,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param hint represents the data provider
      * @return the template of a specific data provider
      */
-    public String getSpecificData(String hint)
+    public String getConfigurationData(String hint)
     {
         return this.adminToolsManager.generateData(hint);
     }
