@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.rest;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,34 +29,34 @@ import org.xwiki.rest.XWikiRestComponent;
 import org.xwiki.rest.XWikiRestException;
 
 /**
- * Provides the APIs needed by the collabora server in order to access a file and it's content, but also to save it.
+ * Provides the APIs needed by the Admin Tools server in order to download configuration files and a logs archive.
  *
  * @version $Id$
  * @since 1.0
  */
 @Path("/admintools/download")
-public interface AdminToolsRestApi extends XWikiRestComponent
+public interface AdminToolsResources extends XWikiRestComponent
 {
     /**
-     * TBC.
+     * REST endpoint for accessing the XWiki configuration or properties download.
      *
-     * @param type
-     * @return TBC
+     * @param type specifies the XWiki searched file.
+     * @return Response with a configured header for file download.
      * @throws XWikiRestException
      */
     @GET
     @Path("/configs/{fileType}")
-    Response getConfigs(@PathParam("fileType") String type)
-        throws XWikiRestException;
+    Response getConfigs(@PathParam("fileType") String type) throws XWikiRestException;
 
     /**
-     * TBC.
+     * REST endpoint for accessing the logs archive download.
      *
-     * @return TBC
+     * @param from filter date, starting from.
+     * @param to filter date, until.
+     * @return Response with a configured header for zip download.
      * @throws XWikiRestException
      */
     @GET
     @Path("/logs")
-    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to)
-        throws XWikiRestException;
+    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
 }

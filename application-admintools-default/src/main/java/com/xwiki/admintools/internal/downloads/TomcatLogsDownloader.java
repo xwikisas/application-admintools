@@ -23,16 +23,13 @@ import java.io.File;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.logging.Logger;
 
 /**
- * Encapsulates functions used for downloading configuration files.
+ * Encapsulates functions used for downloading log files.
  *
  * @version $Id$
  * @since 1.0
@@ -47,12 +44,6 @@ public class TomcatLogsDownloader extends AbstractLogsDownloader
      */
     public static final String HINT = "tomcatLogs";
 
-
-
-    /**
-     * @param filter
-     * @return
-     */
     @Override
     public byte[] generateLogsArchive(Map<String, String> filter, String serverPath)
     {

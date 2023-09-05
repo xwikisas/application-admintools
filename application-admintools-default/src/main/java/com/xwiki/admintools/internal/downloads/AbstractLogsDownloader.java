@@ -35,23 +35,38 @@ import javax.inject.Inject;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 
-import com.xwiki.admintools.FilesDownloader;
+import com.xwiki.admintools.LogsDownloader;
 
-public abstract class AbstractLogsDownloader implements FilesDownloader
+/**
+ * Abstract implementation of {@link LogsDownloader}. Adds common functions to all server types.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
+public abstract class AbstractLogsDownloader implements LogsDownloader
 {
     @Inject
     private Logger logger;
 
+    /**
+     * Identifies the logs location and applies the filters to the specified server pattern.
+     *
+     * @param filters Map that can contain the start and end date of the search. It can also be empty.
+     * @param listOfFiles File list of all the log files.
+     * @param pattern server specific pattern used to identify the log date from the log name.
+     * @return byte array representing the logs archive.
+     */
     protected byte[] generateArchive(Map<String, String> filters, File[] listOfFiles, Pattern pattern)
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[2048];
 
-        try(ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+            // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
+                // Check if the selected file is of file type and check filters.
                 if (file.isFile() && checkFilters(filters, pattern, file)) {
-
+                    // Create a new zip entry and add the content.
                     ZipEntry zipEntry = new ZipEntry(file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
                     try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -76,22 +91,31 @@ public abstract class AbstractLogsDownloader implements FilesDownloader
         }
     }
 
+    /**
+     * Check that the file date is in the filter range. Returns true if no filter is provided.
+     *
+     * @param filters Map that can contain the start and end date of the search. It can also be empty.
+     * @param pattern server specific pattern used to identify the log date from the log name.
+     * @param file current file that is to be checked.
+     * @return true if the file is between the provided dates or there is no filter, false otherwise
+     */
     private boolean checkFilters(Map<String, String> filters, Pattern pattern, File file)
     {
-
         Matcher matcher = pattern.matcher(file.getName());
         if (matcher.find()) {
+            String fromDateFilterKey = "from";
+            String toDateFilterKey = "to";
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
-            if (filters.get("from") != null && filters.get("to") != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get("from"));
-                LocalDate toDate = LocalDate.parse(filters.get("to"));
+            if (filters.get(fromDateFilterKey) != null && filters.get(toDateFilterKey) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
+                LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
                 return fileDate.isAfter(fromDate) && fileDate.isBefore(toDate);
-            } else if (filters.get("from") != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get("from"));
+            } else if (filters.get(fromDateFilterKey) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
                 return fileDate.isAfter(fromDate);
-            } else if (filters.get("to") != null) {
-                LocalDate toDate = LocalDate.parse(filters.get("to"));
+            } else if (filters.get(toDateFilterKey) != null) {
+                LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
                 return fileDate.isBefore(toDate);
             } else {
                 return true;

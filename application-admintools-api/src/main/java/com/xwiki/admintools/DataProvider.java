@@ -22,7 +22,7 @@ package com.xwiki.admintools;
 import org.xwiki.component.annotation.Role;
 
 /**
- * Allows data gathering.
+ * Gathers specific parts of data and provides the template for it.
  *
  * @version $Id$
  * @since 1.0

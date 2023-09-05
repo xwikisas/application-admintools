@@ -28,7 +28,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -38,44 +37,49 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.rest.XWikiRestException;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
-import org.xwiki.security.authorization.AuthorizationManager;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.internal.downloads.DownloadsManager;
-import com.xwiki.admintools.rest.AdminToolsRestApi;
+import com.xwiki.admintools.rest.AdminToolsResources;
 
 /**
- * TBC.
+ * Default implementation of {@link AdminToolsResources}.
  *
  * @version $Id$
  * @since 1.0
  */
 @Component
-@Named("com.xwiki.admintools.internal.rest.DefaultRestApi")
+@Named("com.xwiki.admintools.internal.rest.DefaultResources")
 @Singleton
-public class DefaultRestApi extends ModifiablePageResource implements AdminToolsRestApi
+public class DefaultResources extends ModifiablePageResource implements AdminToolsResources
 {
     private final String contentDisposition = "Content-Disposition";
 
     @Inject
     private Logger logger;
 
+    /**
+     * Handles downloads requests.
+     */
     @Inject
-    private DownloadsManager downloadsManager;
+    private Provider<DownloadsManager> downloadsManagerProvider;
 
     @Override
     public Response getConfigs(String type) throws XWikiRestException
     {
 //        boolean a = request.isUserInRole("admin");
-        if (downloadsManager.isAdmin()) {
+        // Check to see if the request was made by a user with admin rights.
+        if (downloadsManagerProvider.get().isAdmin()) {
             logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFile = downloadsManager.downloadXWikiFile(type);
-            InputStream inputStream = new ByteArrayInputStream(xWikiFile);
+            byte[] xWikiFileContent = downloadsManagerProvider.get().downloadXWikiFile(type);
+            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
+
             Response.ResponseBuilder response = Response.ok(inputStream);
             response.type(MediaType.TEXT_PLAIN_TYPE);
+
+            // Set the appropriate response headers to indicate a file download.
             if (type.equals("properties")) {
                 response.header(contentDisposition, "attachment; filename=xwiki.properties");
                 return response.build();
@@ -91,12 +95,6 @@ public class DefaultRestApi extends ModifiablePageResource implements AdminTools
         }
     }
 
-    /**
-     * TBC.
-     *
-     * @return TBC
-     * @throws XWikiRestException
-     */
     @Override
     public Response getLogs(String from, String to) throws XWikiRestException
     {
@@ -104,9 +102,9 @@ public class DefaultRestApi extends ModifiablePageResource implements AdminTools
             Map<String, String> filters = new HashMap<>();
             filters.put("from", from);
             filters.put("to", to);
-            byte[] logsArchive = downloadsManager.downloadLogs(filters);
+            byte[] logsArchive = downloadsManagerProvider.get().downloadLogs(filters);
             if (logsArchive != null) {
-                // Set the appropriate response headers to indicate a file download.
+                // Set the appropriate response headers to indicate a zip file download.
                 Response.ResponseBuilder response = Response.ok(logsArchive);
                 response.header("Content-Type", "application/zip");
                 response.header(contentDisposition, "attachment; filename=logs_archive.zip");

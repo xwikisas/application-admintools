@@ -58,22 +58,12 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         }
     }
 
-    /**
-     * Extract the hint of a component.
-     *
-     * @return component hint
-     */
     @Override
     public String getIdentifier()
     {
         return HINT;
     }
 
-    /**
-     * Update the possible paths to the configuration files.
-     *
-     * @param providedConfigServerPath the server path provided in the XWiki configuration page.
-     */
     @Override
     public void updatePaths(String providedConfigServerPath)
     {
@@ -91,10 +81,12 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     /**
-     * Function used to verify if a Tomcat server is used.
+     * Function used to verify if a Tomcat server is used. If a server path is provided in the XWiki
+     * configurations, it verifies if the path corresponds to a Tomcat server. Otherwise, it searches the Catalina
+     * location in system properties and system environment.
      *
      * @param providedConfigServerPath the server path provided in the XWiki configuration page.
-     * @return true if Tomcat is the used server, false otherwise
+     * @return true if Tomcat is the used server, false otherwise.
      */
     private boolean tomcatIsUsed(String providedConfigServerPath)
     {

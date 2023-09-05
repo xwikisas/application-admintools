@@ -53,7 +53,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     }
 
     /**
-     * Get the configuration file path for Tomcat.
+     * Get the server configuration file path.
      *
      * @return path to Tomcat configuration file.
      */
@@ -69,7 +69,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     }
 
     /**
-     * Get the configuration file path for the XWiki.
+     * Get the configuration file path for the XWiki installation.
      *
      * @return path to the XWiki configuration file.
      */

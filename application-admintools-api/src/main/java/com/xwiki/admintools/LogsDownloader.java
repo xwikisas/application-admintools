@@ -20,26 +20,24 @@
 package com.xwiki.admintools;
 
 import java.util.Map;
-import java.util.zip.ZipEntry;
 
 import org.xwiki.component.annotation.Role;
 
 /**
- * Allows data gathering. CREATE AN ABSTRACT CLASS CONTAINING THE SAME FEATURES (adminToolsCfgProvider, templateManager,
- * logger)?
+ * Interface to be extended by specific server types. Function are used when the logs download REST API is accessed.
  *
  * @version $Id$
  * @since 1.0
  */
 @Role
-public interface FilesDownloader
+public interface LogsDownloader
 {
     /**
-     * TBC.
+     * Generates the logs archive from a specified path that are to be downloaded after applying the filters.
      *
-     * @param filter
-     * @param path
-     * @return TBC
+     * @param filter Map representing the filters that can be applied to the search.
+     * @param path path to where the logs are stored.
+     * @return byte array representing the logs archive.
      */
     byte[] generateLogsArchive(Map<String, String> filter, String path);
 
