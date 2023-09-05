@@ -26,7 +26,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -61,21 +60,19 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
      * Handles downloads requests.
      */
     @Inject
-    private Provider<DownloadsManager> downloadsManagerProvider;
+    private DownloadsManager downloadsManager;
 
     @Override
     public Response getConfigs(String type) throws XWikiRestException
     {
-//        boolean a = request.isUserInRole("admin");
         // Check to see if the request was made by a user with admin rights.
-        if (downloadsManagerProvider.get().isAdmin()) {
+        if (!downloadsManager.isAdmin()) {
             logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadsManagerProvider.get().downloadXWikiFile(type);
+            byte[] xWikiFileContent = downloadsManager.downloadXWikiFile(type);
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
-
             Response.ResponseBuilder response = Response.ok(inputStream);
             response.type(MediaType.TEXT_PLAIN_TYPE);
 
@@ -98,11 +95,15 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     @Override
     public Response getLogs(String from, String to) throws XWikiRestException
     {
+        if (!downloadsManager.isAdmin()) {
+            logger.warn("Failed to get server logs due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
         try {
             Map<String, String> filters = new HashMap<>();
             filters.put("from", from);
             filters.put("to", to);
-            byte[] logsArchive = downloadsManagerProvider.get().downloadLogs(filters);
+            byte[] logsArchive = downloadsManager.downloadLogs(filters);
             if (logsArchive != null) {
                 // Set the appropriate response headers to indicate a zip file download.
                 Response.ResponseBuilder response = Response.ok(logsArchive);

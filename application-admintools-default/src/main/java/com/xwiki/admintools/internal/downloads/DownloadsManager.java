@@ -38,10 +38,9 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
-import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.LogsDownloader;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -63,7 +62,7 @@ public class DownloadsManager implements Initializable
     private CurrentServer currentServer;
 
     @Inject
-    private ContextualAuthorizationManager authorizationManager;
+    private AuthorizationManager authorizationManager;
 
     /**
      * A list of all supported server file downloaders.
@@ -108,12 +107,9 @@ public class DownloadsManager implements Initializable
     public boolean isAdmin()
     {
         XWikiContext wikiContext = xcontextProvider.get();
-        XWiki wiki = wikiContext.getWiki();
-        DocumentReference a = wikiContext.getUserReference();
-        WikiReference b = wikiContext.getWikiReference();
-        boolean c = this.authorizationManager.hasAccess(Right.ADMIN);
-        String d = "";
-        return c;
+        DocumentReference user = wikiContext.getUserReference();
+        WikiReference wikiReference = wikiContext.getWikiReference();
+        return this.authorizationManager.hasAccess(Right.ADMIN, user, wikiReference);
     }
 
     /**
