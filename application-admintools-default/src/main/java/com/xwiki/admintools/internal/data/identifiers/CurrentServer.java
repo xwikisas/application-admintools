@@ -123,11 +123,17 @@ public class CurrentServer implements Initializable
         return usedServer.getServerIdentifiers();
     }
 
+    /**
+     * Go through all supported servers and return the one that is used.
+     *
+     * @param providedConfigServerPath server path provided by XWiki configurations.
+     */
     private void findServer(String providedConfigServerPath)
     {
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
             if (serverIdentifier.isUsed(providedConfigServerPath)) {
                 usedServer = serverIdentifier;
+                break;
             }
         }
     }

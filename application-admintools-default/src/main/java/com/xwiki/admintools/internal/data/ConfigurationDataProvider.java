@@ -46,9 +46,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
-    /**
-     * Collection of functions used to retrieve info about the current server paths and type.
-     */
     @Inject
     private CurrentServer usedServer;
 
@@ -58,11 +55,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         return HINT;
     }
 
-    /**
-     * Get the configuration info template.
-     *
-     * @return xwiki configuration info json.
-     */
     @Override
     public String provideData()
     {
@@ -77,7 +69,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Get the used version of Java.
+     * Get the version of Java used on the server.
      *
      * @return the used Java version.
      */
@@ -87,7 +79,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Get info about the OS XWiki is running on.
+     * Get info about the OS that XWiki is running on.
      *
      * @return info about the OS.
      */

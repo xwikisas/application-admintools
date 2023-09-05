@@ -28,6 +28,8 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -91,7 +93,8 @@ public class SecurityDataProvider extends AbstractDataProvider
 
         XWikiContext wikiContext = xcontextProvider.get();
         XWiki wiki = wikiContext.getWiki();
-
+        DocumentReference a = wikiContext.getUserReference();
+        WikiReference b = wikiContext.getWikiReference();
         results.put("activeEncoding", wiki.getEncoding());
         results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
         results.put("fileEncoding", System.getProperty("file.encoding"));

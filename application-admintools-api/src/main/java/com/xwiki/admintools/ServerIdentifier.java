@@ -24,7 +24,8 @@ import java.util.Map;
 import org.xwiki.component.annotation.Role;
 
 /**
- * TBC.
+ * Endpoints for identifying the used server and the paths to the configuration files of the server and XWiki
+ * installation.
  *
  * @version $Id$
  * @since 1.0
@@ -33,9 +34,9 @@ import org.xwiki.component.annotation.Role;
 public interface ServerIdentifier
 {
     /**
-     * TBC.
-     * @param providedConfigServerPath TBC
-     * @return TBC
+     * Check if this server type is used.
+     * @param providedConfigServerPath path to the server provided by XWiki configuration.
+     * @return true if the server is used, false otherwise.
      */
     boolean isUsed(String providedConfigServerPath);
 
@@ -47,29 +48,29 @@ public interface ServerIdentifier
     String getIdentifier();
 
     /**
-     * TBC.
+     * Access the path to the server configuration file.
      *
-     * @return TBC
+     * @return String representing the path to the server configuration file.
      */
     String getServerCfgPath();
 
     /**
-     * TBC.
+     * Access the path to the XWiki configuration file.
      *
-     * @return TBC
+     * @return String representing the path to the XWiki configuration file.
      */
     String getXwikiCfgPath();
 
     /**
-     * TBC.
+     * Update the possible paths to the configuration files.
      *
-     * @param providedConfigServerPath TBC
+     * @param providedConfigServerPath the server path provided in the XWiki configuration page.
      */
     void updatePaths(String providedConfigServerPath);
 
     /**
-     * TBC.
-     * @return TBC
+     * Access the server path and type.
+     * @return Map containing server path and type.
      */
     Map<String, String> getServerIdentifiers();
 }

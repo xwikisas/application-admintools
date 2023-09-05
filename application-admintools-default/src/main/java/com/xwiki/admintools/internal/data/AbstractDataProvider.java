@@ -96,7 +96,6 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     private void bindData(String key, Map<String, String> data)
     {
         ScriptContext scriptContext = scriptContextManager.getScriptContext();
-
         scriptContext.setAttribute(key, data, ScriptContext.ENGINE_SCOPE);
     }
 }
