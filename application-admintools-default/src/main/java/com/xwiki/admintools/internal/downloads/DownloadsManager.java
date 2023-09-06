@@ -20,19 +20,26 @@
 package com.xwiki.admintools.internal.downloads;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -42,7 +49,10 @@ import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.web.XWikiRequest;
+import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.LogsDownloader;
+import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -55,8 +65,12 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Singleton
 public class DownloadsManager implements Initializable
 {
+    private final String config = "config";
+
+    private final String properties = "properties";
+
     @Inject
-    protected Provider<XWikiContext> xcontextProvider;
+    private Provider<XWikiContext> xcontextProvider;
 
     @Inject
     private CurrentServer currentServer;
@@ -70,9 +84,16 @@ public class DownloadsManager implements Initializable
     @Inject
     private Provider<List<LogsDownloader>> filesDownloader;
 
+    @Inject
+    @Named(ConfigurationDataProvider.HINT)
+    private DataProvider configurationDataProvider;
+
     private String serverPath;
 
     private String serverType;
+
+    @Inject
+    private Logger logger;
 
     /**
      * Initializes variables with the server type and the path to the server.
@@ -94,7 +115,7 @@ public class DownloadsManager implements Initializable
      * @return filtered file content as a byte array
      * @throws IOException
      */
-    public byte[] downloadXWikiFile(String fileType) throws IOException
+    public byte[] getXWikiFile(String fileType) throws IOException
     {
         return prepareFile(fileType);
     }
@@ -113,13 +134,83 @@ public class DownloadsManager implements Initializable
     }
 
     /**
+     * Retrieve the selected files from the request and create an archive containing them.
+     *
+     * @return byte array representing the files archive.
+     */
+    public byte[] downloadMultipleFiles()
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWikiRequest xWikiRequest = wikiContext.getRequest();
+        Map<String, String[]> files = xWikiRequest.getParameterMap();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+            createArchiveEntries(files, zipOutputStream);
+            zipOutputStream.flush();
+            byteArrayOutputStream.flush();
+            zipOutputStream.close();
+            byteArrayOutputStream.close();
+            return byteArrayOutputStream.toByteArray();
+        } catch (Exception e) {
+            logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    private void createArchiveEntries(Map<String, String[]> files, ZipOutputStream zipOutputStream) throws IOException
+    {
+        ZipEntry zipEntry;
+        byte[] buffer;
+        for (String fileType : files.get("files")) {
+            switch (fileType) {
+                case "cfg_file":
+                    zipEntry = new ZipEntry("xwiki.cfg");
+                    zipOutputStream.putNextEntry(zipEntry);
+                    buffer = prepareFile(config);
+                    zipOutputStream.write(buffer, 0, buffer.length);
+                    zipOutputStream.closeEntry();
+                    break;
+                case "properties_file":
+                    zipEntry = new ZipEntry("xwiki.properties");
+                    zipOutputStream.putNextEntry(zipEntry);
+                    buffer = prepareFile(properties);
+                    zipOutputStream.write(buffer, 0, buffer.length);
+                    zipOutputStream.closeEntry();
+                    break;
+                case "logs":
+                    zipEntry = new ZipEntry("logs.zip");
+                    zipOutputStream.putNextEntry(zipEntry);
+                    Map<String, String> filters = new HashMap<>();
+                    String from = "from";
+                    String to = "to";
+                    filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
+                    filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
+                    buffer = getLogs(filters);
+                    zipOutputStream.write(buffer, 0, buffer.length);
+                    zipOutputStream.closeEntry();
+                    break;
+                case "configuration_info":
+                    zipEntry = new ZipEntry("configuration_json.txt");
+                    zipOutputStream.putNextEntry(zipEntry);
+                    buffer = configurationDataProvider.generateJson().toString().getBytes();
+                    zipOutputStream.write(buffer, 0, buffer.length);
+                    zipOutputStream.closeEntry();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
      * Initiates the download process for the server logs. Taking into consideration the used server, it identifies the
      * right downloader. It returns null if none is corresponding.
      *
      * @param filters Map that can contain the start and end date of the search. It can also be empty.
      * @return byte array representing the logs archive.
      */
-    public byte[] downloadLogs(Map<String, String> filters)
+    private byte[] getLogs(Map<String, String> filters)
     {
         return callLogsDownloader(serverType + "Logs", filters);
     }
@@ -136,9 +227,9 @@ public class DownloadsManager implements Initializable
     private byte[] prepareFile(String type) throws IOException
     {
         String filePath = serverPath;
-        if (Objects.equals(type, "properties")) {
+        if (Objects.equals(type, properties)) {
             filePath += "/webapps/xwiki/WEB-INF/xwiki.properties";
-        } else {
+        } else if (Objects.equals(type, config)) {
             filePath += "/webapps/xwiki/WEB-INF/xwiki.cfg";
         }
         File inputFile = new File(filePath);

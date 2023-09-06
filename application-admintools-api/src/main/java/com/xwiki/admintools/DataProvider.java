@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools;
 
+import java.util.Map;
+
 import org.xwiki.component.annotation.Role;
 
 /**
@@ -36,6 +38,13 @@ public interface DataProvider
      * @return a data provider template
      */
     String provideData();
+
+    /**
+     * Provides the info structured in a json.
+     *
+     * @return Map containing the generated info.
+     */
+    Map<String, String> generateJson();
 
     /**
      * Extract the hint of a component.

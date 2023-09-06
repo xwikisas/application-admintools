@@ -107,16 +107,17 @@ public abstract class AbstractLogsDownloader implements LogsDownloader
             String toDateFilterKey = "to";
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
+
             if (filters.get(fromDateFilterKey) != null && filters.get(toDateFilterKey) != null) {
                 LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
                 LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
-                return fileDate.isAfter(fromDate) && fileDate.isBefore(toDate);
+                return fileDate.isAfter(fromDate.minusDays(1)) && fileDate.isBefore(toDate.plusDays(1));
             } else if (filters.get(fromDateFilterKey) != null) {
                 LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
-                return fileDate.isAfter(fromDate);
+                return fileDate.isAfter(fromDate.minusDays(1));
             } else if (filters.get(toDateFilterKey) != null) {
                 LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
-                return fileDate.isBefore(toDate);
+                return fileDate.isBefore(toDate.plusDays(1));
             } else {
                 return true;
             }

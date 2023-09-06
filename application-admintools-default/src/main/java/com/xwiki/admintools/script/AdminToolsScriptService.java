@@ -65,4 +65,14 @@ public class AdminToolsScriptService implements ScriptService
     {
         return this.adminToolsManager.generateData(hint);
     }
+
+    /**
+     * Get the context path for the current XWiki installation.
+     *
+     * @return a String representing the xwiki context path.
+     */
+    public String getContextPath()
+    {
+        return this.adminToolsManager.getContextPath();
+    }
 }

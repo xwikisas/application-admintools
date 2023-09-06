@@ -20,6 +20,7 @@
 package com.xwiki.admintools.rest;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -48,15 +49,27 @@ public interface AdminToolsResources extends XWikiRestComponent
     @Path("/configs/{fileType}")
     Response getConfigs(@PathParam("fileType") String type) throws XWikiRestException;
 
+//    /**
+//     * REST endpoint for accessing the logs archive download.
+//     *
+//     * @param from filter date, starting from.
+//     * @param to filter date, until.
+//     * @return Response with a configured header for zip download.
+//     * @throws XWikiRestException
+//     */
+//    @GET
+//    @Path("/logs")
+//    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
+
     /**
-     * REST endpoint for accessing the logs archive download.
+     * Rest endpoint to download all selected files.
      *
-     * @param from filter date, starting from.
-     * @param to filter date, until.
+     * @param from filter date, starting from given value.
+     * @param to filter date, until given value.
      * @return Response with a configured header for zip download.
      * @throws XWikiRestException
      */
-    @GET
-    @Path("/logs")
-    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
+    @POST
+    @Path("/all")
+    Response getFiles(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
 }

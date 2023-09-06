@@ -21,8 +21,7 @@ package com.xwiki.admintools.internal.rest;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -71,44 +70,57 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadsManager.downloadXWikiFile(type);
-            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
-            Response.ResponseBuilder response = Response.ok(inputStream);
-            response.type(MediaType.TEXT_PLAIN_TYPE);
-
-            // Set the appropriate response headers to indicate a file download.
-            if (type.equals("properties")) {
-                response.header(contentDisposition, "attachment; filename=xwiki.properties");
-                return response.build();
-            } else if (type.equals("config")) {
-                response.header(contentDisposition, "attachment; filename=xwiki.cfg");
-                return response.build();
-            } else {
+            byte[] xWikiFileContent = downloadsManager.getXWikiFile(type);
+            if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }
+            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
+            return Response.ok(inputStream).
+                type(MediaType.TEXT_PLAIN_TYPE).build();
+            // Set the appropriate response headers to indicate a file download.
         } catch (Exception e) {
             logger.warn("Failed to get file [{}]. Root cause: [{}]", type, ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
+//    @Override
+//    public Response getLogs(String from, String to) throws XWikiRestException
+//    {
+//        if (!downloadsManager.isAdmin()) {
+//            logger.warn("Failed to get server logs due to restricted rights.");
+//            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+//        }
+//        try {
+//            Map<String, String> filters = new HashMap<>();
+//            filters.put("from", from);
+//            filters.put("to", to);
+//            byte[] logsArchive = downloadsManager.getLogs(filters);
+//            if (!(logsArchive == null) && !(Arrays.toString(logsArchive).length() == 0)) {
+//                // Set the appropriate response headers to indicate a zip file download.
+//                Response.ResponseBuilder response = Response.ok(logsArchive);
+//                response.header("Content-Type", "application/zip");
+//                return response.build();
+//            } else {
+//                // Handle the case when no logs are found or an error occurs.
+//                return Response.status(Response.Status.NOT_FOUND).entity("No logs found.").build();
+//            }
+//        } catch (Exception e) {
+//            logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+//            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     @Override
-    public Response getLogs(String from, String to) throws XWikiRestException
+    public Response getFiles(String from, String to) throws XWikiRestException
     {
-        if (!downloadsManager.isAdmin()) {
-            logger.warn("Failed to get server logs due to restricted rights.");
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
         try {
-            Map<String, String> filters = new HashMap<>();
-            filters.put("from", from);
-            filters.put("to", to);
-            byte[] logsArchive = downloadsManager.downloadLogs(filters);
-            if (logsArchive != null) {
+            byte[] filesArchive = downloadsManager.downloadMultipleFiles();
+            if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
                 // Set the appropriate response headers to indicate a zip file download.
-                Response.ResponseBuilder response = Response.ok(logsArchive);
+                Response.ResponseBuilder response = Response.ok(filesArchive);
                 response.header("Content-Type", "application/zip");
-                response.header(contentDisposition, "attachment; filename=logs_archive.zip");
+                response.header(contentDisposition, "attachment; filename=files_archive.zip");
                 return response.build();
             } else {
                 // Handle the case when no logs are found or an error occurs.

@@ -58,6 +58,17 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
+        return getRenderedTemplate("data/configurationTemplate.vm", generateJson(), HINT);
+    }
+
+    /**
+     * Provides the info structured in a json.
+     *
+     * @return Map containing the generated info.
+     */
+    @Override
+    public Map<String, String> generateJson()
+    {
         usedServer.updatePaths();
         Map<String, String> systemInfo = new HashMap<>();
         systemInfo.put("xwikiCfgPath", usedServer.getXwikiCfgPath());
@@ -65,7 +76,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.put("osInfo", this.getOSInfo());
 
-        return getRenderedTemplate("data/configurationTemplate.vm", systemInfo, HINT);
+        return systemInfo;
     }
 
     /**

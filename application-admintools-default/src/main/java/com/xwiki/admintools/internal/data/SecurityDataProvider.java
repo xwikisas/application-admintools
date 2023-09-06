@@ -69,25 +69,18 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> securityDetails = this.getXwikiSecurityInfo();
-
-        securityDetails.putAll(getEnvironmentInfo());
+        Map<String, String> securityDetails = this.generateJson();
 
         return getRenderedTemplate("data/securityTemplate.vm", securityDetails, HINT);
     }
 
-    @Override
-    public String getIdentifier()
-    {
-        return HINT;
-    }
-
     /**
-     * Get the security info of the current wiki.
+     * Provides the info structured in a json.
      *
-     * @return xwiki security info.
+     * @return Map containing the generated info.
      */
-    private Map<String, String> getXwikiSecurityInfo()
+    @Override
+    public Map<String, String> generateJson()
     {
         Map<String, String> results = new HashMap<>();
 
@@ -98,8 +91,15 @@ public class SecurityDataProvider extends AbstractDataProvider
         results.put("activeEncoding", wiki.getEncoding());
         results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
         results.put("fileEncoding", System.getProperty("file.encoding"));
+        results.putAll(getEnvironmentInfo());
 
         return results;
+    }
+
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
     }
 
     /**
