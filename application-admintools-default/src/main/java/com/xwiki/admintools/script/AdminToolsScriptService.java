@@ -39,16 +39,13 @@ import com.xwiki.admintools.internal.AdminToolsManager;
 @Singleton
 public class AdminToolsScriptService implements ScriptService
 {
-    /**
-     * Manages the XWiki configuration info.
-     */
     @Inject
     private AdminToolsManager adminToolsManager;
 
     /**
-     * Function used to retrieve all the configuration info templates of Admin Tools.
+     * Retrieve all the configuration info templates of Admin Tools.
      *
-     * @return all templates.
+     * @return {@link String} representing all templates.
      */
     public String getConfigurationData()
     {
@@ -58,8 +55,8 @@ public class AdminToolsScriptService implements ScriptService
     /**
      * Get a specific data provider template.
      *
-     * @param hint represents the data provider
-     * @return the template of a specific data provider
+     * @param hint {@link String} representing the data provider
+     * @return {@link String} representing the template of a specific data provider
      */
     public String getConfigurationData(String hint)
     {

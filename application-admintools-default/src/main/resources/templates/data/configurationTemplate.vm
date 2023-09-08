@@ -18,11 +18,18 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 
-{{html}}
-<div>
-  <p>test config class</p>
-</div>
-{{/html}}
+(% border="0" %)
+|(% style="background-color:#fafafa; border-color:#ffffff; width:400px" %)(((
+== 🌐**Backend ** ==
 
+(((
+Get info about your backend
 
-$configuration
+----
+* XWiki installation version: $xwiki.version
+** [[Show latest logs]]
+* OS info:
+** OS name: $configuration["osName"]
+** OS version: $configuration["osVersion"]
+** OS Architecture: $configuration["osArch"]
+* Used database: $configuration["database"]

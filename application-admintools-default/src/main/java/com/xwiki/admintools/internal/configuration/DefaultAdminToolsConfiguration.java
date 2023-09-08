@@ -35,14 +35,9 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * @since 1.0
  */
 @Component
-@Named(DefaultAdminToolsConfiguration.HINT)
 @Singleton
 public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 {
-    /**
-     * Component identifier.
-     */
-    public static final String HINT = "defaultConfiguration";
     private static final String SERVER_LOCATION = "serverLocation";
 
     @Inject

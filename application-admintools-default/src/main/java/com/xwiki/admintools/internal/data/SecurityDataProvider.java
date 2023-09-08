@@ -32,7 +32,8 @@ import org.xwiki.configuration.ConfigurationSource;
 import com.xpn.xwiki.XWikiContext;
 
 /**
- * Encapsulates functions used for retrieving security data.
+ * Extension of {@link AbstractDataProvider} for retrieving security data, like XWiki encoding, file encoding, system
+ * info.
  *
  * @version $Id$
  * @since 1.0
@@ -58,27 +59,16 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Named("xwikicfg")
     private ConfigurationSource configurationSource;
 
-    /**
-     * Generate the security details.
-     *
-     * @return the security details of the xwiki
-     */
     @Override
     public String provideData()
     {
         return getRenderedTemplate("data/securityTemplate.vm", this.generateJson(), HINT);
     }
 
-    /**
-     * Provides the info structured in a json.
-     *
-     * @return Map containing the generated info.
-     */
     @Override
     public Map<String, String> generateJson()
     {
         Map<String, String> results = this.getXwikiSecurityInfo();
-
         results.putAll(getEnvironmentInfo());
         results.put("fileEncoding", System.getProperty("file.encoding"));
 
@@ -110,7 +100,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     /**
      * Get the security info regarding the environment.
      *
-     * @return environment security info.
+     * @return {@link Map} with environment info regarding working directory and system language.
      */
     private Map<String, String> getEnvironmentInfo()
     {

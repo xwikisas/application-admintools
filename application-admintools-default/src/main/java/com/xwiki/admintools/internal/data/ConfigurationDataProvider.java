@@ -35,7 +35,7 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Encapsulates functions used for retrieving configuration data.
+ * Extension of {@link AbstractDataProvider} for retrieving configuration data.
  *
  * @version $Id$
  * @since 1.0
@@ -68,10 +68,10 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public Map<String, String> generateJson()
     {
-        currentServer.updatePaths();
+        currentServer.findPaths();
         Map<String, String> systemInfo = new HashMap<>();
-        systemInfo.put("xwikiCfgPath", currentServer.getXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.currentServer.getServerCfgPath());
+        systemInfo.put("xwikiCfgPath", currentServer.retrieveXwikiCfgPath());
+        systemInfo.put("tomcatConfPath", this.currentServer.retrieveServerCfgPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.putAll(this.getOSInfo());
         systemInfo.put("database", this.identifyDB());
@@ -82,7 +82,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Get the version of Java used on the server.
      *
-     * @return the used Java version.
+     * @return {@link String} Java version.
      */
     private String getJavaVersion()
     {
@@ -92,7 +92,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Get info about the OS that XWiki is running on.
      *
-     * @return info about the OS.
+     * @return {@link String} name of the used database as a String.
      */
     private Map<String, String> getOSInfo()
     {
@@ -111,9 +111,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     private String identifyDB()
     {
-        String databaseCfgPath = currentServer.getXwikiCfgPath() + "hibernate.cfg.xml";
+        String databaseCfgPath = currentServer.retrieveXwikiCfgPath() + "hibernate.cfg.xml";
         File file = new File(databaseCfgPath);
-
         try (Scanner scanner = new Scanner(file)) {
             String usedDB = null;
             while (scanner.hasNextLine()) {

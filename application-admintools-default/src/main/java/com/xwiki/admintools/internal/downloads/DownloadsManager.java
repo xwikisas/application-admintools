@@ -109,7 +109,7 @@ public class DownloadsManager implements Initializable
      */
     public byte[] getXWikiFile(String fileType) throws IOException
     {
-        return usedFilesResourceProvider.getConfigurationFileContent(fileType, currentServer.getXwikiCfgPath());
+        return usedFilesResourceProvider.getConfigurationFileContent(fileType, currentServer.retrieveXwikiCfgPath());
     }
 
     /**
@@ -181,7 +181,7 @@ public class DownloadsManager implements Initializable
                     zipEntry = new ZipEntry("xwiki.cfg");
                     zipOutputStream.putNextEntry(zipEntry);
                     buffer = usedFilesResourceProvider.getConfigurationFileContent("config",
-                        currentServer.getXwikiCfgPath());
+                        currentServer.retrieveXwikiCfgPath());
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
@@ -189,7 +189,7 @@ public class DownloadsManager implements Initializable
                     zipEntry = new ZipEntry("xwiki.properties");
                     zipOutputStream.putNextEntry(zipEntry);
                     buffer = usedFilesResourceProvider.getConfigurationFileContent("properties",
-                        currentServer.getXwikiCfgPath());
+                        currentServer.retrieveXwikiCfgPath());
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;

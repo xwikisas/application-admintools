@@ -39,7 +39,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.DataProvider;
 
 /**
- * To be extended by {@link DataProvider} implementations to simplify the code.
+ * {@link DataProvider} implementations to simplify the code.
  *
  * @version $Id$
  * @since 1.0
@@ -67,10 +67,10 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     /**
      * Generates the template of a data provider.
      *
-     * @param data contains the data to be shown in the template.
-     * @param template path to the template.
-     * @param hint data provider identifier.
-     * @return String containing the generated template.
+     * @param data {@link Map} contains the data to be shown in the template.
+     * @param template {@link String} path to the template.
+     * @param hint {@link String} data provider identifier.
+     * @return {@link String} containing the generated template.
      */
     protected String getRenderedTemplate(String template, Map<String, String> data, String hint)
     {
@@ -90,12 +90,12 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     /**
      * Binds the data provided by the DataProvider to the template.
      *
-     * @param key
-     * @param data
+     * @param hint {@link String} component hint used as an identification key inside the template.
+     * @param data {@link Map} component data to be rendered.
      */
-    private void bindData(String key, Map<String, String> data)
+    private void bindData(String hint, Map<String, String> data)
     {
         ScriptContext scriptContext = scriptContextManager.getScriptContext();
-        scriptContext.setAttribute(key, data, ScriptContext.ENGINE_SCOPE);
+        scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);
     }
 }
