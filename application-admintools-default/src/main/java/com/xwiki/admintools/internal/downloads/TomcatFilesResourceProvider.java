@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.downloads;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -35,9 +36,9 @@ import org.xwiki.component.annotation.Component;
  * @since 1.0
  */
 @Component
-@Named(TomcatLogsDownloader.HINT)
+@Named(TomcatFilesResourceProvider.HINT)
 @Singleton
-public class TomcatLogsDownloader extends AbstractLogsDownloader
+public class TomcatFilesResourceProvider extends AbstractFilesResourceProvider
 {
     /**
      * The hint for the component.
@@ -58,5 +59,11 @@ public class TomcatLogsDownloader extends AbstractLogsDownloader
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    @Override
+    public byte[] retrieveLastLogs(String serverPath, long noLines) throws IOException
+    {
+        return defaultRetrieveLastLogs(serverPath + "/logs/catalina.out", noLines);
     }
 }

@@ -104,16 +104,6 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Retrieves the server type.
-     *
-     * @return a string representing the server HINT.
-     */
-    public String getServerType()
-    {
-        return usedServer.getIdentifier();
-    }
-
-    /**
      * Calls the used server function to retrieve the server identifiers.
      *
      * @return a Map<String, String> with the info used to identify the server.

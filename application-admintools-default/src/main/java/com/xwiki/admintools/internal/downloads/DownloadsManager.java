@@ -19,13 +19,8 @@
  */
 package com.xwiki.admintools.internal.downloads;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +46,7 @@ import org.xwiki.security.authorization.Right;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.LogsDownloader;
+import com.xwiki.admintools.FilesResourceProvider;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -65,10 +60,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Singleton
 public class DownloadsManager implements Initializable
 {
-    private final String config = "config";
-
-    private final String properties = "properties";
-
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -82,15 +73,15 @@ public class DownloadsManager implements Initializable
      * A list of all supported server file downloaders.
      */
     @Inject
-    private Provider<List<LogsDownloader>> filesDownloader;
+    private Provider<List<FilesResourceProvider>> filesResourceProviderProvider;
+
+    private FilesResourceProvider usedFilesResourceProvider;
 
     @Inject
     @Named(ConfigurationDataProvider.HINT)
     private DataProvider configurationDataProvider;
 
     private String serverPath;
-
-    private String serverType;
 
     @Inject
     private Logger logger;
@@ -105,25 +96,26 @@ public class DownloadsManager implements Initializable
     {
         Map<String, String> identifiers = currentServer.getServerIdentifiers();
         serverPath = identifiers.get("serverPath");
-        serverType = identifiers.get("serverType");
+        String usedServerLogsHint = identifiers.get("serverType") + "Logs";
+        findUsedServer(usedServerLogsHint);
     }
 
     /**
      * Initiates the download process for the xwiki files. It removes the sensitive content from the file.
      *
-     * @param fileType properties of configuration file.
-     * @return filtered file content as a byte array
+     * @param fileType {@link String} representing the file type.
+     * @return filtered file content as a {@link Byte} array
      * @throws IOException
      */
     public byte[] getXWikiFile(String fileType) throws IOException
     {
-        return prepareFile(fileType);
+        return usedFilesResourceProvider.getConfigurationFileContent(fileType, currentServer.getXwikiCfgPath());
     }
 
     /**
      * Checks the admin rights of the calling user.
      *
-     * @return true if the user is admin, false otherwise
+     * @return {@link Boolean} true if the user is admin, false otherwise
      */
     public boolean isAdmin()
     {
@@ -136,7 +128,7 @@ public class DownloadsManager implements Initializable
     /**
      * Retrieve the selected files from the request and create an archive containing them.
      *
-     * @return byte array representing the files archive.
+     * @return {@link Byte} array representing the files archive.
      */
     public byte[] downloadMultipleFiles()
     {
@@ -158,6 +150,27 @@ public class DownloadsManager implements Initializable
         }
     }
 
+    /**
+     * Select the right server downloader and call the logs retrieval function.
+     *
+     * @return {@link Byte} array representing the last "n" logs.
+     * @throws IOException
+     */
+    public byte[] callLogsRetriever() throws IOException
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWikiRequest xWikiRequest = wikiContext.getRequest();
+        long noLines = Long.parseLong(xWikiRequest.getParameter("noLines"));
+        return usedFilesResourceProvider.retrieveLastLogs(serverPath, noLines);
+    }
+
+    /**
+     * Verify which files are selected, prepare the zip entry and add it to the zip stream.
+     *
+     * @param files {@link Map} representing the files that are to be processed.
+     * @param zipOutputStream {@link ZipOutputStream} where the zip entries are stored.
+     * @throws IOException
+     */
     private void createArchiveEntries(Map<String, String[]> files, ZipOutputStream zipOutputStream) throws IOException
     {
         ZipEntry zipEntry;
@@ -167,14 +180,16 @@ public class DownloadsManager implements Initializable
                 case "cfg_file":
                     zipEntry = new ZipEntry("xwiki.cfg");
                     zipOutputStream.putNextEntry(zipEntry);
-                    buffer = prepareFile(config);
+                    buffer = usedFilesResourceProvider.getConfigurationFileContent("config",
+                        currentServer.getXwikiCfgPath());
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
                 case "properties_file":
                     zipEntry = new ZipEntry("xwiki.properties");
                     zipOutputStream.putNextEntry(zipEntry);
-                    buffer = prepareFile(properties);
+                    buffer = usedFilesResourceProvider.getConfigurationFileContent("properties",
+                        currentServer.getXwikiCfgPath());
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
@@ -207,67 +222,25 @@ public class DownloadsManager implements Initializable
      * Initiates the download process for the server logs. Taking into consideration the used server, it identifies the
      * right downloader. It returns null if none is corresponding.
      *
-     * @param filters Map that can contain the start and end date of the search. It can also be empty.
-     * @return byte array representing the logs archive.
+     * @param filters {@link Map} that can contain the start and end date of the search. It can also be empty.
+     * @return {@link Byte} array representing the logs archive.
      */
     private byte[] getLogs(Map<String, String> filters)
     {
-        return callLogsDownloader(serverType + "Logs", filters);
-    }
-
-    /**
-     * Identifies the searched file and filters the sensitive info from it. The searched As all servers types have the
-     * same path to the xwiki properties configuration files, it is not needed to call this function in a server
-     * specific class.
-     *
-     * @param type identifies the searched file.
-     * @return byte array representing the filtered file content.
-     * @throws IOException
-     */
-    private byte[] prepareFile(String type) throws IOException
-    {
-        String filePath = serverPath;
-        if (Objects.equals(type, properties)) {
-            filePath += "/webapps/xwiki/WEB-INF/xwiki.properties";
-        } else if (Objects.equals(type, config)) {
-            filePath += "/webapps/xwiki/WEB-INF/xwiki.cfg";
-        }
-        File inputFile = new File(filePath);
-
-        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-        StringBuilder stringBuilder = new StringBuilder();
-
-        String currentLine;
-        List<String> wordsList = new ArrayList<>(
-            Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
-                "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
-
-        // Read line by line and do not add it if it contains sensitive info.
-        while ((currentLine = reader.readLine()) != null) {
-            String trimmedLine = currentLine.trim();
-            if (wordsList.stream().anyMatch(trimmedLine::contains)) {
-                continue;
-            }
-            stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
-        }
-        reader.close();
-        return stringBuilder.toString().getBytes();
+        return usedFilesResourceProvider.generateLogsArchive(filters, serverPath);
     }
 
     /**
      * Calls the logs generator for the used server.
      *
-     * @param hint represents the used server hint.
-     * @param filter Map representing the filters that can be applied to the search.
-     * @return byte array representing the logs archive.
+     * @param hint {@link String} represents the used server hint.
      */
-    private byte[] callLogsDownloader(String hint, Map<String, String> filter)
+    private void findUsedServer(String hint)
     {
-        for (LogsDownloader specificLogsDownloader : this.filesDownloader.get()) {
-            if (specificLogsDownloader.getIdentifier().equals(hint)) {
-                return specificLogsDownloader.generateLogsArchive(filter, serverPath);
+        for (FilesResourceProvider specificFilesResourceProvider : this.filesResourceProviderProvider.get()) {
+            if (specificFilesResourceProvider.getIdentifier().equals(hint)) {
+                usedFilesResourceProvider = specificFilesResourceProvider;
             }
         }
-        return null;
     }
 }

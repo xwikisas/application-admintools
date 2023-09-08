@@ -23,53 +23,48 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.xwiki.rest.XWikiRestComponent;
 import org.xwiki.rest.XWikiRestException;
 
 /**
- * Provides the APIs needed by the Admin Tools server in order to download configuration files and a logs archive.
+ * Provides the APIs needed by the Admin Tools server in order to download configuration files and logs archive.
  *
  * @version $Id$
  * @since 1.0
  */
-@Path("/admintools/download")
+@Path("/admintools")
 public interface AdminToolsResources extends XWikiRestComponent
 {
     /**
-     * REST endpoint for accessing the XWiki configuration or properties download.
+     * REST endpoint for accessing the XWiki configuration or properties files.
      *
-     * @param type specifies the XWiki searched file.
-     * @return Response with a configured header for file download.
+     * @param type {link String} specifies the XWiki searched file.
+     * @return {@link Response} with the content of the file, or specific error code.
      * @throws XWikiRestException
      */
     @GET
-    @Path("/configs/{fileType}")
+    @Path("/show/configs/{fileType}")
     Response getConfigs(@PathParam("fileType") String type) throws XWikiRestException;
 
-//    /**
-//     * REST endpoint for accessing the logs archive download.
-//     *
-//     * @param from filter date, starting from.
-//     * @param to filter date, until.
-//     * @return Response with a configured header for zip download.
-//     * @throws XWikiRestException
-//     */
-//    @GET
-//    @Path("/logs")
-//    Response getLogs(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
-
     /**
-     * Rest endpoint to download all selected files.
+     * Rest endpoint to download multiple files.
      *
-     * @param from filter date, starting from given value.
-     * @param to filter date, until given value.
-     * @return Response with a configured header for zip download.
+     * @return {@link Response} with a configured header for zip download, or specific error code.
      * @throws XWikiRestException
      */
     @POST
-    @Path("/all")
-    Response getFiles(@QueryParam("from") String from, @QueryParam("to") String to) throws XWikiRestException;
+    @Path("/download/all")
+    Response getFiles() throws XWikiRestException;
+
+    /**
+     * Rest endpoint to retrieve last logs from server.
+     *
+     * @return {@link Response} with the content of the last logs, or specific error code.
+     * @throws XWikiRestException
+     */
+    @POST
+    @Path("/show/logs")
+    Response retrieveLastLogs() throws XWikiRestException;
 }

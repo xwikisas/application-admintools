@@ -75,45 +75,20 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
                 return Response.status(404).build();
             }
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
-            return Response.ok(inputStream).
-                type(MediaType.TEXT_PLAIN_TYPE).build();
-            // Set the appropriate response headers to indicate a file download.
+            return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.warn("Failed to get file [{}]. Root cause: [{}]", type, ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
-//    @Override
-//    public Response getLogs(String from, String to) throws XWikiRestException
-//    {
-//        if (!downloadsManager.isAdmin()) {
-//            logger.warn("Failed to get server logs due to restricted rights.");
-//            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-//        }
-//        try {
-//            Map<String, String> filters = new HashMap<>();
-//            filters.put("from", from);
-//            filters.put("to", to);
-//            byte[] logsArchive = downloadsManager.getLogs(filters);
-//            if (!(logsArchive == null) && !(Arrays.toString(logsArchive).length() == 0)) {
-//                // Set the appropriate response headers to indicate a zip file download.
-//                Response.ResponseBuilder response = Response.ok(logsArchive);
-//                response.header("Content-Type", "application/zip");
-//                return response.build();
-//            } else {
-//                // Handle the case when no logs are found or an error occurs.
-//                return Response.status(Response.Status.NOT_FOUND).entity("No logs found.").build();
-//            }
-//        } catch (Exception e) {
-//            logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
-//            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
     @Override
-    public Response getFiles(String from, String to) throws XWikiRestException
+    public Response getFiles() throws XWikiRestException
     {
+        if (!downloadsManager.isAdmin()) {
+            logger.warn("Failed to get files due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
         try {
             byte[] filesArchive = downloadsManager.downloadMultipleFiles();
             if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
@@ -124,8 +99,28 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
                 return response.build();
             } else {
                 // Handle the case when no logs are found or an error occurs.
-                return Response.status(Response.Status.NOT_FOUND).entity("No logs found.").build();
+                return Response.status(Response.Status.NOT_FOUND).entity("No files found.").build();
             }
+        } catch (Exception e) {
+            logger.warn("Failed to download files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response retrieveLastLogs() throws XWikiRestException
+    {
+        if (!downloadsManager.isAdmin()) {
+            logger.warn("Failed to get the logs due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+        try {
+            byte[] xWikiFileContent = downloadsManager.callLogsRetriever();
+            if (xWikiFileContent.length == 0) {
+                return Response.status(404).build();
+            }
+            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
+            return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
             logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

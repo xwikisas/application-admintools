@@ -72,11 +72,10 @@ public class TomcatIdentifier extends AbstractServerIdentifier
                 "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/",
                 "/var/lib/tomcat9/conf/", "/var/lib/tomcat/conf/" };
 
-            this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/xwiki.cfg",
-                String.format("%s/webapps${request.contextPath}/WEB-INF/xwiki.cfg", this.serverPath),
-                "/usr/local/xwiki/WEB-INF/xwiki.cfg", "/opt/xwiki/WEB-INF/xwiki.cfg",
-                String.format("%s/webapps/ROOT/WEB-INF/xwiki.cfg", this.serverPath),
-                String.format("%s/webapps/xwiki/WEB-INF/xwiki.cfg", this.serverPath) };
+            this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/",
+                "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
+                String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
+                String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
         }
     }
 

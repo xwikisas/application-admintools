@@ -28,10 +28,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 
 /**
@@ -69,9 +66,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> securityDetails = this.generateJson();
-
-        return getRenderedTemplate("data/securityTemplate.vm", securityDetails, HINT);
+        return getRenderedTemplate("data/securityTemplate.vm", this.generateJson(), HINT);
     }
 
     /**
@@ -82,16 +77,10 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Override
     public Map<String, String> generateJson()
     {
-        Map<String, String> results = new HashMap<>();
+        Map<String, String> results = this.getXwikiSecurityInfo();
 
-        XWikiContext wikiContext = xcontextProvider.get();
-        XWiki wiki = wikiContext.getWiki();
-        DocumentReference a = wikiContext.getUserReference();
-        WikiReference b = wikiContext.getWikiReference();
-        results.put("activeEncoding", wiki.getEncoding());
-        results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
-        results.put("fileEncoding", System.getProperty("file.encoding"));
         results.putAll(getEnvironmentInfo());
+        results.put("fileEncoding", System.getProperty("file.encoding"));
 
         return results;
     }
@@ -100,6 +89,22 @@ public class SecurityDataProvider extends AbstractDataProvider
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    /**
+     * Get the security info of the current wiki.
+     *
+     * @return {@link Map} with XWiki security info regarding used and active encodings.
+     */
+    private Map<String, String> getXwikiSecurityInfo()
+    {
+        Map<String, String> results = new HashMap<>();
+
+        XWikiContext wikiContext = xcontextProvider.get();
+        results.put("activeEncoding", wikiContext.getWiki().getEncoding());
+        results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
+
+        return results;
     }
 
     /**

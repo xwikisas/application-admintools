@@ -52,11 +52,6 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
         return serverIdentifiers;
     }
 
-    /**
-     * Get the server configuration file path.
-     *
-     * @return path to Tomcat configuration file.
-     */
     @Override
     public String getServerCfgPath()
     {
@@ -68,20 +63,14 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
         return null;
     }
 
-    /**
-     * Get the configuration file path for the XWiki installation.
-     *
-     * @return path to the XWiki configuration file.
-     */
     @Override
     public String getXwikiCfgPath()
     {
         for (String xwikiCfgPath : xwikiCfgPossiblePaths) {
-            if ((new File(xwikiCfgPath)).exists()) {
+            if ((new File(xwikiCfgPath + "xwiki.cfg")).exists()) {
                 return xwikiCfgPath;
             }
         }
         return null;
     }
 }
-
