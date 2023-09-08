@@ -28,14 +28,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 
 /**
- * Encapsulates functions used for retrieving security data.
+ * Extension of {@link AbstractDataProvider} for retrieving security data, like XWiki encoding, file encoding, system
+ * info.
  *
  * @version $Id$
  * @since 1.0
@@ -61,17 +59,13 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Named("xwikicfg")
     private ConfigurationSource configurationSource;
 
-    /**
-     * Generate the security details.
-     *
-     * @return the security details of the xwiki
-     */
     @Override
     public String provideData()
     {
         Map<String, String> securityDetails = this.getXwikiSecurityInfo();
 
         securityDetails.putAll(getEnvironmentInfo());
+        securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
 
         return getRenderedTemplate("data/securityTemplate.vm", securityDetails, HINT);
     }
@@ -85,19 +79,15 @@ public class SecurityDataProvider extends AbstractDataProvider
     /**
      * Get the security info of the current wiki.
      *
-     * @return xwiki security info.
+     * @return {@link Map} with XWiki security info regarding used and active encodings.
      */
     private Map<String, String> getXwikiSecurityInfo()
     {
         Map<String, String> results = new HashMap<>();
 
         XWikiContext wikiContext = xcontextProvider.get();
-        XWiki wiki = wikiContext.getWiki();
-        DocumentReference a = wikiContext.getUserReference();
-        WikiReference b = wikiContext.getWikiReference();
-        results.put("activeEncoding", wiki.getEncoding());
+        results.put("activeEncoding", wikiContext.getWiki().getEncoding());
         results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
-        results.put("fileEncoding", System.getProperty("file.encoding"));
 
         return results;
     }
@@ -105,7 +95,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     /**
      * Get the security info regarding the environment.
      *
-     * @return environment security info.
+     * @return {@link Map} with environment info regarding working directory and system language.
      */
     private Map<String, String> getEnvironmentInfo()
     {

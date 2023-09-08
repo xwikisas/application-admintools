@@ -26,8 +26,10 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.ServerIdentifier;
+
 /**
- * Encapsulates functions used for identifying a Tomcat server and retrieving it's info.
+ * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
  *
  * @version $Id$
  * @since 1.0
@@ -42,20 +44,10 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      */
     public static final String HINT = "tomcat";
 
-    /**
-     * Verify if this server is the one that stores the XWiki instance.
-     *
-     * @return true if this server is used, false otherwise
-     */
     @Override
     public boolean isUsed(String providedConfigServerPath)
     {
-        if (tomcatIsUsed(providedConfigServerPath)) {
-            updatePaths(providedConfigServerPath);
-            return true;
-        } else {
-            return false;
-        }
+        return tomcatIsUsed(providedConfigServerPath);
     }
 
     @Override
@@ -70,23 +62,22 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         if (tomcatIsUsed(providedConfigServerPath)) {
             this.serverCfgPossiblePaths = new String[] { String.format("%s/conf/server.xml", this.serverPath),
                 "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/",
-                "/var/lib/tomcat9/conf/", "/var/lib/tomcat/conf/" };
+                "/var/lib/tomcat9/conf/server.xml", "/var/lib/tomcat/conf/server.xml" };
 
-            this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/xwiki.cfg",
-                String.format("%s/webapps${request.contextPath}/WEB-INF/xwiki.cfg", this.serverPath),
-                "/usr/local/xwiki/WEB-INF/xwiki.cfg", "/opt/xwiki/WEB-INF/xwiki.cfg",
-                String.format("%s/webapps/ROOT/WEB-INF/xwiki.cfg", this.serverPath),
-                String.format("%s/webapps/xwiki/WEB-INF/xwiki.cfg", this.serverPath) };
+            this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/",
+                "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
+                String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
+                String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
         }
     }
 
     /**
-     * Function used to verify if a Tomcat server is used. If a server path is provided in the XWiki
-     * configurations, it verifies if the path corresponds to a Tomcat server. Otherwise, it searches the Catalina
-     * location in system properties and system environment.
+     * Function used to verify if a Tomcat server is used. If a server path is provided in the XWiki configurations, it
+     * verifies if the path corresponds to a Tomcat server. Otherwise, it searches the Catalina location in system
+     * properties and system environment.
      *
-     * @param providedConfigServerPath the server path provided in the XWiki configuration page.
-     * @return true if Tomcat is the used server, false otherwise.
+     * @param providedConfigServerPath {@link String} server path provided in the XWiki configuration page.
+     * @return {@link Boolean} true if Tomcat is the used server, false otherwise.
      */
     private boolean tomcatIsUsed(String providedConfigServerPath)
     {

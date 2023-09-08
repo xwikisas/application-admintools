@@ -26,7 +26,7 @@ import java.util.Map;
 import com.xwiki.admintools.ServerIdentifier;
 
 /**
- * Implements methods to ease the usage of the server identifiers.
+ * Common methods for {@link ServerIdentifier} classes.
  *
  * @version $Id$
  * @since 1.0
@@ -55,7 +55,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     /**
      * Get the server configuration file path.
      *
-     * @return path to Tomcat configuration file.
+     * @return {@link String} path to Tomcat configuration file.
      */
     @Override
     public String getServerCfgPath()
@@ -71,13 +71,13 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     /**
      * Get the configuration file path for the XWiki installation.
      *
-     * @return path to the XWiki configuration file.
+     * @return {@link String} path to the XWiki configuration file.
      */
     @Override
-    public String getXwikiCfgPath()
+    public String getXwikiCfgFolderPath()
     {
         for (String xwikiCfgPath : xwikiCfgPossiblePaths) {
-            if ((new File(xwikiCfgPath)).exists()) {
+            if ((new File(xwikiCfgPath + "xwiki.cfg")).exists()) {
                 return xwikiCfgPath;
             }
         }

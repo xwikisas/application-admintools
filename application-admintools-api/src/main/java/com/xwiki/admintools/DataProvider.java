@@ -31,16 +31,16 @@ import org.xwiki.component.annotation.Role;
 public interface DataProvider
 {
     /**
-     * Provides the template of a specific type.
+     * Provides the template rendering the data provider information.
      *
-     * @return a data provider template
+     * @return {@link String} representing the data provider template.
      */
     String provideData();
 
     /**
      * Extract the hint of a component.
      *
-     * @return component hint
+     * @return {@link String} representing the component hint
      */
     String getIdentifier();
 }

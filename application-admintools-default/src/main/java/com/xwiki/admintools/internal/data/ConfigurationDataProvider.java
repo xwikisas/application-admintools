@@ -19,19 +19,23 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Encapsulates functions used for retrieving configuration data.
+ * Extension of {@link AbstractDataProvider} for retrieving configuration data.
  *
  * @version $Id$
  * @since 1.0
@@ -47,7 +51,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     public static final String HINT = "configuration";
 
     @Inject
-    private CurrentServer usedServer;
+    private CurrentServer currentServer;
 
     @Override
     public String getIdentifier()
@@ -58,12 +62,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        usedServer.updatePaths();
+        currentServer.findPaths();
         Map<String, String> systemInfo = new HashMap<>();
-        systemInfo.put("xwikiCfgPath", usedServer.getXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.usedServer.getServerCfgPath());
+        systemInfo.put("xwikiCfgPath", currentServer.retrieveXwikiCfgPath());
+        systemInfo.put("tomcatConfPath", this.currentServer.retrieveServerCfgPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
-        systemInfo.put("osInfo", this.getOSInfo());
+        systemInfo.putAll(this.getOSInfo());
+        systemInfo.put("database", this.identifyDB());
 
         return getRenderedTemplate("data/configurationTemplate.vm", systemInfo, HINT);
     }
@@ -71,7 +76,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Get the version of Java used on the server.
      *
-     * @return the used Java version.
+     * @return {@link String} Java version.
      */
     private String getJavaVersion()
     {
@@ -81,14 +86,53 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Get info about the OS that XWiki is running on.
      *
-     * @return info about the OS.
+     * @return {@link Map} info about the OS.
      */
-    private String getOSInfo()
+    private Map<String, String> getOSInfo()
     {
-        String osName = System.getProperty("os.name");
-        String osVersion = System.getProperty("os.version");
-        String osArch = System.getProperty("os.arch");
+        Map<String, String> result = new HashMap<>();
+        result.put("osName", System.getProperty("os.name"));
+        result.put("osVersion", System.getProperty("os.version"));
+        result.put("osArch", System.getProperty("os.arch"));
 
-        return String.format("Operating System: %s %s (%s)", osName, osVersion, osArch);
+        return result;
+    }
+
+    /**
+     * Identify the used database for XWiki by verifying the configration files.
+     *
+     * @return {@link String} name of the used database as a String.
+     */
+    private String identifyDB()
+    {
+        String databaseCfgPath = currentServer.retrieveXwikiCfgPath() + "hibernate.cfg.xml";
+        File file = new File(databaseCfgPath);
+
+        try (Scanner scanner = new Scanner(file)) {
+            String usedDB = null;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.contains("<property name=\"connection.url\">jdbc:")) {
+                    if (line.contains("mysql")) {
+                        usedDB = "MySQL";
+                    } else if (line.contains("hsqldb")) {
+                        usedDB = "HSQLDB";
+                    } else if (line.contains("mariadb")) {
+                        usedDB = "MariaDB";
+                    } else if (line.contains("postgresql")) {
+                        usedDB = "PostgreSQL";
+                    } else if (line.contains("oracle")) {
+                        usedDB = "Oracle";
+                    }
+                    break;
+                }
+            }
+            scanner.close();
+            return usedDB;
+        } catch (FileNotFoundException e) {
+            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
     }
 }
