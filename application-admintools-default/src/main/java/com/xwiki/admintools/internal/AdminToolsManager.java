@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -72,11 +73,11 @@ public class AdminToolsManager
      * @param hint {@link String} represents the data provider identifier.
      * @return a {@link String} representing a template
      */
-    public String generateData(String hint)
+    public Map<String, String> generateData(String hint)
     {
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
             if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.provideData();
+                return dataProvider.generateJson();
             }
         }
         return null;

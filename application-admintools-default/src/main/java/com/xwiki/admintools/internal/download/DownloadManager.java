@@ -17,12 +17,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.downloads;
+package com.xwiki.admintools.internal.download;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
@@ -36,8 +35,6 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.authorization.AuthorizationManager;
@@ -46,9 +43,8 @@ import org.xwiki.security.authorization.Right;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.FilesResourceProvider;
+import com.xwiki.admintools.ResourceProvider;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Encapsulates functions used for downloading important server files.
@@ -56,49 +52,34 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = DownloadsManager.class)
+@Component(roles = DownloadManager.class)
 @Singleton
-public class DownloadsManager implements Initializable
+public class DownloadManager
 {
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
     @Inject
-    private CurrentServer currentServer;
+    @Named(LogsDownloadResourceProvider.HINT)
+    private ResourceProvider<Map<String, String>> logsDownloadResourceProvider;
+
+    @Inject
+    @Named(LogsViewerResourceProvider.HINT)
+    private ResourceProvider<Long> logsViewerResourceProvider;
+
+    @Inject
+    @Named(FileResourceProvider.HINT)
+    private ResourceProvider<String> filesResourceProvider;
 
     @Inject
     private AuthorizationManager authorizationManager;
-
-    /**
-     * A list of all supported server file downloaders.
-     */
-    @Inject
-    private Provider<List<FilesResourceProvider>> filesResourceProviderProvider;
-
-    private FilesResourceProvider usedFilesResourceProvider;
 
     @Inject
     @Named(ConfigurationDataProvider.HINT)
     private DataProvider configurationDataProvider;
 
-    private String serverPath;
-
     @Inject
     private Logger logger;
-
-    /**
-     * Initializes variables with the server type and the path to the server.
-     *
-     * @throws InitializationException
-     */
-    @Override
-    public void initialize() throws InitializationException
-    {
-        Map<String, String> identifiers = currentServer.getServerIdentifiers();
-        serverPath = identifiers.get("serverPath");
-        String usedServerLogsHint = identifiers.get("serverType") + "Logs";
-        findUsedServer(usedServerLogsHint);
-    }
 
     /**
      * Initiates the download process for the xwiki files. It removes the sensitive content from the file.
@@ -109,7 +90,7 @@ public class DownloadsManager implements Initializable
      */
     public byte[] getXWikiFile(String fileType) throws IOException
     {
-        return usedFilesResourceProvider.getConfigurationFileContent(fileType, currentServer.retrieveXwikiCfgPath());
+        return filesResourceProvider.getByteData(fileType);
     }
 
     /**
@@ -160,8 +141,8 @@ public class DownloadsManager implements Initializable
     {
         XWikiContext wikiContext = xcontextProvider.get();
         XWikiRequest xWikiRequest = wikiContext.getRequest();
-        long noLines = Long.parseLong(xWikiRequest.getParameter("noLines"));
-        return usedFilesResourceProvider.retrieveLastLogs(serverPath, noLines);
+        Long noLines = Long.parseLong(xWikiRequest.getParameter("noLines"));
+        return logsViewerResourceProvider.getByteData(noLines);
     }
 
     /**
@@ -180,16 +161,14 @@ public class DownloadsManager implements Initializable
                 case "cfg_file":
                     zipEntry = new ZipEntry("xwiki.cfg");
                     zipOutputStream.putNextEntry(zipEntry);
-                    buffer = usedFilesResourceProvider.getConfigurationFileContent("config",
-                        currentServer.retrieveXwikiCfgPath());
+                    buffer = filesResourceProvider.getByteData("config");
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
                 case "properties_file":
                     zipEntry = new ZipEntry("xwiki.properties");
                     zipOutputStream.putNextEntry(zipEntry);
-                    buffer = usedFilesResourceProvider.getConfigurationFileContent("properties",
-                        currentServer.retrieveXwikiCfgPath());
+                    buffer = filesResourceProvider.getByteData("properties");
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
@@ -201,7 +180,7 @@ public class DownloadsManager implements Initializable
                     String to = "to";
                     filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
                     filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
-                    buffer = getLogs(filters);
+                    buffer = logsDownloadResourceProvider.getByteData(filters);
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;
@@ -214,32 +193,6 @@ public class DownloadsManager implements Initializable
                     break;
                 default:
                     break;
-            }
-        }
-    }
-
-    /**
-     * Initiates the download process for the server logs. Taking into consideration the used server, it identifies the
-     * right downloader. It returns null if none is corresponding.
-     *
-     * @param filters {@link Map} that can contain the start and end date of the search. It can also be empty.
-     * @return {@link Byte} array representing the logs archive.
-     */
-    private byte[] getLogs(Map<String, String> filters)
-    {
-        return usedFilesResourceProvider.generateLogsArchive(filters, serverPath);
-    }
-
-    /**
-     * Calls the logs generator for the used server.
-     *
-     * @param hint {@link String} represents the used server hint.
-     */
-    private void findUsedServer(String hint)
-    {
-        for (FilesResourceProvider specificFilesResourceProvider : this.filesResourceProviderProvider.get()) {
-            if (specificFilesResourceProvider.getIdentifier().equals(hint)) {
-                usedFilesResourceProvider = specificFilesResourceProvider;
             }
         }
     }

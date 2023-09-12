@@ -20,8 +20,6 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.xwiki.admintools.ServerIdentifier;
 
@@ -43,13 +41,9 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     protected String serverPath;
 
     @Override
-    public Map<String, String> getServerIdentifiers()
+    public String getServerPath()
     {
-        Map<String, String> serverIdentifiers = new HashMap<>();
-        serverIdentifiers.put("serverPath", serverPath);
-        serverIdentifiers.put("serverType", getIdentifier());
-
-        return serverIdentifiers;
+        return serverPath;
     }
 
     /**

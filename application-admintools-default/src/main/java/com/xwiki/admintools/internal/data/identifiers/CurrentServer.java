@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -69,23 +68,13 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Retrieves the XWiki configuration file path for the installation.
+     * Get the used server identifier.
      *
-     * @return a {@link String} representing the path to the XWiki configuration file.
+     * @return {@link ServerIdentifier}
      */
-    public String retrieveXwikiCfgPath()
+    public ServerIdentifier getUsedServer()
     {
-        return usedServer.getXwikiCfgFolderPath();
-    }
-
-    /**
-     * Retrieves the server configuration file path for the installation.
-     *
-     * @return a {@link String} representing the path to the server configuration file.
-     */
-    public String retrieveServerCfgPath()
-    {
-        return usedServer.getServerCfgPath();
+        return usedServer;
     }
 
     /**
@@ -97,16 +86,6 @@ public class CurrentServer implements Initializable
             String providedConfigServerPath = adminToolsConfig.getServerPath();
             findServer(providedConfigServerPath);
         }
-    }
-
-    /**
-     * Calls the used server function to retrieve the server identifiers.
-     *
-     * @return a {@link Map} with the info used to identify the server.
-     */
-    public Map<String, String> getServerIdentifiers()
-    {
-        return usedServer.getServerIdentifiers();
     }
 
     /**

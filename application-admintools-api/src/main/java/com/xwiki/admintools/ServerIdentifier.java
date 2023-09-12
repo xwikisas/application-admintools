@@ -19,7 +19,7 @@
  */
 package com.xwiki.admintools;
 
-import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.xwiki.component.annotation.Role;
 
@@ -69,9 +69,30 @@ public interface ServerIdentifier
     void updatePaths(String providedConfigServerPath);
 
     /**
-     * Access the server path and type.
+     * Get path to server.
      *
-     * @return {@link Map} containing server path and type.
+     * @return {@link String} with server path.
      */
-    Map<String, String> getServerIdentifiers();
+    String getServerPath();
+
+    /**
+     * Get path to server logs folder.
+     *
+     * @return {@link String} with server logs folder path.
+     */
+    String getLogsFolderPath();
+
+    /**
+     * Get path to server last updated main log file.
+     *
+     * @return {@link String} path to server log file.
+     */
+    String getLogFilePath();
+
+    /**
+     * Get server pattern for identifying log files date.
+     *
+     * @return {@link Pattern} representing the date format in server log files names.
+     */
+    Pattern getLogsPattern();
 }

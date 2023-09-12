@@ -70,8 +70,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         currentServer.findPaths();
         Map<String, String> systemInfo = new HashMap<>();
-        systemInfo.put("xwikiCfgPath", currentServer.retrieveXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.currentServer.retrieveServerCfgPath());
+        systemInfo.put("xwikiCfgPath", currentServer.getUsedServer().getXwikiCfgFolderPath());
+        systemInfo.put("tomcatConfPath", this.currentServer.getUsedServer().getServerCfgPath());
         systemInfo.put("javaVersion", this.getJavaVersion());
         systemInfo.putAll(this.getOSInfo());
         systemInfo.put("database", this.identifyDB());
@@ -111,7 +111,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     private String identifyDB()
     {
-        String databaseCfgPath = currentServer.retrieveXwikiCfgPath() + "hibernate.cfg.xml";
+        String databaseCfgPath = currentServer.getUsedServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
         File file = new File(databaseCfgPath);
         try (Scanner scanner = new Scanner(file)) {
             String usedDB = null;

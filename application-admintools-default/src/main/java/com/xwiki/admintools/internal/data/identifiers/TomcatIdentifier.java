@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -42,44 +43,10 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     /**
      * Component identifier.
      */
-    public static final String HINT = "tomcat";
+    public static final String HINT = "Tomcat";
 
     @Override
     public boolean isUsed(String providedConfigServerPath)
-    {
-        return tomcatIsUsed(providedConfigServerPath);
-    }
-
-    @Override
-    public String getIdentifier()
-    {
-        return HINT;
-    }
-
-    @Override
-    public void updatePaths(String providedConfigServerPath)
-    {
-        if (tomcatIsUsed(providedConfigServerPath)) {
-            this.serverCfgPossiblePaths = new String[] { String.format("%s/conf/server.xml", this.serverPath),
-                "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/",
-                "/var/lib/tomcat9/conf/server.xml", "/var/lib/tomcat/conf/server.xml" };
-
-            this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/",
-                "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
-                String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
-                String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
-        }
-    }
-
-    /**
-     * Function used to verify if a Tomcat server is used. If a server path is provided in the XWiki configurations, it
-     * verifies if the path corresponds to a Tomcat server. Otherwise, it searches the Catalina location in system
-     * properties and system environment.
-     *
-     * @param providedConfigServerPath {@link String} server path provided in the XWiki configuration page.
-     * @return {@link Boolean} true if Tomcat is the used server, false otherwise.
-     */
-    private boolean tomcatIsUsed(String providedConfigServerPath)
     {
         if (providedConfigServerPath != null) {
             File file = new File(providedConfigServerPath + "conf/catalina.properties");
@@ -100,5 +67,42 @@ public class TomcatIdentifier extends AbstractServerIdentifier
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
+    }
+
+    @Override
+    public void updatePaths(String providedConfigServerPath)
+    {
+        this.serverCfgPossiblePaths =
+            new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
+                "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/", "/var/lib/tomcat9/conf/server.xml",
+                "/var/lib/tomcat/conf/server.xml" };
+
+        this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
+            String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
+            String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+    }
+
+    @Override
+    public String getLogsFolderPath()
+    {
+        return this.serverPath + "/logs";
+    }
+
+    @Override
+    public String getLogFilePath()
+    {
+        return this.serverPath + "/logs/catalina.out";
+    }
+
+    @Override
+    public Pattern getLogsPattern()
+    {
+        return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
     }
 }

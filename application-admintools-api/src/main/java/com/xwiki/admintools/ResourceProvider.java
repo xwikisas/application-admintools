@@ -19,37 +19,26 @@
  */
 package com.xwiki.admintools;
 
-import java.util.Map;
+import java.io.IOException;
 
 import org.xwiki.component.annotation.Role;
 
 /**
- * Gathers specific parts of data and provides the template for it.
+ * Provides functions for logs retrieval.
  *
+ * @param <T>
  * @version $Id$
  * @since 1.0
  */
 @Role
-public interface DataProvider
+public interface ResourceProvider<T>
 {
     /**
-     * Provides the template rendering the data provider information.
+     * Get the requested data from the server.
      *
-     * @return {@link String} representing the data provider template.
+     * @param input {@link T} data received from user input.
+     * @return {@link Byte} array representing the transfer data.
+     * @throws IOException
      */
-    String provideData();
-
-    /**
-     * Provides the info structured in a json.
-     *
-     * @return {@link Map} containing the generated info.
-     */
-    Map<String, String> generateJson();
-
-    /**
-     * Extract the hint of a component.
-     *
-     * @return {@link String} representing the component hint
-     */
-    String getIdentifier();
+    byte[] getByteData(T input) throws IOException;
 }

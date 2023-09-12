@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.script;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -58,7 +60,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param hint {@link String} representing the data provider
      * @return {@link String} representing the template of a specific data provider
      */
-    public String getConfigurationData(String hint)
+    public Map<String, String> getConfigurationData(String hint)
     {
         return this.adminToolsManager.generateData(hint);
     }

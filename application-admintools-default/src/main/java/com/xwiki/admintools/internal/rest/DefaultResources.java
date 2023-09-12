@@ -36,7 +36,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.rest.XWikiRestException;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
 
-import com.xwiki.admintools.internal.downloads.DownloadsManager;
+import com.xwiki.admintools.internal.download.DownloadManager;
 import com.xwiki.admintools.rest.AdminToolsResources;
 
 /**
@@ -56,21 +56,21 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     private Logger logger;
 
     /**
-     * Handles downloads requests.
+     * Handles download requests.
      */
     @Inject
-    private DownloadsManager downloadsManager;
+    private DownloadManager downloadManager;
 
     @Override
     public Response getConfigs(String type) throws XWikiRestException
     {
         // Check to see if the request was made by a user with admin rights.
-        if (!downloadsManager.isAdmin()) {
+        if (!downloadManager.isAdmin()) {
             logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadsManager.getXWikiFile(type);
+            byte[] xWikiFileContent = downloadManager.getXWikiFile(type);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }
@@ -85,12 +85,12 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     @Override
     public Response getFiles() throws XWikiRestException
     {
-        if (!downloadsManager.isAdmin()) {
+        if (!downloadManager.isAdmin()) {
             logger.warn("Failed to get files due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] filesArchive = downloadsManager.downloadMultipleFiles();
+            byte[] filesArchive = downloadManager.downloadMultipleFiles();
             if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
                 // Set the appropriate response headers to indicate a zip file download.
                 Response.ResponseBuilder response = Response.ok(filesArchive);
@@ -110,12 +110,12 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     @Override
     public Response retrieveLastLogs() throws XWikiRestException
     {
-        if (!downloadsManager.isAdmin()) {
+        if (!downloadManager.isAdmin()) {
             logger.warn("Failed to get the logs due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadsManager.callLogsRetriever();
+            byte[] xWikiFileContent = downloadManager.callLogsRetriever();
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }

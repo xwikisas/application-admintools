@@ -17,98 +17,67 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.downloads;
+package com.xwiki.admintools.internal.download;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.FilesResourceProvider;
+import com.xwiki.admintools.ResourceProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Abstract implementation of {@link FilesResourceProvider}. Adds common functions for all server types.
+ * Encapsulates functions used for downloading log files.
  *
  * @version $Id$
  * @since 1.0
  */
-public abstract class AbstractFilesResourceProvider implements FilesResourceProvider
+@Component
+@Named(LogsDownloadResourceProvider.HINT)
+@Singleton
+public class LogsDownloadResourceProvider implements ResourceProvider<Map<String, String>>
 {
+    /**
+     * Component identifier.
+     */
+    public static final String HINT = "logsDownloadResourceProvider";
+
     @Inject
     private Logger logger;
 
+    @Inject
+    private CurrentServer currentServer;
+
     @Override
-    public byte[] getConfigurationFileContent(String type, String xwikiCfgFolderPath) throws IOException
-    {
-        String filePath = "";
-        if (Objects.equals(type, "properties")) {
-            filePath = xwikiCfgFolderPath + "xwiki.properties";
-        } else if (Objects.equals(type, "config")) {
-            filePath = xwikiCfgFolderPath + "xwiki.cfg";
-        }
-        File inputFile = new File(filePath);
-
-        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-        StringBuilder stringBuilder = new StringBuilder();
-
-        String currentLine;
-        List<String> wordsList = new ArrayList<>(
-            Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
-                "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
-
-        // Read line by line and do not add it if it contains sensitive info.
-        while ((currentLine = reader.readLine()) != null) {
-            String trimmedLine = currentLine.trim();
-            if (wordsList.stream().anyMatch(trimmedLine::contains)) {
-                continue;
-            }
-            stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
-        }
-        reader.close();
-        return stringBuilder.toString().getBytes();
-    }
-
-    /**
-     * Identifies the logs location and applies the filters to the specified server pattern.
-     *
-     * @param filters {@link Map} that can contain the start and end date of the search. It can also be empty.
-     * @param listOfFiles {@link File} list of all the log files.
-     * @param pattern server specific {@link Pattern} used to identify the log date from the log name.
-     * @return {@link Byte} array representing the logs archive.
-     */
-    protected byte[] generateArchive(Map<String, String> filters, File[] listOfFiles, Pattern pattern)
+    public byte[] getByteData(Map<String, String> input)
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[2048];
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+            File logsFolder = new File(currentServer.getUsedServer().getLogsFolderPath());
+            File[] listOfFiles = logsFolder.listFiles();
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
-                if (file.isFile() && checkFilters(filters, pattern, file)) {
+                if (file.isFile() && checkFilters(input, currentServer.getUsedServer().getLogsPattern(), file)) {
                     // Create a new zip entry and add the content.
-                    ZipEntry zipEntry = new ZipEntry(file.getName());
+                    ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
                     try (FileInputStream fileInputStream = new FileInputStream(file)) {
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
@@ -128,45 +97,6 @@ public abstract class AbstractFilesResourceProvider implements FilesResourceProv
             return byteArrayOutputStream.toByteArray();
         } catch (Exception e) {
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return null;
-        }
-    }
-
-    /**
-     * Get server's last "noLines" logs. It is limited to 50000 lines.
-     *
-     * @param filePath {@link String} path to the log file.
-     * @param noLines {@link Long} number of lines to be retrieved.
-     * @return {@link Byte} array representing the last "noLine" logs.
-     * @throws IOException
-     */
-    protected byte[] defaultRetrieveLastLogs(String filePath, long noLines) throws IOException
-    {
-        File file = new File(filePath);
-        if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("File not found: " + filePath);
-        }
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-            long fileLength = randomAccessFile.length();
-            List<String> logLines = new ArrayList<>();
-
-            // Calculate the approximate position to start reading from based on line length
-            long startPosition = fileLength - 1;
-            for (long i = 0; i < noLines && startPosition > 0 && i < 50000; startPosition--) {
-                randomAccessFile.seek(startPosition - 1);
-                int currentByte = randomAccessFile.read();
-                if (currentByte == '\n' || currentByte == '\r') {
-                    // Found a newline character, add the line to the list
-                    logLines.add(randomAccessFile.readLine());
-                    i++;
-                }
-            }
-            // Reverse the list to get the lines in the correct order
-            Collections.reverse(logLines);
-            // Join the lines with newline characters
-            return String.join("\n", logLines).getBytes();
-        } catch (IOException e) {
-            logger.warn("Failed to retrieve logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }
