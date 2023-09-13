@@ -19,12 +19,11 @@
  */
 package com.xwiki.admintools;
 
-import java.util.Map;
-
 import org.xwiki.component.annotation.Role;
 
 /**
- * Identify the used server and the paths to the configuration files of the server and XWiki installation.
+ * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
+ * files.
  *
  * @version $Id$
  * @since 1.0
@@ -33,9 +32,11 @@ import org.xwiki.component.annotation.Role;
 public interface ServerIdentifier
 {
     /**
-     * Check if the server is used.
+     * Verify if a specific server is used. If a server path is provided in the XWiki configurations, it verifies if the
+     * path corresponds to a server. Otherwise, it searches the server location in system properties and system
+     * environment.
      *
-     * @param providedConfigServerPath {@link String} path to the server provided by XWiki configuration.
+     * @param providedConfigServerPath {@link String} server path provided in the XWiki configuration page.
      * @return {@link Boolean} true if the server is used, false otherwise.
      */
     boolean isUsed(String providedConfigServerPath);
@@ -67,11 +68,4 @@ public interface ServerIdentifier
      * @param providedConfigServerPath {@link String} the server path provided in the XWiki configuration page.
      */
     void updatePaths(String providedConfigServerPath);
-
-    /**
-     * Access the server path and type.
-     *
-     * @return {@link Map} containing server path and type.
-     */
-    Map<String, String> getServerIdentifiers();
 }

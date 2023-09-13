@@ -19,8 +19,8 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -47,7 +47,7 @@ public class CurrentServer implements Initializable
     @Inject
     private Provider<List<ServerIdentifier>> supportedServers;
 
-    private ServerIdentifier usedServer;
+    private ServerIdentifier currentServerIdentifier;
 
     @Inject
     @Named("default")
@@ -65,27 +65,17 @@ public class CurrentServer implements Initializable
     public void initialize() throws InitializationException
     {
         String providedConfigServerPath = adminToolsConfig.getServerPath();
-        findServer(providedConfigServerPath);
+        updateCurrentServer(providedConfigServerPath);
     }
 
     /**
-     * Retrieves the XWiki configuration file path for the installation.
+     * Get the used server identifier.
      *
-     * @return a {@link String} representing the path to the XWiki configuration file.
+     * @return {@link ServerIdentifier}
      */
-    public String retrieveXwikiCfgPath()
+    public ServerIdentifier getCurrentServer()
     {
-        return usedServer.getXwikiCfgFolderPath();
-    }
-
-    /**
-     * Retrieves the server configuration file path for the installation.
-     *
-     * @return a {@link String} representing the path to the server configuration file.
-     */
-    public String retrieveServerCfgPath()
-    {
-        return usedServer.getServerCfgPath();
+        return currentServerIdentifier;
     }
 
     /**
@@ -93,20 +83,25 @@ public class CurrentServer implements Initializable
      */
     public void findPaths()
     {
-        if (usedServer == null) {
+        currentServerIdentifier = null;
+        if (currentServerIdentifier == null) {
             String providedConfigServerPath = adminToolsConfig.getServerPath();
-            findServer(providedConfigServerPath);
+            updateCurrentServer(providedConfigServerPath);
         }
     }
 
     /**
-     * Calls the used server function to retrieve the server identifiers.
+     * Returns a list of the supported servers.
      *
-     * @return a {@link Map} with the info used to identify the server.
+     * @return {@link List} with the supported servers.
      */
-    public Map<String, String> getServerIdentifiers()
+    public List<String> getSupportedServers()
     {
-        return usedServer.getServerIdentifiers();
+        List<String> supportedServerList = new ArrayList<>();
+        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
+            supportedServerList.add(serverIdentifier.getIdentifier());
+        }
+        return supportedServerList;
     }
 
     /**
@@ -114,12 +109,12 @@ public class CurrentServer implements Initializable
      *
      * @param providedConfigServerPath {@link String} server path provided by XWiki configurations.
      */
-    private void findServer(String providedConfigServerPath)
+    private void updateCurrentServer(String providedConfigServerPath)
     {
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
             if (serverIdentifier.isUsed(providedConfigServerPath)) {
-                usedServer = serverIdentifier;
-                usedServer.updatePaths(providedConfigServerPath);
+                currentServerIdentifier = serverIdentifier;
+                currentServerIdentifier.updatePaths(providedConfigServerPath);
                 break;
             }
         }

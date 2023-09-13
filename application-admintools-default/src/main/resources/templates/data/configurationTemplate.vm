@@ -17,19 +17,27 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
+#if($configuration["serverFound"] != $null)
+|(% id="admin-tools-dash-content" %)(((
 
-(% border="0" %)
-|(% style="background-color:#fafafa; border-color:#ffffff; width:400px" %)(((
-== 🌐**Backend ** ==
-
-(((
 Get info about your backend
 
 ----
 * XWiki installation version: $xwiki.version
 ** [[Show latest logs]]
+* Used server: $configuration["usedServer"]
 * OS info:
 ** OS name: $configuration["osName"]
 ** OS version: $configuration["osVersion"]
 ** OS Architecture: $configuration["osArch"]
 * Used database: $configuration["database"]
+)))
+#else
+#set($warningMessage = "Currently supported servers: " + $configuration.get('supportedServers'))
+
+{{html}}
+#warning("Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.")
+#warning($warningMessage)
+{{/html}}
+#end
+

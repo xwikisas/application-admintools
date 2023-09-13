@@ -50,6 +50,10 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
+    private final String serverFound = "serverFound";
+
+    private final String template = "data/configurationTemplate.vm";
+
     @Inject
     private CurrentServer currentServer;
 
@@ -62,15 +66,26 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        currentServer.findPaths();
         Map<String, String> systemInfo = new HashMap<>();
-        systemInfo.put("xwikiCfgPath", currentServer.retrieveXwikiCfgPath());
-        systemInfo.put("tomcatConfPath", this.currentServer.retrieveServerCfgPath());
-        systemInfo.put("javaVersion", this.getJavaVersion());
-        systemInfo.putAll(this.getOSInfo());
-        systemInfo.put("database", this.identifyDB());
 
-        return getRenderedTemplate("data/configurationTemplate.vm", systemInfo, HINT);
+        currentServer.findPaths();
+        try {
+            systemInfo.put("xwikiCfgPath", currentServer.getCurrentServer().getXwikiCfgFolderPath());
+            systemInfo.put("tomcatConfPath", this.currentServer.getCurrentServer().getServerCfgPath());
+            systemInfo.put("javaVersion", this.getJavaVersion());
+            systemInfo.putAll(this.getOSInfo());
+            systemInfo.put("database", this.identifyDB());
+            systemInfo.put("usedServer", this.currentServer.getCurrentServer().getIdentifier());
+            systemInfo.put(serverFound, "found");
+            return getRenderedTemplate(template, systemInfo, HINT);
+        } catch (Exception e) {
+            logger.warn("Failed to generate the configuration details. Error info : [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            systemInfo.put(serverFound, null);
+            systemInfo.put("supportedServers", currentServer.getSupportedServers().toString());
+
+            return getRenderedTemplate(template, systemInfo, HINT);
+        }
     }
 
     /**
@@ -105,7 +120,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     private String identifyDB()
     {
-        String databaseCfgPath = currentServer.retrieveXwikiCfgPath() + "hibernate.cfg.xml";
+        String databaseCfgPath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
         File file = new File(databaseCfgPath);
 
         try (Scanner scanner = new Scanner(file)) {

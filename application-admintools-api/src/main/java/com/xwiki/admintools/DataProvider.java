@@ -22,7 +22,7 @@ package com.xwiki.admintools;
 import org.xwiki.component.annotation.Role;
 
 /**
- * Gathers specific parts of data and provides the template for it.
+ * Gathers specific data and returns it in a specific format, using a template.
  *
  * @version $Id$
  * @since 1.0
@@ -31,9 +31,9 @@ import org.xwiki.component.annotation.Role;
 public interface DataProvider
 {
     /**
-     * Provides the template rendering the data provider information.
+     * Provides the data provider information in a format given by the associated template.
      *
-     * @return {@link String} representing the data provider template.
+     * @return {@link String} representing the information formatted by the associated template.
      */
     String provideData();
 

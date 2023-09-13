@@ -39,6 +39,7 @@
 admin.admintools.description=Configure Admin Tools Application
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
+AdminTools.dashboard.section.title.backend=🌐**Backend **
   </content>
   <object>
     <name>AdminTools.Code.Translations</name>
