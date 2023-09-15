@@ -17,27 +17,43 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
+
 #if($configuration["serverFound"] != $null)
-|(% id="admin-tools-dash-content" %)(((
-
-Get info about your backend
-
-----
-* XWiki installation version: $xwiki.version
-** [[Show latest logs]]
-* Used server: $configuration["usedServer"]
-* OS info:
-** OS name: $configuration["osName"]
-** OS version: $configuration["osVersion"]
-** OS Architecture: $configuration["osArch"]
-* Used database: $configuration["database"]
-)))
-#else
-#set($warningMessage = "Currently supported servers: " + $configuration.get('supportedServers'))
 
 {{html}}
-#warning("Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.")
-#warning($warningMessage)
+  <h2>$services.icon.renderHTML('world')$services.localization.render('AdminTools.dashboard.section.backend.title')</h2>
+  <div class="adminToolsDashboardItem">
+    <p>$services.localization.render('AdminTools.dashboard.section.backend.description')</p>
+    <hr />
+    <ul>
+      <li>$services.localization.render('AdminTools.dashboard.section.backend.xwiki.version'): $xwiki.version</li>
+      <ul>
+        <li>
+          <a href="Show-latest-logs">$services.localization.render('AdminTools.dashboard.section.backend.showLogs')</a>
+        </li>
+      </ul>
+      <li>
+        $services.localization.render('AdminTools.dashboard.section.backend.usedServer'): $configuration["usedServer"]
+      </li>
+      <li>OS info:
+        <ul>
+          <li>OS name: $configuration["osName"]</li>
+          <li>OS version: $configuration["osVersion"]</li>
+          <li>OS Architecture: $configuration["osArch"]</li>
+        </ul>
+      </li>
+      <li>$services.localization.render('AdminTools.dashboard.section.backend.usedDB'): $configuration["database"]</li>
+    </ul>
+  </div>
 {{/html}}
-#end
 
+#else
+  #set($warningMessage = "Currently supported servers: " + $configuration.get('supportedServers'))
+
+  {{html}}
+    #warning("Server path was not found. Please manually add the path to the server on the Admin Tools configuration
+    page.")
+    #warning($warningMessage)
+  {{/html}}
+
+#end

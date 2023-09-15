@@ -80,7 +80,7 @@ public class CurrentServerTest
     }
 
     @Test
-    public void testFindPathsAfterInitializationNotFound() throws InitializationException
+    public void testUpdateCurrentServerAfterInitializationNotFound() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -102,7 +102,7 @@ public class CurrentServerTest
         // Mock the behaviour of serverIdentifier
         when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
 
-        // Call the findPaths method
+        // Call the updateCurrentServer method
         currentServer.updateCurrentServer();
 
         // Verify that the currentServerIdentifier is set correctly

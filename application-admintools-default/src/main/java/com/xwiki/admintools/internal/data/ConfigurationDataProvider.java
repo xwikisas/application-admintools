@@ -66,14 +66,12 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public void initialize() throws InitializationException
     {
-        supportedDB = new HashMap<String, String>()
-        {{
-            put("mysql", "MySQL");
-            put("hsqldb", "HSQLDB");
-            put("mariadb", "MariaDB");
-            put("postgresql", "PostgreSQL");
-            put("oracle", "Oracle");
-        }};
+        supportedDB = new HashMap<>();
+        supportedDB.put("mysql", "MySQL");
+        supportedDB.put("hsqldb", "HSQLDB");
+        supportedDB.put("mariadb", "MariaDB");
+        supportedDB.put("postgresql", "PostgreSQL");
+        supportedDB.put("oracle", "Oracle");
     }
 
     @Override
@@ -138,7 +136,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
         try {
             fileOperations.initializeScanner(file);
-            String usedDB = "not found";
+            String usedDB = "Database not found";
             while (fileOperations.hasNextLine()) {
                 String line = fileOperations.nextLine();
                 if (line.contains("<property name=\"connection.url\">jdbc:")) {

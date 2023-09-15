@@ -22,19 +22,31 @@ package com.xwiki.admintools.internal.data;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.script.ScriptContextManager;
+import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.internal.util.DefaultTemplateRender;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
@@ -46,14 +58,34 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class SecurityDataProviderTest
 {
-    @MockComponent
-    protected Provider<XWikiContext> xcontextProvider;
-
-    @InjectMocks
+    @InjectMockComponents
     private SecurityDataProvider securityDataProvider;
+    @MockComponent
+    private Provider<XWikiContext> xcontextProvider;
+
+    @MockComponent
+    @Named("xwikicfg")
+    private ConfigurationSource configurationSource;
+
+    @MockComponent
+    private TemplateManager templateManager;
+
+    @MockComponent
+    private ScriptContextManager scriptContextManager;
+
+    @MockComponent
+    private Logger logger;
 
     @Mock
-    private Logger logger;
+    private XWikiContext xWikiContext;
+
+    @Mock
+    private XWiki wiki;
+
+
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @MockComponent
     private DefaultTemplateRender defaultTemplateRender;
@@ -82,5 +114,17 @@ public class SecurityDataProviderTest
         when(defaultTemplateRender.getRenderedTemplate("data/securityTemplate.vm", json,
             SecurityDataProvider.HINT)).thenReturn("fail");
         assertEquals("fail", securityDataProvider.provideData());
+    }
+
+    @Test
+    public void testGenerateJsonSuccess()
+    {
+        when(this.xcontextProvider.get()).thenReturn(this.xWikiContext);
+        when(this.xWikiContext.getWiki()).thenReturn(this.wiki);
+        when(this.wiki.getEncoding()).thenReturn("rightEncoding");
+        when(this.configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("right_encoding");
+        Map<String, String> json = securityDataProvider.generateJson();
+
+        assertNotNull(json);
     }
 }

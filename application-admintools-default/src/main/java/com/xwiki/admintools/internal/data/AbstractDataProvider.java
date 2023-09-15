@@ -19,14 +19,21 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.script.ScriptContext;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.script.ScriptContextManager;
+import org.xwiki.template.Template;
+import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.DataProvider;
@@ -48,8 +55,14 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     @Inject
     protected Logger logger;
 
+//    @Inject
+//    private DefaultTemplateRender defaultTemplateRender;
+
     @Inject
-    private DefaultTemplateRender defaultTemplateRender;
+    private TemplateManager templateManager;
+
+    @Inject
+    private ScriptContextManager scriptContextManager;
 
     @Override
     public void initialize() throws InitializationException
@@ -60,6 +73,25 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     @Override
     public String renderTemplate(String template, Map<String, String> data, String hint)
     {
-        return defaultTemplateRender.getRenderedTemplate(template, data, hint);
+        try {
+            // Binds the data provided to the template.
+            this.bindData(hint, data);
+            return this.templateManager.render(template);
+        } catch (Exception e) {
+            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    /**
+     * Binds the data provided by for the template.
+     *
+     * @param hint {@link String} component hint used as an identification key inside the template.
+     * @param data {@link Map} component data to be rendered.
+     */
+    private void bindData(String hint, Map<String, String> data)
+    {
+        ScriptContext scriptContext = scriptContextManager.getScriptContext();
+        scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);
     }
 }
