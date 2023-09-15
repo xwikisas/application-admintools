@@ -23,7 +23,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,8 +32,10 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
@@ -50,12 +53,28 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
-    private final String serverFound = "serverFound";
-
     private final String template = "data/configurationTemplate.vm";
+
+    private Map<String, String> supportedDB;
+
+    @Inject
+    private DefaultFileOperations fileOperations;
 
     @Inject
     private CurrentServer currentServer;
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        supportedDB = new HashMap<String, String>()
+        {{
+            put("mysql", "MySQL");
+            put("hsqldb", "HSQLDB");
+            put("mariadb", "MariaDB");
+            put("postgresql", "PostgreSQL");
+            put("oracle", "Oracle");
+        }};
+    }
 
     @Override
     public String getIdentifier()
@@ -66,44 +85,92 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> systemInfo = new HashMap<>();
+        Map<String, String> systemInfo = generateJson();
+        if (systemInfo != null) {
+            systemInfo.put(serverFound, "found");
+        } else {
+            systemInfo = new HashMap<>();
+            systemInfo.put(serverFound, null);
+            systemInfo.put("supportedServers", currentServer.getSupportedServers().toString());
+        }
+        return renderTemplate(template, systemInfo, HINT);
+    }
 
-        currentServer.findPaths();
+    @Override
+    public Map<String, String> generateJson()
+    {
         try {
+            currentServer.updateCurrentServer();
+            Map<String, String> systemInfo = new HashMap<>();
             systemInfo.put("xwikiCfgPath", currentServer.getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.currentServer.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
             systemInfo.putAll(this.getOSInfo());
             systemInfo.put("database", this.identifyDB());
-            systemInfo.put("usedServer", this.currentServer.getCurrentServer().getIdentifier());
-            systemInfo.put(serverFound, "found");
-            return getRenderedTemplate(template, systemInfo, HINT);
+            systemInfo.put("usedServer", this.currentServer.getCurrentServer().getComponentHint());
+            return systemInfo;
         } catch (Exception e) {
             logger.warn("Failed to generate the configuration details. Error info : [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
-            systemInfo.put(serverFound, null);
-            systemInfo.put("supportedServers", currentServer.getSupportedServers().toString());
-
-            return getRenderedTemplate(template, systemInfo, HINT);
+            return null;
         }
     }
 
     /**
      * Get the version of Java used on the server.
      *
-     * @return {@link String} Java version.
+     * @return the used Java version.
      */
-    private String getJavaVersion()
+    String getJavaVersion()
     {
         return System.getProperty("java.version");
     }
 
     /**
+     * Identify the used database for XWiki by verifying the configration files.
+     *
+     * @return the name of the used database.
+     */
+    String identifyDB()
+    {
+        String databaseCfgPath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
+        File file = new File(databaseCfgPath);
+
+        try {
+            fileOperations.initializeScanner(file);
+            String usedDB = "not found";
+            while (fileOperations.hasNextLine()) {
+                String line = fileOperations.nextLine();
+                if (line.contains("<property name=\"connection.url\">jdbc:")) {
+                    String patternString = "jdbc:(.*?)://";
+                    Pattern pattern = Pattern.compile(patternString);
+                    Matcher matcher = pattern.matcher(line);
+                    String foundDB = "";
+                    if (matcher.find()) {
+                        foundDB = matcher.group(1);
+                    } else {
+                        logger.warn("Failed to find database");
+                    }
+
+                    usedDB = supportedDB.getOrDefault(foundDB, "not found");
+                    break;
+                }
+            }
+            fileOperations.closeScanner();
+            return usedDB;
+        } catch (FileNotFoundException e) {
+            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    /**
      * Get info about the OS that XWiki is running on.
      *
-     * @return {@link Map} info about the OS.
+     * @return info about the OS structured in a {@link Map}.
      */
-    private Map<String, String> getOSInfo()
+    Map<String, String> getOSInfo()
     {
         Map<String, String> result = new HashMap<>();
         result.put("osName", System.getProperty("os.name"));
@@ -111,43 +178,5 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         result.put("osArch", System.getProperty("os.arch"));
 
         return result;
-    }
-
-    /**
-     * Identify the used database for XWiki by verifying the configration files.
-     *
-     * @return {@link String} name of the used database as a String.
-     */
-    private String identifyDB()
-    {
-        String databaseCfgPath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
-        File file = new File(databaseCfgPath);
-
-        try (Scanner scanner = new Scanner(file)) {
-            String usedDB = null;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (line.contains("<property name=\"connection.url\">jdbc:")) {
-                    if (line.contains("mysql")) {
-                        usedDB = "MySQL";
-                    } else if (line.contains("hsqldb")) {
-                        usedDB = "HSQLDB";
-                    } else if (line.contains("mariadb")) {
-                        usedDB = "MariaDB";
-                    } else if (line.contains("postgresql")) {
-                        usedDB = "PostgreSQL";
-                    } else if (line.contains("oracle")) {
-                        usedDB = "Oracle";
-                    }
-                    break;
-                }
-            }
-            scanner.close();
-            return usedDB;
-        } catch (FileNotFoundException e) {
-            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            return null;
-        }
     }
 }

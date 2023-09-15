@@ -37,35 +37,33 @@ public interface ServerIdentifier
      * environment.
      *
      * @param providedConfigServerPath {@link String} server path provided in the XWiki configuration page.
-     * @return {@link Boolean} true if the server is used, false otherwise.
+     * @return {@code true} if the server is used, {@code false} otherwise.
      */
     boolean isUsed(String providedConfigServerPath);
 
     /**
      * Extract the hint of a component.
      *
-     * @return {@link String} component hint.
+     * @return component hint.
      */
-    String getIdentifier();
+    String getComponentHint();
 
     /**
      * Access the path to the server configuration file.
      *
-     * @return {@link String} representing the path to the server configuration file.
+     * @return the path to the server configuration file.
      */
     String getServerCfgPath();
 
     /**
      * Access the path to the XWiki configuration folder.
      *
-     * @return {@link String} representing the path to the XWiki configuration folder.
+     * @return the path to the XWiki configuration folder.
      */
     String getXwikiCfgFolderPath();
 
     /**
      * Update the possible paths to the configuration files.
-     *
-     * @param providedConfigServerPath {@link String} the server path provided in the XWiki configuration page.
      */
-    void updatePaths(String providedConfigServerPath);
+    void updatePaths();
 }

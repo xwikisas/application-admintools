@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools;
 
+import java.util.Map;
+
 import org.xwiki.component.annotation.Role;
 
 /**
@@ -33,14 +35,31 @@ public interface DataProvider
     /**
      * Provides the data provider information in a format given by the associated template.
      *
-     * @return {@link String} representing the information formatted by the associated template.
+     * @return the information formatted by the associated template as a {@link String}.
      */
     String provideData();
 
     /**
      * Extract the hint of a component.
      *
-     * @return {@link String} representing the component hint
+     * @return the component hint
      */
     String getIdentifier();
+
+    /**
+     * Provides the info structured in a json.
+     *
+     * @return a {@link Map} with the generated info.
+     */
+    Map<String, String> generateJson();
+
+    /**
+     * Get the data in a format given by the associated template.
+     *
+     * @param data {@link Map} contains the data to be shown in the template.
+     * @param template {@link String} path to the template.
+     * @param hint {@link String} data provider identifier.
+     * @return the rendered template as a {@link String}.
+     */
+    String renderTemplate(String template, Map<String, String> data, String hint);
 }

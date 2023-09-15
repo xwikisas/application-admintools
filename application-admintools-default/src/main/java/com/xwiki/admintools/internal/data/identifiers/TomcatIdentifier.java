@@ -19,14 +19,14 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
-import java.io.File;
-
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
@@ -44,12 +44,14 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      */
     public static final String HINT = "Tomcat";
 
+    @Inject
+    private DefaultFileOperations fileOperations;
+
     @Override
     public boolean isUsed(String providedConfigServerPath)
     {
         if (providedConfigServerPath != null) {
-            File file = new File(providedConfigServerPath + "conf/catalina.properties");
-            if (file.exists()) {
+            if (fileOperations.fileExists(providedConfigServerPath + "conf/catalina.properties")) {
                 this.serverPath = providedConfigServerPath;
                 return true;
             }
@@ -69,13 +71,13 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public String getIdentifier()
+    public String getComponentHint()
     {
         return HINT;
     }
 
     @Override
-    public void updatePaths(String providedConfigServerPath)
+    public void updatePaths()
     {
         this.serverCfgPossiblePaths =
             new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",

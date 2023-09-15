@@ -53,19 +53,11 @@ public class CurrentServer implements Initializable
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
-    /**
-     * Method called by the Component Manager when the component is created for the first time (i.e. when it's looked up
-     * for the first time or if the component is specified as being loaded on startup). If the component instantiation
-     * strategy is singleton then this method is called only once during the lifecycle of the Component Manager.
-     * Otherwise the component is created at each lookup and thus this method is called at each lookup too.
-     *
-     * @throws InitializationException if an error happens during a component's initialization
-     */
     @Override
     public void initialize() throws InitializationException
     {
-        String providedConfigServerPath = adminToolsConfig.getServerPath();
-        updateCurrentServer(providedConfigServerPath);
+        currentServerIdentifier = null;
+        updateCurrentServer();
     }
 
     /**
@@ -79,18 +71,6 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Verifies if a server type was found and updates the paths.
-     */
-    public void findPaths()
-    {
-        currentServerIdentifier = null;
-        if (currentServerIdentifier == null) {
-            String providedConfigServerPath = adminToolsConfig.getServerPath();
-            updateCurrentServer(providedConfigServerPath);
-        }
-    }
-
-    /**
      * Returns a list of the supported servers.
      *
      * @return {@link List} with the supported servers.
@@ -99,23 +79,24 @@ public class CurrentServer implements Initializable
     {
         List<String> supportedServerList = new ArrayList<>();
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            supportedServerList.add(serverIdentifier.getIdentifier());
+            supportedServerList.add(serverIdentifier.getComponentHint());
         }
         return supportedServerList;
     }
 
     /**
      * Go through all supported servers and return the one that is used.
-     *
-     * @param providedConfigServerPath {@link String} server path provided by XWiki configurations.
      */
-    private void updateCurrentServer(String providedConfigServerPath)
+    public void updateCurrentServer()
     {
-        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed(providedConfigServerPath)) {
-                currentServerIdentifier = serverIdentifier;
-                currentServerIdentifier.updatePaths(providedConfigServerPath);
-                break;
+        if (currentServerIdentifier == null) {
+            String providedConfigServerPath = adminToolsConfig.getServerPath();
+            for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
+                if (serverIdentifier.isUsed(providedConfigServerPath)) {
+                    currentServerIdentifier = serverIdentifier;
+                    currentServerIdentifier.updatePaths();
+                    break;
+                }
             }
         }
     }

@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 
@@ -62,12 +63,14 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> securityDetails = this.getXwikiSecurityInfo();
-
-        securityDetails.putAll(getEnvironmentInfo());
-        securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
-
-        return getRenderedTemplate("data/securityTemplate.vm", securityDetails, HINT);
+        Map<String, String> securityDetails = generateJson();
+        if (securityDetails != null) {
+            securityDetails.put(serverFound, "found");
+        } else {
+            securityDetails = new HashMap<>();
+            securityDetails.put(serverFound, null);
+        }
+        return renderTemplate("data/securityTemplate.vm", securityDetails, HINT);
     }
 
     @Override
@@ -76,12 +79,27 @@ public class SecurityDataProvider extends AbstractDataProvider
         return HINT;
     }
 
+    @Override
+    public Map<String, String> generateJson()
+    {
+        try {
+            Map<String, String> securityDetails = this.getXwikiSecurityInfo();
+            securityDetails.putAll(getEnvironmentInfo());
+            securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
+            return securityDetails;
+        } catch (Exception e) {
+            logger.warn("Failed to generate the security details. Error info : [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
     /**
      * Get the security info of the current wiki.
      *
-     * @return {@link Map} with XWiki security info regarding used and active encodings.
+     * @return a {@link Map} with XWiki security info regarding used and active encodings.
      */
-    private Map<String, String> getXwikiSecurityInfo()
+    Map<String, String> getXwikiSecurityInfo()
     {
         Map<String, String> results = new HashMap<>();
 

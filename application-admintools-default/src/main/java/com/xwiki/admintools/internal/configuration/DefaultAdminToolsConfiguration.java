@@ -19,12 +19,15 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
+import java.text.MessageFormat;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
@@ -36,6 +39,7 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  */
 @Component
 @Singleton
+@Unstable
 public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 {
     private static final String SERVER_LOCATION = "serverLocation";
@@ -47,6 +51,15 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     @Override
     public String getServerPath()
     {
-        return this.mainConfiguration.getProperty(SERVER_LOCATION, String.class);
+        return this.getProperty(SERVER_LOCATION, "");
+    }
+
+    private <T> T getProperty(String key, T defaultValue)
+    {
+        T value = this.mainConfiguration.getProperty(key, defaultValue);
+        if (value == null || value.equals(defaultValue)) {
+            throw new RuntimeException(MessageFormat.format("The {0} is missing.", key));
+        }
+        return value;
     }
 }
