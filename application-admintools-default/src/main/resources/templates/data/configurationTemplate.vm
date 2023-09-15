@@ -18,42 +18,41 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 
-#if($configuration["serverFound"] != $null)
+#if($configuration['serverFound'] != $null)
 
 {{html}}
-  <h2>$services.icon.renderHTML('world')$services.localization.render('AdminTools.dashboard.section.backend.title')</h2>
   <div class="adminToolsDashboardItem">
-    <p>$services.localization.render('AdminTools.dashboard.section.backend.description')</p>
+    <h2>$services.icon.renderHTML('world')$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.title'))</h2>
+    <p>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.description'))</p>
     <hr />
     <ul>
-      <li>$services.localization.render('AdminTools.dashboard.section.backend.xwiki.version'): $xwiki.version</li>
+      <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.xwiki.version')): $xwiki.version</li>
       <ul>
         <li>
-          <a href="Show-latest-logs">$services.localization.render('AdminTools.dashboard.section.backend.showLogs')</a>
+          <a href="Show-latest-logs">$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.showLogs'))</a>
         </li>
       </ul>
       <li>
-        $services.localization.render('AdminTools.dashboard.section.backend.usedServer'): $configuration["usedServer"]
+        $escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.usedServer')): $configuration['usedServer']
       </li>
-      <li>OS info:
+      <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.os.legend')):
         <ul>
-          <li>OS name: $configuration["osName"]</li>
-          <li>OS version: $configuration["osVersion"]</li>
-          <li>OS Architecture: $configuration["osArch"]</li>
+          <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.os.name')): $configuration['osName']</li>
+          <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.os.version')): $configuration['osVersion']</li>
+          <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.os.architecture')): $configuration['osArch']</li>
         </ul>
       </li>
-      <li>$services.localization.render('AdminTools.dashboard.section.backend.usedDB'): $configuration["database"]</li>
+      <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.usedDB')): $configuration['database']</li>
     </ul>
   </div>
 {{/html}}
 
 #else
-  #set($warningMessage = "Currently supported servers: " + $configuration.get('supportedServers'))
+  #set($warningMessage = $escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.error.configuration'))+ '<br>')
+  #set($warningMessage = $warningMessage + $escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.error.supportedServers'))+ ': ' + $configuration.get('supportedServers'))
 
-  {{html}}
-    #warning("Server path was not found. Please manually add the path to the server on the Admin Tools configuration
-    page.")
+{{html}}
     #warning($warningMessage)
-  {{/html}}
+{{/html}}
 
 #end

@@ -90,7 +90,7 @@
     </class>
     <property>
       <content>{{velocity}}
-$services.admintools.getConfigurationData("configuration")
+$services.admintools.getConfigurationData('configuration')
 {{/velocity}}</content>
     </property>
     <property>
@@ -208,7 +208,7 @@ $services.admintools.getConfigurationData("configuration")
     <property>
       <code>#template('colorThemeInit.vm')
 
-#admin-tools-dash-content{
+.adminToolsDashboardItem{
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
 }</code>

@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -32,12 +30,10 @@ import org.slf4j.Logger;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.script.ScriptContextManager;
-import org.xwiki.template.Template;
 import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.internal.util.DefaultTemplateRender;
 
 /**
  * {@link DataProvider} implementations to simplify the code.
