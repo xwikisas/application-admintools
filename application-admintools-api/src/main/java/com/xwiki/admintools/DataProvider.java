@@ -50,15 +50,16 @@ public interface DataProvider
      * Provides the info structured in a json.
      *
      * @return a {@link Map} with the generated info.
+     * @throws Exception
      */
-    Map<String, String> generateJson();
+    Map<String, String> provideJson() throws Exception;
 
     /**
      * Get the data in a format given by the associated template.
      *
-     * @param data {@link Map} contains the data to be shown in the template.
-     * @param template {@link String} path to the template.
-     * @param hint {@link String} data provider identifier.
+     * @param data {@link Map} with info to be shown in the template.
+     * @param template name of the template.
+     * @param hint {@link String} component name.
      * @return the rendered template as a {@link String}.
      */
     String renderTemplate(String template, Map<String, String> data, String hint);

@@ -39,19 +39,18 @@
 admin.admintools.description=Configure Admin Tools Application
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
-AdminTools.dashboard.section.backend.title=Backend
-AdminTools.dashboard.section.backend.description=Get info about your backend
-    AdminTools.dashboard.section.backend.xwiki.version=XWiki installation version
-    AdminTools.dashboard.section.backend.showLogs=Show latest logs
-    AdminTools.dashboard.section.backend.usedServer=Used server
-    AdminTools.dashboard.section.backend.usedDB=Used database
-    AdminTools.dashboard.section.backend.os.legend=OS info
-    AdminTools.dashboard.section.backend.os.name=OS name
-    AdminTools.dashboard.section.backend.os.version=OS version
-    AdminTools.dashboard.section.backend.os.architecture=OS Architecture
-    AdminTools.dashboard.section.backend.error.supportedServers=Currently supported servers
-    AdminTools.dashboard.section.backend.error.configuration=Server path was not found. Please manually add the path
-    to the server on the Admin Tools configuration page.
+adminTools.dashboard.section.backend.title=Backend
+adminTools.dashboard.section.backend.description=Get info about your backend
+adminTools.dashboard.section.backend.xwiki.version=XWiki installation version
+adminTools.dashboard.section.backend.showLogs=Show latest logs
+adminTools.dashboard.section.backend.usedServer=Used server
+adminTools.dashboard.section.backend.usedDB=Used database
+adminTools.dashboard.section.backend.os.legend=OS info
+adminTools.dashboard.section.backend.os.name=OS name
+adminTools.dashboard.section.backend.os.version=OS version
+adminTools.dashboard.section.backend.os.architecture=OS Architecture
+adminTools.dashboard.section.backend.error.supportedServers=Currently supported servers
+adminTools.dashboard.section.backend.error.configuration=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
 
   </content>
   <object>

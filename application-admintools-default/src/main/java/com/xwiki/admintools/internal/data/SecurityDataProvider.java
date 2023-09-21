@@ -63,14 +63,14 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> securityDetails = generateJson();
-        if (securityDetails != null) {
-            securityDetails.put(serverFound, "found");
-        } else {
-            securityDetails = new HashMap<>();
+        Map<String, String> securityDetails = new HashMap<>();
+        try {
+            securityDetails = provideJson();
+        } catch (Exception e) {
+            logger.warn(ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(serverFound, null);
         }
-        return renderTemplate("data/securityTemplate.vm", securityDetails, HINT);
+        return renderTemplate("securityTemplate.vm", securityDetails, HINT);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public Map<String, String> generateJson()
+    public Map<String, String> provideJson() throws Exception
     {
         try {
             Map<String, String> securityDetails = this.getXwikiSecurityInfo();
@@ -88,9 +88,8 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
             return securityDetails;
         } catch (Exception e) {
-            logger.warn("Failed to generate the security details. Error info : [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            return null;
+            throw new Exception(
+                "Failed to generate the security json. Error info : " + ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
@@ -99,15 +98,18 @@ public class SecurityDataProvider extends AbstractDataProvider
      *
      * @return a {@link Map} with XWiki security info regarding used and active encodings.
      */
-    Map<String, String> getXwikiSecurityInfo()
+    private Map<String, String> getXwikiSecurityInfo() throws Exception
     {
-        Map<String, String> results = new HashMap<>();
+        try {
+            Map<String, String> results = new HashMap<>();
 
-        XWikiContext wikiContext = xcontextProvider.get();
-        results.put("activeEncoding", wikiContext.getWiki().getEncoding());
-        results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
-
-        return results;
+            XWikiContext wikiContext = xcontextProvider.get();
+            results.put("activeEncoding", wikiContext.getWiki().getEncoding());
+            results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
+            return results;
+        } catch (Exception e) {
+            throw new Exception("Failed to generate xwiki security info: " + ExceptionUtils.getRootCauseMessage(e));
+        }
     }
 
     /**
@@ -118,10 +120,13 @@ public class SecurityDataProvider extends AbstractDataProvider
     private Map<String, String> getEnvironmentInfo()
     {
         Map<String, String> results = new HashMap<>();
-
+        String workDirectory = System.getenv(WORK_DIRECTORY);
+        String language = System.getenv(LANGUAGE);
         results.put(WORK_DIRECTORY, System.getenv(WORK_DIRECTORY));
         results.put(LANGUAGE, System.getenv(LANGUAGE));
-
+        if (workDirectory == null || language == null) {
+            logger.warn("Failed to access language or work directory environment variables.");
+        }
         return results;
     }
 }

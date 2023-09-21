@@ -51,7 +51,8 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     public boolean isUsed(String providedConfigServerPath)
     {
         if (providedConfigServerPath != null) {
-            if (fileOperations.fileExists(providedConfigServerPath + "conf/catalina.properties")) {
+            fileOperations.readFile(providedConfigServerPath + "conf/catalina.properties");
+            if (fileOperations.fileExists()) {
                 this.serverPath = providedConfigServerPath;
                 return true;
             }

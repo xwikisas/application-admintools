@@ -51,9 +51,6 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     @Inject
     protected Logger logger;
 
-//    @Inject
-//    private DefaultTemplateRender defaultTemplateRender;
-
     @Inject
     private TemplateManager templateManager;
 
@@ -82,8 +79,8 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     /**
      * Binds the data provided by for the template.
      *
-     * @param hint {@link String} component hint used as an identification key inside the template.
-     * @param data {@link Map} component data to be rendered.
+     * @param hint Name used to identify the data inside the template.
+     * @param data component data to be rendered in the template.
      */
     private void bindData(String hint, Map<String, String> data)
     {

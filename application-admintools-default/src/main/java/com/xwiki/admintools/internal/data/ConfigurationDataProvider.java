@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -34,6 +32,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.InitializationException;
 
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
@@ -53,7 +52,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
-    private final String template = "data/configurationTemplate.vm";
+    private final String template = "configurationTemplate.vm";
 
     private Map<String, String> supportedDB;
 
@@ -83,11 +82,12 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     @Override
     public String provideData()
     {
-        Map<String, String> systemInfo = generateJson();
-        if (systemInfo != null) {
+        Map<String, String> systemInfo = new HashMap<>();
+        try {
+            systemInfo = provideJson();
             systemInfo.put(serverFound, "found");
-        } else {
-            systemInfo = new HashMap<>();
+        } catch (Exception e) {
+            logger.warn(ExceptionUtils.getRootCauseMessage(e));
             systemInfo.put(serverFound, null);
             systemInfo.put("supportedServers", currentServer.getSupportedServers().toString());
         }
@@ -95,22 +95,21 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public Map<String, String> generateJson()
+    public Map<String, String> provideJson() throws Exception
     {
         try {
             currentServer.updateCurrentServer();
             Map<String, String> systemInfo = new HashMap<>();
-            systemInfo.put("xwikiCfgPath", currentServer.getCurrentServer().getXwikiCfgFolderPath());
-            systemInfo.put("tomcatConfPath", this.currentServer.getCurrentServer().getServerCfgPath());
+            systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
+            systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
             systemInfo.putAll(this.getOSInfo());
             systemInfo.put("database", this.identifyDB());
-            systemInfo.put("usedServer", this.currentServer.getCurrentServer().getComponentHint());
+            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
             return systemInfo;
         } catch (Exception e) {
-            logger.warn("Failed to generate the configuration details. Error info : [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            return null;
+            throw new Exception(
+                "Failed to generate the configuration json. Error info : " + ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
@@ -128,38 +127,36 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      * Identify the used database for XWiki by verifying the configration files.
      *
      * @return the name of the used database.
+     * @throws Exception
      */
-    String identifyDB()
+    String identifyDB() throws Exception
     {
-        String databaseCfgPath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
-        File file = new File(databaseCfgPath);
-
         try {
-            fileOperations.initializeScanner(file);
-            String usedDB = "Database not found";
+            String databaseCfgPath = getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
+            String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
+            Pattern pattern = Pattern.compile(patternString);
+            fileOperations.readFile(databaseCfgPath);
+            fileOperations.initializeScanner();
+            String errorMessage = "Database not supported.";
+            String usedDB = errorMessage;
             while (fileOperations.hasNextLine()) {
                 String line = fileOperations.nextLine();
-                if (line.contains("<property name=\"connection.url\">jdbc:")) {
-                    String patternString = "jdbc:(.*?)://";
-                    Pattern pattern = Pattern.compile(patternString);
-                    Matcher matcher = pattern.matcher(line);
-                    String foundDB = "";
-                    if (matcher.find()) {
-                        foundDB = matcher.group(1);
-                    } else {
-                        logger.warn("Failed to find database");
-                    }
 
-                    usedDB = supportedDB.getOrDefault(foundDB, "not found");
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    String foundDB = matcher.group(1);
+                    usedDB = supportedDB.getOrDefault(foundDB, errorMessage);
                     break;
                 }
             }
             fileOperations.closeScanner();
+            if (usedDB.equals("Database not supported.")) {
+                logger.warn("Failed to find database");
+            }
             return usedDB;
-        } catch (FileNotFoundException e) {
-            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            return null;
+        } catch (Exception e) {
+            throw new Exception(
+                "Failed to identify used Database. Root cause is: " + ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
@@ -168,7 +165,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @return info about the OS structured in a {@link Map}.
      */
-    Map<String, String> getOSInfo()
+    private Map<String, String> getOSInfo()
     {
         Map<String, String> result = new HashMap<>();
         result.put("osName", System.getProperty("os.name"));
@@ -176,5 +173,15 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         result.put("osArch", System.getProperty("os.arch"));
 
         return result;
+    }
+
+    private ServerIdentifier getCurrentServer() throws Exception
+    {
+        try {
+            return this.currentServer.getCurrentServer();
+        } catch (Exception e) {
+            throw new Exception(
+                "Failed to retrieve used server. Root cause is: " + ExceptionUtils.getRootCauseMessage(e));
+        }
     }
 }

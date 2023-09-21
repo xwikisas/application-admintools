@@ -39,25 +39,27 @@ public class DefaultFileOperations
 {
     private Scanner scanner;
 
+    private File file;
     /**
      * Check if the searched file exists.
      *
-     * @param path {@link String} path to the file.
      * @return {@code true} if the file exists, {@code false} otherwise.
      */
-    public boolean fileExists(String path)
+    public boolean fileExists()
     {
-        File file = new File(path);
         return file.exists();
+    }
+
+    public void readFile(String path){
+        file = new File(path);
     }
 
     /**
      * Initialize the scanner for the needed file.
      *
-     * @param file {@link File} the file you want to read.
      * @throws FileNotFoundException
      */
-    public void initializeScanner(File file) throws FileNotFoundException
+    public void initializeScanner() throws FileNotFoundException
     {
         scanner = new Scanner(file);
     }

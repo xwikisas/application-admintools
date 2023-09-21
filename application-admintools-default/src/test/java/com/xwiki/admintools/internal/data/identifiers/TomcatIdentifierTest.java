@@ -49,7 +49,7 @@ public class TomcatIdentifierTest
     public void testIsUsedFound()
     {
         // Mock the behavior of the File object
-        when(fileOperations.fileExists("good_path/" + "conf/catalina.properties")).thenReturn(true);
+        when(fileOperations.fileExists()).thenReturn(true);
 
         // Test with a valid providedConfigServerPath
         assertTrue(tomcatIdentifier.isUsed("good_path/"));

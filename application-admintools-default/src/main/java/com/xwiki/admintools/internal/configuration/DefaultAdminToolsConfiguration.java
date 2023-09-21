@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
-import java.text.MessageFormat;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -58,7 +56,7 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     {
         T value = this.mainConfiguration.getProperty(key, defaultValue);
         if (value == null || value.equals(defaultValue)) {
-            throw new RuntimeException(MessageFormat.format("The {0} is missing.", key));
+            throw new RuntimeException(String.format("The %s is missing.", key));
         }
         return value;
     }

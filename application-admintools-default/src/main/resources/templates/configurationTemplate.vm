@@ -17,12 +17,13 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
+{{html clean='false'}}
 
 #if($configuration['serverFound'] != $null)
 
-{{html}}
   <div class="adminToolsDashboardItem">
-    <h2>$services.icon.renderHTML('world')$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.title'))</h2>
+    <h2><span>$services.icon.renderHTML('world')</span> <span>$escapetool.xml($services.localization.render('AdminTools
+    .dashboard.section.backend.title'))</span></h2>
     <p>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.description'))</p>
     <hr />
     <ul>
@@ -45,14 +46,15 @@
       <li>$escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.usedDB')): $configuration['database']</li>
     </ul>
   </div>
-{{/html}}
+
 
 #else
   #set($warningMessage = $escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.error.configuration'))+ '<br>')
   #set($warningMessage = $warningMessage + $escapetool.xml($services.localization.render('AdminTools.dashboard.section.backend.error.supportedServers'))+ ': ' + $configuration.get('supportedServers'))
 
-{{html}}
-    #warning($warningMessage)
-{{/html}}
+  #warning($warningMessage)
+
 
 #end
+
+{{/html}}
