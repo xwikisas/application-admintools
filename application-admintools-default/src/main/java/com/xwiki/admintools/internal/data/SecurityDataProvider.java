@@ -66,6 +66,7 @@ public class SecurityDataProvider extends AbstractDataProvider
         Map<String, String> securityDetails = new HashMap<>();
         try {
             securityDetails = provideJson();
+            securityDetails.put(serverFound, "true");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(serverFound, null);

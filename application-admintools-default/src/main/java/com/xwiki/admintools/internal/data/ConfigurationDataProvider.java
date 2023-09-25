@@ -30,7 +30,6 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -54,24 +53,11 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
     private final String template = "configurationTemplate.vm";
 
-    private Map<String, String> supportedDB;
-
     @Inject
     private DefaultFileOperations fileOperations;
 
     @Inject
     private CurrentServer currentServer;
-
-    @Override
-    public void initialize() throws InitializationException
-    {
-        supportedDB = new HashMap<>();
-        supportedDB.put("mysql", "MySQL");
-        supportedDB.put("hsqldb", "HSQLDB");
-        supportedDB.put("mariadb", "MariaDB");
-        supportedDB.put("postgresql", "PostgreSQL");
-        supportedDB.put("oracle", "Oracle");
-    }
 
     @Override
     public String getIdentifier()
@@ -87,9 +73,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo = provideJson();
             systemInfo.put(serverFound, "found");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getRootCauseMessage(e));
             systemInfo.put(serverFound, null);
-            systemInfo.put("supportedServers", currentServer.getSupportedServers().toString());
         }
         return renderTemplate(template, systemInfo, HINT);
     }
@@ -98,7 +82,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     public Map<String, String> provideJson() throws Exception
     {
         try {
-            currentServer.updateCurrentServer();
             Map<String, String> systemInfo = new HashMap<>();
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
@@ -108,8 +91,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
             return systemInfo;
         } catch (Exception e) {
-            throw new Exception(
-                "Failed to generate the configuration json. Error info : " + ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception(String.format("Failed to generate the configuration json. Error info: %s",
+                ExceptionUtils.getRootCauseMessage(e)));
         }
     }
 
@@ -127,37 +110,40 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      * Identify the used database for XWiki by verifying the configration files.
      *
      * @return the name of the used database.
-     * @throws Exception
      */
-    String identifyDB() throws Exception
+    String identifyDB()
     {
+        String usedDB = null;
         try {
-            String databaseCfgPath = getCurrentServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
+            ServerIdentifier server = getCurrentServer();
+            String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
             String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
             Pattern pattern = Pattern.compile(patternString);
-            fileOperations.readFile(databaseCfgPath);
+            fileOperations.openFile(databaseCfgPath);
             fileOperations.initializeScanner();
-            String errorMessage = "Database not supported.";
-            String usedDB = errorMessage;
+
             while (fileOperations.hasNextLine()) {
                 String line = fileOperations.nextLine();
-
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
                     String foundDB = matcher.group(1);
-                    usedDB = supportedDB.getOrDefault(foundDB, errorMessage);
+                    usedDB = currentServer.getSupportedDB().getOrDefault(foundDB, null);
                     break;
                 }
             }
             fileOperations.closeScanner();
-            if (usedDB.equals("Database not supported.")) {
-                logger.warn("Failed to find database");
+            if (usedDB == null) {
+                logger.warn("Failed to find database. Used database may not be supported!");
             }
-            return usedDB;
-        } catch (Exception e) {
-            throw new Exception(
-                "Failed to identify used Database. Root cause is: " + ExceptionUtils.getRootCauseMessage(e));
+        } catch (NullPointerException e) {
+            throw new NullPointerException(String.format("Failed to identify used Database. Root cause is: [%s]",
+                ExceptionUtils.getRootCauseMessage(e)));
+        } catch (Exception exception) {
+            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(exception));
         }
+
+        return usedDB;
     }
 
     /**
@@ -175,13 +161,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         return result;
     }
 
-    private ServerIdentifier getCurrentServer() throws Exception
+    private ServerIdentifier getCurrentServer()
     {
-        try {
-            return this.currentServer.getCurrentServer();
-        } catch (Exception e) {
-            throw new Exception(
-                "Failed to retrieve used server. Root cause is: " + ExceptionUtils.getRootCauseMessage(e));
+        ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
+        if (serverIdentifier == null) {
+            logger.warn("Failed to retrieve used server. Server not found.");
+            throw new NullPointerException("Failed to retrieve the used server. Server not found.");
         }
+        return serverIdentifier;
     }
 }

@@ -20,7 +20,9 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -53,9 +55,18 @@ public class CurrentServer implements Initializable
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
+    private Map<String, String> supportedDB;
+
     @Override
     public void initialize() throws InitializationException
     {
+        supportedDB = new HashMap<>();
+        supportedDB.put("mysql", "MySQL");
+        supportedDB.put("hsqldb", "HSQLDB");
+        supportedDB.put("mariadb", "MariaDB");
+        supportedDB.put("postgresql", "PostgreSQL");
+        supportedDB.put("oracle", "Oracle");
+
         currentServerIdentifier = null;
         updateCurrentServer();
     }
@@ -68,6 +79,16 @@ public class CurrentServer implements Initializable
     public ServerIdentifier getCurrentServer()
     {
         return currentServerIdentifier;
+    }
+
+    /**
+     * Get a {@link Map} with the supported databases.
+     *
+     * @return the supported databases.
+     */
+    public Map<String, String> getSupportedDB()
+    {
+        return supportedDB;
     }
 
     /**
@@ -89,14 +110,13 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        if (currentServerIdentifier == null) {
-            String providedConfigServerPath = adminToolsConfig.getServerPath();
-            for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-                if (serverIdentifier.isUsed(providedConfigServerPath)) {
-                    currentServerIdentifier = serverIdentifier;
-                    currentServerIdentifier.updatePaths();
-                    break;
-                }
+        String providedConfigServerPath = adminToolsConfig.getServerPath();
+        currentServerIdentifier = null;
+        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
+            if (serverIdentifier.isUsed(providedConfigServerPath)) {
+                currentServerIdentifier = serverIdentifier;
+                currentServerIdentifier.updatePaths();
+                break;
             }
         }
     }

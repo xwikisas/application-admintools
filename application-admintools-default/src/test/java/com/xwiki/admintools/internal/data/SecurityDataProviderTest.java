@@ -29,9 +29,9 @@ import javax.script.ScriptContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.SetEnvironmentVariable;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -90,8 +91,8 @@ public class SecurityDataProviderTest
     {
         // Prepare expected json
         json = new HashMap<>();
-        json.put("PWD", "working_dir");
-        json.put("LANG", "used_lang");
+        json.put("PWD", System.getenv("PWD"));
+        json.put("LANG", System.getenv("LANG"));
         json.put("activeEncoding", "wiki_encoding");
         json.put("configurationEncoding", "configuration_encoding");
         json.put("fileEncoding", "file_encoding");
@@ -121,8 +122,6 @@ public class SecurityDataProviderTest
     }
 
     // Mock environment info
-    @SetEnvironmentVariable(key = "PWD", value = "working_dir")
-    @SetEnvironmentVariable(key = "LANG", value = "used_lang")
     @Test
     public void generateJsonTestSuccess() throws Exception
     {
@@ -135,8 +134,6 @@ public class SecurityDataProviderTest
         assertEquals(json, securityDataProvider.provideJson());
     }
 
-    @SetEnvironmentVariable(key = "PWD", value = "working_dir")
-    @SetEnvironmentVariable(key = "LANG", value = "used_lang")
     @Test
     public void testProvideDataWithSuccessfulExecution() throws Exception
     {
@@ -158,7 +155,7 @@ public class SecurityDataProviderTest
     public void testProvideDataWithCaughtError() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-
+        ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
@@ -168,9 +165,9 @@ public class SecurityDataProviderTest
         ScriptContext scriptContextMock = mock(ScriptContext.class);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
         when(templateManager.render(templatePath)).thenReturn("fail");
-
         // Verify the result and method invocations
         assertEquals("fail", securityDataProvider.provideData());
-//        assertThrows(ArithmeticException.class, () -> configurationSource.getProperty("xwiki.encoding", String.class));
+        verify(this.logger).warn(
+            "Exception: Failed to generate the security json. Error info : Exception: Failed to generate xwiki security info: NullPointerException: ConfigurationSourceNotFound");
     }
 }

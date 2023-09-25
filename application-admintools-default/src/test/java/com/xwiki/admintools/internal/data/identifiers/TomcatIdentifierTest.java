@@ -68,6 +68,13 @@ public class TomcatIdentifierTest
     }
 
     @Test
+    public void testIsUsedWrongPath()
+    {
+        // Test with incorrect providedConfigServerPath
+        assertFalse(tomcatIdentifier.isUsed("invalid_server_path"));
+    }
+
+    @Test
     public void getIdentifierTest()
     {
         assertEquals("Tomcat", tomcatIdentifier.getComponentHint());

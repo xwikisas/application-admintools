@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -28,6 +29,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Manages the data providers.
@@ -39,11 +41,19 @@ import com.xwiki.admintools.DataProvider;
 @Singleton
 public class AdminToolsManager
 {
+    private final String delimiter = ", ";
+
     /**
      * A list of all the data providers for Admin Tools.
      */
     @Inject
     private Provider<List<DataProvider>> dataProviderProvider;
+
+    /**
+     * Currently used server.
+     */
+    @Inject
+    private CurrentServer currentServer;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -75,5 +85,26 @@ public class AdminToolsManager
             }
         }
         return null;
+    }
+
+    /**
+     * Get supported databases.
+     *
+     * @return supported databases inline and separated with a ",".
+     */
+    public String getSupportedDB()
+    {
+        List<String> supportedDBList = new ArrayList<>(currentServer.getSupportedDB().values());
+        return String.join(delimiter, supportedDBList);
+    }
+
+    /**
+     * Get supported servers.
+     *
+     * @return supported servers inline and separated with a ",".
+     */
+    public String getSupportedServers()
+    {
+        return String.join(delimiter, currentServer.getSupportedServers());
     }
 }

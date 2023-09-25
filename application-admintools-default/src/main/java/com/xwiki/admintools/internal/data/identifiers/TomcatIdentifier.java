@@ -50,25 +50,22 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     @Override
     public boolean isUsed(String providedConfigServerPath)
     {
-        if (providedConfigServerPath != null) {
-            fileOperations.readFile(providedConfigServerPath + "conf/catalina.properties");
-            if (fileOperations.fileExists()) {
-                this.serverPath = providedConfigServerPath;
+        if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
+            if (checkAndSetServerPath(providedConfigServerPath)) {
                 return true;
             }
-        }
-        String catalinaBase = System.getProperty("catalina.base");
-        String catalinaHome = System.getenv("CATALINA_HOME");
-
-        if (catalinaBase != null) {
-            this.serverPath = catalinaBase;
-        } else if (catalinaHome != null) {
-            this.serverPath = catalinaHome;
         } else {
-            this.serverPath = null;
-            return false;
+            String catalinaBase = System.getProperty("catalina.base");
+            String catalinaHome = System.getenv("CATALINA_HOME");
+
+            if (catalinaBase != null) {
+                return checkAndSetServerPath(catalinaBase);
+            } else if (catalinaHome != null) {
+                return checkAndSetServerPath(catalinaHome);
+            }
         }
-        return true;
+        this.serverPath = null;
+        return false;
     }
 
     @Override
@@ -88,5 +85,15 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+    }
+
+    private boolean checkAndSetServerPath(String path)
+    {
+        fileOperations.openFile(path + "/conf/catalina.properties");
+        if (fileOperations.fileExists()) {
+            this.serverPath = path;
+            return true;
+        }
+        return false;
     }
 }

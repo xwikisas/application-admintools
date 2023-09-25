@@ -37,6 +37,67 @@
   <content>{{dashboard/}}</content>
   <object>
     <name>AdminTools.WebHome</name>
+    <number>0</number>
+    <className>XWiki.ComponentClass</className>
+    <guid>0c51bf0c-1de8-49b1-bf13-701ba2160c5b</guid>
+    <class>
+      <name>XWiki.ComponentClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <roleHint>
+        <disabled>0</disabled>
+        <name>roleHint</name>
+        <number>2</number>
+        <prettyName>Component Role Hint</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </roleHint>
+      <roleType>
+        <disabled>0</disabled>
+        <name>roleType</name>
+        <number>1</number>
+        <prettyName>Component Role Type</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </roleType>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>3</number>
+        <prettyName>Component Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <roleHint>AdminToolsConfigEventListener</roleHint>
+    </property>
+    <property>
+      <roleType>org.xwiki.observation.EventListener</roleType>
+    </property>
+    <property>
+      <scope>wiki</scope>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.WebHome</name>
     <number>1</number>
     <className>XWiki.GadgetClass</className>
     <guid>82e79922-f521-4a5b-b99c-dc752711ec94</guid>
@@ -97,7 +158,7 @@ $services.admintools.getConfigurationData('configuration')
       <position>1, 1</position>
     </property>
     <property>
-      <title>$services.localization.render('AdminTools.dashboard.section.title.backend')</title>
+      <title></title>
     </property>
   </object>
   <object>

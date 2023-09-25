@@ -50,8 +50,16 @@ adminTools.dashboard.section.backend.os.name=OS name
 adminTools.dashboard.section.backend.os.version=OS version
 adminTools.dashboard.section.backend.os.architecture=OS Architecture
 adminTools.dashboard.section.backend.error.supportedServers=Currently supported servers
+adminTools.dashboard.section.backend.error.supportedDB=Database not found. Currently supported databases
 adminTools.dashboard.section.backend.error.configuration=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
-
+adminTools.dashboard.section.security.fileEncoding=File encoding
+adminTools.dashboard.section.security.LANG=Used language
+adminTools.dashboard.section.security.PWD=Working directory
+adminTools.dashboard.section.security.configurationEncoding=Configuration encoding
+adminTools.dashboard.section.security.activeEncoding=Active encoding
+adminTools.dashboard.section.security.error=Error while gathering security information.
+adminTools.dashboard.section.security.title=Security
+adminTools.dashboard.section.security.description=See an overview of your security information.
   </content>
   <object>
     <name>AdminTools.Code.Translations</name>

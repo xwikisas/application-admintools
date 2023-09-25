@@ -55,7 +55,7 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     private <T> T getProperty(String key, T defaultValue)
     {
         T value = this.mainConfiguration.getProperty(key, defaultValue);
-        if (value == null || value.equals(defaultValue)) {
+        if (value == null) {
             throw new RuntimeException(String.format("The %s is missing.", key));
         }
         return value;

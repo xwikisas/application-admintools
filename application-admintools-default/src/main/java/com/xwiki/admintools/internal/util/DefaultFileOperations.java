@@ -40,6 +40,7 @@ public class DefaultFileOperations
     private Scanner scanner;
 
     private File file;
+
     /**
      * Check if the searched file exists.
      *
@@ -50,7 +51,13 @@ public class DefaultFileOperations
         return file.exists();
     }
 
-    public void readFile(String path){
+    /**
+     * Initialize the file.
+     *
+     * @param path to the file.
+     */
+    public void openFile(String path)
+    {
         file = new File(path);
     }
 
