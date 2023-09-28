@@ -42,5 +42,11 @@
       <version>1.18.30</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-job-api</artifactId>
+      <version>${commons.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 </project>

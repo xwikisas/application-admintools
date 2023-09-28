@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.AfterAll;
@@ -39,6 +40,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.util.DefaultFileOperations;
@@ -82,6 +85,15 @@ public class ConfigurationDataProviderTest
     @MockComponent
     private ScriptContextManager scriptContextManager;
 
+    @MockComponent
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @MockComponent
+    private XWikiContext wikiContext;
+
+    @MockComponent
+    private XWiki xWiki;
+
     @BeforeEach
     public void setUp() throws InitializationException
     {
@@ -101,6 +113,7 @@ public class ConfigurationDataProviderTest
         json.put("xwikiCfgPath", "xwiki_config_folder_path");
         json.put("usedServer", "test_server");
         json.put("osName", "test_os_name");
+        json.put("xwikiVersion", "xwiki_version");
 
         // Set system properties that will be used
         System.setProperty("java.version", "used_java_version");
@@ -223,6 +236,12 @@ public class ConfigurationDataProviderTest
         // Mock java version
         System.setProperty("java.version", "used_java_version");
 
+        // Mock wiki version
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWiki()).thenReturn(xWiki);
+        when(xWiki.getVersion()).thenReturn("xwiki_version");
+
+
         // Verify the result and method invocations
         assertEquals(json, configurationDataProvider.provideJson());
     }
@@ -281,6 +300,11 @@ public class ConfigurationDataProviderTest
         assertNull(configurationDataProvider.identifyDB());
         verify(this.logger).warn("Failed to find database. Used database may not be supported!");
         json.put("database", null);
+
+        // Mock wiki version
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWiki()).thenReturn(xWiki);
+        when(xWiki.getVersion()).thenReturn("xwiki_version");
 
         // Mock the renderer
         ScriptContext scriptContextMock = mock(ScriptContext.class);

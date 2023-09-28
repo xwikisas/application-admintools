@@ -17,24 +17,35 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.job;
+package com.xwiki.admintools.jobs;
 
-import org.xwiki.job.AbstractRequest;
-import org.xwiki.job.Request;
-import org.xwiki.stability.Unstable;
+import java.util.ArrayList;
+import java.util.List;
 
-@Unstable
-public class AdminToolsJobRequest extends AbstractRequest
+import org.xwiki.job.DefaultJobStatus;
+import org.xwiki.logging.LoggerManager;
+import org.xwiki.observation.ObservationManager;
+
+import com.xwiki.admintools.health.HealthCheckResult;
+
+public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
 {
-    public AdminToolsJobRequest()
+    private final List<HealthCheckResult> healthCheckResults = new ArrayList<>();
+
+    public HealthCheckJobStatus(String jobType, HealthCheckJobRequest request,
+        ObservationManager observationManager, LoggerManager loggerManager)
     {
+        super(jobType, request, null, observationManager, loggerManager);
+        setCancelable(true);
     }
 
-    /**
-     * @param request the request to copy
-     */
-    public AdminToolsJobRequest(Request request)
+    public void addHealthCheckResults(HealthCheckResult issue)
     {
-        super(request);
+        this.healthCheckResults.add(issue);
+    }
+
+    public List<HealthCheckResult> getHealthCheckResults()
+    {
+        return healthCheckResults;
     }
 }

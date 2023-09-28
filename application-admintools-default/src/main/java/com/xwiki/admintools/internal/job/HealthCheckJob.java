@@ -19,24 +19,27 @@
  */
 package com.xwiki.admintools.internal.job;
 
+import java.util.Iterator;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 
+import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.internal.health.HealthCheckManager;
-import com.xwiki.admintools.job.AdminToolsJobRequest;
-import com.xwiki.admintools.job.AdminToolsJobStatus;
+import com.xwiki.admintools.jobs.HealthCheckJobRequest;
+import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
 @Component
-@Named(AdminToolsJob.JOB_TYPE)
-public class AdminToolsJob extends AbstractJob<AdminToolsJobRequest, AdminToolsJobStatus>
+@Named(HealthCheckJob.JOB_TYPE)
+public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthCheckJobStatus>
 {
     /**
      * The PDF export job type.
      */
-    public static final String JOB_TYPE = "export/pdf";
+    public static final String JOB_TYPE = "admintools.healthcheck";
 
     @Inject
     private HealthCheckManager healthCheckManager;
@@ -50,10 +53,22 @@ public class AdminToolsJob extends AbstractJob<AdminToolsJobRequest, AdminToolsJ
     @Override
     protected void runInternal() throws Exception
     {
-        healthCheckManager.runHealthChecks();
-        this.progressManager.pushLevelProgress(4, this);
-        if (!this.status.isCanceled()) {
+        this.progressManager.pushLevelProgress(1, this);
+
+        try {
+            Iterator<HealthCheckResult> t = healthCheckManager.runHealthChecks();
+            while (t.hasNext()) {
+                if (this.status.isCanceled()) {
+                    break;
+                } else {
+                    this.progressManager.startStep(this);
+                    t.next();
+                    Thread.yield();
+                    this.progressManager.endStep(this);
+                }
+            }
+        } finally {
+            this.progressManager.popLevelProgress(this);
         }
-        
     }
 }

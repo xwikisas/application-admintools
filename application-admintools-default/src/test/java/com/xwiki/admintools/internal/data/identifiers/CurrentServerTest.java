@@ -73,7 +73,7 @@ public class CurrentServerTest
         when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
 
         // Call the initialize method
-        currentServer.initialize();
+        currentServer.updateCurrentServer();
 
         // Verify that the currentServerIdentifier is set correctly
         assertEquals(mockServerIdentifier, currentServer.getCurrentServer());
@@ -93,8 +93,7 @@ public class CurrentServerTest
         mockServerIdentifiers.add(mockServerIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
 
-        // Call the initialize method
-        currentServer.initialize();
+        currentServer.updateCurrentServer();
 
         // Verify that the currentServerIdentifier was not found
         assertNull(currentServer.getCurrentServer());
@@ -124,7 +123,7 @@ public class CurrentServerTest
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
 
         // Call the initialize method
-        currentServer.initialize();
+        currentServer.updateCurrentServer();
 
         // Verify that the currentServerIdentifier was not found
         assertNull(currentServer.getCurrentServer());
