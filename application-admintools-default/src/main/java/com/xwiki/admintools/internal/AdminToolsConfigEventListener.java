@@ -67,7 +67,7 @@ public class AdminToolsConfigEventListener extends AbstractEventListener
     private CurrentServer currentServer;
 
     /**
-     * Creates an event-listener filtering for ApplicationReadyEvent and DocumentUpdatedEvent.
+     * Creates an event-listener filtering for DocumentUpdatedEvent and DocumentDeletedEvent.
      */
     public AdminToolsConfigEventListener()
     {

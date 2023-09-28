@@ -25,9 +25,12 @@ import java.util.List;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -48,30 +51,33 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class CurrentServerTest
 {
-    @InjectMocks
+    @InjectMockComponents
     private CurrentServer currentServer;
 
     @MockComponent
     private Provider<List<ServerIdentifier>> supportedServers;
 
     @MockComponent
+    private ServerIdentifier mockServerIdentifier;
+
+    @MockComponent
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
+
+    @BeforeComponent
+    void setUp(){
+        // Mock the list of supported servers
+        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
+        mockServerIdentifiers.add(mockServerIdentifier);
+        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
+        when(mockServerIdentifier.isUsed()).thenReturn(true);
+    }
 
     @Test
     void Initialize() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
-
-        // Create a mock implementation of ServerIdentifier
-        ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
-
-        // Mock the list of supported servers
-        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(mockServerIdentifier);
-        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(mockServerIdentifier.isUsed()).thenReturn(true);
 
         // Call the initialize method
         currentServer.initialize();

@@ -61,15 +61,15 @@ public class SecurityDataProvider extends AbstractDataProvider
     private ConfigurationSource configurationSource;
 
     @Override
-    public String provideData()
+    public String getRenderedData()
     {
         Map<String, String> securityDetails = new HashMap<>();
         try {
-            securityDetails = provideJson();
+            securityDetails = getDataAsJSON();
             securityDetails.put(SERVER_FOUND, "true");
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getRootCauseMessage(e));
-            securityDetails.put(SERVER_FOUND, null);
+            securityDetails.put(SERVER_FOUND, "false");
         }
         return renderTemplate("securityTemplate.vm", securityDetails, HINT);
     }
@@ -81,7 +81,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public Map<String, String> provideJson() throws Exception
+    public Map<String, String> getDataAsJSON() throws Exception
     {
         try {
             Map<String, String> securityDetails = this.getXwikiSecurityInfo();

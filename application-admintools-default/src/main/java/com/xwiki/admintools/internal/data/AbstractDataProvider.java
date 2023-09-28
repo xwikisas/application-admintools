@@ -57,8 +57,16 @@ public abstract class AbstractDataProvider implements DataProvider
     @Inject
     private ScriptContextManager scriptContextManager;
 
-    @Override
-    public String renderTemplate(String template, Map<String, String> data, String hint)
+
+    /**
+     * Get the data in a format given by the associated template.
+     *
+     * @param data {@link Map} with info to be shown in the template.
+     * @param template name of the template.
+     * @param hint {@link String} component name.
+     * @return the rendered template as a {@link String}.
+     */
+    protected String renderTemplate(String template, Map<String, String> data, String hint)
     {
         try {
             // Binds the data provided to the template.

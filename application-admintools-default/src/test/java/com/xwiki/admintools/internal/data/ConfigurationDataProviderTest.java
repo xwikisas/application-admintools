@@ -27,11 +27,9 @@ import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
@@ -82,6 +80,12 @@ public class ConfigurationDataProviderTest
     @MockComponent
     private ScriptContextManager scriptContextManager;
 
+    @Mock
+    private ServerIdentifier serverIdentifierMock;
+
+    @Mock
+    private ScriptContext scriptContextMock;
+
     @BeforeAll
     static void initialize()
     {
@@ -124,7 +128,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void identifyDBTest() throws Exception
+    void identifyDB() throws Exception
     {
         ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
 
@@ -139,7 +143,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void identifyDBTestNotSupported() throws Exception
+    void identifyDBNotSupported() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -156,7 +160,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void identifyDBTestFileNotFound() throws Exception
+    void identifyDBFileNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -176,7 +180,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void identifyDBTestCurrentServerNotFound() throws Exception
+    void identifyDBCurrentServerNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -196,7 +200,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void testProvideJsonWithSuccessfulExecution() throws Exception
+    void ProvideJsonWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         ServerIdentifier serverIdentifierMock = mock(ServerIdentifier.class);
@@ -216,20 +220,20 @@ public class ConfigurationDataProviderTest
 
         getJavaVersionTest();
         // Verify the result and method invocations
-        assertEquals(json, configurationDataProvider.provideJson());
+        assertEquals(json, configurationDataProvider.getDataAsJSON());
     }
 
     @Test
-    void testProvideJsonWithErrorExecution() throws Exception
+    void ProvideJsonWithErrorExecution() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        assertThrows(Exception.class, () -> configurationDataProvider.provideJson());
+        assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
         verify(this.logger).warn("Failed to retrieve used server. Server not found.");
     }
 
     @Test
-    void testProvideDataWithSuccessfulExecution() throws Exception
+    void ProvideDataWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         ServerIdentifier serverIdentifierMock = mock(ServerIdentifier.class);
@@ -251,7 +255,7 @@ public class ConfigurationDataProviderTest
         when(templateManager.render(templatePath)).thenReturn("success");
 
         // Verify the result and method invocations
-        assertEquals("success", configurationDataProvider.provideData());
+        assertEquals("success", configurationDataProvider.getRenderedData());
     }
 
     @Test
@@ -260,7 +264,6 @@ public class ConfigurationDataProviderTest
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        ServerIdentifier serverIdentifierMock = mock(ServerIdentifier.class);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
         when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -270,18 +273,18 @@ public class ConfigurationDataProviderTest
         when(fileOperations.hasNextLine()).thenReturn(true);
         when(fileOperations.nextLine()).thenReturn("<property name=\"connection.url\">jdbc:notSupportedDB://");
 
-        assertNull(configurationDataProvider.identifyDB());
         verify(this.logger).warn("Failed to find database. Used database may not be supported!");
-        json.put("database", null);
-
+        json.put("serverFound", "found");
         // Mock the renderer
-        ScriptContext scriptContextMock = mock(ScriptContext.class);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
         when(templateManager.render(templatePath)).thenReturn("success");
 
+
+
         // Verify the result and method invocations
-        assertEquals(json, configurationDataProvider.provideJson());
-        assertEquals("success", configurationDataProvider.provideData());
+        assertEquals("success", configurationDataProvider.getRenderedData());
+        verify(scriptContextMock).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+
     }
 
     @Test
@@ -296,8 +299,8 @@ public class ConfigurationDataProviderTest
         when(templateManager.render(templatePath)).thenReturn("fail");
 
         // Verify that the method fails
-        assertEquals("fail", configurationDataProvider.provideData());
-        assertThrows(Exception.class, () -> configurationDataProvider.provideJson());
+        assertEquals("fail", configurationDataProvider.getRenderedData());
+        assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
         verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
     }
 }

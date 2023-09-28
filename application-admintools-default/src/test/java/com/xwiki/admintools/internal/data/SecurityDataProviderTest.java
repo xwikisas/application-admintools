@@ -131,7 +131,7 @@ public class SecurityDataProviderTest
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
 
-        assertEquals(json, securityDataProvider.provideJson());
+        assertEquals(json, securityDataProvider.getDataAsJSON());
     }
 
     @Test
@@ -148,7 +148,7 @@ public class SecurityDataProviderTest
         when(templateManager.render(templatePath)).thenReturn("success");
 
         // Verify the result and method invocations
-        assertEquals("success", securityDataProvider.provideData());
+        assertEquals("success", securityDataProvider.getRenderedData());
     }
 
     @Test
@@ -166,7 +166,7 @@ public class SecurityDataProviderTest
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
         when(templateManager.render(templatePath)).thenReturn("fail");
         // Verify the result and method invocations
-        assertEquals("fail", securityDataProvider.provideData());
+        assertEquals("fail", securityDataProvider.getRenderedData());
         verify(this.logger).warn(
             "Exception: Failed to generate the security json. Error info : Exception: Failed to generate xwiki security info: NullPointerException: ConfigurationSourceNotFound");
     }

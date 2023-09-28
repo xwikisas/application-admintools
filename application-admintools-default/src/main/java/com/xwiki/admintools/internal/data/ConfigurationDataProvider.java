@@ -66,20 +66,20 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public String provideData()
+    public String getRenderedData()
     {
         Map<String, String> systemInfo = new HashMap<>();
         try {
-            systemInfo = provideJson();
-            systemInfo.put(SERVER_FOUND, "found");
+            systemInfo = getDataAsJSON();
+            systemInfo.put(SERVER_FOUND, "true");
         } catch (Exception e) {
-            systemInfo.put(SERVER_FOUND, null);
+            systemInfo.put(SERVER_FOUND, "false");
         }
         return renderTemplate(template, systemInfo, HINT);
     }
 
     @Override
-    public Map<String, String> provideJson() throws Exception
+    public Map<String, String> getDataAsJSON() throws Exception
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
@@ -101,7 +101,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @return the used Java version.
      */
-    String getJavaVersion()
+    private String getJavaVersion()
     {
         return System.getProperty("java.version");
     }
@@ -111,7 +111,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported
      */
-    String identifyDB()
+    private String identifyDB()
     {
         String usedDB = null;
         try {

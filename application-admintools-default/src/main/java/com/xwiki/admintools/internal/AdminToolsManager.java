@@ -65,7 +65,7 @@ public class AdminToolsManager
         StringBuilder strBuilder = new StringBuilder();
 
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            strBuilder.append(dataProvider.provideData());
+            strBuilder.append(dataProvider.getRenderedData());
             strBuilder.append("\n");
         }
         return strBuilder.toString();
@@ -81,7 +81,7 @@ public class AdminToolsManager
     {
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
             if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.provideData();
+                return dataProvider.getRenderedData();
             }
         }
         return null;
