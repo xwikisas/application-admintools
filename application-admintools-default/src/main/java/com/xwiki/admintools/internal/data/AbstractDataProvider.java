@@ -27,8 +27,6 @@ import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 
@@ -56,7 +54,6 @@ public abstract class AbstractDataProvider implements DataProvider
 
     @Inject
     private ScriptContextManager scriptContextManager;
-
 
     /**
      * Get the data in a format given by the associated template.

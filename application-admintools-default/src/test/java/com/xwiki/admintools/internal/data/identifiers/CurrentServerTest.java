@@ -87,7 +87,7 @@ public class CurrentServerTest
     }
 
     @Test
-    void testUpdateCurrentServerAfterInitializationNotFound() throws InitializationException
+    void updateCurrentServerAfterInitializationNotFound() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -118,7 +118,7 @@ public class CurrentServerTest
     }
 
     @Test
-    void testInitializeNotFound() throws InitializationException
+    void initializeNotFound() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -139,7 +139,7 @@ public class CurrentServerTest
     }
 
     @Test
-    void getSupportedServersTest() throws InitializationException
+    void getSupportedServers() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");

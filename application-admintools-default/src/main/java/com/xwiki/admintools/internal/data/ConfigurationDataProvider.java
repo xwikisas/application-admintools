@@ -31,6 +31,8 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.util.DefaultFileOperations;
@@ -83,12 +85,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
+            systemInfo.put("database", this.identifyDB());
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            systemInfo.putAll(this.getOSInfo());
-            systemInfo.put("database", this.identifyDB());
             systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
+            systemInfo.put("xwikiVersion", getXWikiVersion());
+            systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
             throw new Exception(String.format("Failed to generate the configuration json. Error info: %s",
@@ -169,5 +172,12 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             throw new NullPointerException("Failed to retrieve the used server. Server not found.");
         }
         return serverIdentifier;
+    }
+
+    private String getXWikiVersion()
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWiki xWiki = wikiContext.getWiki();
+        return xWiki.getVersion();
     }
 }

@@ -53,8 +53,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         this.serverPath = null;
         String providedConfigServerPath = adminToolsConfig.getServerPath();
         if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
-            this.serverPath = providedConfigServerPath;
-            return true;
+            return checkAndSetServerPath(providedConfigServerPath);
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");

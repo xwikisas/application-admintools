@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class SecurityDataProviderTest
 {
-    static Map<String, String> json;
+    static Map<String, String> defaultJson;
 
     private final String templatePath = "securityTemplate.vm";
 
@@ -86,16 +86,19 @@ public class SecurityDataProviderTest
     @Mock
     private XWiki wiki;
 
+    @Mock
+    private ScriptContext scriptContextMock;
+
     @BeforeAll
     static void initialize()
     {
         // Prepare expected json
-        json = new HashMap<>();
-        json.put("PWD", System.getenv("PWD"));
-        json.put("LANG", System.getenv("LANG"));
-        json.put("activeEncoding", "wiki_encoding");
-        json.put("configurationEncoding", "configuration_encoding");
-        json.put("fileEncoding", "file_encoding");
+        defaultJson = new HashMap<>();
+        defaultJson.put("PWD", System.getenv("PWD"));
+        defaultJson.put("LANG", System.getenv("LANG"));
+        defaultJson.put("activeEncoding", "wiki_encoding");
+        defaultJson.put("configurationEncoding", "configuration_encoding");
+        defaultJson.put("fileEncoding", "file_encoding");
 
         // Set system properties that will be used
         System.setProperty("file.encoding", "file_encoding");
@@ -108,13 +111,13 @@ public class SecurityDataProviderTest
     }
 
     @Test
-    void getIdentifierTest()
+    void getIdentifier()
     {
         assertEquals(SecurityDataProvider.HINT, securityDataProvider.getIdentifier());
     }
 
     @Test
-    void generateJsonTestThrowErrorConfigurationSourceNotInitialised()
+    void generateJsonThrowErrorConfigurationSourceNotInitialised()
     {
         doThrow(new NullPointerException("ConfigurationSourceNotFound")).when(configurationSource)
             .getProperty("xwiki.encoding", String.class);
@@ -123,7 +126,7 @@ public class SecurityDataProviderTest
 
     // Mock environment info
     @Test
-    void generateJsonTestSuccess() throws Exception
+    void getDataAsJSONSuccess() throws Exception
     {
         // Mock xwiki security info
         when(xcontextProvider.get()).thenReturn(xWikiContext);
@@ -131,7 +134,7 @@ public class SecurityDataProviderTest
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
 
-        assertEquals(json, securityDataProvider.getDataAsJSON());
+        assertEquals(defaultJson, securityDataProvider.getDataAsJSON());
     }
 
     @Test
@@ -143,12 +146,15 @@ public class SecurityDataProviderTest
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
 
         // Mock the renderer
-        ScriptContext scriptContextMock = mock(ScriptContext.class);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
         when(templateManager.render(templatePath)).thenReturn("success");
 
+        Map<String, String> json = new HashMap<>(defaultJson);
+        json.put("serverFound", "true");
+
         // Verify the result and method invocations
         assertEquals("success", securityDataProvider.getRenderedData());
+        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
@@ -161,13 +167,19 @@ public class SecurityDataProviderTest
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenThrow(
             new NullPointerException("ConfigurationSourceNotFound"));
+
         // Mock the renderer
         ScriptContext scriptContextMock = mock(ScriptContext.class);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
         when(templateManager.render(templatePath)).thenReturn("fail");
+
+        Map<String, String> json = new HashMap<>();
+        json.put("serverFound", "false");
+
         // Verify the result and method invocations
         assertEquals("fail", securityDataProvider.getRenderedData());
         verify(this.logger).warn(
             "Exception: Failed to generate the security json. Error info : Exception: Failed to generate xwiki security info: NullPointerException: ConfigurationSourceNotFound");
+        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }
