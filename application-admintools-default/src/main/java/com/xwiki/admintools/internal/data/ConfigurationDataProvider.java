@@ -31,6 +31,8 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.util.DefaultFileOperations;
@@ -85,10 +87,11 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             Map<String, String> systemInfo = new HashMap<>();
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
+            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
             systemInfo.put("javaVersion", this.getJavaVersion());
+            systemInfo.put("xwikiVersion", this.getXWikiInstallationVersion());
             systemInfo.putAll(this.getOSInfo());
             systemInfo.put("database", this.identifyDB());
-            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
             return systemInfo;
         } catch (Exception e) {
             throw new Exception(String.format("Failed to generate the configuration json. Error info: %s",
@@ -144,6 +147,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         }
 
         return usedDB;
+    }
+
+    private String getXWikiInstallationVersion()
+    {
+        XWikiContext xWikiContext = xcontextProvider.get();
+        XWiki xWiki = xWikiContext.getWiki();
+        return xWiki.getVersion();
     }
 
     /**

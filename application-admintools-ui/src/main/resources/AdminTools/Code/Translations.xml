@@ -47,6 +47,7 @@ adminTools.dashboard.section.backend.usedServer=Used server
 adminTools.dashboard.section.backend.usedDB=Used database
 adminTools.dashboard.section.backend.os.legend=OS info
 adminTools.dashboard.section.backend.os.name=OS name
+adminTools.dashboard.section.backend.java=Detected java version
 adminTools.dashboard.section.backend.os.version=OS version
 adminTools.dashboard.section.backend.os.architecture=OS Architecture
 adminTools.dashboard.section.backend.error.supportedServers=Currently supported servers

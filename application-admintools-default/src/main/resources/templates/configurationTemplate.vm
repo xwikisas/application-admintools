@@ -27,12 +27,13 @@
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
     <hr />
     <ul>
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')): $xwiki.version</li>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')): $configuration['xwikiVersion']</li>
       <ul>
         <li>
           <a href="Show-latest-logs">$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.showLogs'))</a>
         </li>
       </ul>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java')): $configuration['javaVersion']</li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer')):
         $configuration['usedServer']
