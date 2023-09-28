@@ -19,11 +19,14 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
+import javax.inject.Named;
+
 import org.junit.jupiter.api.Test;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,37 +48,43 @@ public class TomcatIdentifierTest
     @MockComponent
     private DefaultFileOperations fileOperations;
 
+    @MockComponent
+    @Named("default")
+    private AdminToolsConfiguration adminToolsConfig;
+
     @Test
-    public void testIsUsedFound()
+    void testIsUsedFound()
     {
         // Mock the behavior of the File object
         when(fileOperations.fileExists()).thenReturn(true);
 
+        when(adminToolsConfig.getServerPath()).thenReturn("user_inserted_path");
+
         // Test with a valid providedConfigServerPath
-        assertTrue(tomcatIdentifier.isUsed("good_path/"));
+        assertTrue(tomcatIdentifier.isUsed());
 
         // Test with no providedConfigServerPath but catalina.base property set
         System.setProperty("catalina.base", "found");
-        assertTrue(tomcatIdentifier.isUsed(null));
+        assertTrue(tomcatIdentifier.isUsed());
         System.clearProperty("catalina.base");
     }
 
     @Test
-    public void testIsUsedNotFound()
+    void testIsUsedNotFound()
     {
         // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set
-        assertFalse(tomcatIdentifier.isUsed(null));
+        assertFalse(tomcatIdentifier.isUsed());
     }
 
     @Test
-    public void testIsUsedWrongPath()
+    void testIsUsedWrongPath()
     {
         // Test with incorrect providedConfigServerPath
-        assertFalse(tomcatIdentifier.isUsed("invalid_server_path"));
+        assertFalse(tomcatIdentifier.isUsed());
     }
 
     @Test
-    public void getIdentifierTest()
+    void getIdentifierTest()
     {
         assertEquals("Tomcat", tomcatIdentifier.getComponentHint());
     }

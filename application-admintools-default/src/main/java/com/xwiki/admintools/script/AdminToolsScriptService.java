@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.script;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -69,7 +71,7 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return inline list with supported databases separated by ",".
      */
-    public String getSupportedDatabases()
+    public List<String> getSupportedDatabases()
     {
         return this.adminToolsManager.getSupportedDB();
     }
@@ -79,7 +81,7 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return inline list with supported servers separated by ",".
      */
-    public String getSupportedServers()
+    public List<String> getSupportedServers()
     {
         return this.adminToolsManager.getSupportedServers();
     }

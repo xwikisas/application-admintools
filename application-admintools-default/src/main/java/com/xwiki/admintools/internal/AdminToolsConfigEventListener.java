@@ -74,13 +74,6 @@ public class AdminToolsConfigEventListener extends AbstractEventListener
         super(HINT, new DocumentUpdatedEvent(), new DocumentDeletedEvent());
     }
 
-    /**
-     * Triggers a server search when the configuration page is modified.
-     *
-     * @param event The event listened to.
-     * @param source The object sending the event.
-     * @param data Data about the event.
-     */
     @Override
     public void onEvent(Event event, Object source, Object data)
     {

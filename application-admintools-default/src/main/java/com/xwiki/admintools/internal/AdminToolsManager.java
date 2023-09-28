@@ -92,10 +92,9 @@ public class AdminToolsManager
      *
      * @return supported databases inline and separated with a ",".
      */
-    public String getSupportedDB()
+    public List<String> getSupportedDB()
     {
-        List<String> supportedDBList = new ArrayList<>(currentServer.getSupportedDB().values());
-        return String.join(delimiter, supportedDBList);
+        return  new ArrayList<>(currentServer.getSupportedDBs().values());
     }
 
     /**
@@ -103,8 +102,8 @@ public class AdminToolsManager
      *
      * @return supported servers inline and separated with a ",".
      */
-    public String getSupportedServers()
+    public List<String> getSupportedServers()
     {
-        return String.join(delimiter, currentServer.getSupportedServers());
+        return currentServer.getSupportedServers();
     }
 }

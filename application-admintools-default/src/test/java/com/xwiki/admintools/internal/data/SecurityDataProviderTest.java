@@ -87,7 +87,7 @@ public class SecurityDataProviderTest
     private XWiki wiki;
 
     @BeforeAll
-    public static void initialize()
+    static void initialize()
     {
         // Prepare expected json
         json = new HashMap<>();
@@ -102,19 +102,19 @@ public class SecurityDataProviderTest
     }
 
     @AfterAll
-    public static void afterAll()
+    static void afterAll()
     {
         System.clearProperty("file.encoding");
     }
 
     @Test
-    public void getIdentifierTest()
+    void getIdentifierTest()
     {
         assertEquals(SecurityDataProvider.HINT, securityDataProvider.getIdentifier());
     }
 
     @Test
-    public void generateJsonTestThrowErrorConfigurationSourceNotInitialised()
+    void generateJsonTestThrowErrorConfigurationSourceNotInitialised()
     {
         doThrow(new NullPointerException("ConfigurationSourceNotFound")).when(configurationSource)
             .getProperty("xwiki.encoding", String.class);
@@ -123,7 +123,7 @@ public class SecurityDataProviderTest
 
     // Mock environment info
     @Test
-    public void generateJsonTestSuccess() throws Exception
+    void generateJsonTestSuccess() throws Exception
     {
         // Mock xwiki security info
         when(xcontextProvider.get()).thenReturn(xWikiContext);
@@ -135,7 +135,7 @@ public class SecurityDataProviderTest
     }
 
     @Test
-    public void testProvideDataWithSuccessfulExecution() throws Exception
+    void testProvideDataWithSuccessfulExecution() throws Exception
     {
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
@@ -152,7 +152,7 @@ public class SecurityDataProviderTest
     }
 
     @Test
-    public void testProvideDataWithCaughtError() throws Exception
+    void testProvideDataWithCaughtError() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);

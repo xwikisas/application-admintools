@@ -82,14 +82,8 @@ public class ConfigurationDataProviderTest
     @MockComponent
     private ScriptContextManager scriptContextManager;
 
-    @BeforeEach
-    public void setUp() throws InitializationException
-    {
-        configurationDataProvider.initialize();
-    }
-
     @BeforeAll
-    public static void initialize()
+    static void initialize()
     {
         // Prepare expected json
         json = new HashMap<>();
@@ -110,7 +104,7 @@ public class ConfigurationDataProviderTest
     }
 
     @AfterAll
-    public static void afterAll()
+    static void afterAll()
     {
         System.clearProperty("os.name");
         System.clearProperty("os.version");
@@ -119,21 +113,18 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void getIdentifierTest()
+    void getIdentifierTest()
     {
         assertEquals(ConfigurationDataProvider.HINT, configurationDataProvider.getIdentifier());
     }
 
-    @Test
-    public void getJavaVersionTest()
+    private void getJavaVersionTest()
     {
-        System.setProperty("java.version", "java_version");
-        assertEquals("java_version", configurationDataProvider.getJavaVersion());
-        System.clearProperty("java.version");
+        assertEquals("used_java_version", configurationDataProvider.getJavaVersion());
     }
 
     @Test
-    public void identifyDBTest() throws Exception
+    void identifyDBTest() throws Exception
     {
         ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
 
@@ -143,12 +134,12 @@ public class ConfigurationDataProviderTest
         when(fileOperations.nextLine()).thenReturn("test", "<property name=\"connection.url\">jdbc:mysql://");
         Map<String, String> testSupportedDB = new HashMap<>();
         testSupportedDB.put("mysql", "MySQL");
-        when(currentServer.getSupportedDB()).thenReturn(testSupportedDB);
+        when(currentServer.getSupportedDBs()).thenReturn(testSupportedDB);
         assertEquals("MySQL", configurationDataProvider.identifyDB());
     }
 
     @Test
-    public void identifyDBTestNotSupported() throws Exception
+    void identifyDBTestNotSupported() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -165,7 +156,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void identifyDBTestFileNotFound() throws Exception
+    void identifyDBTestFileNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -185,7 +176,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void identifyDBTestCurrentServerNotFound() throws Exception
+    void identifyDBTestCurrentServerNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -205,7 +196,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void testProvideJsonWithSuccessfulExecution() throws Exception
+    void testProvideJsonWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         ServerIdentifier serverIdentifierMock = mock(ServerIdentifier.class);
@@ -219,16 +210,17 @@ public class ConfigurationDataProviderTest
         when(fileOperations.nextLine()).thenReturn("<property name=\"connection.url\">jdbc:mysql://");
         Map<String, String> testSupportedDB = new HashMap<>();
         testSupportedDB.put("mysql", "MySQL");
-        when(currentServer.getSupportedDB()).thenReturn(testSupportedDB);
+        when(currentServer.getSupportedDBs()).thenReturn(testSupportedDB);
         // Mock java version
         System.setProperty("java.version", "used_java_version");
 
+        getJavaVersionTest();
         // Verify the result and method invocations
         assertEquals(json, configurationDataProvider.provideJson());
     }
 
     @Test
-    public void testProvideJsonWithErrorExecution() throws Exception
+    void testProvideJsonWithErrorExecution() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -237,7 +229,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void testProvideDataWithSuccessfulExecution() throws Exception
+    void testProvideDataWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         ServerIdentifier serverIdentifierMock = mock(ServerIdentifier.class);
@@ -251,7 +243,7 @@ public class ConfigurationDataProviderTest
         when(fileOperations.nextLine()).thenReturn("<property name=\"connection.url\">jdbc:mysql://");
         Map<String, String> testSupportedDB = new HashMap<>();
         testSupportedDB.put("mysql", "MySQL");
-        when(currentServer.getSupportedDB()).thenReturn(testSupportedDB);
+        when(currentServer.getSupportedDBs()).thenReturn(testSupportedDB);
 
         // Mock the renderer
         ScriptContext scriptContextMock = mock(ScriptContext.class);
@@ -263,7 +255,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void testProvideDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
+    void testProvideDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
         when(logger.isWarnEnabled()).thenReturn(true);
@@ -293,7 +285,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    public void testProvideDataWithErrorExecution() throws Exception
+    void testProvideDataWithErrorExecution() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);

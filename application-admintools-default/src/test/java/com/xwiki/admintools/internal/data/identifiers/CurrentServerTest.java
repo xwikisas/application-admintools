@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.ServerIdentifier;
@@ -58,7 +59,7 @@ public class CurrentServerTest
     private AdminToolsConfiguration adminToolsConfig;
 
     @Test
-    public void testInitialize() throws InitializationException
+    void Initialize() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -70,7 +71,7 @@ public class CurrentServerTest
         List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
         mockServerIdentifiers.add(mockServerIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
+        when(mockServerIdentifier.isUsed()).thenReturn(true);
 
         // Call the initialize method
         currentServer.initialize();
@@ -80,7 +81,7 @@ public class CurrentServerTest
     }
 
     @Test
-    public void testUpdateCurrentServerAfterInitializationNotFound() throws InitializationException
+    void testUpdateCurrentServerAfterInitializationNotFound() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -92,6 +93,7 @@ public class CurrentServerTest
         List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
         mockServerIdentifiers.add(mockServerIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
+        when(mockServerIdentifier.isUsed()).thenReturn(false);
 
         // Call the initialize method
         currentServer.initialize();
@@ -100,7 +102,7 @@ public class CurrentServerTest
         assertNull(currentServer.getCurrentServer());
 
         // Mock the behaviour of serverIdentifier
-        when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
+        when(mockServerIdentifier.isUsed()).thenReturn(true);
 
         // Call the updateCurrentServer method
         currentServer.updateCurrentServer();
@@ -110,7 +112,7 @@ public class CurrentServerTest
     }
 
     @Test
-    public void testInitializeNotFound() throws InitializationException
+    void testInitializeNotFound() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -131,7 +133,7 @@ public class CurrentServerTest
     }
 
     @Test
-    public void getSupportedServersTest() throws InitializationException
+    void getSupportedServersTest() throws InitializationException
     {
         // Mock the behavior of adminToolsConfig
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");

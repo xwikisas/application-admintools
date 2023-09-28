@@ -23,20 +23,28 @@
 #if($configuration['serverFound'] != $null)
 
   <div class="adminToolsDashboardItem">
-    <h2><span>$services.icon.renderHTML('world')</span> <span>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</span></h2>
+    <h2><span>$services.icon.renderHTML('world')</span>
+    <span>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</span></h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
     <hr />
     <ul>
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')): $xwiki.version</li>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')):
+      $xwiki.version</li>
       <ul>
         <li>
-          <a href="Show-latest-logs">$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.showLogs'))</a>
+          <a href="Show-latest-logs">$escapetool.xml(
+          $services.localization.render('adminTools.dashboard.section.backend.showLogs'))</a>
         </li>
       </ul>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java')):
+        $configuration['javaVersion']
+      </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer')):
         $configuration['usedServer']
       </li>
+
       <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend')):
         <ul>
           <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.name')):
@@ -54,10 +62,14 @@
       $configuration['database']</li>
 
       #else
-        #set($warningDatabaseMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.error.supportedDB'))+ ': ')
-        #set($warningDatabaseMessage = $warningDatabaseMessage + $services.admintools.getSupportedDatabases())
+        #set($warningDatabaseMessage = $escapetool.xml(
+        $services.localization.render('adminTools.dashboard.section.backend.error.supportedDB'))+ ': ')
+        #set($warningDatabaseMessage = $warningDatabaseMessage +
+        $stringtool.join($services.admintools.getSupportedDatabases(), ', '))
 
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB')): #warning($warningDatabaseMessage)</li>
+      <li>$escapetool.xml(
+      $services.localization.render('adminTools.dashboard.section.backend.usedDB')): #warning($warningDatabaseMessage)
+      </li>
 
       #end
 
@@ -66,8 +78,11 @@
 
 
 #else
-  #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.error.configuration'))+ '<br>')
-  #set($warningMessage = $warningMessage + $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.error.supportedServers'))+ ': ' + $services.admintools.getSupportedServers())
+  #set($warningMessage =
+  $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.error.configuration'))+ '<br>')
+  #set($warningMessage = $warningMessage +
+  $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.error.supportedServers'))+
+  ': ' + $stringtool.join($services.admintools.getSupportedServers(), ', '))
 
   #warning($warningMessage)
 

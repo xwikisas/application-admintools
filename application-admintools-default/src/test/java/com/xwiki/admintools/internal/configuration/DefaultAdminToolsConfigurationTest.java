@@ -47,7 +47,7 @@ public class DefaultAdminToolsConfigurationTest
     private ConfigurationSource adminToolsConfigurationSource;
 
     @Test
-    public void getServerPath()
+    void getServerPath()
     {
         when(this.adminToolsConfigurationSource.getProperty("serverLocation", "")).thenReturn(
             "path_to_server");
@@ -55,7 +55,7 @@ public class DefaultAdminToolsConfigurationTest
     }
 
     @Test
-    public void getServerPathMissingValue()
+    void getServerPathMissingValue()
     {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             this.defaultAdminToolsConfiguration.getServerPath();

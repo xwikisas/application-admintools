@@ -20,12 +20,10 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -34,7 +32,6 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -51,23 +48,9 @@ public class CurrentServer implements Initializable
 
     private ServerIdentifier currentServerIdentifier;
 
-    @Inject
-    @Named("default")
-    private AdminToolsConfiguration adminToolsConfig;
-
-    private Map<String, String> supportedDB;
-
     @Override
     public void initialize() throws InitializationException
     {
-        supportedDB = new HashMap<>();
-        supportedDB.put("mysql", "MySQL");
-        supportedDB.put("hsqldb", "HSQLDB");
-        supportedDB.put("mariadb", "MariaDB");
-        supportedDB.put("postgresql", "PostgreSQL");
-        supportedDB.put("oracle", "Oracle");
-
-        currentServerIdentifier = null;
         updateCurrentServer();
     }
 
@@ -86,9 +69,15 @@ public class CurrentServer implements Initializable
      *
      * @return the supported databases.
      */
-    public Map<String, String> getSupportedDB()
+    public Map<String, String> getSupportedDBs()
     {
-        return supportedDB;
+        return Map.ofEntries(
+            Map.entry("mysql", "MySQL"),
+            Map.entry("hsqldb", "HSQLDB"),
+            Map.entry("mariadb", "MariaDB"),
+            Map.entry("postgresql", "PostgreSQL"),
+            Map.entry("oracle", "Oracle")
+        );
     }
 
     /**
@@ -110,12 +99,11 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        String providedConfigServerPath = adminToolsConfig.getServerPath();
         currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed(providedConfigServerPath)) {
+            if (serverIdentifier.isUsed()) {
                 currentServerIdentifier = serverIdentifier;
-                currentServerIdentifier.updatePaths();
+                currentServerIdentifier.updatePossiblePaths();
                 break;
             }
         }

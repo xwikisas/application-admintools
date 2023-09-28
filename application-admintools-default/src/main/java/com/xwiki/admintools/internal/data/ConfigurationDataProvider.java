@@ -71,9 +71,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         Map<String, String> systemInfo = new HashMap<>();
         try {
             systemInfo = provideJson();
-            systemInfo.put(serverFound, "found");
+            systemInfo.put(SERVER_FOUND, "found");
         } catch (Exception e) {
-            systemInfo.put(serverFound, null);
+            systemInfo.put(SERVER_FOUND, null);
         }
         return renderTemplate(template, systemInfo, HINT);
     }
@@ -109,7 +109,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Identify the used database for XWiki by verifying the configration files.
      *
-     * @return the name of the used database.
+     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported
      */
     String identifyDB()
     {
@@ -127,7 +127,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
                     String foundDB = matcher.group(1);
-                    usedDB = currentServer.getSupportedDB().getOrDefault(foundDB, null);
+                    usedDB = currentServer.getSupportedDBs().getOrDefault(foundDB, null);
                     break;
                 }
             }

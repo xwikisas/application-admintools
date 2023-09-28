@@ -48,12 +48,13 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     private DefaultFileOperations fileOperations;
 
     @Override
-    public boolean isUsed(String providedConfigServerPath)
+    public boolean isUsed()
     {
+        this.serverPath = null;
+        String providedConfigServerPath = adminToolsConfig.getServerPath();
         if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
-            if (checkAndSetServerPath(providedConfigServerPath)) {
-                return true;
-            }
+            this.serverPath = providedConfigServerPath;
+            return true;
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
@@ -64,7 +65,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
                 return checkAndSetServerPath(catalinaHome);
             }
         }
-        this.serverPath = null;
         return false;
     }
 
@@ -75,7 +75,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public void updatePaths()
+    public void updatePossiblePaths()
     {
         this.serverCfgPossiblePaths =
             new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
