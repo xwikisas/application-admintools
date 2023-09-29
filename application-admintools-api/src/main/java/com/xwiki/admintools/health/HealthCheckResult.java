@@ -19,22 +19,31 @@
  */
 package com.xwiki.admintools.health;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-
-@Getter
-@Setter
-@AllArgsConstructor
-
 public class HealthCheckResult
 {
     String errorMessage;
+
     String link;
 
-    public HealthCheckResult(){
+    public HealthCheckResult(String errMsg, String link)
+    {
+        this.errorMessage = errMsg;
+        this.link = link;
+    }
+
+    public HealthCheckResult()
+    {
         errorMessage = null;
         link = null;
+    }
+
+    public String getErrorMessage()
+    {
+        return errorMessage;
+    }
+
+    public String getLink()
+    {
+        return link;
     }
 }

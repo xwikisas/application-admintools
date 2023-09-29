@@ -19,18 +19,24 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
-import java.util.Map;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
 
+@Component
+@Named(ConfigurationOsHealthCheck.HINT)
+@Singleton
 public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
 {
+    public final static String HINT = "CONFIG_OS_HEALTH_CHECK";
+
     @Override
-    public HealthCheckResult check(Map<String, String> configurationJson)
+    public HealthCheckResult check()
     {
-        if (configurationJson.get("osName") == null || configurationJson.get("osVersion") == null
-            || configurationJson.get("osArch") == null)
-        {
+        if (getJson().get("osName") == null || getJson().get("osVersion") == null || getJson().get("osArch") == null) {
             return new HealthCheckResult("os_issue", "os_support");
         }
         return new HealthCheckResult();

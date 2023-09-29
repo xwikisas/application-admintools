@@ -19,16 +19,24 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
-import java.util.Map;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
 
+@Component
+@Named(ConfigurationDatabaseHealthCheck.HINT)
+@Singleton
 public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealthCheck
 {
+    public final static String HINT = "CONFIG_DB_HEALTH_CHECK";
+
     @Override
-    public HealthCheckResult check(Map<String, String> configurationJson)
+    public HealthCheckResult check()
     {
-        if (configurationJson.get("database") == null) {
+        if (getJson().get("database") == null) {
             return new HealthCheckResult("database_not_detected", "xwiki_db_configuration");
         }
         return new HealthCheckResult();

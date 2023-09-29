@@ -19,10 +19,11 @@
  */
 package com.xwiki.admintools.jobs;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.xwiki.job.DefaultJobStatus;
+import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.logging.LoggerManager;
 import org.xwiki.observation.ObservationManager;
 
@@ -30,18 +31,13 @@ import com.xwiki.admintools.health.HealthCheckResult;
 
 public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
 {
-    private final List<HealthCheckResult> healthCheckResults = new ArrayList<>();
+    private final List<HealthCheckResult> healthCheckResults = new LinkedList<>();
 
-    public HealthCheckJobStatus(String jobType, HealthCheckJobRequest request,
-        ObservationManager observationManager, LoggerManager loggerManager)
+    public HealthCheckJobStatus(HealthCheckJobRequest request,
+        JobStatus parentJobStatus, ObservationManager observationManager, LoggerManager loggerManager)
     {
-        super(jobType, request, null, observationManager, loggerManager);
+        super("admintools.healthcheck", request, parentJobStatus, observationManager, loggerManager);
         setCancelable(true);
-    }
-
-    public void addHealthCheckResults(HealthCheckResult issue)
-    {
-        this.healthCheckResults.add(issue);
     }
 
     public List<HealthCheckResult> getHealthCheckResults()

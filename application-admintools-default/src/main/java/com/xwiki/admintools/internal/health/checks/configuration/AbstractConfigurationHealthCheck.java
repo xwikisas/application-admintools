@@ -19,13 +19,28 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
+import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 public abstract class AbstractConfigurationHealthCheck implements HealthCheck
 {
+    @Inject
+    @Named(ConfigurationDataProvider.HINT)
+    private DataProvider configurationDataProvider;
+
+    protected Map<String, String> getJson()
+    {
+        try {
+            return configurationDataProvider.provideJson();
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
+    }
 }

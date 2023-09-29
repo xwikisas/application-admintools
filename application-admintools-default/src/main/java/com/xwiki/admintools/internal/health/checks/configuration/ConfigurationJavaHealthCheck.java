@@ -19,12 +19,20 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
-import java.util.Map;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
 
+@Component
+@Named(ConfigurationJavaHealthCheck.HINT)
+@Singleton
 public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthCheck
 {
+    public final static String HINT = "CONFIG_JAVA_HEALTH_CHECK";
+
     private static final String xwikiJavaCompatibilityLink =
         "https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/JavaSupportStrategy/";
 
@@ -32,13 +40,13 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
      * @return
      */
     @Override
-    public HealthCheckResult check(Map<String, String> configurationJson)
+    public HealthCheckResult check()
     {
-        String javaVersionString = configurationJson.get("javaVersion");
+        String javaVersionString = getJson().get("javaVersion");
         if (javaVersionString == null) {
             return new HealthCheckResult("java_version_not_found", "java_installation_link");
         }
-        String xwikiVersionString = configurationJson.get("xwikiVersion");
+        String xwikiVersionString = getJson().get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
         if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {

@@ -30,7 +30,7 @@ import org.xwiki.job.JobExecutor;
 import org.xwiki.script.service.ScriptService;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
-import com.xwiki.admintools.internal.job.HealthCheckJob;
+import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 
 /**

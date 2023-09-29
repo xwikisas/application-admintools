@@ -21,11 +21,13 @@ package com.xwiki.admintools.health;
 
 import java.util.Map;
 
+import org.xwiki.component.annotation.Role;
+
+@Role
 public interface HealthCheck
 {
     /**
-     * @param json
      * @return
      */
-    HealthCheckResult check(Map<String, String> configurationJson);
+    HealthCheckResult check();
 }

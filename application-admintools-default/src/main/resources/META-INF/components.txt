@@ -8,3 +8,7 @@ com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.util.DefaultFileOperations
 com.xwiki.admintools.internal.AdminToolsConfigEventListener
+com.xwiki.admintools.internal.health.checks.configuration.ConfigurationDatabaseHealthCheck
+com.xwiki.admintools.internal.health.checks.configuration.ConfigurationJavaHealthCheck
+com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOsHealthCheck
+com.xwiki.admintools.internal.health.job.HealthCheckJob

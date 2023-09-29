@@ -17,18 +17,20 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.job;
+package com.xwiki.admintools.internal.health.job;
 
 import java.util.Iterator;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.internal.health.HealthCheckManager;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
@@ -42,7 +44,7 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
     public static final String JOB_TYPE = "admintools.healthcheck";
 
     @Inject
-    private HealthCheckManager healthCheckManager;
+    private Provider<List<HealthCheck>> healthChecks;
 
     @Override
     public String getType()
@@ -51,20 +53,24 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
     }
 
     @Override
-    protected void runInternal() throws Exception
+    protected void runInternal()
     {
-        this.progressManager.pushLevelProgress(1, this);
-
+        List<HealthCheck> healthCheckList = healthChecks.get();
+        int n = healthCheckList.size();
+        this.progressManager.pushLevelProgress(healthCheckList.size(), this);
+        Iterator<HealthCheck> healthCheckIterator = healthCheckList.iterator();
         try {
-            Iterator<HealthCheckResult> t = healthCheckManager.runHealthChecks();
-            while (t.hasNext()) {
-                if (this.status.isCanceled()) {
+            while (healthCheckIterator.hasNext()) {
+                if (status.isCanceled()) {
                     break;
                 } else {
-                    this.progressManager.startStep(this);
-                    t.next();
+                    progressManager.startStep(this);
+                    HealthCheckResult checkResult = healthCheckIterator.next().check();
+                    if (checkResult.getErrorMessage() != null) {
+                        status.getHealthCheckResults().add(checkResult);
+                    }
                     Thread.yield();
-                    this.progressManager.endStep(this);
+                    progressManager.endStep(this);
                 }
             }
         } finally {
