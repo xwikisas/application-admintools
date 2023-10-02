@@ -28,6 +28,9 @@ import javax.inject.Provider;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
+import org.xwiki.job.Job;
+import org.xwiki.job.event.status.CancelableJobStatus;
+import org.xwiki.job.event.status.JobStatus;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
@@ -53,24 +56,33 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
     }
 
     @Override
+    protected HealthCheckJobStatus createNewStatus(HealthCheckJobRequest request)
+    {
+        Job currentJob = this.jobContext.getCurrentJob();
+        JobStatus currentJobStatus = currentJob != null ? currentJob.getStatus() : null;
+        return new HealthCheckJobStatus(request, currentJobStatus, observationManager, loggerManager);
+    }
+
+    @Override
     protected void runInternal()
     {
         List<HealthCheck> healthCheckList = healthChecks.get();
-        int n = healthCheckList.size();
         this.progressManager.pushLevelProgress(healthCheckList.size(), this);
         Iterator<HealthCheck> healthCheckIterator = healthCheckList.iterator();
         try {
-            while (healthCheckIterator.hasNext()) {
-                if (status.isCanceled()) {
-                    break;
-                } else {
-                    progressManager.startStep(this);
-                    HealthCheckResult checkResult = healthCheckIterator.next().check();
-                    if (checkResult.getErrorMessage() != null) {
-                        status.getHealthCheckResults().add(checkResult);
+            if (status instanceof CancelableJobStatus && !((CancelableJobStatus) status).isCanceled()) {
+                while (healthCheckIterator.hasNext()) {
+                    if (status.isCanceled()) {
+                        break;
+                    } else {
+                        progressManager.startStep(this);
+                        HealthCheckResult checkResult = healthCheckIterator.next().check();
+                        if (checkResult.getErrorMessage() != null) {
+                            status.getHealthCheckResults().add(checkResult);
+                        }
+                        Thread.yield();
+                        progressManager.endStep(this);
                     }
-                    Thread.yield();
-                    progressManager.endStep(this);
                 }
             }
         } finally {
