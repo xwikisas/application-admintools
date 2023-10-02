@@ -41,8 +41,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Singleton
 public class AdminToolsManager
 {
-    private final String delimiter = ", ";
-
     /**
      * A list of all the data providers for Admin Tools.
      */
@@ -90,20 +88,20 @@ public class AdminToolsManager
     /**
      * Get supported databases.
      *
-     * @return supported databases inline and separated with a ",".
+     * @return a {@link List} with the supported databases.
      */
-    public List<String> getSupportedDB()
+    public List<String> getSupportedDBs()
     {
-        return  new ArrayList<>(currentServer.getSupportedDBs().values());
+        return  new ArrayList<>(this.currentServer.getSupportedDBs().values());
     }
 
     /**
      * Get supported servers.
      *
-     * @return supported servers inline and separated with a ",".
+     * @return the servers that are compatible with the application.
      */
     public List<String> getSupportedServers()
     {
-        return currentServer.getSupportedServers();
+        return this.currentServer.getSupportedServers();
     }
 }

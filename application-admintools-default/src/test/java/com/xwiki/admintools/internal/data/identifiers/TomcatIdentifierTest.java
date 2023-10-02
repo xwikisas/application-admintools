@@ -55,13 +55,20 @@ public class TomcatIdentifierTest
     @Test
     void isUsedFound()
     {
+        when(adminToolsConfig.getServerPath()).thenReturn("user_inserted_path");
+
         // Mock the behavior of the File object
         when(fileOperations.fileExists()).thenReturn(true);
 
-        when(adminToolsConfig.getServerPath()).thenReturn("user_inserted_path");
-
         // Test with a valid providedConfigServerPath
         assertTrue(tomcatIdentifier.isUsed());
+    }
+
+    @Test
+    void isUsedFoundSystemProps()
+    {
+        // Mock the behavior of the File object
+        when(fileOperations.fileExists()).thenReturn(true);
 
         // Test with no providedConfigServerPath but catalina.base property set
         System.setProperty("catalina.base", "found");
@@ -79,6 +86,8 @@ public class TomcatIdentifierTest
     @Test
     void isUsedWrongPath()
     {
+        when(adminToolsConfig.getServerPath()).thenReturn("user_inserted_wrong_path");
+
         // Test with incorrect providedConfigServerPath
         assertFalse(tomcatIdentifier.isUsed());
     }

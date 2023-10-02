@@ -48,7 +48,7 @@ public class DefaultFileOperations
      */
     public boolean fileExists()
     {
-        return file.exists();
+        return this.file.exists();
     }
 
     /**
@@ -58,7 +58,7 @@ public class DefaultFileOperations
      */
     public void openFile(String path)
     {
-        file = new File(path);
+        this.file = new File(path);
     }
 
     /**
@@ -68,7 +68,7 @@ public class DefaultFileOperations
      */
     public void initializeScanner() throws FileNotFoundException
     {
-        scanner = new Scanner(file);
+        this.scanner = new Scanner(this.file);
     }
 
     /**
@@ -78,7 +78,7 @@ public class DefaultFileOperations
      */
     public String nextLine()
     {
-        return scanner.nextLine();
+        return this.scanner.nextLine();
     }
 
     /**
@@ -88,7 +88,7 @@ public class DefaultFileOperations
      */
     public boolean hasNextLine()
     {
-        return scanner.hasNextLine();
+        return this.scanner.hasNextLine();
     }
 
     /**
@@ -96,6 +96,6 @@ public class DefaultFileOperations
      */
     public void closeScanner()
     {
-        scanner.close();
+        this.scanner.close();
     }
 }

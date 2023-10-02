@@ -51,7 +51,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * The hint for the component.
      */
-    public static final String HINT = "configuration";
+    public static final String HINT = "CONFIGURATION";
 
     private final String template = "configurationTemplate.vm";
 
@@ -77,7 +77,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         } catch (Exception e) {
             systemInfo.put(SERVER_FOUND, "false");
         }
-        return renderTemplate(template, systemInfo, HINT);
+        return renderTemplate(this.template, systemInfo, HINT.toLowerCase());
     }
 
     @Override
@@ -94,7 +94,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
-            throw new Exception(String.format("Failed to generate the configuration json. Error info: %s",
+            throw new Exception(String.format("Failed to generate the instance configuration data. Traceback error: %s",
                 ExceptionUtils.getRootCauseMessage(e)));
         }
     }
@@ -122,27 +122,27 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
             String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
             Pattern pattern = Pattern.compile(patternString);
-            fileOperations.openFile(databaseCfgPath);
-            fileOperations.initializeScanner();
+            this.fileOperations.openFile(databaseCfgPath);
+            this.fileOperations.initializeScanner();
 
-            while (fileOperations.hasNextLine()) {
-                String line = fileOperations.nextLine();
+            while (this.fileOperations.hasNextLine()) {
+                String line = this.fileOperations.nextLine();
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
                     String foundDB = matcher.group(1);
-                    usedDB = currentServer.getSupportedDBs().getOrDefault(foundDB, null);
+                    usedDB = this.currentServer.getSupportedDBs().getOrDefault(foundDB, null);
                     break;
                 }
             }
-            fileOperations.closeScanner();
+            this.fileOperations.closeScanner();
             if (usedDB == null) {
-                logger.warn("Failed to find database. Used database may not be supported!");
+                this.logger.warn("Failed to find database. Used database may not be supported!");
             }
         } catch (NullPointerException e) {
             throw new NullPointerException(String.format("Failed to identify used Database. Root cause is: [%s]",
                 ExceptionUtils.getRootCauseMessage(e)));
         } catch (Exception exception) {
-            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+            this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
         }
 

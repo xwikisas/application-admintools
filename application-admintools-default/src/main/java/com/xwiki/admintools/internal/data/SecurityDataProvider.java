@@ -47,7 +47,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     /**
      * The hint for the component.
      */
-    public static final String HINT = "security";
+    public static final String HINT = "SECURITY";
 
     private static final String WORK_DIRECTORY = "PWD";
 
@@ -68,10 +68,10 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails = getDataAsJSON();
             securityDetails.put(SERVER_FOUND, "true");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getRootCauseMessage(e));
+            this.logger.warn(ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(SERVER_FOUND, "false");
         }
-        return renderTemplate("securityTemplate.vm", securityDetails, HINT);
+        return renderTemplate("securityTemplate.vm", securityDetails, HINT.toLowerCase());
     }
 
     @Override
@@ -90,7 +90,8 @@ public class SecurityDataProvider extends AbstractDataProvider
             return securityDetails;
         } catch (Exception e) {
             throw new Exception(
-                "Failed to generate the security json. Error info : " + ExceptionUtils.getRootCauseMessage(e));
+                "Failed to generate the instance security data. Traceback error: " + ExceptionUtils.getRootCauseMessage(
+                    e));
         }
     }
 
@@ -104,9 +105,9 @@ public class SecurityDataProvider extends AbstractDataProvider
         try {
             Map<String, String> results = new HashMap<>();
 
-            XWikiContext wikiContext = xcontextProvider.get();
+            XWikiContext wikiContext = this.xcontextProvider.get();
             results.put("activeEncoding", wikiContext.getWiki().getEncoding());
-            results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
+            results.put("configurationEncoding", this.configurationSource.getProperty("xwiki.encoding", String.class));
             return results;
         } catch (Exception e) {
             throw new Exception("Failed to generate xwiki security info: " + ExceptionUtils.getRootCauseMessage(e));
@@ -126,7 +127,7 @@ public class SecurityDataProvider extends AbstractDataProvider
         results.put(WORK_DIRECTORY, System.getenv(WORK_DIRECTORY));
         results.put(LANGUAGE, System.getenv(LANGUAGE));
         if (workDirectory == null || language == null) {
-            logger.warn("Failed to access language or work directory environment variables.");
+            this.logger.warn("Failed to access language or work directory environment variables.");
         }
         return results;
     }

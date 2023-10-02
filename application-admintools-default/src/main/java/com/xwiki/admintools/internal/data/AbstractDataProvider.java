@@ -67,11 +67,12 @@ public abstract class AbstractDataProvider implements DataProvider
     {
         try {
             // Binds the data provided to the template.
-            ScriptContext scriptContext = scriptContextManager.getScriptContext();
+            ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);
             return this.templateManager.render(template);
         } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            this.logger.warn("Failed to render custom template. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }

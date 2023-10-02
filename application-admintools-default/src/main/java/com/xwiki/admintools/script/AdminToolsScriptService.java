@@ -73,7 +73,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public List<String> getSupportedDatabases()
     {
-        return this.adminToolsManager.getSupportedDB();
+        return this.adminToolsManager.getSupportedDBs();
     }
 
     /**

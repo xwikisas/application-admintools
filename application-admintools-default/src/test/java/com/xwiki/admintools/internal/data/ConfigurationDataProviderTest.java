@@ -48,7 +48,6 @@ import com.xwiki.admintools.internal.util.DefaultFileOperations;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,13 +92,13 @@ public class ConfigurationDataProviderTest
     private ScriptContextManager scriptContextManager;
 
     @Mock
-    private ServerIdentifier serverIdentifierMock;
+    private ServerIdentifier serverIdentifier;
 
     @Mock
-    private ScriptContext scriptContextMock;
+    private ScriptContext scriptContext;
 
     @BeforeAll
-    static void initialize()
+    static void setUp()
     {
         // Prepare expected json
         defaultJson = new HashMap<>();
@@ -150,14 +149,13 @@ public class ConfigurationDataProviderTest
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifierMock.getComponentHint()).thenReturn("test_server");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
 
         when(fileOperations.hasNextLine()).thenReturn(true);
         when(fileOperations.nextLine()).thenReturn("<property name=\"connection.url\">jdbc:notSupportedDB://");
-
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("database", null);
@@ -173,10 +171,10 @@ public class ConfigurationDataProviderTest
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifierMock.getComponentHint()).thenReturn("test_server");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
 
         doThrow(new FileNotFoundException("CONFIGURATION_FILE_NOT_FOUND")).when(fileOperations).initializeScanner();
         Map<String, String> json = new HashMap<>(defaultJson);
@@ -192,7 +190,7 @@ public class ConfigurationDataProviderTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path/");
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path/");
 
         when(fileOperations.hasNextLine()).thenReturn(true);
         when(fileOperations.nextLine()).thenReturn("<property name=\"connection.url\">jdbc:notSupportedDB://");
@@ -201,8 +199,8 @@ public class ConfigurationDataProviderTest
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals(
-            "Failed to generate the configuration json. Error info: NullPointerException: Failed to identify used "
-                + "Database. Root cause is: [NullPointerException: Failed to retrieve the used server. Server not found.]",
+            "Failed to generate the instance configuration data. Traceback error: NullPointerException: Failed to "
+                + "identify used Database. Root cause is: [NullPointerException: Failed to retrieve the used server. Server not found.]",
             exception.getMessage());
         verify(this.logger).warn("Failed to retrieve used server. Server not found.");
     }
@@ -211,10 +209,10 @@ public class ConfigurationDataProviderTest
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifierMock.getComponentHint()).thenReturn("test_server");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
 
         // DB mock
         when(fileOperations.hasNextLine()).thenReturn(true);
@@ -237,7 +235,7 @@ public class ConfigurationDataProviderTest
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals(
-            "Failed to generate the configuration json. Error info: NullPointerException: Failed to identify used "
+            "Failed to generate the instance configuration data. Traceback error: NullPointerException: Failed to identify used "
                 + "Database. Root cause is: [NullPointerException: Failed to retrieve the used server. Server not found.]",
             exception.getMessage());
         verify(this.logger).warn("Failed to retrieve used server. Server not found.");
@@ -247,10 +245,10 @@ public class ConfigurationDataProviderTest
     void getRenderedDataWithSuccessfulExecution() throws Exception
     {
         // Mock the behavior of CurrentServer to return a valid ServerIdentifier
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifierMock.getComponentHint()).thenReturn("test_server");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
 
         // DB mock
         when(fileOperations.hasNextLine()).thenReturn(true);
@@ -262,12 +260,13 @@ public class ConfigurationDataProviderTest
         json.put("serverFound", "true");
 
         // Mock the renderer
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
         // Verify the result and method invocations
         assertEquals("success", configurationDataProvider.getRenderedData());
-        verify(scriptContextMock).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+            ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
@@ -277,10 +276,10 @@ public class ConfigurationDataProviderTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifierMock);
-        when(serverIdentifierMock.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifierMock.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifierMock.getComponentHint()).thenReturn("test_server");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
 
         // DB mock
         when(fileOperations.hasNextLine()).thenReturn(true);
@@ -290,12 +289,13 @@ public class ConfigurationDataProviderTest
         json.put("serverFound", "true");
 
         // Mock the renderer
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
         // Verify the result and method invocations
         assertEquals("success", configurationDataProvider.getRenderedData());
-        verify(scriptContextMock).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+            ScriptContext.ENGINE_SCOPE);
         verify(this.logger).warn("Failed to find database. Used database may not be supported!");
     }
 
@@ -306,7 +306,7 @@ public class ConfigurationDataProviderTest
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
         // Mock the renderer
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("fail");
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
@@ -314,6 +314,7 @@ public class ConfigurationDataProviderTest
         assertEquals("fail", configurationDataProvider.getRenderedData());
         assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
         verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
-        verify(scriptContextMock).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+            ScriptContext.ENGINE_SCOPE);
     }
 }

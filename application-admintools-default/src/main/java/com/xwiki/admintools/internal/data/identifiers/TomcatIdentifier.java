@@ -51,7 +51,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     public boolean isUsed()
     {
         this.serverPath = null;
-        String providedConfigServerPath = adminToolsConfig.getServerPath();
+        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
         if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
             return checkAndSetServerPath(providedConfigServerPath);
         } else {
@@ -88,8 +88,8 @@ public class TomcatIdentifier extends AbstractServerIdentifier
 
     private boolean checkAndSetServerPath(String path)
     {
-        fileOperations.openFile(path + "/conf/catalina.properties");
-        if (fileOperations.fileExists()) {
+        this.fileOperations.openFile(path + "/conf/catalina.properties");
+        if (this.fileOperations.fileExists()) {
             this.serverPath = path;
             return true;
         }

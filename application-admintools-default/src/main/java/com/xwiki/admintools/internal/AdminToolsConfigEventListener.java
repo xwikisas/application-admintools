@@ -80,7 +80,7 @@ public class AdminToolsConfigEventListener extends AbstractEventListener
         if (event instanceof DocumentUpdatedEvent || event instanceof DocumentDeletedEvent) {
             XWikiDocument document = (XWikiDocument) source;
             if (document != null && isAdminToolsConfigObject(document)) {
-                currentServer.updateCurrentServer();
+                this.currentServer.updateCurrentServer();
             }
         }
     }

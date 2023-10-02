@@ -62,7 +62,7 @@ public class CurrentServer implements Initializable
      */
     public ServerIdentifier getCurrentServer()
     {
-        return currentServerIdentifier;
+        return this.currentServerIdentifier;
     }
 
     /**
@@ -100,11 +100,11 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        currentServerIdentifier = null;
+        this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
             if (serverIdentifier.isUsed()) {
-                currentServerIdentifier = serverIdentifier;
-                currentServerIdentifier.updatePossiblePaths();
+                this.currentServerIdentifier = serverIdentifier;
+                this.currentServerIdentifier.updatePossiblePaths();
                 break;
             }
         }

@@ -51,7 +51,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     @Override
     public String getServerCfgPath()
     {
-        for (String serverCfgPath : serverCfgPossiblePaths) {
+        for (String serverCfgPath : this.serverCfgPossiblePaths) {
             if ((new File(serverCfgPath)).exists()) {
                 return serverCfgPath;
             }
@@ -62,7 +62,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     @Override
     public String getXwikiCfgFolderPath()
     {
-        for (String xwikiCfgFolderPath : xwikiCfgPossiblePaths) {
+        for (String xwikiCfgFolderPath : this.xwikiCfgPossiblePaths) {
             if ((new File(xwikiCfgFolderPath + "xwiki.cfg")).exists()) {
                 return xwikiCfgFolderPath;
             }
