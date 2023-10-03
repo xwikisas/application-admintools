@@ -25,15 +25,15 @@
     <h2>$services.icon.renderHTML('lock')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>
-    <hr />
+    <hr/>
     <ul>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
-          $security['activeEncoding']
+        $security['activeEncoding']
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
-          $security['configurationEncoding']
+        $security['configurationEncoding']
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
@@ -43,7 +43,7 @@
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
-          $security['fileEncoding']
+        $security['fileEncoding']
       </li>
     </ul>
   </div>

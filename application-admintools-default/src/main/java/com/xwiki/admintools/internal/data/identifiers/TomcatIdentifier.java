@@ -21,14 +21,12 @@ package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
@@ -45,9 +43,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      * Component identifier.
      */
     public static final String HINT = "Tomcat";
-
-    @Inject
-    private DefaultFileOperations fileOperations;
 
     @Override
     public boolean isUsed()

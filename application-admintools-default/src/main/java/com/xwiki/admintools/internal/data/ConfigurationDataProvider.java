@@ -19,6 +19,9 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -35,7 +38,6 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
@@ -53,10 +55,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
-    private final String TEMPLATE_NAME = "configurationTemplate.vm";
-
-    @Inject
-    private DefaultFileOperations fileOperations;
+    private static final String TEMPLATE_NAME = "configurationTemplate.vm";
 
     @Inject
     private CurrentServer currentServer;
@@ -77,7 +76,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         } catch (Exception e) {
             systemInfo.put(SERVER_FOUND, "false");
         }
-        return renderTemplate(this.TEMPLATE_NAME, systemInfo, HINT);
+        return renderTemplate(TEMPLATE_NAME, systemInfo, HINT);
     }
 
     @Override
@@ -121,11 +120,11 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
             String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
             Pattern pattern = Pattern.compile(patternString);
-            this.fileOperations.openFile(databaseCfgPath);
-            this.fileOperations.initializeScanner();
+            File file = new File(databaseCfgPath);
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
 
-            while (this.fileOperations.hasNextLine()) {
-                String line = this.fileOperations.nextLine();
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
                     String foundDB = matcher.group(1);
@@ -133,7 +132,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
                     break;
                 }
             }
-            this.fileOperations.closeScanner();
+            bufferedReader.close();
             if (usedDB == null) {
                 this.logger.warn("Failed to find database. Used database may not be supported!");
             }

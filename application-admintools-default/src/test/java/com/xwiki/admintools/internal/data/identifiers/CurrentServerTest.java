@@ -25,8 +25,6 @@ import java.util.List;
 import javax.inject.Named;
 import javax.inject.Provider;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -39,7 +37,6 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -89,16 +86,13 @@ public class CurrentServerTest
     @Test
     void updateCurrentServer() throws InitializationException
     {
-        // verify if false //
+        when(serverIdentifier.isUsed()).thenReturn(false);
+        currentServer.updateCurrentServer();
+        assertNull(currentServer.getCurrentServer());
 
-        // Mock the behaviour of serverIdentifier
         when(serverIdentifier.isUsed()).thenReturn(true);
         currentServer.updateCurrentServer();
-
-        // Verify that the currentServerIdentifier is set correctly
         assertEquals(serverIdentifier, currentServer.getCurrentServer());
-
-
     }
 
     @Test

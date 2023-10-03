@@ -43,7 +43,7 @@
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
-          $configuration['usedServer']
+        $configuration['usedServer']
       </li>
       <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
         <ul>

@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -124,7 +126,6 @@ public class SecurityDataProviderTest
         assertThrows(NullPointerException.class, () -> configurationSource.getProperty("xwiki.encoding", String.class));
     }
 
-    // Mock environment info
     @Test
     void getDataAsJSONSuccess() throws Exception
     {
@@ -178,8 +179,7 @@ public class SecurityDataProviderTest
 
         // Verify the result and method invocations
         assertEquals("fail", securityDataProvider.getRenderedData());
-        verify(this.logger).warn(
-            "Exception: Failed to generate the instance security data. Traceback error: Exception: Failed to generate xwiki security info: NullPointerException: ConfigurationSourceNotFound");
+        verify(this.logger).warn("NullPointerException: ConfigurationSourceNotFound");
         verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

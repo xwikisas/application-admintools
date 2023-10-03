@@ -90,8 +90,7 @@ public class SecurityDataProvider extends AbstractDataProvider
             return securityDetails;
         } catch (Exception e) {
             throw new Exception(
-                "Failed to generate the instance security data. Traceback error: " + ExceptionUtils.getRootCauseMessage(
-                    e));
+                "Failed to generate the instance security data.", e);
         }
     }
 
@@ -110,7 +109,7 @@ public class SecurityDataProvider extends AbstractDataProvider
             results.put("configurationEncoding", this.configurationSource.getProperty("xwiki.encoding", String.class));
             return results;
         } catch (Exception e) {
-            throw new Exception("Failed to generate xwiki security info: " + ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception("Failed to generate xwiki security info.", e);
         }
     }
 
