@@ -19,9 +19,17 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -52,6 +60,15 @@ public class TomcatIdentifierTest
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
+    @Mock
+    File file;
+
+    @Mock
+    BufferedReader bufferedReader;
+
+    @XWikiTempDir
+    private File tmpDir;
+
     @Test
     void isUsedFound()
     {
@@ -64,22 +81,42 @@ public class TomcatIdentifierTest
         assertTrue(tomcatIdentifier.isUsed());
     }
 
+    // Test with no providedConfigServerPath but catalina.base property set
     @Test
-    void isUsedFoundSystemProps()
+    void isUsedFoundSystemProperty() throws IOException
     {
-        // Mock the behavior of the File object
-        when(fileOperations.fileExists()).thenReturn(true);
+        File configDirectory = new File(tmpDir, "conf") ;
+        configDirectory.mkdir();
+        configDirectory.deleteOnExit();
 
-        // Test with no providedConfigServerPath but catalina.base property set
-        System.setProperty("catalina.base", "found");
+        File testFile = new File(configDirectory, "catalina.properties");
+        testFile.createNewFile();
+
+        assertTrue(testFile.exists());
+
+        System.setProperty("catalina.base", tmpDir.getAbsolutePath());
         assertTrue(tomcatIdentifier.isUsed());
         System.clearProperty("catalina.base");
     }
 
+    // Test with no providedConfigServerPath but catalina.base property set
+    @Test
+    void isUsedFoundSystemPropertyFail()
+    {
+        File configDirectory = new File(tmpDir, "conf") ;
+        configDirectory.mkdir();
+
+        System.setProperty("catalina.base", tmpDir.getAbsolutePath());
+        assertFalse(tomcatIdentifier.isUsed());
+        System.clearProperty("catalina.base");
+        configDirectory.delete();
+    }
+
+    // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set
     @Test
     void isUsedNotFound()
     {
-        // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set
+        when(adminToolsConfig.getServerPath()).thenReturn(null);
         assertFalse(tomcatIdentifier.isUsed());
     }
 
@@ -87,7 +124,7 @@ public class TomcatIdentifierTest
     void isUsedWrongPath()
     {
         when(adminToolsConfig.getServerPath()).thenReturn("user_inserted_wrong_path");
-
+        when(file.exists()).thenReturn(false);
         // Test with incorrect providedConfigServerPath
         assertFalse(tomcatIdentifier.isUsed());
     }

@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
+import java.io.File;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -57,7 +59,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-
             if (catalinaBase != null) {
                 return checkAndSetServerPath(catalinaBase);
             } else if (catalinaHome != null) {
@@ -88,8 +89,8 @@ public class TomcatIdentifier extends AbstractServerIdentifier
 
     private boolean checkAndSetServerPath(String path)
     {
-        this.fileOperations.openFile(path + "/conf/catalina.properties");
-        if (this.fileOperations.fileExists()) {
+        File file = new File(path + "/conf/catalina.properties");
+        if (file.exists()) {
             this.serverPath = path;
             return true;
         }

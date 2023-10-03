@@ -47,14 +47,14 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * @since 1.0
  */
 @Component
-@Named(AdminToolsConfigEventListener.HINT)
+@Named(AdminToolsEventListener.HINT)
 @Singleton
-public class AdminToolsConfigEventListener extends AbstractEventListener
+public class AdminToolsEventListener extends AbstractEventListener
 {
     /**
      * The hint for the component.
      */
-    public static final String HINT = "AdminToolsConfigEventListener";
+    public static final String HINT = "AdminToolsEventListener";
 
     private static final List<String> SPACE = Arrays.asList("AdminTools", "Code");
 
@@ -69,7 +69,7 @@ public class AdminToolsConfigEventListener extends AbstractEventListener
     /**
      * Creates an event-listener filtering for DocumentUpdatedEvent and DocumentDeletedEvent.
      */
-    public AdminToolsConfigEventListener()
+    public AdminToolsEventListener()
     {
         super(HINT, new DocumentUpdatedEvent(), new DocumentDeletedEvent());
     }

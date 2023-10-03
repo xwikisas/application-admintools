@@ -21,7 +21,6 @@
 {{html clean='false'}}
 
 #if($security['serverFound'] == 'true')
-
   <div class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('lock')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
@@ -50,13 +49,8 @@
   </div>
 
 #else
-
   #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
-
   #warning($warningMessage)
-
 #end
 
 {{/html}}
-
-

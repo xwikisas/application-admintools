@@ -154,7 +154,7 @@ public class SecurityDataProviderTest
 
         // Verify the result and method invocations
         assertEquals("success", securityDataProvider.getRenderedData());
-        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT.toLowerCase(), json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
@@ -180,6 +180,6 @@ public class SecurityDataProviderTest
         assertEquals("fail", securityDataProvider.getRenderedData());
         verify(this.logger).warn(
             "Exception: Failed to generate the instance security data. Traceback error: Exception: Failed to generate xwiki security info: NullPointerException: ConfigurationSourceNotFound");
-        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT.toLowerCase(), json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

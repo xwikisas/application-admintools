@@ -235,8 +235,7 @@ public class ConfigurationDataProviderTest
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals(
-            "Failed to generate the instance configuration data. Traceback error: NullPointerException: Failed to identify used "
-                + "Database. Root cause is: [NullPointerException: Failed to retrieve the used server. Server not found.]",
+            "Failed to generate the instance configuration data.",
             exception.getMessage());
         verify(this.logger).warn("Failed to retrieve used server. Server not found.");
     }
@@ -265,7 +264,7 @@ public class ConfigurationDataProviderTest
 
         // Verify the result and method invocations
         assertEquals("success", configurationDataProvider.getRenderedData());
-        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json,
             ScriptContext.ENGINE_SCOPE);
     }
 
@@ -294,7 +293,7 @@ public class ConfigurationDataProviderTest
 
         // Verify the result and method invocations
         assertEquals("success", configurationDataProvider.getRenderedData());
-        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json,
             ScriptContext.ENGINE_SCOPE);
         verify(this.logger).warn("Failed to find database. Used database may not be supported!");
     }
@@ -310,11 +309,12 @@ public class ConfigurationDataProviderTest
         when(templateManager.render(templatePath)).thenReturn("fail");
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
+
         // Verify that the method fails
         assertEquals("fail", configurationDataProvider.getRenderedData());
         assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
         verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
-        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT.toLowerCase(), json,
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json,
             ScriptContext.ENGINE_SCOPE);
     }
 }

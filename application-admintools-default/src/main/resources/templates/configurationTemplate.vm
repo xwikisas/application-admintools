@@ -20,15 +20,17 @@
 
 {{html clean='false'}}
 
-#if($configuration['serverFound'] == 'true')
+#if ($configuration['serverFound'] == 'true')
   <div class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('world')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
-    <hr />
+    <hr/>
     <ul>
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version'))
-        $configuration['xwikiVersion']</li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version'))
+        $configuration['xwikiVersion']
+      </li>
       <ul>
         <li>
           <a href="Show-latest-logs">$escapetool.xml(
@@ -37,7 +39,7 @@
       </ul>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java'))
-          $configuration['javaVersion']
+        $configuration['javaVersion']
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
@@ -53,7 +55,7 @@
             $configuration['osArch']</li>
         </ul>
       </li>
-      #if($configuration['database'] != $null)
+      #if ($configuration['database'] != $null)
       <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
         $configuration['database']</li>
       #else

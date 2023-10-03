@@ -47,7 +47,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     /**
      * The hint for the component.
      */
-    public static final String HINT = "SECURITY";
+    public static final String HINT = "security";
 
     private static final String WORK_DIRECTORY = "PWD";
 
@@ -71,7 +71,7 @@ public class SecurityDataProvider extends AbstractDataProvider
             this.logger.warn(ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(SERVER_FOUND, "false");
         }
-        return renderTemplate("securityTemplate.vm", securityDetails, HINT.toLowerCase());
+        return renderTemplate("securityTemplate.vm", securityDetails, HINT);
     }
 
     @Override

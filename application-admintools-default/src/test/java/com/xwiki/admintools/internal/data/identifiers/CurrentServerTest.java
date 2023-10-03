@@ -87,35 +87,26 @@ public class CurrentServerTest
     }
 
     @Test
-    void updateCurrentServerAfterInitializationNotFound() throws InitializationException
+    void updateCurrentServer() throws InitializationException
     {
-        when(serverIdentifier.isUsed()).thenReturn(false);
-
-        // Call the initialize method
-        currentServer.initialize();
-
-        // Verify that the currentServerIdentifier was not found
-        assertNull(currentServer.getCurrentServer());
+        // verify if false //
 
         // Mock the behaviour of serverIdentifier
         when(serverIdentifier.isUsed()).thenReturn(true);
-
-        // Call the updateCurrentServer method
         currentServer.updateCurrentServer();
 
         // Verify that the currentServerIdentifier is set correctly
         assertEquals(serverIdentifier, currentServer.getCurrentServer());
+
+
     }
 
     @Test
     void initializeWithServerNotFound() throws InitializationException
     {
         when(serverIdentifier.isUsed()).thenReturn(false);
-
-        // Call the initialize method
         currentServer.initialize();
 
-        // Verify that the currentServerIdentifier was not found
         assertNull(currentServer.getCurrentServer());
     }
 

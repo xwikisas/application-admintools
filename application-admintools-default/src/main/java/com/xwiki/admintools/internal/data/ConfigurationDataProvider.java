@@ -51,9 +51,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * The hint for the component.
      */
-    public static final String HINT = "CONFIGURATION";
+    public static final String HINT = "configuration";
 
-    private final String template = "configurationTemplate.vm";
+    private final String TEMPLATE_NAME = "configurationTemplate.vm";
 
     @Inject
     private DefaultFileOperations fileOperations;
@@ -77,7 +77,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         } catch (Exception e) {
             systemInfo.put(SERVER_FOUND, "false");
         }
-        return renderTemplate(this.template, systemInfo, HINT.toLowerCase());
+        return renderTemplate(this.TEMPLATE_NAME, systemInfo, HINT);
     }
 
     @Override
@@ -94,8 +94,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
-            throw new Exception(String.format("Failed to generate the instance configuration data. Traceback error: %s",
-                ExceptionUtils.getRootCauseMessage(e)));
+            throw new Exception("Failed to generate the instance configuration data.", e);
         }
     }
 
@@ -114,7 +113,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported
      */
-    private String identifyDB()
+    private String identifyDB() throws Exception
     {
         String usedDB = null;
         try {
@@ -139,8 +138,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
                 this.logger.warn("Failed to find database. Used database may not be supported!");
             }
         } catch (NullPointerException e) {
-            throw new NullPointerException(String.format("Failed to identify used Database. Root cause is: [%s]",
-                ExceptionUtils.getRootCauseMessage(e)));
+            throw new Exception("Failed to identify used Database.", e);
         } catch (Exception exception) {
             this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
