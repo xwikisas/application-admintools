@@ -19,11 +19,13 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,6 +34,9 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -50,6 +55,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     public static final String HINT = "configuration";
 
+    private static final String TEMPLATE_NAME = "configurationTemplate.vm";
+
     @Inject
     private CurrentServer currentServer;
 
@@ -60,29 +67,40 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public String provideData()
+    public String getRenderedData()
     {
-        return getRenderedTemplate("data/configurationTemplate.vm", generateJson(), HINT);
+        Map<String, String> systemInfo = new HashMap<>();
+        try {
+            systemInfo = getDataAsJSON();
+            systemInfo.put(SERVER_FOUND, "true");
+        } catch (Exception e) {
+            systemInfo.put(SERVER_FOUND, "false");
+        }
+        return renderTemplate(TEMPLATE_NAME, systemInfo, HINT);
     }
 
     @Override
-    public Map<String, String> generateJson()
+    public Map<String, String> getDataAsJSON() throws Exception
     {
-        currentServer.findPaths();
-        Map<String, String> systemInfo = new HashMap<>();
-        systemInfo.put("xwikiCfgPath", currentServer.getUsedServer().getXwikiCfgFolderPath());
-        systemInfo.put("tomcatConfPath", this.currentServer.getUsedServer().getServerCfgPath());
-        systemInfo.put("javaVersion", this.getJavaVersion());
-        systemInfo.putAll(this.getOSInfo());
-        systemInfo.put("database", this.identifyDB());
-
-        return systemInfo;
+        try {
+            Map<String, String> systemInfo = new HashMap<>();
+            systemInfo.put("database", this.identifyDB());
+            systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
+            systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
+            systemInfo.put("javaVersion", this.getJavaVersion());
+            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
+            systemInfo.put("xwikiVersion", getXWikiVersion());
+            systemInfo.putAll(this.getOSInfo());
+            return systemInfo;
+        } catch (Exception e) {
+            throw new Exception("Failed to generate the instance configuration data.", e);
+        }
     }
 
     /**
      * Get the version of Java used on the server.
      *
-     * @return {@link String} Java version.
+     * @return the used Java version.
      */
     private String getJavaVersion()
     {
@@ -90,9 +108,48 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
+     * Identify the used database for XWiki by verifying the configration files.
+     *
+     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported.
+     */
+    private String identifyDB() throws Exception
+    {
+        String usedDB = null;
+        try {
+            ServerIdentifier server = getCurrentServer();
+            String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
+            String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
+            Pattern pattern = Pattern.compile(patternString);
+            File file = new File(databaseCfgPath);
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+
+            while (bufferedReader.ready()) {
+                String line = bufferedReader.readLine();
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    String foundDB = matcher.group(1);
+                    usedDB = this.currentServer.getSupportedDBs().getOrDefault(foundDB, null);
+                    break;
+                }
+            }
+            bufferedReader.close();
+            if (usedDB == null) {
+                this.logger.warn("Failed to find database. Used database may not be supported!");
+            }
+        } catch (NullPointerException e) {
+            throw new Exception("Failed to identify used Database.", e);
+        } catch (Exception exception) {
+            this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(exception));
+        }
+
+        return usedDB;
+    }
+
+    /**
      * Get info about the OS that XWiki is running on.
      *
-     * @return {@link String} name of the used database as a String.
+     * @return info about the OS structured in a {@link Map}.
      */
     private Map<String, String> getOSInfo()
     {
@@ -104,40 +161,20 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         return result;
     }
 
-    /**
-     * Identify the used database for XWiki by verifying the configration files.
-     *
-     * @return the name of the used database as a String.
-     */
-    private String identifyDB()
+    private ServerIdentifier getCurrentServer()
     {
-        String databaseCfgPath = currentServer.getUsedServer().getXwikiCfgFolderPath() + "hibernate.cfg.xml";
-        File file = new File(databaseCfgPath);
-        try (Scanner scanner = new Scanner(file)) {
-            String usedDB = null;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (line.contains("<property name=\"connection.url\">jdbc:")) {
-                    if (line.contains("mysql")) {
-                        usedDB = "MySQL";
-                    } else if (line.contains("hsqldb")) {
-                        usedDB = "HSQLDB";
-                    } else if (line.contains("mariadb")) {
-                        usedDB = "MariaDB";
-                    } else if (line.contains("postgresql")) {
-                        usedDB = "PostgreSQL";
-                    } else if (line.contains("oracle")) {
-                        usedDB = "Oracle";
-                    }
-                    break;
-                }
-            }
-            scanner.close();
-            return usedDB;
-        } catch (FileNotFoundException e) {
-            logger.warn("Failed to open database configuration file. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            return null;
+        ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
+        if (serverIdentifier == null) {
+            logger.warn("Failed to retrieve used server. Server not found.");
+            throw new NullPointerException("Failed to retrieve the used server. Server not found.");
         }
+        return serverIdentifier;
+    }
+
+    private String getXWikiVersion()
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWiki xWiki = wikiContext.getWiki();
+        return xWiki.getVersion();
     }
 }

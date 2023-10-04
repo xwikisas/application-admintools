@@ -46,46 +46,51 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     public static final String HINT = "Tomcat";
 
     @Override
-    public boolean isUsed(String providedConfigServerPath)
+    public boolean isUsed()
     {
-        if (providedConfigServerPath != null) {
-            File file = new File(providedConfigServerPath + "conf/catalina.properties");
-            if (file.exists()) {
-                this.serverPath = providedConfigServerPath;
-                return true;
+        this.serverPath = null;
+        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
+        if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
+            return checkAndSetServerPath(providedConfigServerPath);
+        } else {
+            String catalinaBase = System.getProperty("catalina.base");
+            String catalinaHome = System.getenv("CATALINA_HOME");
+            if (catalinaBase != null) {
+                return checkAndSetServerPath(catalinaBase);
+            } else if (catalinaHome != null) {
+                return checkAndSetServerPath(catalinaHome);
             }
         }
-        String catalinaBase = System.getProperty("catalina.base");
-        String catalinaHome = System.getenv("CATALINA_HOME");
-
-        if (catalinaBase != null) {
-            this.serverPath = catalinaBase;
-        } else if (catalinaHome != null) {
-            this.serverPath = catalinaHome;
-        } else {
-            this.serverPath = null;
-            return false;
-        }
-        return true;
+        return false;
     }
 
     @Override
-    public String getIdentifier()
+    public String getComponentHint()
     {
         return HINT;
     }
 
     @Override
-    public void updatePaths(String providedConfigServerPath)
+    public void updatePossiblePaths()
     {
         this.serverCfgPossiblePaths =
             new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
-                "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/", "/var/lib/tomcat9/conf/server.xml",
+                "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/server.xml", "/var/lib/tomcat9/conf/server.xml",
                 "/var/lib/tomcat/conf/server.xml" };
 
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+    }
+
+    private boolean checkAndSetServerPath(String path)
+    {
+        File file = new File(path + "/conf/catalina.properties");
+        if (file.exists()) {
+            this.serverPath = path;
+            return true;
+        }
+        return false;
     }
 
     @Override

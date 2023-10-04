@@ -19,10 +19,12 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -31,7 +33,6 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -46,25 +47,12 @@ public class CurrentServer implements Initializable
     @Inject
     private Provider<List<ServerIdentifier>> supportedServers;
 
-    private ServerIdentifier usedServer;
+    private ServerIdentifier currentServerIdentifier;
 
-    @Inject
-    @Named("default")
-    private AdminToolsConfiguration adminToolsConfig;
-
-    /**
-     * Method called by the Component Manager when the component is created for the first time (i.e. when it's looked up
-     * for the first time or if the component is specified as being loaded on startup). If the component instantiation
-     * strategy is singleton then this method is called only once during the lifecycle of the Component Manager.
-     * Otherwise the component is created at each lookup and thus this method is called at each lookup too.
-     *
-     * @throws InitializationException if an error happens during a component's initialization
-     */
     @Override
     public void initialize() throws InitializationException
     {
-        String providedConfigServerPath = adminToolsConfig.getServerPath();
-        findServer(providedConfigServerPath);
+        updateCurrentServer();
     }
 
     /**
@@ -72,33 +60,51 @@ public class CurrentServer implements Initializable
      *
      * @return {@link ServerIdentifier}
      */
-    public ServerIdentifier getUsedServer()
+    public ServerIdentifier getCurrentServer()
     {
-        return usedServer;
+        return this.currentServerIdentifier;
     }
 
     /**
-     * Verifies if a server type was found and updates the paths.
+     * Get a {@link Map} with the supported databases.
+     *
+     * @return the supported databases.
      */
-    public void findPaths()
+    public Map<String, String> getSupportedDBs()
     {
-        if (usedServer == null) {
-            String providedConfigServerPath = adminToolsConfig.getServerPath();
-            findServer(providedConfigServerPath);
+        Map<String, String> supportedDBs = new HashMap<>();
+        supportedDBs.put("mysql", "MySQL");
+        supportedDBs.put("hsqldb", "HSQLDB");
+        supportedDBs.put("mariadb", "MariaDB");
+        supportedDBs.put("postgresql", "PostgreSQL");
+        supportedDBs.put("oracle", "Oracle");
+        return supportedDBs;
+    }
+
+    /**
+     * Returns a list of the supported servers.
+     *
+     * @return {@link List} with the supported servers.
+     */
+    public List<String> getSupportedServers()
+    {
+        List<String> supportedServerList = new ArrayList<>();
+        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
+            supportedServerList.add(serverIdentifier.getComponentHint());
         }
+        return supportedServerList;
     }
 
     /**
      * Go through all supported servers and return the one that is used.
-     *
-     * @param providedConfigServerPath {@link String} server path provided by XWiki configurations.
      */
-    private void findServer(String providedConfigServerPath)
+    public void updateCurrentServer()
     {
+        this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed(providedConfigServerPath)) {
-                usedServer = serverIdentifier;
-                usedServer.updatePaths(providedConfigServerPath);
+            if (serverIdentifier.isUsed()) {
+                this.currentServerIdentifier = serverIdentifier;
+                this.currentServerIdentifier.updatePossiblePaths();
                 break;
             }
         }

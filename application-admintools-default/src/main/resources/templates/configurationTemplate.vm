@@ -1,0 +1,83 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+
+{{html clean='false'}}
+
+#if ($configuration['serverFound'] == 'true')
+  <div class="adminToolsDashboardItem">
+    <h2>$services.icon.renderHTML('world')
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
+    <hr/>
+    <ul>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version'))
+        $configuration['xwikiVersion']
+      </li>
+      <ul>
+        <li>
+          <a href="Show-latest-logs">$escapetool.xml(
+            $services.localization.render('adminTools.dashboard.section.backend.showLogs'))</a>
+        </li>
+      </ul>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java'))
+        $configuration['javaVersion']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
+        $configuration['usedServer']
+      </li>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
+        <ul>
+          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.name'))
+            $configuration['osName']</li>
+          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.version'))
+            $configuration['osVersion']</li>
+          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.architecture'))
+            $configuration['osArch']</li>
+        </ul>
+      </li>
+      #if ($configuration['database'] != $null)
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
+        $configuration['database']</li>
+      #else
+        #set($warningDatabaseMessage = $escapetool.xml(
+          $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')))
+        #set($warningDatabaseMessage = $warningDatabaseMessage +
+          $stringtool.join($services.admintools.getSupportedDatabases(), ', '))
+      <li>$escapetool.xml(
+        $services.localization.render('adminTools.dashboard.section.backend.usedDB')) #warning($warningDatabaseMessage)
+      </li>
+      #end
+    </ul>
+  </div>
+
+#else
+  #set($warningMessage =
+    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
+  #set($warningMessage = $warningMessage +
+    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error'))
+    + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+
+  #warning($warningMessage)
+#end
+
+{{/html}}

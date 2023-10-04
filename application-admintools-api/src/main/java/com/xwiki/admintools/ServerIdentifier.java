@@ -19,13 +19,13 @@
  */
 package com.xwiki.admintools;
 
-import java.util.regex.Pattern;
-
 import org.xwiki.component.annotation.Role;
 
+import java.util.regex.Pattern;
+
 /**
- * Identify the used server and the paths to the configuration files of the server and XWiki installation.
- *
+ * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
+ * files.
  * @version $Id$
  * @since 1.0
  */
@@ -33,40 +33,39 @@ import org.xwiki.component.annotation.Role;
 public interface ServerIdentifier
 {
     /**
-     * Check if the server is used.
+     * Verify if a specific server is used. If a server path is provided in the XWiki configurations, it verifies if the
+     * path corresponds to a server. Otherwise, it searches the server location in system properties and system
+     * environment.
      *
-     * @param providedConfigServerPath {@link String} path to the server provided by XWiki configuration.
-     * @return {@link Boolean} true if the server is used, false otherwise.
+     * @return {@code true} if the server is used, {@code false} otherwise.
      */
-    boolean isUsed(String providedConfigServerPath);
+    boolean isUsed();
 
     /**
      * Extract the hint of a component.
      *
-     * @return {@link String} component hint.
+     * @return component hint.
      */
-    String getIdentifier();
+    String getComponentHint();
 
     /**
      * Access the path to the server configuration file.
      *
-     * @return {@link String} representing the path to the server configuration file.
+     * @return the path to the server configuration file.
      */
     String getServerCfgPath();
 
     /**
      * Access the path to the XWiki configuration folder.
      *
-     * @return {@link String} representing the path to the XWiki configuration folder.
+     * @return the path to the XWiki configuration folder.
      */
     String getXwikiCfgFolderPath();
 
     /**
      * Update the possible paths to the configuration files.
-     *
-     * @param providedConfigServerPath {@link String} the server path provided in the XWiki configuration page.
      */
-    void updatePaths(String providedConfigServerPath);
+    void updatePossiblePaths();
 
     /**
      * Get path to server.
