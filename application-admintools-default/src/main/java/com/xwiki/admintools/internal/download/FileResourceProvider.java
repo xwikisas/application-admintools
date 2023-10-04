@@ -64,7 +64,7 @@ public class FileResourceProvider implements ResourceProvider<String>
     @Override
     public byte[] getByteData(String input) throws IOException
     {
-        String filePath = currentServer.getUsedServer().getXwikiCfgFolderPath();
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath();
         if (Objects.equals(input, "properties")) {
             filePath += "xwiki.properties";
         } else if (Objects.equals(input, "config")) {

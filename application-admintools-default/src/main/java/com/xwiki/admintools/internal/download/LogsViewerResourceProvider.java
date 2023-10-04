@@ -63,9 +63,9 @@ public class LogsViewerResourceProvider implements ResourceProvider<Long>
     @Override
     public byte[] getByteData(Long input) throws IOException
     {
-        File file = new File(currentServer.getUsedServer().getLogFilePath());
+        File file = new File(currentServer.getCurrentServer().getLogFilePath());
         if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("File not found: " + currentServer.getUsedServer().getLogFilePath());
+            throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLogFilePath());
         }
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
             long fileLength = randomAccessFile.length();

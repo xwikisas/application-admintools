@@ -152,7 +152,7 @@ public class DownloadManager
      * @param zipOutputStream {@link ZipOutputStream} where the zip entries are stored.
      * @throws IOException
      */
-    private void createArchiveEntries(Map<String, String[]> files, ZipOutputStream zipOutputStream) throws IOException
+    private void createArchiveEntries(Map<String, String[]> files, ZipOutputStream zipOutputStream) throws Exception
     {
         ZipEntry zipEntry;
         byte[] buffer;
@@ -187,7 +187,7 @@ public class DownloadManager
                 case "configuration_info":
                     zipEntry = new ZipEntry("configuration_json.txt");
                     zipOutputStream.putNextEntry(zipEntry);
-                    buffer = configurationDataProvider.generateJson().toString().getBytes();
+                    buffer = configurationDataProvider.getDataAsJSON().toString().getBytes();
                     zipOutputStream.write(buffer, 0, buffer.length);
                     zipOutputStream.closeEntry();
                     break;

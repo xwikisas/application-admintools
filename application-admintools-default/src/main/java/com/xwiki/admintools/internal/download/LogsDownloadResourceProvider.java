@@ -70,12 +70,12 @@ public class LogsDownloadResourceProvider implements ResourceProvider<Map<String
         byte[] buffer = new byte[2048];
 
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            File logsFolder = new File(currentServer.getUsedServer().getLogsFolderPath());
+            File logsFolder = new File(currentServer.getCurrentServer().getLogsFolderPath());
             File[] listOfFiles = logsFolder.listFiles();
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
-                if (file.isFile() && checkFilters(input, currentServer.getUsedServer().getLogsPattern(), file)) {
+                if (file.isFile() && checkFilters(input, currentServer.getCurrentServer().getLogsPattern(), file)) {
                     // Create a new zip entry and add the content.
                     ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
