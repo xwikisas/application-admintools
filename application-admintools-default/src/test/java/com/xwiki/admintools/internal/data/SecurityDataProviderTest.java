@@ -45,7 +45,6 @@ import com.xpn.xwiki.XWikiContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -137,7 +136,7 @@ public class SecurityDataProviderTest
     }
 
     @Test
-    void provideDataWithSuccessfulExecution() throws Exception
+    void getRenderedDataWithSuccessfulExecution() throws Exception
     {
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
@@ -157,7 +156,7 @@ public class SecurityDataProviderTest
     }
 
     @Test
-    void provideDataWithCaughtError() throws Exception
+    void getRenderedDataWithCaughtError() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);
@@ -169,14 +168,39 @@ public class SecurityDataProviderTest
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
-        when(templateManager.render(templatePath)).thenReturn("fail");
+        when(templateManager.render(templatePath)).thenReturn("success");
 
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
 
         // Verify the result and method invocations.
-        assertEquals("fail", securityDataProvider.getRenderedData());
-        verify(this.logger).warn("NullPointerException: ConfigurationSourceNotFound");
+        assertEquals("success", securityDataProvider.getRenderedData());
+        verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+    }
+
+    @Test
+    void getRenderedDataWithRenderingError() throws Exception
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);
+        when(xcontextProvider.get()).thenReturn(xWikiContext);
+        when(xWikiContext.getWiki()).thenReturn(wiki);
+        when(wiki.getEncoding()).thenReturn("wiki_encoding");
+        when(configurationSource.getProperty("xwiki.encoding", String.class)).thenThrow(
+            new NullPointerException("ConfigurationSourceNotFound"));
+
+        // Mock the renderer.
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
+        when(templateManager.render(templatePath)).thenThrow(new Exception("Render failed."));
+
+        Map<String, String> json = new HashMap<>();
+        json.put("serverFound", "false");
+
+        // Verify the result and method invocations.
+        assertEquals(null, securityDataProvider.getRenderedData());
+        verify(this.logger).warn("Failed to generate xwiki security info. Root cause is: [{}]",
+            "NullPointerException: ConfigurationSourceNotFound");
+        verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
         verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

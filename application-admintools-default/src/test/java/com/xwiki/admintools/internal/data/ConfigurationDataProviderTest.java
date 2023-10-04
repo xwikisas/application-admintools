@@ -48,6 +48,7 @@ import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
@@ -350,21 +351,44 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void getRenderedDataWithErrorExecution() throws Exception
+    void getRenderedDataWithFailedJsonGenerate() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
-        when(templateManager.render(templatePath)).thenReturn("fail");
+        when(templateManager.render(templatePath)).thenReturn("success");
+        Map<String, String> json = new HashMap<>();
+        json.put("serverFound", "false");
+
+        assertEquals("success", configurationDataProvider.getRenderedData());
+        assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
+        verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
+        verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+    }
+
+    @Test
+    void getRenderedDataExecutionFail() throws Exception
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
+
+        // Mock the renderer.
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
+        when(templateManager.render(templatePath)).thenThrow(new Exception("Render failed."));
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
 
         // Verify that the method fails.
-        assertEquals("fail", configurationDataProvider.getRenderedData());
-        assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
+        assertNull(configurationDataProvider.getRenderedData());
+        Exception exception = assertThrows(Exception.class, () -> {
+            this.configurationDataProvider.getDataAsJSON();
+        });
+        assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
+
         verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
+        verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

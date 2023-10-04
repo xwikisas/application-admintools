@@ -68,7 +68,6 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails = getDataAsJSON();
             securityDetails.put(SERVER_FOUND, "true");
         } catch (Exception e) {
-            this.logger.warn(ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(SERVER_FOUND, "false");
         }
         return renderTemplate("securityTemplate.vm", securityDetails, HINT);
@@ -89,8 +88,7 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
             return securityDetails;
         } catch (Exception e) {
-            throw new Exception(
-                "Failed to generate the instance security data.", e);
+            throw new Exception("Failed to generate the instance security data.", e);
         }
     }
 
@@ -109,6 +107,8 @@ public class SecurityDataProvider extends AbstractDataProvider
             results.put("configurationEncoding", this.configurationSource.getProperty("xwiki.encoding", String.class));
             return results;
         } catch (Exception e) {
+            this.logger.warn("Failed to generate xwiki security info. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate xwiki security info.", e);
         }
     }
