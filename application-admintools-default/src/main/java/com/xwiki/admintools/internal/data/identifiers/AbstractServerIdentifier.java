@@ -17,47 +17,56 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.configuration;
+package com.xwiki.admintools.internal.data.identifiers;
+
+import java.io.File;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
-import org.xwiki.component.annotation.Component;
-import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.stability.Unstable;
-
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
- * Default implementation of {@link AdminToolsConfiguration}.
+ * Common methods for {@link ServerIdentifier} classes.
  *
  * @version $Id$
  * @since 1.0
  */
-@Component
-@Singleton
-@Unstable
-public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
+public abstract class AbstractServerIdentifier implements ServerIdentifier
 {
-    private static final String SERVER_LOCATION = "serverLocation";
+    protected String[] serverCfgPossiblePaths;
+
+    protected String[] xwikiCfgPossiblePaths;
 
     @Inject
-    @Named(AdminToolsConfigurationSource.HINT)
-    private ConfigurationSource mainConfiguration;
+    @Named("default")
+    protected AdminToolsConfiguration adminToolsConfig;
+
+    /**
+     * The path to the server.
+     */
+    protected String serverPath;
 
     @Override
-    public String getServerPath()
+    public String getServerCfgPath()
     {
-        return this.getProperty(SERVER_LOCATION, "");
+        for (String serverCfgPath : this.serverCfgPossiblePaths) {
+            if ((new File(serverCfgPath)).exists()) {
+                return serverCfgPath;
+            }
+        }
+        return null;
     }
 
-    private <T> T getProperty(String key, T defaultValue)
+    @Override
+    public String getXwikiCfgFolderPath()
     {
-        T value = this.mainConfiguration.getProperty(key, defaultValue);
-        if (value == null) {
-            throw new RuntimeException(String.format("The %s is missing.", key));
+        for (String xwikiCfgFolderPath : this.xwikiCfgPossiblePaths) {
+            if ((new File(xwikiCfgFolderPath + "xwiki.cfg")).exists()) {
+                return xwikiCfgFolderPath;
+            }
         }
-        return value;
+        return null;
     }
 }

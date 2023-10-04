@@ -30,12 +30,20 @@
   <packaging>jar</packaging>
   <name>Admin Tools Application (Pro) - Default</name>
   <description>Admin Tools Application (Pro) - Default</description>
-
   <dependencies>
     <dependency>
       <groupId>com.xwiki.admintools</groupId>
       <artifactId>application-admintools-api</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -47,5 +55,14 @@
       <artifactId>xwiki-platform-model-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+  <properties>
+    <xwiki.jacoco.instructionRatio>0.66</xwiki.jacoco.instructionRatio>
+  </properties>
 </project>
