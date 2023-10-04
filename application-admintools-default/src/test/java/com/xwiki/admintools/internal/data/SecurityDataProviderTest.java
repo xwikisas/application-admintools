@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +35,6 @@ import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
-import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -89,12 +87,12 @@ public class SecurityDataProviderTest
     private XWiki wiki;
 
     @Mock
-    private ScriptContext scriptContextMock;
+    private ScriptContext scriptContext;
 
     @BeforeAll
-    static void initialize()
+    static void beforeAll()
     {
-        // Prepare expected json
+        // Prepare expected json.
         defaultJson = new HashMap<>();
         defaultJson.put("PWD", System.getenv("PWD"));
         defaultJson.put("LANG", System.getenv("LANG"));
@@ -102,7 +100,7 @@ public class SecurityDataProviderTest
         defaultJson.put("configurationEncoding", "configuration_encoding");
         defaultJson.put("fileEncoding", "file_encoding");
 
-        // Set system properties that will be used
+        // Set system properties that will be used.
         System.setProperty("file.encoding", "file_encoding");
     }
 
@@ -129,7 +127,7 @@ public class SecurityDataProviderTest
     @Test
     void getDataAsJSONSuccess() throws Exception
     {
-        // Mock xwiki security info
+        // Mock xwiki security info.
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
@@ -146,16 +144,16 @@ public class SecurityDataProviderTest
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
 
-        // Mock the renderer
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
+        // Mock the renderer.
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("serverFound", "true");
 
-        // Verify the result and method invocations
+        // Verify the result and method invocations.
         assertEquals("success", securityDataProvider.getRenderedData());
-        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
@@ -169,17 +167,16 @@ public class SecurityDataProviderTest
         when(configurationSource.getProperty("xwiki.encoding", String.class)).thenThrow(
             new NullPointerException("ConfigurationSourceNotFound"));
 
-        // Mock the renderer
-        ScriptContext scriptContextMock = mock(ScriptContext.class);
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContextMock);
+        // Mock the renderer.
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("fail");
 
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
 
-        // Verify the result and method invocations
+        // Verify the result and method invocations.
         assertEquals("fail", securityDataProvider.getRenderedData());
         verify(this.logger).warn("NullPointerException: ConfigurationSourceNotFound");
-        verify(scriptContextMock).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

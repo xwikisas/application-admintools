@@ -42,7 +42,7 @@ public interface DataProvider
     /**
      * Extract the hint of a component.
      *
-     * @return the component hint
+     * @return the component hint.
      */
     String getIdentifier();
 

@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -103,7 +102,7 @@ public class ConfigurationDataProviderTest
     @BeforeAll
     static void setUp()
     {
-        // Prepare expected json
+        // Prepare expected json.
         defaultJson = new HashMap<>();
         defaultJson.put("database", "MySQL");
         defaultJson.put("osVersion", "test_os_version");
@@ -115,7 +114,7 @@ public class ConfigurationDataProviderTest
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
 
-        // Set system properties that will be used
+        // Set system properties that will be used.
         System.setProperty("java.version", "used_java_version");
         System.setProperty("os.name", "test_os_name");
         System.setProperty("os.version", "test_os_version");
@@ -151,8 +150,8 @@ public class ConfigurationDataProviderTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
-        // Mock file behaviour
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder/");
+        // Mock file behaviour.
+        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
         configDirectory.mkdir();
         configDirectory.deleteOnExit();
         String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
@@ -160,7 +159,7 @@ public class ConfigurationDataProviderTest
         testFile.createNewFile();
         assertTrue(testFile.exists());
 
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier
+        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -184,7 +183,7 @@ public class ConfigurationDataProviderTest
         configDirectory.mkdir();
         String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
 
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier
+        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -217,8 +216,8 @@ public class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
-        // Mock file behaviour
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder/");
+        // Mock file behaviour.
+        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
         configDirectory.mkdir();
         configDirectory.deleteOnExit();
         String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
@@ -234,7 +233,7 @@ public class ConfigurationDataProviderTest
         writer.append("file content3\n");
         writer.close();
 
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier
+        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -255,7 +254,7 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void getDataAsJsonWithErrorExecution() throws Exception
+    void getDataAsJsonWithErrorExecution()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
@@ -270,8 +269,8 @@ public class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecution() throws Exception
     {
-        // Mock file behaviour
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder/");
+        // Mock file behaviour.
+        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
         configDirectory.mkdir();
         configDirectory.deleteOnExit();
         String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
@@ -287,7 +286,7 @@ public class ConfigurationDataProviderTest
         writer.append("file content3\n");
         writer.close();
 
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier
+        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -305,11 +304,11 @@ public class ConfigurationDataProviderTest
         json.put("serverFound", "true");
         json.put("xwikiCfgPath", cfgFolderPath);
 
-        // Mock the renderer
+        // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
-        // Verify the result and method invocations
+        // Verify the result and method invocations.
         assertEquals("success", configurationDataProvider.getRenderedData());
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
@@ -320,8 +319,8 @@ public class ConfigurationDataProviderTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
-        // Mock file behaviour
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder/");
+        // Mock file behaviour.
+        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
         configDirectory.mkdir();
         configDirectory.deleteOnExit();
         String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
@@ -329,7 +328,7 @@ public class ConfigurationDataProviderTest
         testFile.createNewFile();
         assertTrue(testFile.exists());
 
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier
+        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
@@ -340,11 +339,11 @@ public class ConfigurationDataProviderTest
         json.put("xwikiCfgPath", cfgFolderPath);
         json.put("serverFound", "true");
 
-        // Mock the renderer
+        // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
-        // Verify the result and method invocations
+        // Verify the result and method invocations.
         assertEquals("success", configurationDataProvider.getRenderedData());
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
         verify(this.logger).warn("Failed to find database. Used database may not be supported!");
@@ -356,13 +355,13 @@ public class ConfigurationDataProviderTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
-        // Mock the renderer
+        // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("fail");
         Map<String, String> json = new HashMap<>();
         json.put("serverFound", "false");
 
-        // Verify that the method fails
+        // Verify that the method fails.
         assertEquals("fail", configurationDataProvider.getRenderedData());
         assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
         verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");

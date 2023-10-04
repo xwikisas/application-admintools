@@ -19,14 +19,12 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -47,12 +45,6 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class TomcatIdentifierTest
 {
-    @Mock
-    File file;
-
-    @Mock
-    BufferedReader bufferedReader;
-
     @InjectMockComponents
     private TomcatIdentifier tomcatIdentifier;
 
@@ -80,9 +72,8 @@ public class TomcatIdentifierTest
         assertTrue(tomcatIdentifier.isUsed());
     }
 
-    // Test with no providedConfigServerPath but catalina.base property set
     @Test
-    void isUsedFoundSystemProperty() throws IOException
+    void isUsedWithValidCatalinaBase() throws IOException
     {
         File configDirectory = new File(tmpDir, "conf");
         configDirectory.mkdir();
@@ -92,43 +83,30 @@ public class TomcatIdentifierTest
         testFile.createNewFile();
         assertTrue(testFile.exists());
 
+        when(adminToolsConfig.getServerPath()).thenReturn(null);
         System.setProperty("catalina.base", tmpDir.getAbsolutePath());
         assertTrue(tomcatIdentifier.isUsed());
         System.clearProperty("catalina.base");
     }
 
-    // Test with no providedConfigServerPath but catalina.base property set
     @Test
-    void isUsedFoundSystemPropertyFail()
+    void isUsedValidSystemPathMissingCatalinaProperties()
     {
         File configDirectory = new File(tmpDir, "conf");
         configDirectory.mkdir();
-
+        when(adminToolsConfig.getServerPath()).thenReturn(null);
         System.setProperty("catalina.base", tmpDir.getAbsolutePath());
         assertFalse(tomcatIdentifier.isUsed());
         System.clearProperty("catalina.base");
         configDirectory.delete();
     }
 
-    // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set
+    // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set.
     @Test
-    void isUsedNotFound()
+    void isUsedPathNotFound()
     {
         when(adminToolsConfig.getServerPath()).thenReturn(null);
         assertFalse(tomcatIdentifier.isUsed());
-    }
-
-    @Test
-    void isUsedWrongPath()
-    {
-        when(adminToolsConfig.getServerPath()).thenReturn(tmpDir.getAbsolutePath());
-
-        File configDirectory = new File(tmpDir, "conf");
-        configDirectory.mkdir();
-
-        // Test with a valid providedConfigServerPath
-        assertFalse(tomcatIdentifier.isUsed());
-        configDirectory.delete();
     }
 
     @Test

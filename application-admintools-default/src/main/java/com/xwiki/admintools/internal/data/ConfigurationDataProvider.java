@@ -110,7 +110,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Identify the used database for XWiki by verifying the configration files.
      *
-     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported
+     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported.
      */
     private String identifyDB() throws Exception
     {

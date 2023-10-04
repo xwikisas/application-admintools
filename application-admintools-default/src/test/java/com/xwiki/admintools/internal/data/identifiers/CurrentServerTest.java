@@ -63,35 +63,23 @@ public class CurrentServerTest
     @BeforeComponent
     void setUp()
     {
-        // Mock the list of supported servers
+        // Mock the list of supported servers.
         List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
         mockServerIdentifiers.add(serverIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
         when(serverIdentifier.isUsed()).thenReturn(true);
 
-        // Mock the behavior of adminToolsConfig
+        // Mock the behavior of adminToolsConfig.
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
     }
 
     @Test
     void initializeFound() throws InitializationException
     {
-        // Call the initialize method
+        // Call the initialize method.
         currentServer.initialize();
 
-        // Verify that the currentServerIdentifier is set correctly
-        assertEquals(serverIdentifier, currentServer.getCurrentServer());
-    }
-
-    @Test
-    void updateCurrentServer() throws InitializationException
-    {
-        when(serverIdentifier.isUsed()).thenReturn(false);
-        currentServer.updateCurrentServer();
-        assertNull(currentServer.getCurrentServer());
-
-        when(serverIdentifier.isUsed()).thenReturn(true);
-        currentServer.updateCurrentServer();
+        // Verify that the currentServerIdentifier is set correctly.
         assertEquals(serverIdentifier, currentServer.getCurrentServer());
     }
 
@@ -105,15 +93,27 @@ public class CurrentServerTest
     }
 
     @Test
-    void getSupportedServers() throws InitializationException
+    void updateCurrentServer()
+    {
+        when(serverIdentifier.isUsed()).thenReturn(false);
+        currentServer.updateCurrentServer();
+        assertNull(currentServer.getCurrentServer());
+
+        when(serverIdentifier.isUsed()).thenReturn(true);
+        currentServer.updateCurrentServer();
+        assertEquals(serverIdentifier, currentServer.getCurrentServer());
+    }
+
+    @Test
+    void getSupportedServers()
     {
         when(serverIdentifier.getComponentHint()).thenReturn("testServer");
 
-        // Create the expected list
+        // Create the expected list.
         List<String> testServersList = new ArrayList<>();
         testServersList.add("testServer");
 
-        // Verify if the method returns the expected list
+        // Verify if the method returns the expected list.
         assertEquals(testServersList, currentServer.getSupportedServers());
     }
 }
