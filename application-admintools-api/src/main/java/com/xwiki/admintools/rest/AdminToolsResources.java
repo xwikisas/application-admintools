@@ -45,8 +45,8 @@ public interface AdminToolsResources extends XWikiRestComponent
      * @throws XWikiRestException
      */
     @GET
-    @Path("/show/configs/{fileType}")
-    Response getConfigs(@PathParam("fileType") String type) throws XWikiRestException;
+    @Path("/view/file/{fileType}")
+    Response getFileView(@PathParam("fileType") String type) throws XWikiRestException;
 
     /**
      * Rest endpoint to download multiple files.
@@ -55,7 +55,7 @@ public interface AdminToolsResources extends XWikiRestComponent
      * @throws XWikiRestException
      */
     @POST
-    @Path("/download/all")
+    @Path("/download")
     Response getFiles() throws XWikiRestException;
 
     /**
@@ -65,6 +65,6 @@ public interface AdminToolsResources extends XWikiRestComponent
      * @throws XWikiRestException
      */
     @POST
-    @Path("/show/logs")
-    Response retrieveLastLogs() throws XWikiRestException;
+    @Path("/view/logs")
+    Response getLastLogs() throws XWikiRestException;
 }

@@ -17,21 +17,20 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools;
+package com.xwiki.admintools.download;
 
 import java.io.IOException;
 
 import org.xwiki.component.annotation.Role;
 
 /**
- * Provides functions for logs retrieval.
+ * Endpoint used to create zip archive entries.
  *
- * @param <T>
  * @version $Id$
  * @since 1.0
  */
 @Role
-public interface ResourceProvider<T>
+public interface ViewerResourceProvider
 {
     /**
      * Get the requested data from the server.
@@ -40,5 +39,12 @@ public interface ResourceProvider<T>
      * @return {@link Byte} array representing the transfer data.
      * @throws IOException
      */
-    byte[] getByteData(T input) throws IOException;
+    byte[] getByteData(String input) throws IOException;
+
+    /**
+     * Extract the hint of a component.
+     *
+     * @return the component hint.
+     */
+    String getIdentifier();
 }

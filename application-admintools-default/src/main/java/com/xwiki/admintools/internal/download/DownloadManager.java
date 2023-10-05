@@ -22,29 +22,22 @@ package com.xwiki.admintools.internal.download;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
-import org.xwiki.security.authorization.AuthorizationManager;
-import org.xwiki.security.authorization.Right;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.web.XWikiRequest;
-import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.ResourceProvider;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.download.ArchiverResourceProvider;
+import com.xwiki.admintools.download.ViewerResourceProvider;
+import com.xwiki.admintools.internal.download.archiver.LogsArchiverResourceProvider;
 
 /**
  * Encapsulates functions used for downloading important server files.
@@ -56,27 +49,18 @@ import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 @Singleton
 public class DownloadManager
 {
-    @Inject
-    private Provider<XWikiContext> xcontextProvider;
+    private final String from = "from";
+
+    private final String to = "to";
 
     @Inject
-    @Named(LogsDownloadResourceProvider.HINT)
-    private ResourceProvider<Map<String, String>> logsDownloadResourceProvider;
+    private Provider<List<ArchiverResourceProvider>> archiverResourceProviders;
 
     @Inject
-    @Named(LogsViewerResourceProvider.HINT)
-    private ResourceProvider<Long> logsViewerResourceProvider;
+    private Provider<List<ViewerResourceProvider>> viewerResourceProviders;
 
     @Inject
-    @Named(FileResourceProvider.HINT)
-    private ResourceProvider<String> filesResourceProvider;
-
-    @Inject
-    private AuthorizationManager authorizationManager;
-
-    @Inject
-    @Named(ConfigurationDataProvider.HINT)
-    private DataProvider configurationDataProvider;
+    private LogsArchiverResourceProvider logsArchiverResourceProvider;
 
     @Inject
     private Logger logger;
@@ -84,26 +68,18 @@ public class DownloadManager
     /**
      * Initiates the download process for the xwiki files. It removes the sensitive content from the file.
      *
-     * @param fileType {@link String} representing the file type.
+     * @param input {@link String} representing the file type.
      * @return filtered file content as a {@link Byte} array
      * @throws IOException
      */
-    public byte[] getXWikiFile(String fileType) throws IOException
+    public byte[] getFileView(String input, String hint) throws IOException
     {
-        return filesResourceProvider.getByteData(fileType);
-    }
-
-    /**
-     * Checks the admin rights of the calling user.
-     *
-     * @return {@link Boolean} true if the user is admin, false otherwise
-     */
-    public boolean isAdmin()
-    {
-        XWikiContext wikiContext = xcontextProvider.get();
-        DocumentReference user = wikiContext.getUserReference();
-        WikiReference wikiReference = wikiContext.getWikiReference();
-        return this.authorizationManager.hasAccess(Right.ADMIN, user, wikiReference);
+        ViewerResourceProvider fileViewerProvider = findViewerProvider(hint);
+        if (fileViewerProvider != null) {
+            return fileViewerProvider.getByteData(input);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -111,15 +87,24 @@ public class DownloadManager
      *
      * @return {@link Byte} array representing the files archive.
      */
-    public byte[] downloadMultipleFiles()
+    public byte[] downloadMultipleFiles(Map<String, String[]> files)
     {
-        XWikiContext wikiContext = xcontextProvider.get();
-        XWikiRequest xWikiRequest = wikiContext.getRequest();
-        Map<String, String[]> files = xWikiRequest.getParameterMap();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            createArchiveEntries(files, zipOutputStream);
+            for (String archiverHint : files.get("files")) {
+                if (archiverHint.equals("logs")) {
+                    Map<String, String> filters = new HashMap<>();
+                    filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
+                    filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
+                    logsArchiverResourceProvider.writeArchiveEntry(filters, zipOutputStream);
+                } else {
+                    ArchiverResourceProvider archiver = findArchiverProvider(archiverHint);
+                    if (archiver != null) {
+                        archiver.writeArchiveEntry(zipOutputStream);
+                    }
+                }
+            }
+
             zipOutputStream.flush();
             byteArrayOutputStream.flush();
             zipOutputStream.close();
@@ -131,69 +116,23 @@ public class DownloadManager
         }
     }
 
-    /**
-     * Select the right server downloader and call the logs retrieval function.
-     *
-     * @return {@link Byte} array representing the last "n" logs.
-     * @throws IOException
-     */
-    public byte[] callLogsRetriever() throws IOException
+    private ViewerResourceProvider findViewerProvider(String hint)
     {
-        XWikiContext wikiContext = xcontextProvider.get();
-        XWikiRequest xWikiRequest = wikiContext.getRequest();
-        Long noLines = Long.parseLong(xWikiRequest.getParameter("noLines"));
-        return logsViewerResourceProvider.getByteData(noLines);
-    }
-
-    /**
-     * Verify which files are selected, prepare the zip entry and add it to the zip stream.
-     *
-     * @param files {@link Map} representing the files that are to be processed.
-     * @param zipOutputStream {@link ZipOutputStream} where the zip entries are stored.
-     * @throws IOException
-     */
-    private void createArchiveEntries(Map<String, String[]> files, ZipOutputStream zipOutputStream) throws Exception
-    {
-        ZipEntry zipEntry;
-        byte[] buffer;
-        for (String fileType : files.get("files")) {
-            switch (fileType) {
-                case "cfg_file":
-                    zipEntry = new ZipEntry("xwiki.cfg");
-                    zipOutputStream.putNextEntry(zipEntry);
-                    buffer = filesResourceProvider.getByteData("config");
-                    zipOutputStream.write(buffer, 0, buffer.length);
-                    zipOutputStream.closeEntry();
-                    break;
-                case "properties_file":
-                    zipEntry = new ZipEntry("xwiki.properties");
-                    zipOutputStream.putNextEntry(zipEntry);
-                    buffer = filesResourceProvider.getByteData("properties");
-                    zipOutputStream.write(buffer, 0, buffer.length);
-                    zipOutputStream.closeEntry();
-                    break;
-                case "logs":
-                    zipEntry = new ZipEntry("logs.zip");
-                    zipOutputStream.putNextEntry(zipEntry);
-                    Map<String, String> filters = new HashMap<>();
-                    String from = "from";
-                    String to = "to";
-                    filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
-                    filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
-                    buffer = logsDownloadResourceProvider.getByteData(filters);
-                    zipOutputStream.write(buffer, 0, buffer.length);
-                    zipOutputStream.closeEntry();
-                    break;
-                case "configuration_info":
-                    zipEntry = new ZipEntry("configuration_json.txt");
-                    zipOutputStream.putNextEntry(zipEntry);
-                    buffer = configurationDataProvider.getDataAsJSON().toString().getBytes();
-                    zipOutputStream.write(buffer, 0, buffer.length);
-                    zipOutputStream.closeEntry();
-                    break;
-                default:
-                    break;
+        for (ViewerResourceProvider viewerResourceProvider : viewerResourceProviders.get()) {
+            if (viewerResourceProvider.getIdentifier().equals(hint)) {
+                return viewerResourceProvider;
             }
         }
+        return null;
+    }
+
+    private ArchiverResourceProvider findArchiverProvider(String hint)
+    {
+        for (ArchiverResourceProvider archiverResourceProvider : archiverResourceProviders.get()) {
+            if (archiverResourceProvider.getIdentifier().equals(hint)) {
+                return archiverResourceProvider;
+            }
+        }
+        return null;
     }
 }

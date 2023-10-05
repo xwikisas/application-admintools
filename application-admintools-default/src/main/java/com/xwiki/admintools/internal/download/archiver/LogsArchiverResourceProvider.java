@@ -17,10 +17,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download;
+package com.xwiki.admintools.internal.download.archiver;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.time.LocalDate;
@@ -31,51 +30,40 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ResourceProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Encapsulates functions used for downloading log files.
+ * Functions used for downloading log files.
  *
  * @version $Id$
  * @since 1.0
  */
-@Component
-@Named(LogsDownloadResourceProvider.HINT)
+@Component(roles = LogsArchiverResourceProvider.class)
 @Singleton
-public class LogsDownloadResourceProvider implements ResourceProvider<Map<String, String>>
+public class LogsArchiverResourceProvider
 {
-    /**
-     * Component identifier.
-     */
-    public static final String HINT = "logsDownloadResourceProvider";
-
     @Inject
     private Logger logger;
 
     @Inject
     private CurrentServer currentServer;
 
-    @Override
-    public byte[] getByteData(Map<String, String> input)
+    public void writeArchiveEntry(Map<String, String> filters, ZipOutputStream zipOutputStream)
     {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[2048];
-
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
+        try {
             File logsFolder = new File(currentServer.getCurrentServer().getLogsFolderPath());
             File[] listOfFiles = logsFolder.listFiles();
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
-                if (file.isFile() && checkFilters(input, currentServer.getCurrentServer().getLogsPattern(), file)) {
+                if (file.isFile() && checkFilters(filters, currentServer.getCurrentServer().getLogsPattern(), file)) {
                     // Create a new zip entry and add the content.
                     ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
@@ -90,14 +78,8 @@ public class LogsDownloadResourceProvider implements ResourceProvider<Map<String
                     zipOutputStream.closeEntry();
                 }
             }
-            zipOutputStream.flush();
-            byteArrayOutputStream.flush();
-            zipOutputStream.close();
-            byteArrayOutputStream.close();
-            return byteArrayOutputStream.toByteArray();
         } catch (Exception e) {
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return null;
         }
     }
 

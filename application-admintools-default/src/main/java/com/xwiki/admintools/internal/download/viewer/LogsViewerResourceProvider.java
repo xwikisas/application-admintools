@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download;
+package com.xwiki.admintools.internal.download.viewer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,8 +35,10 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ResourceProvider;
+import com.xwiki.admintools.download.ViewerResourceProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Encapsulates functions used for viewing last log lines.
@@ -47,12 +49,12 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Component
 @Named(LogsViewerResourceProvider.HINT)
 @Singleton
-public class LogsViewerResourceProvider implements ResourceProvider<Long>
+public class LogsViewerResourceProvider implements ViewerResourceProvider
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "logsViewerResourceProvider";
+    public static final String HINT = "logsViewer";
 
     @Inject
     private Logger logger;
@@ -61,19 +63,21 @@ public class LogsViewerResourceProvider implements ResourceProvider<Long>
     private CurrentServer currentServer;
 
     @Override
-    public byte[] getByteData(Long input) throws IOException
+    public byte[] getByteData(String input) throws IOException
     {
         File file = new File(currentServer.getCurrentServer().getLogFilePath());
         if (!file.exists() || !file.isFile()) {
             throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLogFilePath());
         }
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
+            int lines = parseInt(input);
+
             long fileLength = randomAccessFile.length();
             List<String> logLines = new ArrayList<>();
 
             // Calculate the approximate position to start reading from based on line length
             long startPosition = fileLength - 1;
-            for (long i = 0; i < input && startPosition > 0 && i < 50000; startPosition--) {
+            for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
                 randomAccessFile.seek(startPosition - 1);
                 int currentByte = randomAccessFile.read();
                 if (currentByte == '\n' || currentByte == '\r') {
@@ -90,5 +94,11 @@ public class LogsViewerResourceProvider implements ResourceProvider<Long>
             logger.warn("Failed to retrieve logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
+    }
+
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
     }
 }

@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download;
+package com.xwiki.admintools.internal.download.viewer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,24 +36,18 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ResourceProvider;
+import com.xwiki.admintools.download.ViewerResourceProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
-/**
- * Encapsulates functions used for downloading XWiki files.
- *
- * @version $Id$
- * @since 1.0
- */
 @Component
-@Named(FileResourceProvider.HINT)
+@Named(XWikiFileViewerResourceProvider.HINT)
 @Singleton
-public class FileResourceProvider implements ResourceProvider<String>
+public class XWikiFileViewerResourceProvider implements ViewerResourceProvider
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "fileResourceProvider";
+    public static final String HINT = "xwikiFileViewer";
 
     @Inject
     private CurrentServer currentServer;
@@ -92,5 +86,11 @@ public class FileResourceProvider implements ResourceProvider<String>
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
+    }
+
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
     }
 }

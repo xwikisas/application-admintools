@@ -22,6 +22,7 @@ package com.xwiki.admintools.internal.rest;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,10 +34,18 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.XWikiRestException;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
+import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.Right;
 
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.download.DownloadManager;
+import com.xwiki.admintools.internal.download.viewer.LogsViewerResourceProvider;
+import com.xwiki.admintools.internal.download.viewer.XWikiFileViewerResourceProvider;
 import com.xwiki.admintools.rest.AdminToolsResources;
 
 /**
@@ -61,16 +70,19 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     @Inject
     private DownloadManager downloadManager;
 
+    @Inject
+    private AuthorizationManager authorizationManager;
+
     @Override
-    public Response getConfigs(String type) throws XWikiRestException
+    public Response getFileView(String type)
     {
         // Check to see if the request was made by a user with admin rights.
-        if (!downloadManager.isAdmin()) {
+        if (!isAdmin()) {
             logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.getXWikiFile(type);
+            byte[] xWikiFileContent = downloadManager.getFileView(type, XWikiFileViewerResourceProvider.HINT);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }
@@ -83,14 +95,17 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     }
 
     @Override
-    public Response getFiles() throws XWikiRestException
+    public Response getFiles()
     {
-        if (!downloadManager.isAdmin()) {
+        if (!isAdmin()) {
             logger.warn("Failed to get files due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] filesArchive = downloadManager.downloadMultipleFiles();
+            XWikiContext wikiContext = xcontextProvider.get();
+            XWikiRequest xWikiRequest = wikiContext.getRequest();
+            Map<String, String[]> files = xWikiRequest.getParameterMap();
+            byte[] filesArchive = downloadManager.downloadMultipleFiles(files);
             if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
                 // Set the appropriate response headers to indicate a zip file download.
                 Response.ResponseBuilder response = Response.ok(filesArchive);
@@ -108,14 +123,17 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     }
 
     @Override
-    public Response retrieveLastLogs() throws XWikiRestException
+    public Response getLastLogs()
     {
-        if (!downloadManager.isAdmin()) {
+        if (!isAdmin()) {
             logger.warn("Failed to get the logs due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.callLogsRetriever();
+            XWikiContext wikiContext = xcontextProvider.get();
+            XWikiRequest xWikiRequest = wikiContext.getRequest();
+            String noLines = xWikiRequest.getParameter("noLines");
+            byte[] xWikiFileContent = downloadManager.getFileView(noLines, LogsViewerResourceProvider.HINT);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }
@@ -125,5 +143,13 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
             logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private boolean isAdmin()
+    {
+        XWikiContext wikiContext = xcontextProvider.get();
+        DocumentReference user = wikiContext.getUserReference();
+        WikiReference wikiReference = wikiContext.getWikiReference();
+        return this.authorizationManager.hasAccess(Right.ADMIN, user, wikiReference);
     }
 }
