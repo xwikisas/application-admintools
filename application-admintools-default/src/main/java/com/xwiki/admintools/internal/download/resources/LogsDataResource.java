@@ -17,12 +17,18 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.archiver;
+package com.xwiki.admintools.internal.download.resources;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,13 +36,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Functions used for downloading log files.
@@ -44,17 +54,68 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = LogsArchiverResourceProvider.class)
+@Component
+@Named(LogsDataResource.HINT)
 @Singleton
-public class LogsArchiverResourceProvider
+public class LogsDataResource implements DataResource
 {
+    public static final String HINT = "logsDataResource";
+
     @Inject
     private Logger logger;
 
     @Inject
     private CurrentServer currentServer;
 
-    public void writeArchiveEntry(Map<String, String> filters, ZipOutputStream zipOutputStream)
+    @Override
+    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    {
+        if (filters != null) {
+            createArchiveEntry(zipOutputStream, filters);
+        }
+    }
+
+    @Override
+    public byte[] getByteData(String input) throws IOException
+    {
+        File file = new File(currentServer.getCurrentServer().getLogFilePath());
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLogFilePath());
+        }
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
+            int lines = parseInt(input);
+
+            long fileLength = randomAccessFile.length();
+            List<String> logLines = new ArrayList<>();
+
+            // Calculate the approximate position to start reading from based on line length
+            long startPosition = fileLength - 1;
+            for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
+                randomAccessFile.seek(startPosition - 1);
+                int currentByte = randomAccessFile.read();
+                if (currentByte == '\n' || currentByte == '\r') {
+                    // Found a newline character, add the line to the list
+                    logLines.add(randomAccessFile.readLine());
+                    i++;
+                }
+            }
+            // Reverse the list to get the lines in the correct order
+            Collections.reverse(logLines);
+            // Join the lines with newline characters
+            return String.join("\n", logLines).getBytes();
+        } catch (IOException e) {
+            logger.warn("Failed to retrieve logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    @Override
+    public String getIdentifier()
+    {
+        return HINT;
+    }
+
+    private void createArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
         byte[] buffer = new byte[2048];
         try {

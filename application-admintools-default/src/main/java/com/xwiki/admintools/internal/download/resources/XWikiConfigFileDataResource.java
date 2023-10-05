@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.viewer;
+package com.xwiki.admintools.internal.download.resources;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,18 +38,28 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.download.ViewerResourceProvider;
+import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
+/**
+ * Encapsulates functions used for downloading XWiki files.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
 @Component
-@Named(XWikiFileViewerResourceProvider.HINT)
+@Named(XWikiConfigFileDataResource.HINT)
 @Singleton
-public class XWikiFileViewerResourceProvider implements ViewerResourceProvider
+public class XWikiConfigFileDataResource implements DataResource
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "xwikiFileViewer";
+    public static final String HINT = "xwikiConfigFileDataResource";
+
+    private final List<String> excludedLinesHints = new ArrayList<>(
+        Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
+            "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
 
     @Inject
     private CurrentServer currentServer;
@@ -56,26 +68,26 @@ public class XWikiFileViewerResourceProvider implements ViewerResourceProvider
     private Logger logger;
 
     @Override
+    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    {
+        if (filters == null) {
+            createArchiveEntry(zipOutputStream);
+        }
+    }
+
+    @Override
     public byte[] getByteData(String input) throws IOException
     {
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath();
-        if (Objects.equals(input, "properties")) {
-            filePath += "xwiki.properties";
-        } else if (Objects.equals(input, "config")) {
-            filePath += "xwiki.cfg";
-        }
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "xwiki.cfg";
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             StringBuilder stringBuilder = new StringBuilder();
             String currentLine;
-            List<String> wordsList = new ArrayList<>(
-                Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
-                    "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
 
             // Read line by line and do not add it if it contains sensitive info.
             while ((currentLine = reader.readLine()) != null) {
                 String trimmedLine = currentLine.trim();
-                if (wordsList.stream().anyMatch(trimmedLine::contains)) {
+                if (excludedLinesHints.stream().anyMatch(trimmedLine::contains)) {
                     continue;
                 }
                 stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
@@ -92,5 +104,16 @@ public class XWikiFileViewerResourceProvider implements ViewerResourceProvider
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    {
+        ZipEntry zipEntry = new ZipEntry("xwiki.cfg");
+
+        zipOutputStream.putNextEntry(zipEntry);
+
+        byte[] buffer = getByteData(null);
+        zipOutputStream.write(buffer, 0, buffer.length);
+        zipOutputStream.closeEntry();
     }
 }

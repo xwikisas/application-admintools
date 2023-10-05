@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.archiver;
+package com.xwiki.admintools.internal.download.resources;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,17 +36,17 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.download.ArchiverResourceProvider;
+import com.xwiki.admintools.download.DataResource;
 
 @Component
-@Named(DataArchiverResourceProvider.HINT)
+@Named(DataProvidersDataResource.HINT)
 @Singleton
-public class DataArchiverResourceProvider implements ArchiverResourceProvider
+public class DataProvidersDataResource implements DataResource
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "dataProvider";
+    public static final String HINT = "dataProviderResource";
 
     @Inject
     private Provider<List<DataProvider>> dataProviders;
@@ -55,10 +55,16 @@ public class DataArchiverResourceProvider implements ArchiverResourceProvider
     private Logger logger;
 
     @Override
-    public void writeArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
-        zipOutputStream.putNextEntry(zipEntry);
+        if (filters == null) {
+            createArchiveEntry(zipOutputStream);
+        }
+    }
+
+    @Override
+    public byte[] getByteData(String input) throws IOException
+    {
         Map<String, String> providersResults = new HashMap<>();
         for (DataProvider dataProvider : dataProviders.get()) {
             try {
@@ -68,14 +74,21 @@ public class DataArchiverResourceProvider implements ArchiverResourceProvider
                     ExceptionUtils.getRootCauseMessage(e));
             }
         }
-        byte[] buffer = providersResults.toString().getBytes();
-        zipOutputStream.write(buffer, 0, buffer.length);
-        zipOutputStream.closeEntry();
+        return providersResults.toString().getBytes();
     }
 
     @Override
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    {
+        ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
+        zipOutputStream.putNextEntry(zipEntry);
+        byte[] buffer = getByteData(null);
+        zipOutputStream.write(buffer, 0, buffer.length);
+        zipOutputStream.closeEntry();
     }
 }

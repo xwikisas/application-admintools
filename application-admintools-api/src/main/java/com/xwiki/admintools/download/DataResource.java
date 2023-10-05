@@ -20,6 +20,8 @@
 package com.xwiki.admintools.download;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 import org.xwiki.component.annotation.Role;
 
@@ -30,19 +32,26 @@ import org.xwiki.component.annotation.Role;
  * @since 1.0
  */
 @Role
-public interface ViewerResourceProvider
+public interface DataResource
 {
     /**
-     * Get the requested data from the server.
+     * Add an entry inside the archive.
      *
-     * @param input {@link T} data received from user input.
-     * @return {@link Byte} array representing the transfer data.
+     * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
+     * @throws IOException
+     */
+    void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException;
+
+    /**
+     * Get the file content.
+     *
+     * @return the content of the file as an {@link Byte} array.
      * @throws IOException
      */
     byte[] getByteData(String input) throws IOException;
 
     /**
-     * Extract the hint of a component.
+     * Get the hint of a component.
      *
      * @return the component hint.
      */

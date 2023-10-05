@@ -4,12 +4,10 @@ com.xwiki.admintools.internal.data.ConfigurationDataProvider
 com.xwiki.admintools.internal.data.SecurityDataProvider
 com.xwiki.admintools.internal.data.identifiers.CurrentServer
 com.xwiki.admintools.internal.data.identifiers.TomcatIdentifier
-com.xwiki.admintools.internal.download.archiver.XWikiPropertiesFileArchiverResourceProvider
-com.xwiki.admintools.internal.download.archiver.XWikiConfigFileArchiverResourceProvider
-com.xwiki.admintools.internal.download.archiver.LogsArchiverResourceProvider
-com.xwiki.admintools.internal.download.archiver.DataArchiverResourceProvider
-com.xwiki.admintools.internal.download.viewer.LogsViewerResourceProvider
-com.xwiki.admintools.internal.download.viewer.XWikiFileViewerResourceProvider
+com.xwiki.admintools.internal.download.resources.XWikiPropertiesFileDataResource
+com.xwiki.admintools.internal.download.resources.XWikiConfigFileDataResource
+com.xwiki.admintools.internal.download.resources.LogsDataResource
+com.xwiki.admintools.internal.download.resources.DataProvidersDataResource
 com.xwiki.admintools.internal.download.DownloadManager
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration

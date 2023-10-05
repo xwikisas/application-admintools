@@ -58,7 +58,7 @@ public class AdminToolsManager
     @Inject
     private Provider<XWikiContext> xcontextProvider;
     /**
-     * Get data generated in a specific format, using a template, by each archiver and merge it.
+     * Get data generated in a specific format, using a template, by each provider and merge it.
      *
      * @return a {@link String} containing all templates builds.
      */
@@ -74,9 +74,9 @@ public class AdminToolsManager
     }
 
     /**
-     * Extract a specific data archiver template.
+     * Extract a specific data provider template.
      *
-     * @param hint {@link String} represents the data archiver identifier.
+     * @param hint {@link String} represents the data provider identifier.
      * @return a {@link String} representing a template
      */
     public String generateData(String hint)

@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.archiver;
+package com.xwiki.admintools.internal.download.resources;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -37,7 +38,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.download.ArchiverResourceProvider;
+import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -47,20 +48,18 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * @since 1.0
  */
 @Component
-@Named(XWikiConfigFileArchiverResourceProvider.HINT)
+@Named(XWikiPropertiesFileDataResource.HINT)
 @Singleton
-public class XWikiConfigFileArchiverResourceProvider implements ArchiverResourceProvider
+public class XWikiPropertiesFileDataResource implements DataResource
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "xwikiConfigFileArchiver";
+    public static final String HINT = "xwikiPropertiesFileDataResource";
 
     private final List<String> excludedLinesHints = new ArrayList<>(
         Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
             "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
-
-    private final String cfgFileName = "xwiki.cfg";
 
     @Inject
     private CurrentServer currentServer;
@@ -69,14 +68,17 @@ public class XWikiConfigFileArchiverResourceProvider implements ArchiverResource
     private Logger logger;
 
     @Override
-    public void writeArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath();
-        ZipEntry zipEntry = new ZipEntry(cfgFileName);
-        filePath += cfgFileName;
+        if (filters == null) {
+            createArchiveEntry(zipOutputStream);
+        }
+    }
 
-        zipOutputStream.putNextEntry(zipEntry);
-
+    @Override
+    public byte[] getByteData(String input) throws IOException
+    {
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "xwiki.properties";
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -91,11 +93,10 @@ public class XWikiConfigFileArchiverResourceProvider implements ArchiverResource
                 stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
             }
             reader.close();
-            byte[] buffer = stringBuilder.toString().getBytes();
-            zipOutputStream.write(buffer, 0, buffer.length);
-            zipOutputStream.closeEntry();
+            return stringBuilder.toString().getBytes();
         } catch (Exception e) {
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
         }
     }
 
@@ -103,5 +104,16 @@ public class XWikiConfigFileArchiverResourceProvider implements ArchiverResource
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    {
+        ZipEntry zipEntry = new ZipEntry("xwiki.properties");
+
+        zipOutputStream.putNextEntry(zipEntry);
+
+        byte[] buffer = getByteData(null);
+        zipOutputStream.write(buffer, 0, buffer.length);
+        zipOutputStream.closeEntry();
     }
 }

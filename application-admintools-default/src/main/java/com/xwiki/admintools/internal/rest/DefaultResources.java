@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
-import org.xwiki.rest.XWikiRestException;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -44,8 +43,7 @@ import org.xwiki.security.authorization.Right;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.download.DownloadManager;
-import com.xwiki.admintools.internal.download.viewer.LogsViewerResourceProvider;
-import com.xwiki.admintools.internal.download.viewer.XWikiFileViewerResourceProvider;
+import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 import com.xwiki.admintools.rest.AdminToolsResources;
 
 /**
@@ -74,22 +72,23 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
     private AuthorizationManager authorizationManager;
 
     @Override
-    public Response getFileView(String type)
+    public Response getFileView(String hint)
     {
         // Check to see if the request was made by a user with admin rights.
         if (!isAdmin()) {
-            logger.warn("Failed to get file xwiki.[{}] due to restricted rights.", type);
+            logger.warn("Failed to get file from DataResource [{}] due to restricted rights.", hint);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.getFileView(type, XWikiFileViewerResourceProvider.HINT);
+            byte[] xWikiFileContent = downloadManager.getFileView(null, hint);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception e) {
-            logger.warn("Failed to get file [{}]. Root cause: [{}]", type, ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to get file from DataResource [{}]. Root cause: [{}]", hint,
+                ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -133,7 +132,7 @@ public class DefaultResources extends ModifiablePageResource implements AdminToo
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             String noLines = xWikiRequest.getParameter("noLines");
-            byte[] xWikiFileContent = downloadManager.getFileView(noLines, LogsViewerResourceProvider.HINT);
+            byte[] xWikiFileContent = downloadManager.getFileView(noLines, LogsDataResource.HINT);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }

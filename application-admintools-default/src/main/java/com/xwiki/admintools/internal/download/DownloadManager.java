@@ -35,9 +35,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.download.ArchiverResourceProvider;
-import com.xwiki.admintools.download.ViewerResourceProvider;
-import com.xwiki.admintools.internal.download.archiver.LogsArchiverResourceProvider;
+import com.xwiki.admintools.download.DataResource;
+import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 
 /**
  * Encapsulates functions used for downloading important server files.
@@ -54,13 +53,7 @@ public class DownloadManager
     private final String to = "to";
 
     @Inject
-    private Provider<List<ArchiverResourceProvider>> archiverResourceProviders;
-
-    @Inject
-    private Provider<List<ViewerResourceProvider>> viewerResourceProviders;
-
-    @Inject
-    private LogsArchiverResourceProvider logsArchiverResourceProvider;
+    private Provider<List<DataResource>> dataResources;
 
     @Inject
     private Logger logger;
@@ -74,7 +67,7 @@ public class DownloadManager
      */
     public byte[] getFileView(String input, String hint) throws IOException
     {
-        ViewerResourceProvider fileViewerProvider = findViewerProvider(hint);
+        DataResource fileViewerProvider = findDataResource(hint);
         if (fileViewerProvider != null) {
             return fileViewerProvider.getByteData(input);
         } else {
@@ -91,17 +84,16 @@ public class DownloadManager
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            for (String archiverHint : files.get("files")) {
-                if (archiverHint.equals("logs")) {
-                    Map<String, String> filters = new HashMap<>();
+            for (String dataResourceHint : files.get("files")) {
+                Map<String, String> filters = null;
+                if (dataResourceHint.equals(LogsDataResource.HINT)) {
+                    filters = new HashMap<>();
                     filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
                     filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
-                    logsArchiverResourceProvider.writeArchiveEntry(filters, zipOutputStream);
-                } else {
-                    ArchiverResourceProvider archiver = findArchiverProvider(archiverHint);
-                    if (archiver != null) {
-                        archiver.writeArchiveEntry(zipOutputStream);
-                    }
+                }
+                DataResource archiver = findDataResource(dataResourceHint);
+                if (archiver != null) {
+                    archiver.writeArchiveEntry(zipOutputStream, filters);
                 }
             }
 
@@ -116,21 +108,11 @@ public class DownloadManager
         }
     }
 
-    private ViewerResourceProvider findViewerProvider(String hint)
+    private DataResource findDataResource(String hint)
     {
-        for (ViewerResourceProvider viewerResourceProvider : viewerResourceProviders.get()) {
-            if (viewerResourceProvider.getIdentifier().equals(hint)) {
-                return viewerResourceProvider;
-            }
-        }
-        return null;
-    }
-
-    private ArchiverResourceProvider findArchiverProvider(String hint)
-    {
-        for (ArchiverResourceProvider archiverResourceProvider : archiverResourceProviders.get()) {
-            if (archiverResourceProvider.getIdentifier().equals(hint)) {
-                return archiverResourceProvider;
+        for (DataResource archiverDataResource : dataResources.get()) {
+            if (archiverDataResource.getIdentifier().equals(hint)) {
+                return archiverDataResource;
             }
         }
         return null;
