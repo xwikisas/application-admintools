@@ -12,4 +12,4 @@ com.xwiki.admintools.internal.download.DownloadManager
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
-com.xwiki.admintools.internal.rest.DefaultResources
+com.xwiki.admintools.internal.rest.DefaultAdminToolsResource

@@ -42,7 +42,7 @@ import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Encapsulates functions used for downloading XWiki files.
+ * Collection of functions used for accessing XWiki configuration file.
  *
  * @version $Id$
  * @since 1.0
@@ -68,7 +68,7 @@ public class XWikiConfigFileDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
         if (filters == null) {
             createArchiveEntry(zipOutputStream);

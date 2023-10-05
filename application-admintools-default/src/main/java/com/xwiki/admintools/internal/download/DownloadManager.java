@@ -39,7 +39,7 @@ import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 
 /**
- * Encapsulates functions used for downloading important server files.
+ * Endpoints used for accessing important server files.
  *
  * @version $Id$
  * @since 1.0
@@ -48,9 +48,9 @@ import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 @Singleton
 public class DownloadManager
 {
-    private final String from = "from";
+    private final String from = "FROM";
 
-    private final String to = "to";
+    private final String to = "TO";
 
     @Inject
     private Provider<List<DataResource>> dataResources;
@@ -59,8 +59,9 @@ public class DownloadManager
     private Logger logger;
 
     /**
-     * Initiates the download process for the xwiki files. It removes the sensitive content from the file.
+     * Access system file content.
      *
+     * @param hint file type identifier.
      * @param input {@link String} representing the file type.
      * @return filtered file content as a {@link Byte} array
      * @throws IOException
@@ -76,24 +77,25 @@ public class DownloadManager
     }
 
     /**
-     * Retrieve the selected files from the request and create an archive containing them.
+     * Retrieve files from the request and create an archive with the given entries.
      *
-     * @return {@link Byte} array representing the files archive.
+     * @param request {@link Map} With the
+     * @return {@link Byte} array representing the request archive.
      */
-    public byte[] downloadMultipleFiles(Map<String, String[]> files)
+    public byte[] downloadMultipleFiles(Map<String, String[]> request)
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            for (String dataResourceHint : files.get("files")) {
+            for (String dataResourceHint : request.get("files")) {
                 Map<String, String> filters = null;
                 if (dataResourceHint.equals(LogsDataResource.HINT)) {
                     filters = new HashMap<>();
-                    filters.put(from, !Objects.equals(files.get(from)[0], "") ? files.get(from)[0] : null);
-                    filters.put(to, !Objects.equals(files.get(to)[0], "") ? files.get(to)[0] : null);
+                    filters.put(from, !Objects.equals(request.get(from)[0], "") ? request.get(from)[0] : null);
+                    filters.put(to, !Objects.equals(request.get(to)[0], "") ? request.get(to)[0] : null);
                 }
                 DataResource archiver = findDataResource(dataResourceHint);
                 if (archiver != null) {
-                    archiver.writeArchiveEntry(zipOutputStream, filters);
+                    archiver.addZipEntry(zipOutputStream, filters);
                 }
             }
 

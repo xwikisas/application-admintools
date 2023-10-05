@@ -44,18 +44,18 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.download.DownloadManager;
 import com.xwiki.admintools.internal.download.resources.LogsDataResource;
-import com.xwiki.admintools.rest.AdminToolsResources;
+import com.xwiki.admintools.rest.AdminToolsResource;
 
 /**
- * Default implementation of {@link AdminToolsResources}.
+ * Default implementation of {@link AdminToolsResource}.
  *
  * @version $Id$
  * @since 1.0
  */
 @Component
-@Named("com.xwiki.admintools.internal.rest.DefaultResources")
+@Named("com.xwiki.admintools.internal.rest.DefaultAdminToolsResource")
 @Singleton
-public class DefaultResources extends ModifiablePageResource implements AdminToolsResources
+public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
     private final String contentDisposition = "Content-Disposition";
 

@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream;
 import org.xwiki.component.annotation.Role;
 
 /**
- * Endpoint used to create zip archive entries.
+ * Endpoint to access server files.
  *
  * @version $Id$
  * @since 1.0
@@ -35,16 +35,18 @@ import org.xwiki.component.annotation.Role;
 public interface DataResource
 {
     /**
-     * Add an entry inside the archive.
+     * Retrieves the content of a system file and adds it as an entry inside a {@link ZipOutputStream}.
      *
      * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
+     * @param filters optional parameter. Store filters that can be used for file selection.
      * @throws IOException
      */
-    void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException;
+    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException;
 
     /**
-     * Get the file content.
+     * Retrieve the content of a system file.
      *
+     * @param input Optional. Used to send additional info to the component.
      * @return the content of the file as an {@link Byte} array.
      * @throws IOException
      */

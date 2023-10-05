@@ -38,6 +38,12 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.download.DataResource;
 
+/**
+ * Merges data from all {@link DataProvider} to be retrieved as a file.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
 @Component
 @Named(DataProvidersDataResource.HINT)
 @Singleton
@@ -55,7 +61,7 @@ public class DataProvidersDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
         if (filters == null) {
             createArchiveEntry(zipOutputStream);

@@ -49,7 +49,7 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import static java.lang.Integer.parseInt;
 
 /**
- * Functions used for downloading log files.
+ * Collection of functions used for accessing log files.
  *
  * @version $Id$
  * @since 1.0
@@ -68,7 +68,7 @@ public class LogsDataResource implements DataResource
     private CurrentServer currentServer;
 
     @Override
-    public void writeArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
         if (filters != null) {
             createArchiveEntry(zipOutputStream, filters);
@@ -145,12 +145,12 @@ public class LogsDataResource implements DataResource
     }
 
     /**
-     * Check that the file date is in the filter range. Returns true if no filter is provided.
+     * Check that the file date is in the filter range. Returns {@code true} if no filter is provided.
      *
-     * @param filters {@link Map} that can contain the start and end date of the search. It can also be empty.
+     * @param filters represents the date range of the search.
      * @param pattern server specific {@link Pattern} used to identify the log date from the log name.
      * @param file current {@link File} that is to be checked.
-     * @return {@link Boolean} true if the file is between the provided dates or there is no filter, false otherwise
+     * @return {@code true} if the file is between the provided dates or there is no filter, {@code false} otherwise
      */
     private boolean checkFilters(Map<String, String> filters, Pattern pattern, File file)
     {

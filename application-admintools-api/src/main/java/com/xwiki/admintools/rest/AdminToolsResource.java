@@ -35,36 +35,36 @@ import org.xwiki.rest.XWikiRestException;
  * @since 1.0
  */
 @Path("/admintools")
-public interface AdminToolsResources extends XWikiRestComponent
+public interface AdminToolsResource extends XWikiRestComponent
 {
     /**
-     * REST endpoint for accessing the XWiki configuration or properties files.
+     * Access the XWiki configuration or properties files.
      *
      * @param type {link String} specifies the XWiki searched file.
      * @return {@link Response} with the content of the file, or specific error code.
      * @throws XWikiRestException
      */
     @GET
-    @Path("/view/file/{fileType}")
+    @Path("/files/{fileType}")
     Response getFileView(@PathParam("fileType") String type) throws XWikiRestException;
 
     /**
-     * Rest endpoint to download multiple files.
+     * Download files from system server.
      *
      * @return {@link Response} with a configured header for zip download, or specific error code.
      * @throws XWikiRestException
      */
     @POST
-    @Path("/download")
+    @Path("/files")
     Response getFiles() throws XWikiRestException;
 
     /**
-     * Rest endpoint to retrieve last logs from server.
+     * Retrieve last logs from server.
      *
      * @return {@link Response} with the content of the last logs, or specific error code.
      * @throws XWikiRestException
      */
     @POST
-    @Path("/view/logs")
+    @Path("/files/logs")
     Response getLastLogs() throws XWikiRestException;
 }
