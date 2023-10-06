@@ -36,39 +36,40 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>##Admin section
+AdminTools.Code.ConfigurationClass_excludedLines=Excluded lines
+AdminTools.Code.ConfigurationClass_excludedLines.hint=Lines containing sensitive info in xwiki.cfg and xwiki.properties files
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 admin.admintools.description=Configure Admin Tools Application
-    adminTools.dashboard.modal.button.close=Close
-    adminTools.dashboard.modal.logs.title=Show the latest logs
-    adminTools.dashboard.modal.logs.selection=Insert the number of lines to show:
-    adminTools.dashboard.modal.logs.button=View logs
-    adminTools.dashboard.modal.download.title=Select Files to Download
-    adminTools.dashboard.modal.download.provided=Configuration info
-    adminTools.dashboard.modal.download.date.from=From:
-    adminTools.dashboard.modal.download.date.to=To:
-    adminTools.dashboard.modal.download.button=Download selected files
-    adminTools.dashboard.section.download.description=Get the files you need. View them directly in browser or download them as an archive.
-    adminTools.dashboard.section.download.title=Important files
-    adminTools.dashboard.section.download.modal.open=Export files needed for getting support
-    adminTools.dashboard.section.download.view.description=View files content:
-    adminTools.dashboard.section.download.view.configuration=XWiki configuration file
-    adminTools.dashboard.section.download.view.properties=XWiki properties file
-    adminTools.dashboard.section.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
+adminTools.dashboard.modal.button.close=Close
+adminTools.dashboard.modal.download.button=Download selected files
+adminTools.dashboard.modal.download.date.from=From:
+adminTools.dashboard.modal.download.date.to=To:
+adminTools.dashboard.modal.download.provided=Configuration info
+adminTools.dashboard.modal.download.title=Select Files to Download
+adminTools.dashboard.modal.logs.button=View logs
+adminTools.dashboard.modal.logs.selection=Insert the number of lines to show:
+adminTools.dashboard.modal.logs.title=Show the latest logs
 adminTools.dashboard.section.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
 adminTools.dashboard.section.backend.description=Get info about your backend
 adminTools.dashboard.section.backend.java=Detected java version:
-adminTools.dashboard.section.backend.os.legend=OS info:
 adminTools.dashboard.section.backend.os.architecture=OS architecture:
+adminTools.dashboard.section.backend.os.legend=OS info:
 adminTools.dashboard.section.backend.os.name=OS name:
 adminTools.dashboard.section.backend.os.version=OS version:
-adminTools.dashboard.showLogs=Show the latest logs
 adminTools.dashboard.section.backend.supportedDB.error=Database not found. Currently supported databases:
 adminTools.dashboard.section.backend.supportedServers.error=Currently supported servers:
 adminTools.dashboard.section.backend.title=Backend
 adminTools.dashboard.section.backend.usedDB=Used database:
 adminTools.dashboard.section.backend.usedServer=Used server:
 adminTools.dashboard.section.backend.xwiki.version=XWiki installation version:
+adminTools.dashboard.section.download.description=Get the files you need. View them directly in the browser or download them as an archive.
+adminTools.dashboard.section.download.modal.open=Export files needed for getting support
+adminTools.dashboard.section.download.title=Important files
+adminTools.dashboard.section.download.view.configuration=XWiki configuration file
+adminTools.dashboard.section.download.view.description=View files content:
+adminTools.dashboard.section.download.view.properties=XWiki properties file
+adminTools.dashboard.section.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
 adminTools.dashboard.section.security.activeEncoding=Active encoding:
 adminTools.dashboard.section.security.configurationEncoding=Configuration encoding:
 adminTools.dashboard.section.security.description=See an overview of your security information.
@@ -77,6 +78,7 @@ adminTools.dashboard.section.security.fileEncoding=File encoding:
 adminTools.dashboard.section.security.lang=Used language:
 adminTools.dashboard.section.security.pwd=Working directory:
 adminTools.dashboard.section.security.title=Security
+adminTools.dashboard.showLogs=Show the latest logs
   </content>
   <object>
     <name>AdminTools.Code.Translations</name>

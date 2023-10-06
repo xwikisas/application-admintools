@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -38,6 +37,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -57,11 +57,13 @@ public class XWikiConfigFileDataResource implements DataResource
      */
     public static final String HINT = "xwikiConfigFileDataResource";
 
-    private final List<String> excludedLinesHints = new ArrayList<>(
-        Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
-            "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
+    private List<String> excludedLinesHints = new ArrayList<>();
 
     private final String xwikiCfg = "xwiki.cfg";
+
+    @Inject
+    @Named("default")
+    private AdminToolsConfiguration adminToolsConfig;
 
     @Inject
     private CurrentServer currentServer;
@@ -80,6 +82,7 @@ public class XWikiConfigFileDataResource implements DataResource
     @Override
     public byte[] getByteData(String input) throws IOException
     {
+        getExcludedLines();
         String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + xwikiCfg;
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
@@ -106,6 +109,12 @@ public class XWikiConfigFileDataResource implements DataResource
     public String getIdentifier()
     {
         return HINT;
+    }
+
+    private void getExcludedLines()
+    {
+        String content = adminToolsConfig.getExcludedLines();
+        excludedLinesHints = new ArrayList<>(List.of(content.split(",")));
     }
 
     private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException

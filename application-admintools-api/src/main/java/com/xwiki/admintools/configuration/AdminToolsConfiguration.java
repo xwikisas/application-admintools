@@ -38,4 +38,11 @@ public interface AdminToolsConfiguration
      * @return {@link String} representing the server installation path.
      */
     String getServerPath();
+
+    /**
+     * Get the lines that are to be excluded from xwiki.cfg and xwiki.properties files.
+     *
+     * @return {@link String} with the lines to be excluded, separated by ",".
+     */
+    String getExcludedLines();
 }
