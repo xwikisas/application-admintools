@@ -95,4 +95,14 @@ public class AdminToolsScriptService implements ScriptService
     {
         return this.adminToolsManager.getContextPath();
     }
+
+    /**
+     * Get the rendered template for accessing the downloads UI.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getDownloadTemplate()
+    {
+        return this.adminToolsManager.getDownloadTemplate();
+    }
 }

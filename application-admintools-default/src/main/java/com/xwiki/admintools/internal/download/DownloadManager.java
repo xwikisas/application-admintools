@@ -30,12 +30,16 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.script.ScriptContextManager;
+import org.xwiki.template.TemplateManager;
 
 import com.xwiki.admintools.download.DataResource;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 
 /**
@@ -54,6 +58,15 @@ public class DownloadManager
 
     @Inject
     private Provider<List<DataResource>> dataResources;
+
+    @Inject
+    private TemplateManager templateManager;
+
+    @Inject
+    private ScriptContextManager scriptContextManager;
+
+    @Inject
+    private CurrentServer currentServer;
 
     @Inject
     private Logger logger;
@@ -106,6 +119,28 @@ public class DownloadManager
             return byteArrayOutputStream.toByteArray();
         } catch (Exception e) {
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    /**
+     * Get the data in a format given by the associated template.
+     *
+     * @return the rendered template as a {@link String}.
+     */
+    public String renderTemplate()
+    {
+        try {
+            String found = "false";
+            if (currentServer.getCurrentServer() != null) {
+                found = "true";
+            }
+            ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
+            scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);
+            return this.templateManager.render("downloadTemplate.vm");
+        } catch (Exception e) {
+            this.logger.warn("Failed to render custom template. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }

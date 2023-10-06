@@ -32,6 +32,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.download.DownloadManager;
 
 /**
  * Manages the data providers.
@@ -54,6 +55,9 @@ public class AdminToolsManager
      */
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private DownloadManager downloadManager;
 
     @Inject
     private Provider<XWikiContext> xcontextProvider;
@@ -120,6 +124,16 @@ public class AdminToolsManager
         XWikiRequest xWikiRequest = xWikiContext.getRequest();
 
         return xWikiRequest.getContextPath();
+    }
+
+    /**
+     * Get the rendered template for accessing the downloads UI.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getDownloadTemplate()
+    {
+        return this.downloadManager.renderTemplate();
     }
 
 }
