@@ -61,6 +61,8 @@ public class XWikiConfigFileDataResource implements DataResource
         Arrays.asList("xwiki.authentication.validationKey", "xwiki.authentication.encryptionKey",
             "xwiki.superadminpassword", "extension.repositories.privatemavenid.auth", "mail.sender.password"));
 
+    private final String xwikiCfg = "xwiki.cfg";
+
     @Inject
     private CurrentServer currentServer;
 
@@ -78,7 +80,7 @@ public class XWikiConfigFileDataResource implements DataResource
     @Override
     public byte[] getByteData(String input) throws IOException
     {
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + "xwiki.cfg";
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + xwikiCfg;
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -108,7 +110,7 @@ public class XWikiConfigFileDataResource implements DataResource
 
     private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
     {
-        ZipEntry zipEntry = new ZipEntry("xwiki.cfg");
+        ZipEntry zipEntry = new ZipEntry(xwikiCfg);
 
         zipOutputStream.putNextEntry(zipEntry);
 

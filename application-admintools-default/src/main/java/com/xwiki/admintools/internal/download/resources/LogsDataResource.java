@@ -59,6 +59,9 @@ import static java.lang.Integer.parseInt;
 @Singleton
 public class LogsDataResource implements DataResource
 {
+    /**
+     * Component identifier.
+     */
     public static final String HINT = "logsDataResource";
 
     @Inject

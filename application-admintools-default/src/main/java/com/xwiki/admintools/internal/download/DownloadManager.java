@@ -48,9 +48,9 @@ import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 @Singleton
 public class DownloadManager
 {
-    private final String from = "FROM";
+    private static final String FROM = "from";
 
-    private final String to = "TO";
+    private static final String TO = "to";
 
     @Inject
     private Provider<List<DataResource>> dataResources;
@@ -90,8 +90,8 @@ public class DownloadManager
                 Map<String, String> filters = null;
                 if (dataResourceHint.equals(LogsDataResource.HINT)) {
                     filters = new HashMap<>();
-                    filters.put(from, !Objects.equals(request.get(from)[0], "") ? request.get(from)[0] : null);
-                    filters.put(to, !Objects.equals(request.get(to)[0], "") ? request.get(to)[0] : null);
+                    filters.put(FROM, !Objects.equals(request.get(FROM)[0], "") ? request.get(FROM)[0] : null);
+                    filters.put(TO, !Objects.equals(request.get(TO)[0], "") ? request.get(TO)[0] : null);
                 }
                 DataResource archiver = findDataResource(dataResourceHint);
                 if (archiver != null) {
