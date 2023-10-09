@@ -86,7 +86,7 @@ public interface ServerIdentifier
      *
      * @return {@link String} path to server log file.
      */
-    String getLogFilePath();
+    String getLastLogFilePath();
 
     /**
      * Get server pattern for identifying log files date.

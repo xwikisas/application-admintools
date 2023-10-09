@@ -28,8 +28,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.download.DownloadManager;
@@ -59,8 +57,6 @@ public class AdminToolsManager
     @Inject
     private DownloadManager downloadManager;
 
-    @Inject
-    private Provider<XWikiContext> xcontextProvider;
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
      *
@@ -100,7 +96,7 @@ public class AdminToolsManager
      */
     public List<String> getSupportedDBs()
     {
-        return  new ArrayList<>(this.currentServer.getSupportedDBs().values());
+        return new ArrayList<>(this.currentServer.getSupportedDBs().values());
     }
 
     /**
@@ -114,19 +110,6 @@ public class AdminToolsManager
     }
 
     /**
-     * Get the context path for the current XWiki request.
-     *
-     * @return a String representing the xwiki context path.
-     */
-    public String getContextPath()
-    {
-        XWikiContext xWikiContext = this.xcontextProvider.get();
-        XWikiRequest xWikiRequest = xWikiContext.getRequest();
-
-        return xWikiRequest.getContextPath();
-    }
-
-    /**
      * Get the rendered template for accessing the downloads UI.
      *
      * @return a {@link String} representation of the template.
@@ -135,5 +118,4 @@ public class AdminToolsManager
     {
         return this.downloadManager.renderTemplate();
     }
-
 }

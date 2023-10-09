@@ -100,7 +100,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public String getLogFilePath()
+    public String getLastLogFilePath()
     {
         return this.serverPath + "/logs/catalina.out";
     }

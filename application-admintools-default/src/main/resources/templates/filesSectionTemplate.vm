@@ -1,0 +1,73 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+
+#set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
+
+{{html clean='false'}}
+
+#if ($found == 'true')
+  <div class="adminToolsDashboardItem">
+    <h2>$services.icon.renderHTML('download')
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))</h2>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.download.description'))</p>
+    <hr/>
+    <ul>
+      <li>
+        <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.modal.open'))</a>
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.description'))
+        <ul>
+          <li>
+            <a href="$adminToolsFilesPath/xwikiConfig"
+            target="_blank">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.configuration'))
+            </a>
+          </li>
+          <li>
+            <a href="$adminToolsFilesPath/xwikiProperties"
+            target="_blank">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.properties'))
+            </a>
+          </li>
+          <li>
+            <a href="#viewLastNLinesModal" data-toggle="modal" data-target="#viewLastNLinesModal">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    #warning($escapetool.xml($services.localization.render('adminTools.dashboard.section.download.warning')))
+
+  </div>
+
+#else
+  #set($warningMessage =
+    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
+  #set($warningMessage = $warningMessage +
+    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error'))
+    + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+
+  #warning($warningMessage)
+#end
+
+{{/html}}

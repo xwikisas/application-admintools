@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -55,11 +54,9 @@ public class XWikiPropertiesFileDataResource implements DataResource
     /**
      * Component identifier.
      */
-    public static final String HINT = "xwikiPropertiesFileDataResource";
+    public static final String HINT = "xwikiProperties";
 
-    private final String xwikiProperties = "xwiki.properties";
-
-    private List<String> excludedLinesHints = new ArrayList<>();
+    private static final String XWIKI_PROPERTIES = "xwiki.properties";
 
     @Inject
     @Named("default")
@@ -74,16 +71,14 @@ public class XWikiPropertiesFileDataResource implements DataResource
     @Override
     public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        if (filters == null) {
-            createArchiveEntry(zipOutputStream);
-        }
+        createZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws IOException
+    public byte[] getByteData(String input)
     {
-        getExcludedLines();
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + xwikiProperties;
+        List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_PROPERTIES;
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -111,15 +106,9 @@ public class XWikiPropertiesFileDataResource implements DataResource
         return HINT;
     }
 
-    private void getExcludedLines()
+    private void createZipEntry(ZipOutputStream zipOutputStream) throws IOException
     {
-        String content = adminToolsConfig.getExcludedLines();
-        excludedLinesHints = new ArrayList<>(List.of(content.split(",")));
-    }
-
-    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
-    {
-        ZipEntry zipEntry = new ZipEntry(xwikiProperties);
+        ZipEntry zipEntry = new ZipEntry(XWIKI_PROPERTIES);
 
         zipOutputStream.putNextEntry(zipEntry);
 

@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.configuration;
 
+import java.util.List;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
@@ -42,7 +44,7 @@ public interface AdminToolsConfiguration
     /**
      * Get the lines that are to be excluded from xwiki.cfg and xwiki.properties files.
      *
-     * @return {@link String} with the lines to be excluded, separated by ",".
+     * @return {@link List} with the lines to be excluded.
      */
-    String getExcludedLines();
+    List<String> getExcludedLines();
 }

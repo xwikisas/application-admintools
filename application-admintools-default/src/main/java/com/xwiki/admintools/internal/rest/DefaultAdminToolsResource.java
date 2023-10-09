@@ -57,8 +57,6 @@ import com.xwiki.admintools.rest.AdminToolsResource;
 @Singleton
 public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
-    private final String contentDisposition = "Content-Disposition";
-
     @Inject
     private Logger logger;
 
@@ -72,7 +70,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     private AuthorizationManager authorizationManager;
 
     @Override
-    public Response getFileView(String hint)
+    public Response getFile(String hint)
     {
         // Check to see if the request was made by a user with admin rights.
         if (!isAdmin()) {
@@ -80,9 +78,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.getFileView(null, hint);
+            byte[] xWikiFileContent = downloadManager.getFileView(hint, null);
             if (xWikiFileContent.length == 0) {
-                return Response.status(404).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
@@ -107,10 +105,8 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             byte[] filesArchive = downloadManager.downloadMultipleFiles(files);
             if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
                 // Set the appropriate response headers to indicate a zip file download.
-                Response.ResponseBuilder response = Response.ok(filesArchive);
-                response.header("Content-Type", "application/zip");
-                response.header(contentDisposition, "attachment; filename=files_archive.zip");
-                return response.build();
+                return Response.ok(filesArchive).type("application/zip")
+                    .header("Content-Disposition", "attachment; filename=adminToolsFiles.zip").build();
             } else {
                 // Handle the case when no logs are found or an error occurs.
                 return Response.status(Response.Status.NOT_FOUND).entity("No files found.").build();
@@ -132,7 +128,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             String noLines = xWikiRequest.getParameter("noLines");
-            byte[] xWikiFileContent = downloadManager.getFileView(noLines, LogsDataResource.HINT);
+            byte[] xWikiFileContent = downloadManager.getFileView(LogsDataResource.HINT, noLines);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }

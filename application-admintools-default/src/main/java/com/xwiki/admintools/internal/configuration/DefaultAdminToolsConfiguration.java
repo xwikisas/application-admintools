@@ -19,6 +19,9 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -55,9 +58,9 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     }
 
     @Override
-    public String getExcludedLines()
+    public List<String> getExcludedLines()
     {
-        return this.getProperty(EXCLUDED_LINES, "NO_EXCLUDED_LINE");
+        return new ArrayList<>(List.of(this.getProperty(EXCLUDED_LINES, "NO_EXCLUDED_LINE").split(",")));
     }
 
     private <T> T getProperty(String key, T defaultValue)

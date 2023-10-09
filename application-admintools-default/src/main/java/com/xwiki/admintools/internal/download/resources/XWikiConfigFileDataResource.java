@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -55,11 +54,9 @@ public class XWikiConfigFileDataResource implements DataResource
     /**
      * Component identifier.
      */
-    public static final String HINT = "xwikiConfigFileDataResource";
+    public static final String HINT = "xwikiConfig";
 
-    private List<String> excludedLinesHints = new ArrayList<>();
-
-    private final String xwikiCfg = "xwiki.cfg";
+    private static final String XWIKI_CFG = "xwiki.cfg";
 
     @Inject
     @Named("default")
@@ -74,16 +71,14 @@ public class XWikiConfigFileDataResource implements DataResource
     @Override
     public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        if (filters == null) {
-            createArchiveEntry(zipOutputStream);
-        }
+        createZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws IOException
+    public byte[] getByteData(String input)
     {
-        getExcludedLines();
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + xwikiCfg;
+        List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
+        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_CFG;
         File inputFile = new File(filePath);
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -111,15 +106,9 @@ public class XWikiConfigFileDataResource implements DataResource
         return HINT;
     }
 
-    private void getExcludedLines()
+    private void createZipEntry(ZipOutputStream zipOutputStream) throws IOException
     {
-        String content = adminToolsConfig.getExcludedLines();
-        excludedLinesHints = new ArrayList<>(List.of(content.split(",")));
-    }
-
-    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
-    {
-        ZipEntry zipEntry = new ZipEntry(xwikiCfg);
+        ZipEntry zipEntry = new ZipEntry(XWIKI_CFG);
 
         zipOutputStream.putNextEntry(zipEntry);
 

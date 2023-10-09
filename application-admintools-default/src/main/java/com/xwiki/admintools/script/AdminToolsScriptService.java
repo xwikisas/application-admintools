@@ -87,16 +87,6 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * Get the context path for the current XWiki installation.
-     *
-     * @return a String representing the xwiki context path.
-     */
-    public String getContextPath()
-    {
-        return this.adminToolsManager.getContextPath();
-    }
-
-    /**
      * Get the rendered template for accessing the downloads UI.
      *
      * @return a {@link String} representation of the template.

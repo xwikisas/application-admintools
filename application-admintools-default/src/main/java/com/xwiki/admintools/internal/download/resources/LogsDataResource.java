@@ -64,6 +64,10 @@ public class LogsDataResource implements DataResource
      */
     public static final String HINT = "logsDataResource";
 
+    private static final String FROM_DATE_FILTER_KEY = "from";
+
+    private static final String TO_DATE_FILTER_KEY = "to";
+
     @Inject
     private Logger logger;
 
@@ -71,19 +75,17 @@ public class LogsDataResource implements DataResource
     private CurrentServer currentServer;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
-        if (filters != null) {
-            createArchiveEntry(zipOutputStream, filters);
-        }
+        createZipEntry(zipOutputStream, filters);
     }
 
     @Override
     public byte[] getByteData(String input) throws IOException
     {
-        File file = new File(currentServer.getCurrentServer().getLogFilePath());
+        File file = new File(currentServer.getCurrentServer().getLastLogFilePath());
         if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLogFilePath());
+            throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLastLogFilePath());
         }
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
             int lines = parseInt(input);
@@ -118,7 +120,7 @@ public class LogsDataResource implements DataResource
         return HINT;
     }
 
-    private void createArchiveEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    private void createZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
         byte[] buffer = new byte[2048];
         try {
@@ -127,7 +129,7 @@ public class LogsDataResource implements DataResource
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
-                if (file.isFile() && checkFilters(filters, currentServer.getCurrentServer().getLogsPattern(), file)) {
+                if (file.isFile() && checkFilters(filters, file)) {
                     // Create a new zip entry and add the content.
                     ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
@@ -151,28 +153,27 @@ public class LogsDataResource implements DataResource
      * Check that the file date is in the filter range. Returns {@code true} if no filter is provided.
      *
      * @param filters represents the date range of the search.
-     * @param pattern server specific {@link Pattern} used to identify the log date from the log name.
      * @param file current {@link File} that is to be checked.
      * @return {@code true} if the file is between the provided dates or there is no filter, {@code false} otherwise
      */
-    private boolean checkFilters(Map<String, String> filters, Pattern pattern, File file)
+    private boolean checkFilters(Map<String, String> filters,  File file)
     {
+        // Get the server specific Pattern used to identify the log date from the log name.
+        Pattern pattern = currentServer.getCurrentServer().getLogsPattern();
         Matcher matcher = pattern.matcher(file.getName());
         if (matcher.find()) {
-            String fromDateFilterKey = "from";
-            String toDateFilterKey = "to";
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
 
-            if (filters.get(fromDateFilterKey) != null && filters.get(toDateFilterKey) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
-                LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
+            if (filters.get(FROM_DATE_FILTER_KEY) != null && filters.get(TO_DATE_FILTER_KEY) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY));
+                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY));
                 return fileDate.isAfter(fromDate.minusDays(1)) && fileDate.isBefore(toDate.plusDays(1));
-            } else if (filters.get(fromDateFilterKey) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(fromDateFilterKey));
+            } else if (filters.get(FROM_DATE_FILTER_KEY) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY));
                 return fileDate.isAfter(fromDate.minusDays(1));
-            } else if (filters.get(toDateFilterKey) != null) {
-                LocalDate toDate = LocalDate.parse(filters.get(toDateFilterKey));
+            } else if (filters.get(TO_DATE_FILTER_KEY) != null) {
+                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY));
                 return fileDate.isBefore(toDate.plusDays(1));
             } else {
                 return true;

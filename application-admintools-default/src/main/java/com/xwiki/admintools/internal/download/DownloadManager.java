@@ -79,7 +79,7 @@ public class DownloadManager
      * @return filtered file content as a {@link Byte} array
      * @throws IOException
      */
-    public byte[] getFileView(String input, String hint) throws IOException
+    public byte[] getFileView(String hint, String input) throws IOException
     {
         DataResource fileViewerProvider = findDataResource(hint);
         if (fileViewerProvider != null) {
@@ -137,7 +137,7 @@ public class DownloadManager
             }
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);
-            return this.templateManager.render("downloadTemplate.vm");
+            return this.templateManager.render("filesSectionTemplate.vm");
         } catch (Exception e) {
             this.logger.warn("Failed to render custom template. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));

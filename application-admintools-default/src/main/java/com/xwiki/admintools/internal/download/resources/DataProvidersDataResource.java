@@ -63,18 +63,16 @@ public class DataProvidersDataResource implements DataResource
     @Override
     public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        if (filters == null) {
-            createArchiveEntry(zipOutputStream);
-        }
+        createZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws IOException
+    public byte[] getByteData(String input)
     {
-        Map<String, String> providersResults = new HashMap<>();
+        Map<String, Map<String, String>> providersResults = new HashMap<>();
         for (DataProvider dataProvider : dataProviders.get()) {
             try {
-                providersResults.putAll(dataProvider.getDataAsJSON());
+                providersResults.put(dataProvider.getIdentifier(), dataProvider.getDataAsJSON());
             } catch (Exception e) {
                 logger.warn(String.format("Error getting json from DataProvider %s", dataProvider.getIdentifier()),
                     ExceptionUtils.getRootCauseMessage(e));
@@ -89,7 +87,7 @@ public class DataProvidersDataResource implements DataResource
         return HINT;
     }
 
-    private void createArchiveEntry(ZipOutputStream zipOutputStream) throws IOException
+    private void createZipEntry(ZipOutputStream zipOutputStream) throws IOException
     {
         ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
         zipOutputStream.putNextEntry(zipEntry);

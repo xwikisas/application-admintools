@@ -38,31 +38,31 @@ import org.xwiki.rest.XWikiRestException;
 public interface AdminToolsResource extends XWikiRestComponent
 {
     /**
-     * Access the XWiki configuration or properties files.
+     * Access the content of a specific file, based on received type.
      *
-     * @param type {link String} specifies the XWiki searched file.
-     * @return {@link Response} with the content of the file, or specific error code.
-     * @throws XWikiRestException
+     * @param type identifier of the requested file.
+     * @return the content of this file.
+     * @throws XWikiRestException if an error occurred while accessing the file.
      */
     @GET
     @Path("/files/{fileType}")
-    Response getFileView(@PathParam("fileType") String type) throws XWikiRestException;
+    Response getFile(@PathParam("fileType") String type) throws XWikiRestException;
 
     /**
-     * Download files from system server.
+     * Download an archive with the requested files.
      *
-     * @return {@link Response} with a configured header for zip download, or specific error code.
-     * @throws XWikiRestException
+     * @return an archive with files.
+     * @throws XWikiRestException if an error occurred while getting the archive.
      */
     @POST
     @Path("/files")
     Response getFiles() throws XWikiRestException;
 
     /**
-     * Retrieve last logs from server.
+     * Get last n lines of server logs.
      *
-     * @return {@link Response} with the content of the last logs, or specific error code.
-     * @throws XWikiRestException
+     * @return a file containing the last n lines of server logs.
+     * @throws XWikiRestException if an error occurred while retrieving the logs file .
      */
     @POST
     @Path("/files/logs")

@@ -38,7 +38,7 @@ public interface DataResource
      * Retrieves the content of a system file and adds it as an entry inside a {@link ZipOutputStream}.
      *
      * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
-     * @param filters optional parameter. Store filters that can be used for file selection.
+     * @param filters store filters that can be used for file selection.
      * @throws IOException
      */
     void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException;
@@ -46,7 +46,7 @@ public interface DataResource
     /**
      * Retrieve the content of a system file.
      *
-     * @param input Optional. Used to send additional info to the component.
+     * @param input Can be used to send additional info to the component.
      * @return the content of the file as an {@link Byte} array.
      * @throws IOException
      */
