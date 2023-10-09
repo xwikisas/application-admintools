@@ -36,9 +36,8 @@
   <hidden>false</hidden>
   <content>{{dashboard/}}
 
-    {{velocity}}
-
-    {{html clean='false'}}
+{{velocity}}
+{{html clean='false'}}
 &lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
   &lt;div class="modal-dialog" role="document">
     &lt;div class="modal-content">
@@ -51,55 +50,34 @@
       &lt;/div>
       &lt;div class="modal-body">
         &lt;form id="downloadForm" action="$request.getContextPath()/rest/admintools/files" method="POST">
-          &lt;dl>
-            &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiConfig" checked>
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiConfig.title'))
-            &lt;/label>&lt;/dt>
-            &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiProperties" checked>
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiProperties.title'))
-            &lt;/label>&lt;/dt>
-            &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="dataProviderResource" checked>
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))&lt;/label>&lt;/dt>
-            &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="logsDataResource" checked> Logs&lt;/label>&lt;/dt>
-          &lt;dt>
-          &lt;div id="dateFields">
-            &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.from'))
-            &lt;/label> &lt;input type="date" id="from" name="from">
-            &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.to'))
-            &lt;/label> &lt;input type="date" id="to" name="to">
+          &lt;div class="download-modal-content">
+            &lt;dl>
+              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiConfig" checked>
+                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiConfig.title'))
+                &lt;/label>
+              &lt;/dt>
+              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiProperties" checked>
+                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiProperties.title'))
+                &lt;/label>
+              &lt;/dt>
+              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="dataProviderResource" checked>
+                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))&lt;/label&gt;
+              &lt;/dt>
+              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="logsDataResource" checked> Logs&lt;/label>&lt;/dt>
+              &lt;dt>
+                &lt;div id="dateFields">
+                  &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.from'))
+                  &lt;/label> &lt;input type="date" id="from" name="from">
+                  &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.to'))
+                  &lt;/label> &lt;input type="date" id="to" name="to">
+                &lt;/div>
+              &lt;/dt>
+            &lt;/dl>
           &lt;/div>
-          &lt;/dt>
-          &lt;/dl>
-          &lt;input class="btn btn-primary btn-lg" type="submit"
-            value="$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))">
-        &lt;/form>
-      &lt;/div>
-      &lt;div class="modal-footer">
-        &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-        $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
-&lt;/div>
-&lt;div class="modal fade" id="viewLastNLinesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  &lt;div class="modal-dialog" role="document">
-    &lt;div class="modal-content">
-      &lt;div class="modal-header">
-        &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-        &lt;h1 class="modal-title" id="viewLastNLinesModalLabel">
-          $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
-        &lt;/h1>
-      &lt;/div>
-      &lt;div class="modal-body">
-        &lt;form id="downloadForm" action="$request.getContextPath()/rest/admintools/files/logs"
-          method="POST" target="_blank">
-          &lt;dl>
-            &lt;dt>&lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>&lt;/dt>
-            &lt;dd>&lt;input type="number" id="noLines" name="noLines" placeholder="100">&lt;/dd>
-          &lt;/dl>
-          &lt;input class="btn btn-primary btn-lg" type="submit"
-            value="$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))">
+          &lt;div class="download-button">
+            &lt;input class="btn btn-primary btn-lg" type="submit"
+              value="$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))">
+          &lt;/div>
         &lt;/form>
       &lt;/div>
       &lt;div class="modal-footer">
@@ -110,9 +88,38 @@
   &lt;/div>
 &lt;/div>
 
-    {{/html}}
-    {{/velocity}}
-  </content>
+&lt;div class="modal fade" id="viewLastNLinesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  &lt;div class="modal-dialog" role="document">
+    &lt;div class="modal-content">
+      &lt;div class="logs-modal-content">
+        &lt;div class="modal-header">
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
+          &lt;h1 class="modal-title" id="viewLastNLinesModalLabel">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
+          &lt;/h1>
+        &lt;/div>
+        &lt;div class="modal-body">
+          &lt;form id="downloadForm" action="$request.getContextPath()/rest/admintools/files/logs"
+            method="POST" target="_blank">
+            &lt;dl>
+              &lt;dt>&lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>&lt;/dt>
+              &lt;dd>&lt;input type="number" id="noLines" name="noLines" placeholder="100">&lt;/dd>
+            &lt;/dl>
+            &lt;input class="btn btn-primary btn-lg" type="submit"
+              value="$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))">
+          &lt;/form>
+        &lt;/div>
+        &lt;div class="modal-footer">
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal">
+          $escapetool.xml($services.localization.render('cancel'))&lt;/button>
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  &lt;/div>
+&lt;/div>
+{{/html}}
+{{/velocity}}</content>
   <object>
     <name>AdminTools.WebHome</name>
     <number>0</number>
@@ -295,7 +302,8 @@ $services.admintools.getConfigurationData('configuration')
     <property>
       <content>{{velocity}}
         $services.admintools.getDownloadTemplate()
-        {{/velocity}}</content>
+        
+{{/velocity}}</content>
     </property>
     <property>
       <position>2, 1</position>
@@ -415,8 +423,24 @@ $services.admintools.getConfigurationData('configuration')
 .adminToolsDashboardItem{
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
-  min-height: 330px;
-  padding: 6px 11px 0px 11px;
+  min-height: 35rem;
+  padding: 1rem 1.1rem;
+}
+
+.logs-modal-content{
+  text-align: center;
+}
+
+.download-button{
+  text-align: center;
+}
+
+#downloadFilesModalLabel{
+  text-align: center;
+}
+
+.download-modal-content{
+  padding-left: 5rem;
 }</code>
     </property>
     <property>
