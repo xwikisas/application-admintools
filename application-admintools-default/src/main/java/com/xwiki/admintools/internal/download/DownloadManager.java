@@ -79,7 +79,7 @@ public class DownloadManager
      * @return filtered file content as a {@link Byte} array
      * @throws IOException
      */
-    public byte[] getFileView(String hint, String input) throws IOException
+    public byte[] getFile(String hint, String input) throws IOException
     {
         DataResource fileViewerProvider = findDataResource(hint);
         if (fileViewerProvider != null) {

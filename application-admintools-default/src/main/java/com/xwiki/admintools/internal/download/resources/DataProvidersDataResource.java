@@ -63,7 +63,7 @@ public class DataProvidersDataResource implements DataResource
     @Override
     public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        createZipEntry(zipOutputStream);
+        addZipEntry(zipOutputStream);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class DataProvidersDataResource implements DataResource
         return HINT;
     }
 
-    private void createZipEntry(ZipOutputStream zipOutputStream) throws IOException
+    private void addZipEntry(ZipOutputStream zipOutputStream) throws IOException
     {
         ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
         zipOutputStream.putNextEntry(zipEntry);

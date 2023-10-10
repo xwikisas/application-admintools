@@ -78,7 +78,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.getFileView(hint, null);
+            byte[] xWikiFileContent = downloadManager.getFile(hint, null);
             if (xWikiFileContent.length == 0) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -101,8 +101,8 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
         try {
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
-            Map<String, String[]> files = xWikiRequest.getParameterMap();
-            byte[] filesArchive = downloadManager.downloadMultipleFiles(files);
+            Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
+            byte[] filesArchive = downloadManager.downloadMultipleFiles(formParameters);
             if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
                 // Set the appropriate response headers to indicate a zip file download.
                 return Response.ok(filesArchive).type("application/zip")
@@ -128,7 +128,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             String noLines = xWikiRequest.getParameter("noLines");
-            byte[] xWikiFileContent = downloadManager.getFileView(LogsDataResource.HINT, noLines);
+            byte[] xWikiFileContent = downloadManager.getFile(LogsDataResource.HINT, noLines);
             if (xWikiFileContent.length == 0) {
                 return Response.status(404).build();
             }

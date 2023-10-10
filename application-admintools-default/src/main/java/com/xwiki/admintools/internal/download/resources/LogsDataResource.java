@@ -75,9 +75,9 @@ public class LogsDataResource implements DataResource
     private CurrentServer currentServer;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    public String getIdentifier()
     {
-        createZipEntry(zipOutputStream, filters);
+        return HINT;
     }
 
     @Override
@@ -108,19 +108,14 @@ public class LogsDataResource implements DataResource
             Collections.reverse(logLines);
             // Join the lines with newline characters
             return String.join("\n", logLines).getBytes();
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.warn("Failed to retrieve logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
     }
 
     @Override
-    public String getIdentifier()
-    {
-        return HINT;
-    }
-
-    private void createZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
         byte[] buffer = new byte[2048];
         try {
@@ -129,7 +124,12 @@ public class LogsDataResource implements DataResource
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
-                if (file.isFile() && checkFilters(filters, file)) {
+                if (file.isFile()) {
+                    if (filters != null) {
+                        if (!checkFilters(file, filters)) {
+                            continue;
+                        }
+                    }
                     // Create a new zip entry and add the content.
                     ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
                     zipOutputStream.putNextEntry(zipEntry);
@@ -156,7 +156,7 @@ public class LogsDataResource implements DataResource
      * @param file current {@link File} that is to be checked.
      * @return {@code true} if the file is between the provided dates or there is no filter, {@code false} otherwise
      */
-    private boolean checkFilters(Map<String, String> filters,  File file)
+    private boolean checkFilters(File file, Map<String, String> filters)
     {
         // Get the server specific Pattern used to identify the log date from the log name.
         Pattern pattern = currentServer.getCurrentServer().getLogsPattern();
@@ -164,7 +164,6 @@ public class LogsDataResource implements DataResource
         if (matcher.find()) {
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
-
             if (filters.get(FROM_DATE_FILTER_KEY) != null && filters.get(TO_DATE_FILTER_KEY) != null) {
                 LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY));
                 LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY));

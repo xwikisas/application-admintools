@@ -71,7 +71,7 @@ public class XWikiPropertiesFileDataResource implements DataResource
     @Override
     public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
-        createZipEntry(zipOutputStream);
+        addZipEntry(zipOutputStream);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class XWikiPropertiesFileDataResource implements DataResource
             return stringBuilder.toString().getBytes();
         } catch (Exception e) {
             logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return null;
+            return new byte[] {};
         }
     }
 
@@ -106,12 +106,10 @@ public class XWikiPropertiesFileDataResource implements DataResource
         return HINT;
     }
 
-    private void createZipEntry(ZipOutputStream zipOutputStream) throws IOException
+    private void addZipEntry(ZipOutputStream zipOutputStream) throws IOException
     {
         ZipEntry zipEntry = new ZipEntry(XWIKI_PROPERTIES);
-
         zipOutputStream.putNextEntry(zipEntry);
-
         byte[] buffer = getByteData(null);
         zipOutputStream.write(buffer, 0, buffer.length);
         zipOutputStream.closeEntry();
