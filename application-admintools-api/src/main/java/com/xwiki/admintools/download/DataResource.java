@@ -41,7 +41,7 @@ public interface DataResource
      * @param filters store filters that can be used for file selection.
      * @throws IOException
      */
-    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException;
+    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws Exception;
 
     /**
      * Retrieve the content of a system file.
@@ -50,7 +50,7 @@ public interface DataResource
      * @return the content of the file as an {@link Byte} array.
      * @throws IOException
      */
-    byte[] getByteData(String input) throws IOException;
+    byte[] getByteData(String input) throws Exception;
 
     /**
      * Get the hint of a component.

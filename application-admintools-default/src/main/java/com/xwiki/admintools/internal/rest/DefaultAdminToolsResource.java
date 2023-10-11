@@ -20,8 +20,8 @@
 package com.xwiki.admintools.internal.rest;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -79,13 +79,14 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
         }
         try {
             byte[] xWikiFileContent = downloadManager.getFile(hint, null);
-            if (xWikiFileContent.length == 0) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (IOException e) {
+            logger.warn("Could not find file from DataResource[{}]. Root cause: [{}]", hint,
+                ExceptionUtils.getRootCauseMessage(e));
+            return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception e) {
-            logger.warn("Failed to get file from DataResource [{}]. Root cause: [{}]", hint,
+            logger.warn("Failed to get data from DataResource [{}]. Root cause: [{}]", hint,
                 ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -103,14 +104,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
             byte[] filesArchive = downloadManager.downloadMultipleFiles(formParameters);
-            if (!(filesArchive == null) && !(Arrays.toString(filesArchive).length() == 0)) {
-                // Set the appropriate response headers to indicate a zip file download.
-                return Response.ok(filesArchive).type("application/zip")
-                    .header("Content-Disposition", "attachment; filename=adminToolsFiles.zip").build();
-            } else {
-                // Handle the case when no logs are found or an error occurs.
-                return Response.status(Response.Status.NOT_FOUND).entity("No files found.").build();
-            }
+            // Set the appropriate response headers to indicate a zip file download.
+            return Response.ok(filesArchive).type("application/zip")
+                .header("Content-Disposition", "attachment; filename=adminToolsFiles.zip").build();
         } catch (Exception e) {
             logger.warn("Failed to download files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -128,12 +124,15 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             String noLines = xWikiRequest.getParameter("noLines");
-            byte[] xWikiFileContent = downloadManager.getFile(LogsDataResource.HINT, noLines);
-            if (xWikiFileContent.length == 0) {
-                return Response.status(404).build();
+            if (noLines == null || noLines.equals("")) {
+                noLines = "1000";
             }
+            byte[] xWikiFileContent = downloadManager.getFile(LogsDataResource.HINT, noLines);
             InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (IOException e) {
+            logger.warn("Could not retrieve logs from server. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception e) {
             logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

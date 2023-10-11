@@ -43,17 +43,18 @@ AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server locati
 admin.admintools.description=Configure Admin Tools Application
 
 ## Modals
-adminTools.dashboard.download.modal.button=Download selected files
-adminTools.dashboard.download.modal.date.from=From:
-adminTools.dashboard.download.modal.date.to=To:
+adminTools.dashboard.download.modal.button=Download
+adminTools.dashboard.download.modal.date.from=From
+adminTools.dashboard.download.modal.date.to=To
 adminTools.dashboard.download.modal.provided=Configuration info
-adminTools.dashboard.download.modal.title=Select Files to Download
-adminTools.dashboard.download.modal.xwikiConfig.title = xwiki.cfg
-adminTools.dashboard.download.modal.xwikiProperties.title = xwiki.properties
+adminTools.dashboard.download.modal.title=Select Files
+adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
+adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
+adminTools.dashboard.download.modal.logs.title=logs
 adminTools.dashboard.logs.modal.submit=View logs
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
-adminTools.dashboard.logs.modal.title=Show the latest logs
-adminTools.dashboard.showLogs=Show the latest logs
+adminTools.dashboard.logs.modal.title=Show latest n lines of log
+adminTools.dashboard.showLogs=View
 
 ## Dashboard sections
 ## Config
@@ -74,7 +75,7 @@ adminTools.dashboard.section.backend.xwiki.version=XWiki installation version:
 ## Files
 adminTools.dashboard.section.download.description=Get the files you need. View them directly in the browser or download them as an archive.
 adminTools.dashboard.section.download.modal.open=Export files needed for getting support
-adminTools.dashboard.section.download.title=Important files
+adminTools.dashboard.section.download.title=Files
 adminTools.dashboard.section.download.view.configuration=XWiki configuration file
 adminTools.dashboard.section.download.view.description=View files content:
 adminTools.dashboard.section.download.view.properties=XWiki properties file

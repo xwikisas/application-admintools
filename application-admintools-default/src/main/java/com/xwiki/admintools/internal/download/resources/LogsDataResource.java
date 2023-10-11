@@ -22,7 +22,6 @@ package com.xwiki.admintools.internal.download.resources;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.time.LocalDate;
@@ -68,6 +67,8 @@ public class LogsDataResource implements DataResource
 
     private static final String TO_DATE_FILTER_KEY = "to";
 
+    private static final String ERROR_SOURCE = " Root cause is: [{}]";
+
     @Inject
     private Logger logger;
 
@@ -81,36 +82,42 @@ public class LogsDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(String input) throws IOException
+    public byte[] getByteData(String input) throws Exception
     {
-        File file = new File(currentServer.getCurrentServer().getLastLogFilePath());
-        if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("File not found: " + currentServer.getCurrentServer().getLastLogFilePath());
-        }
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-            int lines = parseInt(input);
+        try {
+            File file = new File(currentServer.getCurrentServer().getLastLogFilePath());
 
-            long fileLength = randomAccessFile.length();
-            List<String> logLines = new ArrayList<>();
+            try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
+                int lines = parseInt(input);
 
-            // Calculate the approximate position to start reading from based on line length
-            long startPosition = fileLength - 1;
-            for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
-                randomAccessFile.seek(startPosition - 1);
-                int currentByte = randomAccessFile.read();
-                if (currentByte == '\n' || currentByte == '\r') {
-                    // Found a newline character, add the line to the list
-                    logLines.add(randomAccessFile.readLine());
-                    i++;
+                long fileLength = randomAccessFile.length();
+                List<String> logLines = new ArrayList<>();
+
+                // Calculate the approximate position to start reading from based on line length.
+                long startPosition = fileLength - 1;
+                for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
+                    randomAccessFile.seek(startPosition - 1);
+                    int currentByte = randomAccessFile.read();
+                    if (currentByte == '\n' || currentByte == '\r') {
+                        // Found a newline character, add the line to the list.
+                        logLines.add(randomAccessFile.readLine());
+                        i++;
+                    }
                 }
+                // Reverse the list to get the lines in the correct order.
+                Collections.reverse(logLines);
+                // Join the lines with newline characters.
+                return String.join("\n", logLines).getBytes();
             }
-            // Reverse the list to get the lines in the correct order
-            Collections.reverse(logLines);
-            // Join the lines with newline characters
-            return String.join("\n", logLines).getBytes();
-        } catch (Exception e) {
-            logger.warn("Failed to retrieve logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return null;
+        } catch (IOException exception) {
+            String errMessage =
+                String.format("Could not find log files at %s.", currentServer.getCurrentServer().getLastLogFilePath());
+            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
+            throw new IOException(errMessage, exception);
+        } catch (Exception exception) {
+            String errMessage = "Failed to retrieve logs.";
+            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
+            throw new Exception(errMessage, exception);
         }
     }
 
@@ -131,10 +138,10 @@ public class LogsDataResource implements DataResource
                         }
                     }
                     // Create a new zip entry and add the content.
-                    ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
-                    zipOutputStream.putNextEntry(zipEntry);
                     try (FileInputStream fileInputStream = new FileInputStream(file)) {
                         BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+                        ZipEntry zipEntry = new ZipEntry("logs/" + file.getName());
+                        zipOutputStream.putNextEntry(zipEntry);
                         int bytesRead;
                         while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
                             zipOutputStream.write(buffer, 0, bytesRead);

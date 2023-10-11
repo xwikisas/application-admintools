@@ -51,7 +51,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
@@ -123,7 +122,7 @@ public class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataSuccess() throws IOException
+    void getByteDataSuccess() throws Exception
     {
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
@@ -138,44 +137,55 @@ public class LogsDataResourceTest
     @Test
     void getByteDataFileNotFound()
     {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
+
         File testFile = new File("server.2023-10-06.log");
         assertFalse(testFile.exists());
 
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        Exception exception = assertThrows(Exception.class, () -> {
+        IOException exception = assertThrows(IOException.class, () -> {
             logsDataResource.getByteData(null);
         });
-        assertEquals("File not found: " + testFile.getAbsolutePath(), exception.getMessage());
+        assertEquals(String.format("Could not find log files at %s.", testFile.getAbsolutePath()),
+            exception.getMessage());
+        verify(logger).warn(
+            String.format("Could not find log files at %s. Root cause is: [{}]", testFile.getAbsolutePath()),
+            String.format("FileNotFoundException: %s (No such file or directory)", testFile.getAbsolutePath()));
     }
 
     @Test
-    void getByteDataIncorrectPath()
+    void getByteDataServerNotFound()
     {
-        File logsDir = new File(tmpDir, "server_logs_folder");
-        logsDir.mkdir();
-        assertTrue(logsDir.exists());
-        assertFalse(logsDir.isFile());
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
 
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverIdentifier.getLastLogFilePath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
         Exception exception = assertThrows(Exception.class, () -> {
             this.logsDataResource.getByteData("44");
         });
-        assertEquals("File not found: " + logsDir.getAbsolutePath(), exception.getMessage());
+        assertEquals(String.format("Failed to retrieve logs.", logsDir.getAbsolutePath()),
+            exception.getMessage());
+        verify(logger).warn(String.format("Failed to retrieve logs. Root cause is: [{}]", logsDir.getAbsolutePath()),
+            String.format("NullPointerException: SERVER NOT FOUND", logsDir.getAbsolutePath()));
         logsDir.delete();
     }
 
     @Test
-    void getByteDataIncorrectInput() throws IOException
+    void getByteDataIncorrectInput() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
 
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        Exception exception = assertThrows(Exception.class, () -> {
+            logsDataResource.getByteData("not a number");
+        });
+        assertEquals("Failed to retrieve logs.", exception.getMessage());
 
-        assertNull(logsDataResource.getByteData("not a number"));
         verify(logger).warn("Failed to retrieve logs. Root cause is: [{}]",
             "NumberFormatException: For input string: " + "\"not a number\"");
     }

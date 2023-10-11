@@ -48,7 +48,11 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,7 +125,7 @@ public class XWikiConfigFileDataResourceTest
     }
 
     @Test
-    void getByteData() throws IOException
+    void getByteData() throws Exception
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
@@ -143,14 +147,37 @@ public class XWikiConfigFileDataResourceTest
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
-
-        assertArrayEquals(new byte[] {}, configFileDataResource.getByteData(null));
-        verify(logger).warn("Failed to download logs. Root cause is: [{}]",
+        Exception exception = assertThrows(Exception.class, () -> {
+            configFileDataResource.getByteData(null);
+        });
+        assertEquals("Could not find xwiki.cfg file.", exception.getMessage());
+        verify(logger).warn("Could not find xwiki.cfg file. Root cause is: [{}]",
             "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)");
     }
 
     @Test
-    void addZipEntry() throws IOException
+    void getByteDataServerNotFound() throws Exception
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
+
+        File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
+        cfgDir2.mkdir();
+        cfgDir2.deleteOnExit();
+
+        when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
+        Exception exception = assertThrows(Exception.class, () -> {
+            configFileDataResource.getByteData(null);
+        });
+        assertEquals("Failed to get content of xwiki.cfg.", exception.getMessage());
+        verify(logger).warn("Failed to get content of xwiki.cfg. Root cause is: [{}]",
+            "NullPointerException: SERVER NOT FOUND");
+    }
+
+    @Test
+    void addZipEntry() throws Exception
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
@@ -162,7 +189,7 @@ public class XWikiConfigFileDataResourceTest
     }
 
     @Test
-    void addZipEntryGetByteFail() throws IOException
+    void addZipEntryGetByteFail() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
@@ -176,9 +203,8 @@ public class XWikiConfigFileDataResourceTest
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
 
         configFileDataResource.addZipEntry(zipOutputStream, null);
-        byte[] buff = {};
-        verify(zipOutputStream).write(buff, 0, buff.length);
-        verify(logger).warn("Failed to download logs. Root cause is: [{}]",
+        verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
+        verify(logger).warn("Could not find xwiki.cfg file. Root cause is: [{}]",
             "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)");
     }
 

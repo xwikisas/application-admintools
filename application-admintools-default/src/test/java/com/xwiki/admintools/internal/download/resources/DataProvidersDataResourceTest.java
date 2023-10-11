@@ -39,6 +39,10 @@ import com.xwiki.admintools.DataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -100,10 +104,11 @@ public class DataProvidersDataResourceTest
         when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
 
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("TEST - PROVIDER ERROR AT GET DATA AS JASON!"));
-
-        Map<String, Map<String, String>> providersResults = new HashMap<>();
-        assertArrayEquals(providersResults.toString().getBytes(), dataProviderResource.getByteData(null));
-        verify(logger).warn("Error getting json from DataProvider data_provider_identifier",
+        Exception exception = assertThrows(Exception.class, () -> {
+            this.dataProviderResource.getByteData(null);
+        });
+        assertEquals("Error getting json from DataProvider data_provider_identifier.", exception.getMessage());
+        verify(logger).warn("Error getting json from DataProvider data_provider_identifier. Root cause is: [{}]",
             "Exception: TEST - PROVIDER ERROR AT GET DATA AS JASON!");
     }
 
@@ -126,5 +131,24 @@ public class DataProvidersDataResourceTest
         dataProviderResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream).write(buffer, 0, buffer.length);
         verify(zipOutputStream).closeEntry();
+    }
+
+    @Test
+    void addZipEntryGetByteDataError() throws Exception
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
+
+        List<DataProvider> dataProviderList = new ArrayList<>();
+        dataProviderList.add(dataProvider);
+        when(dataProviders.get()).thenReturn(dataProviderList);
+        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
+
+        when(dataProvider.getDataAsJSON()).thenThrow(new Exception("ERROR AT GET DATA AS JASON."));
+        dataProviderResource.addZipEntry(zipOutputStream, null);
+
+        verify(logger).warn("Error getting json from DataProvider data_provider_identifier. Root cause is: [{}]",
+            "Exception: ERROR AT GET DATA AS JASON.");
+        verify(zipOutputStream, never()).write(any(), eq(0), eq(0));
     }
 }

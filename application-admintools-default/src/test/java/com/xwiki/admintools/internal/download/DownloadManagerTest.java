@@ -48,10 +48,10 @@ import com.xwiki.admintools.internal.download.resources.LogsDataResource;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,7 +96,7 @@ public class DownloadManagerTest
     private Logger logger;
 
     @Test
-    void getFileView() throws IOException
+    void getFile() throws Exception
     {
         List<DataResource> dataResourceList = new ArrayList<>();
         dataResourceList.add(archiverDataResource);
@@ -108,18 +108,34 @@ public class DownloadManagerTest
     }
 
     @Test
-    void getFileViewResourceNotFound() throws IOException
+    void getFileResourceNotFound()
     {
         List<DataResource> dataResourceList = new ArrayList<>();
         dataResourceList.add(archiverDataResource);
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-
-        assertNull(downloadManager.getFile("data_resource_identifier_invalid", "input"));
+        Exception exception = assertThrows(Exception.class, () -> {
+            downloadManager.getFile("data_resource_identifier_invalid", "input");
+        });
+        assertEquals("Error while processing file content.", exception.getMessage());
     }
 
     @Test
-    void downloadMultipleFiles() throws IOException
+    void getFileDataResourceError() throws Exception
+    {
+        List<DataResource> dataResourceList = new ArrayList<>();
+        dataResourceList.add(archiverDataResource);
+        when(dataResources.get()).thenReturn(dataResourceList);
+        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
+        when(archiverDataResource.getByteData("input")).thenThrow(new IOException("IO Error"));
+        Exception exception = assertThrows(Exception.class, () -> {
+            downloadManager.getFile("data_resource_identifier", "input");
+        });
+        assertEquals("Error while managing file.", exception.getMessage());
+    }
+
+    @Test
+    void downloadMultipleFiles() throws Exception
     {
         String[] files = { "data_resource_identifier", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
@@ -144,7 +160,7 @@ public class DownloadManagerTest
     }
 
     @Test
-    void downloadMultipleFilesNoArchiverFound() throws IOException
+    void downloadMultipleFilesNoArchiverFound() throws Exception
     {
         String[] files = { "data_resource_identifier_invalid", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
@@ -153,12 +169,15 @@ public class DownloadManagerTest
         dataResourceList.add(archiverDataResource);
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        downloadManager.downloadMultipleFiles(request);
-        verify(archiverDataResource, never()).addZipEntry(any(ZipOutputStream.class), any());
+        Exception exception = assertThrows(Exception.class, () -> {
+            downloadManager.downloadMultipleFiles(request);
+        });
+
+        assertEquals("Error while generating the file archive.", exception.getMessage());
     }
 
     @Test
-    void downloadMultipleFilesInvalidRequest() throws IOException
+    void downloadMultipleFilesInvalidRequest() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);
@@ -172,8 +191,12 @@ public class DownloadManagerTest
 
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        downloadManager.downloadMultipleFiles(request);
-        verify(logger).warn("Failed to download logs. Root cause is: [{}]", "NullPointerException: ");
+        Exception exception = assertThrows(Exception.class, () -> {
+            downloadManager.downloadMultipleFiles(request);
+        });
+
+        assertEquals("Error while generating the file archive.", exception.getMessage());
+        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]", "NullPointerException: ");
     }
 
     @Test

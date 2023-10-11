@@ -67,15 +67,17 @@ public class DataProvidersDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(String input)
+    public byte[] getByteData(String input) throws Exception
     {
         Map<String, Map<String, String>> providersResults = new HashMap<>();
         for (DataProvider dataProvider : dataProviders.get()) {
             try {
                 providersResults.put(dataProvider.getIdentifier(), dataProvider.getDataAsJSON());
             } catch (Exception e) {
-                logger.warn(String.format("Error getting json from DataProvider %s", dataProvider.getIdentifier()),
-                    ExceptionUtils.getRootCauseMessage(e));
+                String errMessage =
+                    String.format("Error getting json from DataProvider %s.", dataProvider.getIdentifier());
+                logger.warn(errMessage + " Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+                throw new Exception(errMessage, e);
             }
         }
         return providersResults.toString().getBytes();
@@ -87,12 +89,15 @@ public class DataProvidersDataResource implements DataResource
         return HINT;
     }
 
-    private void addZipEntry(ZipOutputStream zipOutputStream) throws IOException
+    private void addZipEntry(ZipOutputStream zipOutputStream)
     {
-        ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
-        zipOutputStream.putNextEntry(zipEntry);
-        byte[] buffer = getByteData(null);
-        zipOutputStream.write(buffer, 0, buffer.length);
-        zipOutputStream.closeEntry();
+        try {
+            byte[] buffer = getByteData(null);
+            ZipEntry zipEntry = new ZipEntry("configuration_json.txt");
+            zipOutputStream.putNextEntry(zipEntry);
+            zipOutputStream.write(buffer, 0, buffer.length);
+            zipOutputStream.closeEntry();
+        } catch (Exception ignored) {
+        }
     }
 }

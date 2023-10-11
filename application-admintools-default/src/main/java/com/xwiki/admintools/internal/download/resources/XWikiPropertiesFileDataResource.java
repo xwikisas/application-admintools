@@ -58,6 +58,8 @@ public class XWikiPropertiesFileDataResource implements DataResource
 
     private static final String XWIKI_PROPERTIES = "xwiki.properties";
 
+    private static final String ERROR_SOURCE = " Root cause is: [{}]";
+
     @Inject
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
@@ -75,28 +77,35 @@ public class XWikiPropertiesFileDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(String input)
+    public byte[] getByteData(String input) throws Exception
     {
-        List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
-        String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_PROPERTIES;
-        File inputFile = new File(filePath);
-        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-            StringBuilder stringBuilder = new StringBuilder();
-            String currentLine;
+        try {
+            List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
+            String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_PROPERTIES;
+            File inputFile = new File(filePath);
+            try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
+                StringBuilder stringBuilder = new StringBuilder();
+                String currentLine;
 
-            // Read line by line and do not add it if it contains sensitive info.
-            while ((currentLine = reader.readLine()) != null) {
-                String trimmedLine = currentLine.trim();
-                if (excludedLinesHints.stream().anyMatch(trimmedLine::contains)) {
-                    continue;
+                // Read line by line and do not add it if it contains sensitive info.
+                while ((currentLine = reader.readLine()) != null) {
+                    String trimmedLine = currentLine.trim();
+                    if (excludedLinesHints.stream().anyMatch(trimmedLine::contains)) {
+                        continue;
+                    }
+                    stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
                 }
-                stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
+                reader.close();
+                return stringBuilder.toString().getBytes();
             }
-            reader.close();
-            return stringBuilder.toString().getBytes();
+        } catch (IOException exception) {
+            String errMessage = String.format("Could not find %s file.", XWIKI_PROPERTIES);
+            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
+            throw new IOException(errMessage, exception);
         } catch (Exception e) {
-            logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return new byte[] {};
+            String errMessage = String.format("Failed to get content of %s.", XWIKI_PROPERTIES);
+            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception(errMessage, e);
         }
     }
 
@@ -106,12 +115,15 @@ public class XWikiPropertiesFileDataResource implements DataResource
         return HINT;
     }
 
-    private void addZipEntry(ZipOutputStream zipOutputStream) throws IOException
+    private void addZipEntry(ZipOutputStream zipOutputStream)
     {
-        ZipEntry zipEntry = new ZipEntry(XWIKI_PROPERTIES);
-        zipOutputStream.putNextEntry(zipEntry);
-        byte[] buffer = getByteData(null);
-        zipOutputStream.write(buffer, 0, buffer.length);
-        zipOutputStream.closeEntry();
+        try {
+            byte[] buffer = getByteData(null);
+            ZipEntry zipEntry = new ZipEntry(XWIKI_PROPERTIES);
+            zipOutputStream.putNextEntry(zipEntry);
+            zipOutputStream.write(buffer, 0, buffer.length);
+            zipOutputStream.closeEntry();
+        } catch (Exception ignored) {
+        }
     }
 }

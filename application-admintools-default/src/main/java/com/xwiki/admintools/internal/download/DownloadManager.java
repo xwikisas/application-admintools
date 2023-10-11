@@ -77,15 +77,16 @@ public class DownloadManager
      * @param hint file type identifier.
      * @param input {@link String} representing the file type.
      * @return filtered file content as a {@link Byte} array
-     * @throws IOException
      */
-    public byte[] getFile(String hint, String input) throws IOException
+    public byte[] getFile(String hint, String input) throws Exception
     {
-        DataResource fileViewerProvider = findDataResource(hint);
-        if (fileViewerProvider != null) {
+        try {
+            DataResource fileViewerProvider = findDataResource(hint);
             return fileViewerProvider.getByteData(input);
-        } else {
-            return null;
+        } catch (IOException e) {
+            throw new IOException("Error while managing file.", e);
+        } catch (Exception e) {
+            throw new Exception("Error while processing file content.", e);
         }
     }
 
@@ -95,7 +96,7 @@ public class DownloadManager
      * @param request {@link Map} With the
      * @return {@link Byte} array representing the request archive.
      */
-    public byte[] downloadMultipleFiles(Map<String, String[]> request)
+    public byte[] downloadMultipleFiles(Map<String, String[]> request) throws Exception
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
@@ -118,8 +119,9 @@ public class DownloadManager
             byteArrayOutputStream.close();
             return byteArrayOutputStream.toByteArray();
         } catch (Exception e) {
-            logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return null;
+            logger.warn("Error while generating the file archive. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception("Error while generating the file archive.", e);
         }
     }
 
