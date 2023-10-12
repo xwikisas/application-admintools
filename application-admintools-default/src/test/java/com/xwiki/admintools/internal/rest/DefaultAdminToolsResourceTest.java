@@ -197,7 +197,7 @@ public class DefaultAdminToolsResourceTest
     {
         when(downloadManager.getFile(LogsDataResource.HINT, "30")).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("30");
-        assertEquals(200, defaultAdminToolsResource.getLastLogs().getStatus());
+        assertEquals(200, defaultAdminToolsResource.getLastLogs("30").getStatus());
     }
 
     @Test
@@ -208,7 +208,7 @@ public class DefaultAdminToolsResourceTest
 
         when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenThrow(new IOException("FILE NOT FOUND"));
 
-        assertEquals(404, defaultAdminToolsResource.getLastLogs().getStatus());
+        assertEquals(404, defaultAdminToolsResource.getLastLogs("").getStatus());
         verify(logger).warn("Could not retrieve logs from server. Root cause: [{}]", "IOException: FILE NOT FOUND");
     }
 
@@ -220,7 +220,7 @@ public class DefaultAdminToolsResourceTest
 
         when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenThrow(new Exception("INTERNAL ERROR"));
         Exception exception = assertThrows(Exception.class, () -> {
-            this.defaultAdminToolsResource.getLastLogs();
+            this.defaultAdminToolsResource.getLastLogs(null);
         });
         assertEquals("HTTP 500 Internal Server Error", exception.getMessage());
         verify(logger).warn("Failed to get logs. Root cause: [{}]", "Exception: INTERNAL ERROR");
@@ -234,7 +234,7 @@ public class DefaultAdminToolsResourceTest
 
         when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
         Exception exception = assertThrows(Exception.class, () -> {
-            this.defaultAdminToolsResource.getLastLogs();
+            this.defaultAdminToolsResource.getLastLogs("1000");
         });
         assertEquals("HTTP 401 Unauthorized", exception.getMessage());
         verify(logger).warn("Failed to get the logs due to restricted rights.");

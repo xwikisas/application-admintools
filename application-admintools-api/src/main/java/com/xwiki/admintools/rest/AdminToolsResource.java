@@ -19,8 +19,8 @@
  */
 package com.xwiki.admintools.rest;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
@@ -54,17 +54,18 @@ public interface AdminToolsResource extends XWikiRestComponent
      * @return an archive with files.
      * @throws XWikiRestException if an error occurred while getting the archive.
      */
-    @POST
+    @GET
     @Path("/files")
     Response getFiles() throws XWikiRestException;
 
     /**
      * Get last n lines of server logs.
      *
+     * @param noLines number of lines to be retrieved from the log file.
      * @return a file containing the last n lines of server logs.
      * @throws XWikiRestException if an error occurred while retrieving the logs file .
      */
-    @POST
-    @Path("/files/logs")
-    Response getLastLogs() throws XWikiRestException;
+    @GET
+    @Path("/files/logs/{noLines}")
+    Response getLastLogs(@PathParam("noLines") @DefaultValue("1000") String noLines) throws XWikiRestException;
 }

@@ -34,92 +34,10 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{dashboard/}}
+  <content>{{include reference="AdminTools.Code.Macros"/}}
 
-{{velocity}}
-{{html clean='false'}}
-&lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  &lt;div class="modal-dialog" role="document">
-    &lt;div class="modal-content">
-      &lt;div class="modal-header">
-        &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-        &lt;h1 class="modal-title" id="downloadFilesModalLabel">
-          $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.title'))
-        &lt;/h1>
-      &lt;/div>
-      &lt;div class="modal-body">
-        &lt;form id="downloadForm" action="$request.getContextPath()/rest/admintools/files" method="POST">
-          &lt;div class="download-modal-content">
-            &lt;dl>
-              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiConfig" checked>
-                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiConfig.title'))
-                &lt;/label>
-              &lt;/dt>
-              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiProperties" checked>
-                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.xwikiProperties.title'))
-                &lt;/label>
-              &lt;/dt>
-              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="dataProviderResource" checked>
-                $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))&lt;/label&gt;
-              &lt;/dt>
-              &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="logsDataResource" checked> Logs&lt;/label>&lt;/dt>
-              &lt;dt>
-                &lt;div id="dateFields">
-                  &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.from'))
-                  &lt;/label> &lt;input type="date" id="from" name="from">
-                  &lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.date.to'))
-                  &lt;/label> &lt;input type="date" id="to" name="to">
-                &lt;/div>
-              &lt;/dt>
-            &lt;/dl>
-          &lt;/div>
-          &lt;div class="download-button">
-            &lt;input class="btn btn-primary btn-lg" type="submit"
-              value="$escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))">
-          &lt;/div>
-        &lt;/form>
-      &lt;/div>
-      &lt;div class="modal-footer">
-        &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-        $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
-&lt;/div>
-
-&lt;div class="modal fade" id="viewLastNLinesModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  &lt;div class="modal-dialog" role="document">
-    &lt;div class="modal-content">
-      &lt;div class="logs-modal-content">
-        &lt;div class="modal-header">
-          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-          &lt;h1 class="modal-title" id="viewLastNLinesModalLabel">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
-          &lt;/h1>
-        &lt;/div>
-        &lt;div class="modal-body">
-          &lt;form id="downloadForm" action="$request.getContextPath()/rest/admintools/files/logs"
-            method="POST" target="_blank">
-            &lt;dl>
-              &lt;dt>&lt;label>$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>&lt;/dt>
-              &lt;dd>&lt;input type="number" id="noLines" name="noLines" placeholder="100">&lt;/dd>
-            &lt;/dl>
-            &lt;input class="btn btn-primary btn-lg" type="submit"
-              value="$escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))">
-          &lt;/form>
-        &lt;/div>
-        &lt;div class="modal-footer">
-          &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-          $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
-&lt;/div>
-{{/html}}
-{{/velocity}}</content>
+{{dashboard/}}
+</content>
   <object>
     <name>AdminTools.WebHome</name>
     <number>0</number>
@@ -315,6 +233,167 @@ $services.admintools.getConfigurationData('configuration')
   <object>
     <name>AdminTools.WebHome</name>
     <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>db26a9ff-8a2e-4a46-83c2-697aa46eef7a</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>default</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function($) {
+  $(document).on('click', '#filesDownloadFilesModal .btn-primary', function(event) {
+    event.preventDefault()
+    var downloadForm = $(document.getElementById("filesDownloadForm"));
+    var form = downloadForm.serialize()
+    var link = document.createElement('a');
+    link.href = downloadForm.attr('action');
+    link.href += "?" + form;
+    link.click();
+  });
+
+    $(document).on('click', '#filesViewLastNLinesModal .btn-primary', function(event) {
+    event.preventDefault()
+    var downloadForm = $(document.getElementById("filesLastNLogLinesForm"));
+    var noLines = $("#filesNoLines").val();
+    if(noLines == ""){
+      noLines = "1000";
+    }
+    var link = document.createElement('a');
+    link.href = downloadForm.attr('action');
+      debugger;
+    link.href += "/" + noLines;
+    link.target="_blank";
+    link.click();
+  });
+
+  $(document).on('click', '#configurationViewLastNLinesModal .btn-primary', function(event) {
+    event.preventDefault()
+    var downloadForm = $(document.getElementById("configurationLastNLogLinesForm"));
+    var noLines = $("#configurationNoLines").val();
+    if(noLines == ""){
+      noLines = "1000";
+    }
+    var link = document.createElement('a');
+    link.href = downloadForm.attr('action');
+      debugger;
+    link.href += "/" + noLines;
+    link.target="_blank";
+    link.click();
+  });
+  
+  $(document).ready(function() {
+    var logsCheckbox = $('input[name="files"][value="logsDataResource"]');
+    var dateFields = $('.dateFields');
+
+    if (!logsCheckbox.is(':checked')) {
+        dateFields.hide();
+    } else {
+        dateFields.show();
+    }
+
+    logsCheckbox.change(function() {
+        if (this.checked) {
+            dateFields.show();
+        } else {
+            dateFields.hide();
+        }
+    });
+});
+});
+
+</code>
+    </property>
+    <property>
+      <name>AdminToolsJavaScript</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.WebHome</name>
+    <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>52539531-ed11-4f41-b6a4-f6125adc2287</guid>
     <class>
@@ -435,12 +514,16 @@ $services.admintools.getConfigurationData('configuration')
   text-align: center;
 }
 
-#downloadFilesModalLabel{
+.downloadFilesModalTitle{
   text-align: center;
 }
 
 .download-modal-content{
   padding-left: 5rem;
+}
+
+.dateFields {
+  margin: 2rem 4rem;
 }</code>
     </property>
     <property>

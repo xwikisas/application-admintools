@@ -114,16 +114,14 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     }
 
     @Override
-    public Response getLastLogs()
+    public Response getLastLogs(String input)
     {
         if (!isAdmin()) {
             logger.warn("Failed to get the logs due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            XWikiContext wikiContext = xcontextProvider.get();
-            XWikiRequest xWikiRequest = wikiContext.getRequest();
-            String noLines = xWikiRequest.getParameter("noLines");
+            String noLines = input;
             if (noLines == null || noLines.equals("")) {
                 noLines = "1000";
             }

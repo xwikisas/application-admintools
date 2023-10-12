@@ -18,6 +18,8 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
+#viewLastNLinesMoldal("files")
+#downloadFiles("files")
 {{html clean='false'}}
 #if ($found == 'true')
   <div class="adminToolsDashboardItem">
@@ -27,7 +29,7 @@
     <hr/>
     <ul>
       <li>
-        <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
+        <a href="#filesDownloadFilesModal"  data-toggle="modal" data-target="#filesDownloadFilesModal">
           $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.modal.open'))</a>
       </li>
       <li>
@@ -46,7 +48,7 @@
             </a>
           </li>
           <li>
-            <a href="#viewLastNLinesModal" data-toggle="modal" data-target="#viewLastNLinesModal">
+            <a href="#filesViewLastNLinesModal" data-toggle="modal" data-target="#filesViewLastNLinesModal">
               $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
           </li>
         </ul>

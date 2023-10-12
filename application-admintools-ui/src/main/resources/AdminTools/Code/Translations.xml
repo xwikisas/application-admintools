@@ -51,44 +51,44 @@ adminTools.dashboard.download.modal.title=Select Files
 adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
 adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
 adminTools.dashboard.download.modal.logs.title=logs
-adminTools.dashboard.logs.modal.submit=View logs
+adminTools.dashboard.logs.modal.submit=View
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
-adminTools.dashboard.logs.modal.title=Show latest n lines of log
-adminTools.dashboard.showLogs=View
+adminTools.dashboard.logs.modal.title=Show last n lines of log
+adminTools.dashboard.showLogs=View last n lines of log...
 
 ## Dashboard sections
 ## Config
 adminTools.dashboard.section.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
 adminTools.dashboard.section.backend.description=Get info about your backend
-adminTools.dashboard.section.backend.java=Detected java version:
-adminTools.dashboard.section.backend.os.architecture=OS architecture:
-adminTools.dashboard.section.backend.os.legend=OS info:
-adminTools.dashboard.section.backend.os.name=OS name:
-adminTools.dashboard.section.backend.os.version=OS version:
-adminTools.dashboard.section.backend.supportedDB.error=Database not found. Currently supported databases:
-adminTools.dashboard.section.backend.supportedServers.error=Currently supported servers:
+adminTools.dashboard.section.backend.java=Detected java version
+adminTools.dashboard.section.backend.os.architecture=OS architecture
+adminTools.dashboard.section.backend.os.legend=OS info
+adminTools.dashboard.section.backend.os.name=OS name
+adminTools.dashboard.section.backend.os.version=OS version
+adminTools.dashboard.section.backend.supportedDB.error=Database not found. Currently supported databases
+adminTools.dashboard.section.backend.supportedServers.error=Currently supported servers
 adminTools.dashboard.section.backend.title=Backend
-adminTools.dashboard.section.backend.usedDB=Used database:
-adminTools.dashboard.section.backend.usedServer=Used server:
-adminTools.dashboard.section.backend.xwiki.version=XWiki installation version:
+adminTools.dashboard.section.backend.usedDB=Used database
+adminTools.dashboard.section.backend.usedServer=Used server
+adminTools.dashboard.section.backend.xwiki.version=XWiki installation version
 
 ## Files
 adminTools.dashboard.section.download.description=Get the files you need. View them directly in the browser or download them as an archive.
 adminTools.dashboard.section.download.modal.open=Export files needed for getting support
 adminTools.dashboard.section.download.title=Files
 adminTools.dashboard.section.download.view.configuration=XWiki configuration file
-adminTools.dashboard.section.download.view.description=View files content:
+adminTools.dashboard.section.download.view.description=View files content
 adminTools.dashboard.section.download.view.properties=XWiki properties file
 adminTools.dashboard.section.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
 
 ## Security
-adminTools.dashboard.section.security.activeEncoding=Active encoding:
-adminTools.dashboard.section.security.configurationEncoding=Configuration encoding:
+adminTools.dashboard.section.security.activeEncoding=Active encoding
+adminTools.dashboard.section.security.configurationEncoding=Configuration encoding
 adminTools.dashboard.section.security.description=See an overview of your security information.
 adminTools.dashboard.section.security.error=Error while gathering security information.
-adminTools.dashboard.section.security.fileEncoding=File encoding:
-adminTools.dashboard.section.security.lang=Used language:
-adminTools.dashboard.section.security.pwd=Working directory:
+adminTools.dashboard.section.security.fileEncoding=File encoding
+adminTools.dashboard.section.security.lang=Used language
+adminTools.dashboard.section.security.pwd=Working directory
 adminTools.dashboard.section.security.title=Security
 
   </content>
