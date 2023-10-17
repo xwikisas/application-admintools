@@ -78,11 +78,22 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         try {
-            byte[] xWikiFileContent = downloadManager.getFile(hint, null);
-            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
+            byte[] fileContent;
+            if (hint.equals(LogsDataResource.HINT)) {
+                XWikiContext wikiContext = xcontextProvider.get();
+                XWikiRequest xWikiRequest = wikiContext.getRequest();
+                String noLines = xWikiRequest.getParameter("noLines");
+                if (noLines == null || noLines.equals("")) {
+                    noLines = "1000";
+                }
+                fileContent = downloadManager.getFile(hint, noLines);
+            } else {
+                fileContent = downloadManager.getFile(hint, null);
+            }
+            InputStream inputStream = new ByteArrayInputStream(fileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (IOException e) {
-            logger.warn("Could not find file from DataResource[{}]. Root cause: [{}]", hint,
+            logger.warn("Could not find file from DataResource [{}]. Root cause: [{}]", hint,
                 ExceptionUtils.getRootCauseMessage(e));
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception e) {
@@ -109,30 +120,6 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
                 .header("Content-Disposition", "attachment; filename=adminToolsFiles.zip").build();
         } catch (Exception e) {
             logger.warn("Failed to download files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Override
-    public Response getLastLogs(String input)
-    {
-        if (!isAdmin()) {
-            logger.warn("Failed to get the logs due to restricted rights.");
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
-        try {
-            String noLines = input;
-            if (noLines == null || noLines.equals("")) {
-                noLines = "1000";
-            }
-            byte[] xWikiFileContent = downloadManager.getFile(LogsDataResource.HINT, noLines);
-            InputStream inputStream = new ByteArrayInputStream(xWikiFileContent);
-            return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
-        } catch (IOException e) {
-            logger.warn("Could not retrieve logs from server. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (Exception e) {
-            logger.warn("Failed to get logs. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }

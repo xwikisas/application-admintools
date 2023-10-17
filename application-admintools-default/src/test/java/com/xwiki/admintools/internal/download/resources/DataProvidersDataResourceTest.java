@@ -27,6 +27,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
@@ -69,6 +70,15 @@ public class DataProvidersDataResourceTest
     @MockComponent
     private DataProvider dataProvider;
 
+    @BeforeEach
+    void setUp()
+    {
+        List<DataProvider> dataProviderList = new ArrayList<>();
+        dataProviderList.add(dataProvider);
+        when(dataProviders.get()).thenReturn(dataProviderList);
+        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
+    }
+
     @Test
     void getIdentifier()
     {
@@ -78,11 +88,6 @@ public class DataProvidersDataResourceTest
     @Test
     void getByteDataSuccess() throws Exception
     {
-        List<DataProvider> dataProviderList = new ArrayList<>();
-        dataProviderList.add(dataProvider);
-        when(dataProviders.get()).thenReturn(dataProviderList);
-        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
-
         Map<String, String> providerJson = new HashMap<>();
         providerJson.put("success", "true");
         when(dataProvider.getDataAsJSON()).thenReturn(providerJson);
@@ -98,11 +103,6 @@ public class DataProvidersDataResourceTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
 
-        List<DataProvider> dataProviderList = new ArrayList<>();
-        dataProviderList.add(dataProvider);
-        when(dataProviders.get()).thenReturn(dataProviderList);
-        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
-
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("TEST - PROVIDER ERROR AT GET DATA AS JASON!"));
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);
@@ -115,11 +115,6 @@ public class DataProvidersDataResourceTest
     @Test
     void addZipEntry() throws Exception
     {
-        List<DataProvider> dataProviderList = new ArrayList<>();
-        dataProviderList.add(dataProvider);
-        when(dataProviders.get()).thenReturn(dataProviderList);
-        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
-
         Map<String, String> providerJson = new HashMap<>();
         providerJson.put("success", "true");
         when(dataProvider.getDataAsJSON()).thenReturn(providerJson);
@@ -138,11 +133,6 @@ public class DataProvidersDataResourceTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
-
-        List<DataProvider> dataProviderList = new ArrayList<>();
-        dataProviderList.add(dataProvider);
-        when(dataProviders.get()).thenReturn(dataProviderList);
-        when(dataProvider.getIdentifier()).thenReturn("data_provider_identifier");
 
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("ERROR AT GET DATA AS JASON."));
         dataProviderResource.addZipEntry(zipOutputStream, null);

@@ -17,9 +17,10 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
+#includeMacros("AdminTools.Code.Macros")
 #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
 #viewLastNLinesMoldal("files")
-#downloadFiles("files")
+#downloadArchiveModal("files")
 {{html clean='false'}}
 #if ($found == 'true')
   <div class="adminToolsDashboardItem">
@@ -30,7 +31,7 @@
     <ul>
       <li>
         <a href="#filesDownloadFilesModal"  data-toggle="modal" data-target="#filesDownloadFilesModal">
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.modal.open'))</a>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.label'))</a>
       </li>
       <li>
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.description'))

@@ -55,9 +55,9 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-            if (catalinaBase != null) {
+            if (catalinaBase != null && !catalinaBase.isEmpty()) {
                 return checkAndSetServerPath(catalinaBase);
-            } else if (catalinaHome != null) {
+            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
                 return checkAndSetServerPath(catalinaHome);
             }
         }
@@ -83,16 +83,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
     }
 
-    private boolean checkAndSetServerPath(String path)
-    {
-        File file = new File(path + "/conf/catalina.properties");
-        if (file.exists()) {
-            this.serverPath = path;
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public String getLogsFolderPath()
     {
@@ -109,5 +99,15 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     public Pattern getLogsPattern()
     {
         return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+    }
+
+    private boolean checkAndSetServerPath(String path)
+    {
+        File file = new File(path + "/conf/catalina.properties");
+        if (file.exists()) {
+            this.serverPath = path;
+            return true;
+        }
+        return false;
     }
 }

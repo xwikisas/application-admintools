@@ -34,10 +34,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{include reference="AdminTools.Code.Macros"/}}
-
-{{dashboard/}}
-</content>
+  <content>{{dashboard/}}</content>
   <object>
     <name>AdminTools.WebHome</name>
     <number>0</number>
@@ -321,62 +318,33 @@ $services.admintools.getConfigurationData('configuration')
       <code>require(['jquery'], function($) {
   $(document).on('click', '#filesDownloadFilesModal .btn-primary', function(event) {
     event.preventDefault()
-    var downloadForm = $(document.getElementById("filesDownloadForm"));
-    var form = downloadForm.serialize()
-    var link = document.createElement('a');
-    link.href = downloadForm.attr('action');
-    link.href += "?" + form;
+    const downloadForm = $('#filesDownloadFilesModal form'); // Updated selector
+    const link = document.createElement('a');
+    link.href = downloadForm.attr('action') + "?" + downloadForm.serialize();
     link.click();
   });
 
-    $(document).on('click', '#filesViewLastNLinesModal .btn-primary', function(event) {
+  $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary', function(event) {
     event.preventDefault()
-    var downloadForm = $(document.getElementById("filesLastNLogLinesForm"));
-    var noLines = $("#filesNoLines").val();
-    if(noLines == ""){
+    const modal = $(event.currentTarget).closest('.modal')
+    const downloadForm = modal.find('form');
+    let noLines = modal.find("input[name='noLines']").val();
+    if(noLines == ''){
       noLines = "1000";
     }
-    var link = document.createElement('a');
-    link.href = downloadForm.attr('action');
-      debugger;
-    link.href += "/" + noLines;
+    const link = document.createElement('a');
+    link.href = downloadForm.attr('action') + "?noLines=" + noLines;
     link.target="_blank";
     link.click();
   });
 
-  $(document).on('click', '#configurationViewLastNLinesModal .btn-primary', function(event) {
-    event.preventDefault()
-    var downloadForm = $(document.getElementById("configurationLastNLogLinesForm"));
-    var noLines = $("#configurationNoLines").val();
-    if(noLines == ""){
-      noLines = "1000";
-    }
-    var link = document.createElement('a');
-    link.href = downloadForm.attr('action');
-      debugger;
-    link.href += "/" + noLines;
-    link.target="_blank";
-    link.click();
-  });
-  
-  $(document).ready(function() {
-    var logsCheckbox = $('input[name="files"][value="logsDataResource"]');
-    var dateFields = $('.dateFields');
-
-    if (!logsCheckbox.is(':checked')) {
-        dateFields.hide();
+  $(document).on('change', '#filesDownloadFilesModal input[name="files"][value="logsDataResource"]', function() {
+    if ($(this).is(':checked')) {
+        $('.dateFields').show();
     } else {
-        dateFields.show();
+        $('.dateFields').hide();
     }
-
-    logsCheckbox.change(function() {
-        if (this.checked) {
-            dateFields.show();
-        } else {
-            dateFields.hide();
-        }
-    });
-});
+  });
 });
 
 </code>
@@ -510,20 +478,16 @@ $services.admintools.getConfigurationData('configuration')
   text-align: center;
 }
 
-.download-button{
-  text-align: center;
-}
-
-.downloadFilesModalTitle{
-  text-align: center;
-}
-
 .download-modal-content{
   padding-left: 5rem;
 }
 
 .dateFields {
   margin: 2rem 4rem;
+}
+
+.bootstrap-datetimepicker-widget {
+  z-index: 99999 !important;
 }</code>
     </property>
     <property>

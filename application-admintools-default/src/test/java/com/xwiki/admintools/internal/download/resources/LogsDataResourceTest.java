@@ -208,8 +208,8 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
         Map<String, String> filters = new HashMap<>();
-        filters.put("from", "2023-10-06");
-        filters.put("to", "2023-10-07");
+        filters.put("from", "06-10-2023");
+        filters.put("to", "07-10-2023");
         readLines(400);
         logsDataResource.addZipEntry(zipOutputStream, filters);
         byte[] buff = new byte[2048];
@@ -229,7 +229,7 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
         Map<String, String> filters = new HashMap<>();
-        filters.put("from", "2023-10-10");
+        filters.put("from", "10-10-2023");
         filters.put("to", null);
 
         logsDataResource.addZipEntry(zipOutputStream, filters);

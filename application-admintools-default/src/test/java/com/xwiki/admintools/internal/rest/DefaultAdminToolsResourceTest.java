@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Provider;
+import javax.ws.rs.WebApplicationException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ public class DefaultAdminToolsResourceTest
         when(downloadManager.getFile("resource_hint", null)).thenThrow(new IOException("FILE NOT FOUND"));
 
         assertEquals(404, defaultAdminToolsResource.getFile("resource_hint").getStatus());
-        verify(logger).warn("Could not find file from DataResource[{}]. Root cause: [{}]", "resource_hint",
+        verify(logger).warn("Could not find file from DataResource [{}]. Root cause: [{}]", "resource_hint",
             "IOException: FILE NOT FOUND");
     }
 
@@ -129,10 +130,10 @@ public class DefaultAdminToolsResourceTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
 
-        Exception exception = assertThrows(Exception.class, () -> {
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFile("resource_hint");
         });
-        assertEquals("HTTP 500 Internal Server Error", exception.getMessage());
+        assertEquals(500, exception.getResponse().getStatus());
         verify(logger).warn("Failed to get data from DataResource [{}]. Root cause: [{}]", "resource_hint",
             "NullPointerException: ");
     }
@@ -144,10 +145,10 @@ public class DefaultAdminToolsResourceTest
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
 
         when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
-        Exception exception = assertThrows(Exception.class, () -> {
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFile("resource_hint");
         });
-        assertEquals("HTTP 401 Unauthorized", exception.getMessage());
+        assertEquals(401, exception.getResponse().getStatus());
         verify(logger).warn("Failed to get file from DataResource [{}] due to restricted rights.", "resource_hint");
     }
 
@@ -171,10 +172,10 @@ public class DefaultAdminToolsResourceTest
         when(xWikiRequest.getParameterMap()).thenReturn(formParameters);
         when(downloadManager.downloadMultipleFiles(formParameters)).thenThrow(
             new Exception("DOWNLOAD MANAGER EXCEPTION"));
-        Exception exception = assertThrows(Exception.class, () -> {
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             defaultAdminToolsResource.getFiles();
         });
-        assertEquals("HTTP 500 Internal Server Error", exception.getMessage());
+        assertEquals(500, exception.getResponse().getStatus());
         verify(logger).warn("Failed to download files. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
     }
 
@@ -185,10 +186,10 @@ public class DefaultAdminToolsResourceTest
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
 
         when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
-        Exception exception = assertThrows(Exception.class, () -> {
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFiles();
         });
-        assertEquals("HTTP 401 Unauthorized", exception.getMessage());
+        assertEquals(401, exception.getResponse().getStatus());
         verify(logger).warn("Failed to get files due to restricted rights.");
     }
 
@@ -197,46 +198,14 @@ public class DefaultAdminToolsResourceTest
     {
         when(downloadManager.getFile(LogsDataResource.HINT, "30")).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("30");
-        assertEquals(200, defaultAdminToolsResource.getLastLogs("30").getStatus());
+        assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }
 
     @Test
-    void getLastDownloadManagerError() throws Exception
+    void getLastLogsNoInput() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
-        when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenThrow(new IOException("FILE NOT FOUND"));
-
-        assertEquals(404, defaultAdminToolsResource.getLastLogs("").getStatus());
-        verify(logger).warn("Could not retrieve logs from server. Root cause: [{}]", "IOException: FILE NOT FOUND");
-    }
-
-    @Test
-    void getLastLogsDownloadManagerError() throws Exception
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
-        when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenThrow(new Exception("INTERNAL ERROR"));
-        Exception exception = assertThrows(Exception.class, () -> {
-            this.defaultAdminToolsResource.getLastLogs(null);
-        });
-        assertEquals("HTTP 500 Internal Server Error", exception.getMessage());
-        verify(logger).warn("Failed to get logs. Root cause: [{}]", "Exception: INTERNAL ERROR");
-    }
-
-    @Test
-    void getLastLogsNotAdmin()
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
-        when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
-        Exception exception = assertThrows(Exception.class, () -> {
-            this.defaultAdminToolsResource.getLastLogs("1000");
-        });
-        assertEquals("HTTP 401 Unauthorized", exception.getMessage());
-        verify(logger).warn("Failed to get the logs due to restricted rights.");
+        when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenReturn(new byte[] { 2 });
+        when(xWikiRequest.getParameter("noLines")).thenReturn("");
+        assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }
 }

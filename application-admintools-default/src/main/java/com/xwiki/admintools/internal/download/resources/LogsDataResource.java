@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -171,15 +172,16 @@ public class LogsDataResource implements DataResource
         if (matcher.find()) {
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
+            DateTimeFormatter filtersFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             if (filters.get(FROM_DATE_FILTER_KEY) != null && filters.get(TO_DATE_FILTER_KEY) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY));
-                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY));
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY), filtersFormatter);
+                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1)) && fileDate.isBefore(toDate.plusDays(1));
             } else if (filters.get(FROM_DATE_FILTER_KEY) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY));
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1));
             } else if (filters.get(TO_DATE_FILTER_KEY) != null) {
-                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY));
+                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY), filtersFormatter);
                 return fileDate.isBefore(toDate.plusDays(1));
             } else {
                 return true;

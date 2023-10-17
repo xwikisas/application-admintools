@@ -160,8 +160,11 @@ public class DownloadManagerTest
     }
 
     @Test
-    void downloadMultipleFilesNoArchiverFound() throws Exception
+    void downloadMultipleFilesNoArchiverFound()
     {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);
+
         String[] files = { "data_resource_identifier_invalid", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
         request.put("files", files);
@@ -174,10 +177,12 @@ public class DownloadManagerTest
         });
 
         assertEquals("Error while generating the file archive.", exception.getMessage());
+        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]",
+            "NullPointerException: ");
     }
 
     @Test
-    void downloadMultipleFilesInvalidRequest() throws Exception
+    void downloadMultipleFilesInvalidRequest()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);

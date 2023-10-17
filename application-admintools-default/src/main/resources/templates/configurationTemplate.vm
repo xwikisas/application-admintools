@@ -17,6 +17,7 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
+#includeMacros("AdminTools.Code.Macros")
 #viewLastNLinesMoldal("configuration")
 {{html clean='false'}}
 #if ($configuration['serverFound'] == 'true')
@@ -74,7 +75,6 @@
   #set($warningMessage = $warningMessage +
     $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error')) + ':'
     + $stringtool.join($services.admintools.getSupportedServers(), ', '))
-
   #warning($warningMessage)
 #end
 {{/html}}
