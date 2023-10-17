@@ -36,10 +36,9 @@ public interface ServerIdentifier
      * path corresponds to a server. Otherwise, it searches the server location in system properties and system
      * environment.
      *
-     * @param providedConfigServerPath {@link String} server path provided in the XWiki configuration page.
      * @return {@code true} if the server is used, {@code false} otherwise.
      */
-    boolean isUsed(String providedConfigServerPath);
+    boolean isUsed();
 
     /**
      * Extract the hint of a component.
@@ -65,5 +64,5 @@ public interface ServerIdentifier
     /**
      * Update the possible paths to the configuration files.
      */
-    void updatePaths();
+    void updatePossiblePaths();
 }

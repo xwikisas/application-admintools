@@ -21,7 +21,11 @@ package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
  * Common methods for {@link ServerIdentifier} classes.
@@ -35,6 +39,10 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
 
     protected String[] xwikiCfgPossiblePaths;
 
+    @Inject
+    @Named("default")
+    protected AdminToolsConfiguration adminToolsConfig;
+
     /**
      * The path to the server.
      */
@@ -43,7 +51,7 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     @Override
     public String getServerCfgPath()
     {
-        for (String serverCfgPath : serverCfgPossiblePaths) {
+        for (String serverCfgPath : this.serverCfgPossiblePaths) {
             if ((new File(serverCfgPath)).exists()) {
                 return serverCfgPath;
             }
@@ -54,9 +62,9 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     @Override
     public String getXwikiCfgFolderPath()
     {
-        for (String xwikiCfgPath : xwikiCfgPossiblePaths) {
-            if ((new File(xwikiCfgPath + "xwiki.cfg")).exists()) {
-                return xwikiCfgPath;
+        for (String xwikiCfgFolderPath : this.xwikiCfgPossiblePaths) {
+            if ((new File(xwikiCfgFolderPath + "xwiki.cfg")).exists()) {
+                return xwikiCfgFolderPath;
             }
         }
         return null;

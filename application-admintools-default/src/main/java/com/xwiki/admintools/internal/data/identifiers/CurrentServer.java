@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
@@ -34,7 +33,6 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -51,23 +49,9 @@ public class CurrentServer implements Initializable
 
     private ServerIdentifier currentServerIdentifier;
 
-    @Inject
-    @Named("default")
-    private AdminToolsConfiguration adminToolsConfig;
-
-    private Map<String, String> supportedDB;
-
     @Override
     public void initialize() throws InitializationException
     {
-        supportedDB = new HashMap<>();
-        supportedDB.put("mysql", "MySQL");
-        supportedDB.put("hsqldb", "HSQLDB");
-        supportedDB.put("mariadb", "MariaDB");
-        supportedDB.put("postgresql", "PostgreSQL");
-        supportedDB.put("oracle", "Oracle");
-
-        currentServerIdentifier = null;
         updateCurrentServer();
     }
 
@@ -78,7 +62,7 @@ public class CurrentServer implements Initializable
      */
     public ServerIdentifier getCurrentServer()
     {
-        return currentServerIdentifier;
+        return this.currentServerIdentifier;
     }
 
     /**
@@ -86,9 +70,15 @@ public class CurrentServer implements Initializable
      *
      * @return the supported databases.
      */
-    public Map<String, String> getSupportedDB()
+    public Map<String, String> getSupportedDBs()
     {
-        return supportedDB;
+        Map<String, String> supportedDBs = new HashMap<>();
+        supportedDBs.put("mysql", "MySQL");
+        supportedDBs.put("hsqldb", "HSQLDB");
+        supportedDBs.put("mariadb", "MariaDB");
+        supportedDBs.put("postgresql", "PostgreSQL");
+        supportedDBs.put("oracle", "Oracle");
+        return supportedDBs;
     }
 
     /**
@@ -110,12 +100,11 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        String providedConfigServerPath = adminToolsConfig.getServerPath();
-        currentServerIdentifier = null;
+        this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed(providedConfigServerPath)) {
-                currentServerIdentifier = serverIdentifier;
-                currentServerIdentifier.updatePaths();
+            if (serverIdentifier.isUsed()) {
+                this.currentServerIdentifier = serverIdentifier;
+                this.currentServerIdentifier.updatePossiblePaths();
                 break;
             }
         }

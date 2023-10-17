@@ -61,15 +61,14 @@ public class SecurityDataProvider extends AbstractDataProvider
     private ConfigurationSource configurationSource;
 
     @Override
-    public String provideData()
+    public String getRenderedData()
     {
         Map<String, String> securityDetails = new HashMap<>();
         try {
-            securityDetails = provideJson();
-            securityDetails.put(serverFound, "true");
+            securityDetails = getDataAsJSON();
+            securityDetails.put(SERVER_FOUND, "true");
         } catch (Exception e) {
-            logger.warn(ExceptionUtils.getRootCauseMessage(e));
-            securityDetails.put(serverFound, null);
+            securityDetails.put(SERVER_FOUND, "false");
         }
         return renderTemplate("securityTemplate.vm", securityDetails, HINT);
     }
@@ -81,7 +80,7 @@ public class SecurityDataProvider extends AbstractDataProvider
     }
 
     @Override
-    public Map<String, String> provideJson() throws Exception
+    public Map<String, String> getDataAsJSON() throws Exception
     {
         try {
             Map<String, String> securityDetails = this.getXwikiSecurityInfo();
@@ -89,8 +88,7 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
             return securityDetails;
         } catch (Exception e) {
-            throw new Exception(
-                "Failed to generate the security json. Error info : " + ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception("Failed to generate the instance security data.", e);
         }
     }
 
@@ -104,12 +102,14 @@ public class SecurityDataProvider extends AbstractDataProvider
         try {
             Map<String, String> results = new HashMap<>();
 
-            XWikiContext wikiContext = xcontextProvider.get();
+            XWikiContext wikiContext = this.xcontextProvider.get();
             results.put("activeEncoding", wikiContext.getWiki().getEncoding());
-            results.put("configurationEncoding", configurationSource.getProperty("xwiki.encoding", String.class));
+            results.put("configurationEncoding", this.configurationSource.getProperty("xwiki.encoding", String.class));
             return results;
         } catch (Exception e) {
-            throw new Exception("Failed to generate xwiki security info: " + ExceptionUtils.getRootCauseMessage(e));
+            this.logger.warn("Failed to generate xwiki security info. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            throw new Exception("Failed to generate xwiki security info.", e);
         }
     }
 
@@ -126,7 +126,7 @@ public class SecurityDataProvider extends AbstractDataProvider
         results.put(WORK_DIRECTORY, System.getenv(WORK_DIRECTORY));
         results.put(LANGUAGE, System.getenv(LANGUAGE));
         if (workDirectory == null || language == null) {
-            logger.warn("Failed to access language or work directory environment variables.");
+            this.logger.warn("Failed to access language or work directory environment variables.");
         }
         return results;
     }

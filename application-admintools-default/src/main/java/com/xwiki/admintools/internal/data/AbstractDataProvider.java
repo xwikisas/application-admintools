@@ -27,8 +27,6 @@ import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 
@@ -41,9 +39,9 @@ import com.xwiki.admintools.DataProvider;
  * @version $Id$
  * @since 1.0
  */
-public abstract class AbstractDataProvider implements DataProvider, Initializable
+public abstract class AbstractDataProvider implements DataProvider
 {
-    protected final String serverFound = "serverFound";
+    protected static final String SERVER_FOUND = "serverFound";
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
@@ -57,34 +55,25 @@ public abstract class AbstractDataProvider implements DataProvider, Initializabl
     @Inject
     private ScriptContextManager scriptContextManager;
 
-    @Override
-    public void initialize() throws InitializationException
-    {
-        // Overwrite to initialize a component
-    }
-
-    @Override
-    public String renderTemplate(String template, Map<String, String> data, String hint)
+    /**
+     * Get the data in a format given by the associated template.
+     *
+     * @param data {@link Map} with info to be shown in the template.
+     * @param template name of the template.
+     * @param hint {@link String} component name.
+     * @return the rendered template as a {@link String}.
+     */
+    protected String renderTemplate(String template, Map<String, String> data, String hint)
     {
         try {
             // Binds the data provided to the template.
-            this.bindData(hint, data);
+            ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
+            scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);
             return this.templateManager.render(template);
         } catch (Exception e) {
-            logger.warn("Failed to render custom template. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            this.logger.warn("Failed to render custom template. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
-    }
-
-    /**
-     * Binds the data provided by for the template.
-     *
-     * @param hint Name used to identify the data inside the template.
-     * @param data component data to be rendered in the template.
-     */
-    private void bindData(String hint, Map<String, String> data)
-    {
-        ScriptContext scriptContext = scriptContextManager.getScriptContext();
-        scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);
     }
 }

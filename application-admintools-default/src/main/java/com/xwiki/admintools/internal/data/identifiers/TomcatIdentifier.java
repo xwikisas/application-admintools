@@ -19,14 +19,14 @@
  */
 package com.xwiki.admintools.internal.data.identifiers;
 
-import javax.inject.Inject;
+import java.io.File;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.util.DefaultFileOperations;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
@@ -44,27 +44,22 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      */
     public static final String HINT = "Tomcat";
 
-    @Inject
-    private DefaultFileOperations fileOperations;
-
     @Override
-    public boolean isUsed(String providedConfigServerPath)
+    public boolean isUsed()
     {
+        this.serverPath = null;
+        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
         if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
-            if (checkAndSetServerPath(providedConfigServerPath)) {
-                return true;
-            }
+            return checkAndSetServerPath(providedConfigServerPath);
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-
             if (catalinaBase != null) {
                 return checkAndSetServerPath(catalinaBase);
             } else if (catalinaHome != null) {
                 return checkAndSetServerPath(catalinaHome);
             }
         }
-        this.serverPath = null;
         return false;
     }
 
@@ -75,7 +70,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public void updatePaths()
+    public void updatePossiblePaths()
     {
         this.serverCfgPossiblePaths =
             new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
@@ -89,8 +84,8 @@ public class TomcatIdentifier extends AbstractServerIdentifier
 
     private boolean checkAndSetServerPath(String path)
     {
-        fileOperations.openFile(path + "/conf/catalina.properties");
-        if (fileOperations.fileExists()) {
+        File file = new File(path + "/conf/catalina.properties");
+        if (file.exists()) {
             this.serverPath = path;
             return true;
         }

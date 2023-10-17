@@ -36,31 +36,31 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>##Admin section
-admin.admintools.description=Configure Admin Tools Application
-AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
-adminTools.dashboard.section.backend.title=Backend
+AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
+admin.admintools.description=Configure Admin Tools Application
+adminTools.dashboard.section.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
 adminTools.dashboard.section.backend.description=Get info about your backend
-adminTools.dashboard.section.backend.xwiki.version=XWiki installation version
+adminTools.dashboard.section.backend.java=Detected java version:
+adminTools.dashboard.section.backend.os.legend=OS info:
+adminTools.dashboard.section.backend.os.architecture=OS architecture:
+adminTools.dashboard.section.backend.os.name=OS name:
+adminTools.dashboard.section.backend.os.version=OS version:
 adminTools.dashboard.section.backend.showLogs=Show latest logs
-adminTools.dashboard.section.backend.usedServer=Used server
-adminTools.dashboard.section.backend.usedDB=Used database
-adminTools.dashboard.section.backend.os.legend=OS info
-adminTools.dashboard.section.backend.os.name=OS name
-adminTools.dashboard.section.backend.java=Detected java version
-adminTools.dashboard.section.backend.os.version=OS version
-adminTools.dashboard.section.backend.os.architecture=OS Architecture
-adminTools.dashboard.section.backend.error.supportedServers=Currently supported servers
-adminTools.dashboard.section.backend.error.supportedDB=Database not found. Currently supported databases
-adminTools.dashboard.section.backend.error.configuration=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
-adminTools.dashboard.section.security.fileEncoding=File encoding
-adminTools.dashboard.section.security.LANG=Used language
-adminTools.dashboard.section.security.PWD=Working directory
-adminTools.dashboard.section.security.configurationEncoding=Configuration encoding
-adminTools.dashboard.section.security.activeEncoding=Active encoding
-adminTools.dashboard.section.security.error=Error while gathering security information.
-adminTools.dashboard.section.security.title=Security
+adminTools.dashboard.section.backend.supportedDB.error=Database not found. Currently supported databases:
+adminTools.dashboard.section.backend.supportedServers.error=Currently supported servers:
+adminTools.dashboard.section.backend.title=Backend
+adminTools.dashboard.section.backend.usedDB=Used database:
+adminTools.dashboard.section.backend.usedServer=Used server:
+adminTools.dashboard.section.backend.xwiki.version=XWiki installation version:
+adminTools.dashboard.section.security.activeEncoding=Active encoding:
+adminTools.dashboard.section.security.configurationEncoding=Configuration encoding:
 adminTools.dashboard.section.security.description=See an overview of your security information.
+adminTools.dashboard.section.security.error=Error while gathering security information.
+adminTools.dashboard.section.security.fileEncoding=File encoding:
+adminTools.dashboard.section.security.lang=Used language:
+adminTools.dashboard.section.security.pwd=Working directory:
+adminTools.dashboard.section.security.title=Security
   </content>
   <object>
     <name>AdminTools.Code.Translations</name>

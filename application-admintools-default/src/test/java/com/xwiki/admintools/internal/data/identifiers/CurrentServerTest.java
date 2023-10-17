@@ -26,9 +26,10 @@ import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.xwiki.component.phase.InitializationException;
+import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.ServerIdentifier;
@@ -36,7 +37,6 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,107 +47,73 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class CurrentServerTest
 {
-    @InjectMocks
+    @InjectMockComponents
     private CurrentServer currentServer;
 
     @MockComponent
     private Provider<List<ServerIdentifier>> supportedServers;
 
     @MockComponent
+    private ServerIdentifier serverIdentifier;
+
+    @MockComponent
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
-    @Test
-    public void testInitialize() throws InitializationException
+    @BeforeComponent
+    void setUp()
     {
-        // Mock the behavior of adminToolsConfig
-        when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
-
-        // Create a mock implementation of ServerIdentifier
-        ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
-
-        // Mock the list of supported servers
+        // Mock the list of supported servers.
         List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(mockServerIdentifier);
+        mockServerIdentifiers.add(serverIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
+        when(serverIdentifier.isUsed()).thenReturn(true);
 
-        // Call the initialize method
-        currentServer.updateCurrentServer();
-
-        // Verify that the currentServerIdentifier is set correctly
-        assertEquals(mockServerIdentifier, currentServer.getCurrentServer());
+        // Mock the behavior of adminToolsConfig.
+        when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
     }
 
     @Test
-    public void testUpdateCurrentServerAfterInitializationNotFound() throws InitializationException
+    void initializeFound() throws InitializationException
     {
-        // Mock the behavior of adminToolsConfig
-        when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
+        // Call the initialize method.
+        currentServer.initialize();
 
-        // Create a mock implementation of ServerIdentifier
-        ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
-
-        // Mock the list of supported servers
-        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(mockServerIdentifier);
-        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-
-        currentServer.updateCurrentServer();
-
-        // Verify that the currentServerIdentifier was not found
-        assertNull(currentServer.getCurrentServer());
-
-        // Mock the behaviour of serverIdentifier
-        when(mockServerIdentifier.isUsed("exampleServerPath")).thenReturn(true);
-
-        // Call the updateCurrentServer method
-        currentServer.updateCurrentServer();
-
-        // Verify that the currentServerIdentifier is set correctly
-        assertEquals(mockServerIdentifier, currentServer.getCurrentServer());
+        // Verify that the currentServerIdentifier is set correctly.
+        assertEquals(serverIdentifier, currentServer.getCurrentServer());
     }
 
     @Test
-    public void testInitializeNotFound() throws InitializationException
+    void initializeWithServerNotFound() throws InitializationException
     {
-        // Mock the behavior of adminToolsConfig
-        when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
+        when(serverIdentifier.isUsed()).thenReturn(false);
+        currentServer.initialize();
 
-        // Create a mock implementation of ServerIdentifier
-        ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
-
-        // Mock the list of supported servers
-        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(mockServerIdentifier);
-        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-
-        // Call the initialize method
-        currentServer.updateCurrentServer();
-
-        // Verify that the currentServerIdentifier was not found
         assertNull(currentServer.getCurrentServer());
     }
 
     @Test
-    public void getSupportedServersTest() throws InitializationException
+    void updateCurrentServer()
     {
-        // Mock the behavior of adminToolsConfig
-        when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
-        // Create a mock implementation of ServerIdentifier
-        ServerIdentifier mockServerIdentifier = mock(ServerIdentifier.class);
+        when(serverIdentifier.isUsed()).thenReturn(false);
+        currentServer.updateCurrentServer();
+        assertNull(currentServer.getCurrentServer());
 
-        // Mock the list of supported servers
-        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(mockServerIdentifier);
-        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(mockServerIdentifier.getComponentHint()).thenReturn("testServer");
+        when(serverIdentifier.isUsed()).thenReturn(true);
+        currentServer.updateCurrentServer();
+        assertEquals(serverIdentifier, currentServer.getCurrentServer());
+    }
 
-        // Create the expected list
+    @Test
+    void getSupportedServers()
+    {
+        when(serverIdentifier.getComponentHint()).thenReturn("testServer");
+
+        // Create the expected list.
         List<String> testServersList = new ArrayList<>();
         testServersList.add("testServer");
 
-        // Verify if the method returns the expected list
+        // Verify if the method returns the expected list.
         assertEquals(testServersList, currentServer.getSupportedServers());
     }
 }

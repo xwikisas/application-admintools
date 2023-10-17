@@ -41,8 +41,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 @Singleton
 public class AdminToolsManager
 {
-    private final String delimiter = ", ";
-
     /**
      * A list of all the data providers for Admin Tools.
      */
@@ -65,7 +63,7 @@ public class AdminToolsManager
         StringBuilder strBuilder = new StringBuilder();
 
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            strBuilder.append(dataProvider.provideData());
+            strBuilder.append(dataProvider.getRenderedData());
             strBuilder.append("\n");
         }
         return strBuilder.toString();
@@ -81,7 +79,7 @@ public class AdminToolsManager
     {
         for (DataProvider dataProvider : this.dataProviderProvider.get()) {
             if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.provideData();
+                return dataProvider.getRenderedData();
             }
         }
         return null;
@@ -90,21 +88,20 @@ public class AdminToolsManager
     /**
      * Get supported databases.
      *
-     * @return supported databases inline and separated with a ",".
+     * @return a {@link List} with the supported databases.
      */
-    public String getSupportedDB()
+    public List<String> getSupportedDBs()
     {
-        List<String> supportedDBList = new ArrayList<>(currentServer.getSupportedDB().values());
-        return String.join(delimiter, supportedDBList);
+        return  new ArrayList<>(this.currentServer.getSupportedDBs().values());
     }
 
     /**
      * Get supported servers.
      *
-     * @return supported servers inline and separated with a ",".
+     * @return the servers that are compatible with the application.
      */
-    public String getSupportedServers()
+    public List<String> getSupportedServers()
     {
-        return String.join(delimiter, currentServer.getSupportedServers());
+        return this.currentServer.getSupportedServers();
     }
 }

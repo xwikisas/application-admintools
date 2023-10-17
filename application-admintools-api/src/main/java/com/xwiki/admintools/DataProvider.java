@@ -37,12 +37,12 @@ public interface DataProvider
      *
      * @return the information formatted by the associated template as a {@link String}.
      */
-    String provideData();
+    String getRenderedData();
 
     /**
      * Extract the hint of a component.
      *
-     * @return the component hint
+     * @return the component hint.
      */
     String getIdentifier();
 
@@ -52,15 +52,5 @@ public interface DataProvider
      * @return a {@link Map} with the generated info.
      * @throws Exception
      */
-    Map<String, String> provideJson() throws Exception;
-
-    /**
-     * Get the data in a format given by the associated template.
-     *
-     * @param data {@link Map} with info to be shown in the template.
-     * @param template name of the template.
-     * @param hint {@link String} component name.
-     * @return the rendered template as a {@link String}.
-     */
-    String renderTemplate(String template, Map<String, String> data, String hint);
+    Map<String, String> getDataAsJSON() throws Exception;
 }
