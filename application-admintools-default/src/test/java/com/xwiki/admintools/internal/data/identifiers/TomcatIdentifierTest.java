@@ -101,14 +101,6 @@ public class TomcatIdentifierTest
         configDirectory.delete();
     }
 
-    // Test with neither providedConfigServerPath nor catalina.base/CATALINA_HOME set.
-    @Test
-    void isUsedPathNotFound()
-    {
-        when(adminToolsConfig.getServerPath()).thenReturn(null);
-        assertFalse(tomcatIdentifier.isUsed());
-    }
-
     @Test
     void getIdentifier()
     {

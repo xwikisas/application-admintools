@@ -19,13 +19,10 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,6 +33,9 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.store.XWikiCacheStoreInterface;
+import com.xpn.xwiki.store.XWikiHibernateBaseStore;
+import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -88,7 +88,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
+            systemInfo.put("usedServer", this.getCurrentServer().getServerNameAndVersion());
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
@@ -108,42 +108,43 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Identify the used database for XWiki by verifying the configration files.
+     * Identify the used database for XWiki by accessing the {@link DatabaseMetaData}.
      *
-     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported.
+     * @return the name and version of the used database or {@code null} in case an error occurred or the used DB is
+     * not supported.
      */
-    private String identifyDB() throws Exception
+    private String identifyDB()
     {
         String usedDB = null;
         try {
-            ServerIdentifier server = getCurrentServer();
-            String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
-            String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
-            Pattern pattern = Pattern.compile(patternString);
-            File file = new File(databaseCfgPath);
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-
-            while (bufferedReader.ready()) {
-                String line = bufferedReader.readLine();
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String foundDB = matcher.group(1);
-                    usedDB = this.currentServer.getSupportedDBs().getOrDefault(foundDB, null);
-                    break;
-                }
+            DatabaseMetaData metaData = getDBMetaData();
+            if (metaData != null) {
+                usedDB = metaData.getDatabaseProductName() + " - " + metaData.getDatabaseProductVersion();
+            } else {
+                this.logger.warn("Failed to get database metadata.");
             }
-            bufferedReader.close();
-            if (usedDB == null) {
-                this.logger.warn("Failed to find database. Used database may not be supported!");
-            }
-        } catch (NullPointerException e) {
-            throw new Exception("Failed to identify used Database.", e);
+        } catch (SQLException e) {
+            this.logger.warn("Failed to compute database name and version. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
         } catch (Exception exception) {
-            this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+            this.logger.warn("Failed to get database metadata. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
         }
-
         return usedDB;
+    }
+
+    private DatabaseMetaData getDBMetaData()
+    {
+        DatabaseMetaData metaData = null;
+        XWikiStoreInterface storeInterface = xcontextProvider.get().getWiki().getStore();
+        if (storeInterface instanceof XWikiCacheStoreInterface) {
+            storeInterface = ((XWikiCacheStoreInterface) storeInterface).getStore();
+        }
+        if (XWikiHibernateBaseStore.class.isAssignableFrom(storeInterface.getClass())) {
+            XWikiHibernateBaseStore baseStore = (XWikiHibernateBaseStore) storeInterface;
+            metaData = baseStore.getDatabaseMetaData();
+        }
+        return metaData;
     }
 
     /**

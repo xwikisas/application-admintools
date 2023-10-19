@@ -65,4 +65,11 @@ public interface ServerIdentifier
      * Update the possible paths to the configuration files.
      */
     void updatePossiblePaths();
+
+    /**
+     * Access the Active Installs 2 Ping to retrieve server name and version.
+     *
+     * @return the used server name and version.
+     */
+    String getServerNameAndVersion();
 }

@@ -19,9 +19,8 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,20 +36,22 @@ import org.slf4j.Logger;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
-import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.store.XWikiCacheStore;
+import com.xpn.xwiki.store.XWikiCacheStoreInterface;
+import com.xpn.xwiki.store.XWikiHibernateBaseStore;
+import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,12 @@ public class ConfigurationDataProviderTest
     static Map<String, String> defaultJson;
 
     private final String templatePath = "configurationTemplate.vm";
+
+    @Mock
+    XWikiHibernateBaseStore baseStore;
+
+    @Mock
+    DatabaseMetaData metaData;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -97,21 +104,24 @@ public class ConfigurationDataProviderTest
     @Mock
     private ScriptContext scriptContext;
 
-    @XWikiTempDir
-    private File tmpDir;
+    @Mock
+    private XWikiHibernateStore xWikiStoreInterface;
+
+    @Mock
+    private XWikiCacheStoreInterface xWikiCacheStore;
 
     @BeforeAll
     static void setUp()
     {
         // Prepare expected json.
         defaultJson = new HashMap<>();
-        defaultJson.put("database", "MySQL");
+        defaultJson.put("database", "MySQL - x.y.z");
         defaultJson.put("osVersion", "test_os_version");
         defaultJson.put("javaVersion", "used_java_version");
         defaultJson.put("osArch", "test_os_arch");
         defaultJson.put("tomcatConfPath", "server_config_folder_path");
         defaultJson.put("xwikiCfgPath", "xwiki_config_folder_path");
-        defaultJson.put("usedServer", "test_server");
+        defaultJson.put("usedServer", "test_server_name - test_server_version");
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
 
@@ -137,6 +147,12 @@ public class ConfigurationDataProviderTest
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getVersion()).thenReturn("xwiki_version");
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverIdentifier.getServerNameAndVersion()).thenReturn("test_server_name - test_server_version");
+        when(wiki.getStore()).thenReturn(xWikiCacheStore);
+        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(xWikiStoreInterface);
     }
 
     @Test
@@ -146,110 +162,60 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void getDataAsJsonDBNotSupported() throws Exception
+    void getDataAsJsonMetaDataFail() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-
-        // Mock file behaviour.
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
-        configDirectory.mkdir();
-        configDirectory.deleteOnExit();
-        String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
-        File testFile = new File(configDirectory, "hibernate.cfg.xml");
-        testFile.createNewFile();
-        assertTrue(testFile.exists());
-
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
+        when(wiki.getStore()).thenReturn(null);
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("database", null);
-        json.put("xwikiCfgPath", cfgFolderPath);
 
         assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to find database. Used database may not be supported!");
+        verify(this.logger).warn("Failed to get database metadata. Root cause is: [{}]", "NullPointerException: ");
     }
 
     @Test
-    void getDataAsJsonIdentifyDBFileNotFound() throws Exception
+    void getDataAsJsonMetaDataNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
-        configDirectory.mkdir();
-        String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
-
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
+        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(new XWikiCacheStore());
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("database", null);
-        json.put("xwikiCfgPath", cfgFolderPath);
 
         assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to open database configuration file. Root cause is: [{}]",
-            "FileNotFoundException: " + cfgFolderPath + "hibernate.cfg.xml (No such file or directory)");
-        configDirectory.delete();
+        verify(this.logger).warn("Failed to get database metadata.");
     }
 
     @Test
-    void getDataAsJsonIdentifyDBCurrentServerNotFound()
+    void getDataAsJsonMetaDataError() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        when(currentServer.getCurrentServer()).thenReturn(null);
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            this.configurationDataProvider.getDataAsJSON();
-        });
-        assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
-        verify(this.logger).warn("Failed to retrieve used server. Server not found.");
+        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
+        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenThrow(new SQLException("metaData-err"));
+
+        Map<String, String> json = new HashMap<>(defaultJson);
+        json.put("database", null);
+
+        assertEquals(json, configurationDataProvider.getDataAsJSON());
+        verify(this.logger).warn("Failed to compute database name and version. Root cause is: [{}]",
+            "SQLException: metaData-err");
     }
 
     @Test
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
-        // Mock file behaviour.
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
-        configDirectory.mkdir();
-        configDirectory.deleteOnExit();
-        String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
-        File testFile = new File(configDirectory, "hibernate.cfg.xml");
-        testFile.createNewFile();
-        assertTrue(testFile.exists());
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(testFile.getAbsolutePath()));
-        writer.append("file content\n");
-        writer.append("file content1\n");
-        writer.append("file content2\n");
-        writer.append("<property name=\"connection.url\">jdbc:mysql://\n");
-        writer.append("file content3\n");
-        writer.close();
-
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
-
-        Map<String, String> supportedDBs = new HashMap<>();
-        supportedDBs.put("mysql", "MySQL");
-        supportedDBs.put("hsqldb", "HSQLDB");
-        supportedDBs.put("mariadb", "MariaDB");
-        supportedDBs.put("postgresql", "PostgreSQL");
-        supportedDBs.put("oracle", "Oracle");
-        when(currentServer.getSupportedDBs()).thenReturn(supportedDBs);
+        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
+        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenReturn("MySQL");
+        when(metaData.getDatabaseProductVersion()).thenReturn("x.y.z");
 
         Map<String, String> json = new HashMap<>(defaultJson);
-        json.put("xwikiCfgPath", cfgFolderPath);
 
         assertEquals(json, configurationDataProvider.getDataAsJSON());
     }
@@ -259,6 +225,8 @@ public class ConfigurationDataProviderTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
+
+        when(currentServer.getCurrentServer()).thenReturn(null);
 
         Exception exception = assertThrows(Exception.class, () -> {
             this.configurationDataProvider.getDataAsJSON();
@@ -270,40 +238,13 @@ public class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecution() throws Exception
     {
-        // Mock file behaviour.
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
-        configDirectory.mkdir();
-        configDirectory.deleteOnExit();
-        String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
-        File testFile = new File(configDirectory, "hibernate.cfg.xml");
-        testFile.createNewFile();
-        assertTrue(testFile.exists());
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(testFile.getAbsolutePath()));
-        writer.append("file content\n");
-        writer.append("file content1\n");
-        writer.append("file content2\n");
-        writer.append("<property name=\"connection.url\">jdbc:mysql://\n");
-        writer.append("file content3\n");
-        writer.close();
-
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
-
-        Map<String, String> supportedDBs = new HashMap<>();
-        supportedDBs.put("mysql", "MySQL");
-        supportedDBs.put("hsqldb", "HSQLDB");
-        supportedDBs.put("mariadb", "MariaDB");
-        supportedDBs.put("postgresql", "PostgreSQL");
-        supportedDBs.put("oracle", "Oracle");
-        when(currentServer.getSupportedDBs()).thenReturn(supportedDBs);
+        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
+        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenReturn("MySQL");
+        when(metaData.getDatabaseProductVersion()).thenReturn("x.y.z");
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("serverFound", "true");
-        json.put("xwikiCfgPath", cfgFolderPath);
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
@@ -320,24 +261,10 @@ public class ConfigurationDataProviderTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
 
-        // Mock file behaviour.
-        File configDirectory = new File(tmpDir, "xwiki_cfg_folder");
-        configDirectory.mkdir();
-        configDirectory.deleteOnExit();
-        String cfgFolderPath = configDirectory.getAbsolutePath() + "/";
-        File testFile = new File(configDirectory, "hibernate.cfg.xml");
-        testFile.createNewFile();
-        assertTrue(testFile.exists());
-
-        // Mock the behavior of CurrentServer to return a valid ServerIdentifier.
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgFolderPath);
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getComponentHint()).thenReturn("test_server");
+        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(new XWikiCacheStore());
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("database", null);
-        json.put("xwikiCfgPath", cfgFolderPath);
         json.put("serverFound", "true");
 
         // Mock the renderer.
@@ -347,7 +274,7 @@ public class ConfigurationDataProviderTest
         // Verify the result and method invocations.
         assertEquals("success", configurationDataProvider.getRenderedData());
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
-        verify(this.logger).warn("Failed to find database. Used database may not be supported!");
+        verify(this.logger).warn("Failed to get database metadata.");
     }
 
     @Test
@@ -355,6 +282,7 @@ public class ConfigurationDataProviderTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
+        when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
@@ -373,6 +301,7 @@ public class ConfigurationDataProviderTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
+        when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);

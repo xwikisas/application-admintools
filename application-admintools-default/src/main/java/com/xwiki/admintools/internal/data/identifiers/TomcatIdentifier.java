@@ -24,6 +24,7 @@ import java.io.File;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.xwiki.activeinstalls2.internal.data.Ping;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
@@ -43,6 +44,8 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      * Component identifier.
      */
     public static final String HINT = "Tomcat";
+
+    private Ping ping = new Ping();
 
     @Override
     public boolean isUsed()
@@ -80,6 +83,15 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+    }
+
+    @Override
+    public String getServerNameAndVersion()
+    {
+        servletPingDataProvider.provideData(ping);
+        String serverName = ping.getServletContainer().getName();
+        String serverVersion = ping.getServletContainer().getVersion();
+        return String.format("%s - %s", serverName, serverVersion);
     }
 
     private boolean checkAndSetServerPath(String path)
