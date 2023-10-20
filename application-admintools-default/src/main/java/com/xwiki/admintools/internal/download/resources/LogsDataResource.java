@@ -37,12 +37,15 @@ import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -75,6 +78,9 @@ public class LogsDataResource implements DataResource
 
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     @Override
     public String getIdentifier()
@@ -170,9 +176,12 @@ public class LogsDataResource implements DataResource
         Pattern pattern = currentServer.getCurrentServer().getLogsPattern();
         Matcher matcher = pattern.matcher(file.getName());
         if (matcher.find()) {
+            XWikiContext wikiContext = contextProvider.get();
+            XWiki xWiki = wikiContext.getWiki();
+            String userDateFormat = xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext);
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
-            DateTimeFormatter filtersFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            DateTimeFormatter filtersFormatter = DateTimeFormatter.ofPattern(userDateFormat);
             if (filters.get(FROM_DATE_FILTER_KEY) != null && filters.get(TO_DATE_FILTER_KEY) != null) {
                 LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY), filtersFormatter);
                 LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY), filtersFormatter);

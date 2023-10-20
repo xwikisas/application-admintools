@@ -117,7 +117,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             byte[] filesArchive = downloadManager.downloadMultipleFiles(formParameters);
             // Set the appropriate response headers to indicate a zip file download.
             return Response.ok(filesArchive).type("application/zip")
-                .header("Content-Disposition", "attachment; filename=adminToolsFiles.zip").build();
+                .header("Content-Disposition", "attachment; filename=AdminToolsFiles.zip").build();
         } catch (Exception e) {
             logger.warn("Failed to download files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

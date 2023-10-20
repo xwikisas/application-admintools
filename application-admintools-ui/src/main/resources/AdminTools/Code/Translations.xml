@@ -47,13 +47,16 @@ adminTools.dashboard.download.modal.button=Download
 adminTools.dashboard.download.modal.date.from=From
 adminTools.dashboard.download.modal.date.to=To
 adminTools.dashboard.download.modal.provided=Configuration info
-adminTools.dashboard.download.modal.title=Select Files
+adminTools.dashboard.download.modal.title=Get support files
 adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
 adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
 adminTools.dashboard.download.modal.logs.title=Logs
+adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
+adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
 adminTools.dashboard.logs.modal.submit=View
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
 adminTools.dashboard.logs.modal.title=Show last n lines of log
+adminTools.dashboard.logs.modal.nLines.hint=Limited at 50000 lines. If the input is empty, the default of 1000 lines will be returned.
 adminTools.dashboard.showLogs=View last n lines of log...
 
 ## Dashboard sections

@@ -165,7 +165,7 @@ $services.admintools.getConfigurationData('configuration')
     <name>AdminTools.WebHome</name>
     <number>2</number>
     <className>XWiki.GadgetClass</className>
-    <guid>ec745b5d-c64a-4597-a519-57fbd98b7115</guid>
+    <guid>8035a2a3-0eca-490c-a572-91a4d0e4b787</guid>
     <class>
       <name>XWiki.GadgetClass</name>
       <customClass/>
@@ -216,8 +216,7 @@ $services.admintools.getConfigurationData('configuration')
     </class>
     <property>
       <content>{{velocity}}
-        $services.admintools.getDownloadTemplate()
-        
+$services.admintools.getDownloadTemplate()
 {{/velocity}}</content>
     </property>
     <property>
@@ -225,138 +224,6 @@ $services.admintools.getConfigurationData('configuration')
     </property>
     <property>
       <title></title>
-    </property>
-  </object>
-  <object>
-    <name>AdminTools.WebHome</name>
-    <number>0</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>db26a9ff-8a2e-4a46-83c2-697aa46eef7a</guid>
-    <class>
-      <name>XWiki.JavaScriptExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <defaultValue>long</defaultValue>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <contenttype>PureText</contenttype>
-        <disabled>0</disabled>
-        <editor>PureText</editor>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <restricted>0</restricted>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage|onDemand|always</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>default</cache>
-    </property>
-    <property>
-      <code>require(['jquery'], function($) {
-  $(document).on('click', '#filesDownloadFilesModal .btn-primary', function(event) {
-    event.preventDefault()
-    const downloadForm = $('#filesDownloadFilesModal form'); // Updated selector
-    const link = document.createElement('a');
-    link.href = downloadForm.attr('action') + "?" + downloadForm.serialize();
-    link.click();
-  });
-
-  $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary', function(event) {
-    event.preventDefault()
-    const modal = $(event.currentTarget).closest('.modal')
-    const downloadForm = modal.find('form');
-    let noLines = modal.find("input[name='noLines']").val();
-    if(noLines == ''){
-      noLines = "1000";
-    }
-    const link = document.createElement('a');
-    link.href = downloadForm.attr('action') + "?noLines=" + noLines;
-    link.target="_blank";
-    link.click();
-  });
-
-  $(document).on('change', '#filesDownloadFilesModal input[name="files"][value="logsDataResource"]', function() {
-    if ($(this).is(':checked')) {
-        $('.dateFields').show();
-    } else {
-        $('.dateFields').hide();
-    }
-  });
-});
-
-</code>
-    </property>
-    <property>
-      <name>AdminToolsJavaScript</name>
-    </property>
-    <property>
-      <parse>0</parse>
-    </property>
-    <property>
-      <use>currentPage</use>
     </property>
   </object>
   <object>

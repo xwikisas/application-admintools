@@ -35,9 +35,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output="false"}}
+  <content>{{velocity output='false'}}
 #macro (viewLastNLinesMoldal $id)
-  #set ($modalId = $id + "ViewLastNLinesModal")
+  #set ($modalId = $id + 'ViewLastNLinesModal')
   {{html clean='false'}}
     &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label">
       &lt;div class="modal-dialog modal-sm" role="document">
@@ -45,8 +45,8 @@
           &lt;div class="logs-modal-content">
             &lt;div class="modal-header">
               &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-              &lt;h1 class="modal-title text-center">
+                &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
+              &lt;h1 class="modal-title">
                 $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
               &lt;/h1>
             &lt;/div>
@@ -56,7 +56,8 @@
                   &lt;dt>
                     &lt;label for="noLines">$escapetool.xml($services.localization.render(
                       'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>
-                    &lt;span class="xHint">max 50000&lt;/span>
+                    &lt;span class="xHint">$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span>
                   &lt;/dt>
                   &lt;dd>&lt;input type="number" name="noLines" placeholder="1000">&lt;/dd>
                 &lt;/dl>
@@ -75,7 +76,7 @@
   {{/html}}
 #end
 #macro (downloadArchiveModal $id)
-   #set ($modalId = $id + "DownloadFilesModal")
+  #set ($modalId = $id + 'DownloadFilesModal')
 
   {{html clean='false'}}
     &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label">
@@ -83,8 +84,8 @@
         &lt;div class="modal-content">
           &lt;div class="modal-header">
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-            &lt;h1 class="modal-title text-center">
+              &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
+            &lt;h1 class="modal-title">
               $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.title'))
             &lt;/h1>
           &lt;/div>
@@ -114,26 +115,30 @@
                   &lt;/dt>
                   &lt;dt>
                     &lt;div class="dateFields">
+                      #set ($defaultDateFormat = 'dd-MM-yyyy')
+                      #set ($dateFormat = $xwiki.getXWikiPreference('dateformat', $defaultDateFormat))
                       &lt;label for="${modalId}FromDate">$escapetool.xml($services.localization.render(
                         'adminTools.dashboard.download.modal.date.from'))
-                      &lt;/label>  #set ($dateFromParams = {
-                          'id': "${modalId}FromDate",
-                          'name': 'from',
-                          'data-format': 'dd-MM-yyyy',
-                          'placeholder': 'Logs from date...',
-                          'container': "#${modalId} modal-body"
-                        })
-                        #dateTimePicker($dateFromParams)
+                      &lt;/label>
+                      #set ($dateFromParams = {
+                        'id': "${modalId}FromDate",
+                        'name': 'from',
+                        'data-format': $dateFormat,
+                        'placeholder': $escapetool.xml($services.localization.render(
+                          'adminTools.dashboard.download.modal.logs.filter.placeholder.from'))
+                      })
+                      #dateTimePicker($dateFromParams)
                       &lt;label for="${modalId}ToDate">$escapetool.xml($services.localization.render(
                         'adminTools.dashboard.download.modal.date.to'))
-                      &lt;/label> #set ($dateToParams = {
-                          'id': "${modalId}ToDate",
-                          'name': 'to',
-                          'data-format': 'dd-MM-yyyy',
-                          'placeholder': 'Logs to date...',
-                          'container': "#${modalId} modal-body"
-                        })
-                        #dateTimePicker($dateToParams)
+                      &lt;/label>
+                      #set ($dateToParams = {
+                        'id': "${modalId}ToDate",
+                        'name': 'to',
+                        'data-format': $dateFormat,
+                        'placeholder': $escapetool.xml($services.localization.render(
+                          'adminTools.dashboard.download.modal.logs.filter.placeholder.to'))
+                      })
+                      #dateTimePicker($dateToParams)
                     &lt;/div>
                   &lt;/dt>
                 &lt;/dl>

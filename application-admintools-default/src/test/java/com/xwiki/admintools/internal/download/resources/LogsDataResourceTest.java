@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipOutputStream;
 
+import javax.inject.Provider;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
@@ -45,6 +48,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -85,6 +90,15 @@ public class LogsDataResourceTest
     @MockComponent
     private ServerIdentifier serverIdentifier;
 
+    @MockComponent
+    private Provider<XWikiContext> contextProvider;
+
+    @Mock
+    private XWikiContext wikiContext;
+
+    @Mock
+    private XWiki xWiki;
+
     private File testFile;
 
     private File testFile2;
@@ -113,6 +127,14 @@ public class LogsDataResourceTest
         }
         writer.close();
         writer2.close();
+    }
+
+    @BeforeEach
+    void beforeEach()
+    {
+        when(contextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWiki()).thenReturn(xWiki);
+        when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd-MM-yyyy");
     }
 
     @Test
@@ -174,7 +196,7 @@ public class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataIncorrectInput() throws Exception
+    void getByteDataIncorrectInput()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
@@ -227,9 +249,10 @@ public class LogsDataResourceTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
+        when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd yy MM");
 
         Map<String, String> filters = new HashMap<>();
-        filters.put("from", "10-10-2023");
+        filters.put("from", "10 23 10");
         filters.put("to", null);
 
         logsDataResource.addZipEntry(zipOutputStream, filters);
