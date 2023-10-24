@@ -206,6 +206,9 @@ public class XWikiConfigFileDataResourceTest
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
         verify(logger).warn("Could not find xwiki.cfg file. Root cause is: [{}]",
             "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)");
+        verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.cfg",
+            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or "
+                + "directory)");
     }
 
     private byte[] readLines() throws IOException

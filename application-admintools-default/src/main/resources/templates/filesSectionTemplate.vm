@@ -31,7 +31,7 @@
     <hr/>
     <ul>
       <li>
-        <a href="#DownloadFilesModal"  data-toggle="modal" data-target="#DownloadFilesModal">
+        <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
           $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.label'))</a>
       </li>
       <li>

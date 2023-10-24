@@ -159,7 +159,7 @@ public class LogsDataResource implements DataResource
                 }
             }
         } catch (Exception e) {
-            logger.warn("Failed to files logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to get logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
     }
 

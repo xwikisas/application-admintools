@@ -208,6 +208,9 @@ public class XWikiPropertiesFileDataResourceTest
         verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
             "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
                 + "directory)");
+        verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.properties",
+            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
+                + "directory)");
     }
 
     private byte[] readLines() throws IOException

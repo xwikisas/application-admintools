@@ -176,7 +176,7 @@ public class DefaultAdminToolsResourceTest
             defaultAdminToolsResource.getFiles();
         });
         assertEquals(500, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to files files. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
+        verify(logger).warn("Failed to get zip archive. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
     }
 
     @Test

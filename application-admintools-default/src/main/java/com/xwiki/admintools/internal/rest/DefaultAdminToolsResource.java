@@ -119,7 +119,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             return Response.ok(filesArchive).type("application/zip")
                 .header("Content-Disposition", "attachment; filename=AdminToolsFiles.zip").build();
         } catch (Exception e) {
-            logger.warn("Failed to files files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to get zip archive. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }

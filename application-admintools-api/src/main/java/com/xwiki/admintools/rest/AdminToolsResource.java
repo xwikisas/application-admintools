@@ -28,7 +28,7 @@ import org.xwiki.rest.XWikiRestComponent;
 import org.xwiki.rest.XWikiRestException;
 
 /**
- * Provides the APIs needed by the Admin Tools server in order to files and view configuration files and logs.
+ * Provides the APIs needed by the Admin Tools server in order to download and view configuration files and logs.
  *
  * @version $Id$
  * @since 1.0

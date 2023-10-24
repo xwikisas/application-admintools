@@ -78,8 +78,8 @@
 #macro (downloadArchiveModal)
 
   {{html clean='false'}}
-    &lt;div class="modal fade" id="DownloadFilesModal" tabindex="-1" role="dialog" aria-labelledby=
-      "DownloadFilesModalLabel">
+    &lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby=
+      "downloadFilesModalLabel">
       &lt;div class="modal-dialog" role="document">
         &lt;div class="modal-content">
           &lt;div class="modal-header">
@@ -117,22 +117,22 @@
                     &lt;div class="dateFields">
                       #set ($defaultDateFormat = 'dd-MM-yyyy')
                       #set ($dateFormat = $xwiki.getXWikiPreference('dateformat', $defaultDateFormat))
-                      &lt;label for="DownloadFilesModalFromDate">$escapetool.xml($services.localization.render(
+                      &lt;label for="downloadFilesModalFromDate">$escapetool.xml($services.localization.render(
                         'adminTools.dashboard.download.modal.date.from'))
                       &lt;/label>
                       #set ($dateFromParams = {
-                        'id': "DownloadFilesModalFromDate",
+                        'id': "downloadFilesModalFromDate",
                         'name': 'from',
                         'data-format': $dateFormat,
                         'placeholder': $escapetool.xml($services.localization.render(
                           'adminTools.dashboard.download.modal.logs.filter.placeholder.from'))
                       })
                       #dateTimePicker($dateFromParams)
-                      &lt;label for="DownloadFilesModalToDate">$escapetool.xml($services.localization.render(
+                      &lt;label for="downloadFilesModalToDate">$escapetool.xml($services.localization.render(
                         'adminTools.dashboard.download.modal.date.to'))
                       &lt;/label>
                       #set ($dateToParams = {
-                        'id': "DownloadFilesModalToDate",
+                        'id': "downloadFilesModalToDate",
                         'name': 'to',
                         'data-format': $dateFormat,
                         'placeholder': $escapetool.xml($services.localization.render(

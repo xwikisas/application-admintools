@@ -272,7 +272,7 @@ public class LogsDataResourceTest
         filters.put("from", "2023-10-03");
         filters.put("to", "2023-10-05");
         logsDataResource.addZipEntry(zipOutputStream, filters);
-        verify(logger).warn("Failed to files logs. Root cause is: [{}]",
+        verify(logger).warn("Failed to get logs. Root cause is: [{}]",
             "DateTimeParseException: Text 'server' could not be parsed at index 0");
     }
 

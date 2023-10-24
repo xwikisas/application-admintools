@@ -123,7 +123,9 @@ public class XWikiConfigFileDataResource implements DataResource
             zipOutputStream.putNextEntry(zipEntry);
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            logger.warn("Could not add {} to the archive." + ERROR_SOURCE, XWIKI_CFG,
+                ExceptionUtils.getRootCauseMessage(exception));
         }
     }
 }

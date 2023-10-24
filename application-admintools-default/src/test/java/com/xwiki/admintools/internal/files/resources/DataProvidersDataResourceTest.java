@@ -140,5 +140,7 @@ public class DataProvidersDataResourceTest
         verify(logger).warn("Error getting json from DataProvider data_provider_identifier. Root cause is: [{}]",
             "Exception: ERROR AT GET DATA AS JASON.");
         verify(zipOutputStream, never()).write(any(), eq(0), eq(0));
+        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: {}",
+            "Exception: ERROR AT GET DATA AS JASON.");
     }
 }

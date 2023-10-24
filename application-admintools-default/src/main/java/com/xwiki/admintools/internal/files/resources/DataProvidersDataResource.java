@@ -97,7 +97,9 @@ public class DataProvidersDataResource implements DataResource
             zipOutputStream.putNextEntry(zipEntry);
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            logger.warn("Could not add gathered configuration to the archive. Root cause is: {}",
+                ExceptionUtils.getRootCauseMessage(exception));
         }
     }
 }

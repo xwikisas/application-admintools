@@ -95,7 +95,6 @@ public class XWikiPropertiesFileDataResource implements DataResource
                     }
                     stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
                 }
-                reader.close();
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
@@ -123,7 +122,9 @@ public class XWikiPropertiesFileDataResource implements DataResource
             zipOutputStream.putNextEntry(zipEntry);
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            logger.warn("Could not add {} to the archive." + ERROR_SOURCE, XWIKI_PROPERTIES,
+                ExceptionUtils.getRootCauseMessage(exception));
         }
     }
 }
