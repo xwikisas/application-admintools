@@ -42,8 +42,8 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
-import com.xwiki.admintools.internal.download.DownloadManager;
-import com.xwiki.admintools.internal.download.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -68,7 +68,7 @@ public class DefaultAdminToolsResourceTest
     private DefaultAdminToolsResource defaultAdminToolsResource;
 
     @MockComponent
-    private DownloadManager downloadManager;
+    private ImportantFilesManager importantFilesManager;
 
     @MockComponent
     private AuthorizationManager authorizationManager;
@@ -106,7 +106,7 @@ public class DefaultAdminToolsResourceTest
     @Test
     void getFile() throws Exception
     {
-        when(downloadManager.getFile("resource_hint", null)).thenReturn(new byte[] { 2 });
+        when(importantFilesManager.getFile("resource_hint", null)).thenReturn(new byte[] { 2 });
 
         assertEquals(200, defaultAdminToolsResource.getFile("resource_hint").getStatus());
     }
@@ -117,7 +117,7 @@ public class DefaultAdminToolsResourceTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
 
-        when(downloadManager.getFile("resource_hint", null)).thenThrow(new IOException("FILE NOT FOUND"));
+        when(importantFilesManager.getFile("resource_hint", null)).thenThrow(new IOException("FILE NOT FOUND"));
 
         assertEquals(404, defaultAdminToolsResource.getFile("resource_hint").getStatus());
         verify(logger).warn("Could not find file from DataResource [{}]. Root cause: [{}]", "resource_hint",
@@ -157,7 +157,7 @@ public class DefaultAdminToolsResourceTest
     {
         Map<String, String[]> formParameters = new HashMap<>();
         when(xWikiRequest.getParameterMap()).thenReturn(formParameters);
-        when(downloadManager.downloadMultipleFiles(formParameters)).thenReturn(new byte[] { 2 });
+        when(importantFilesManager.getFilesArchive(formParameters)).thenReturn(new byte[] { 2 });
 
         assertEquals(200, defaultAdminToolsResource.getFiles().getStatus());
     }
@@ -170,13 +170,13 @@ public class DefaultAdminToolsResourceTest
 
         Map<String, String[]> formParameters = new HashMap<>();
         when(xWikiRequest.getParameterMap()).thenReturn(formParameters);
-        when(downloadManager.downloadMultipleFiles(formParameters)).thenThrow(
+        when(importantFilesManager.getFilesArchive(formParameters)).thenThrow(
             new Exception("DOWNLOAD MANAGER EXCEPTION"));
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             defaultAdminToolsResource.getFiles();
         });
         assertEquals(500, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to download files. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
+        verify(logger).warn("Failed to files files. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
     }
 
     @Test
@@ -196,7 +196,7 @@ public class DefaultAdminToolsResourceTest
     @Test
     void getLastLogs() throws Exception
     {
-        when(downloadManager.getFile(LogsDataResource.HINT, "30")).thenReturn(new byte[] { 2 });
+        when(importantFilesManager.getFile(LogsDataResource.HINT, "30")).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("30");
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }
@@ -204,7 +204,7 @@ public class DefaultAdminToolsResourceTest
     @Test
     void getLastLogsNoInput() throws Exception
     {
-        when(downloadManager.getFile(LogsDataResource.HINT, "1000")).thenReturn(new byte[] { 2 });
+        when(importantFilesManager.getFile(LogsDataResource.HINT, "1000")).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("");
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }

@@ -91,8 +91,8 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@link String} representation of the template.
      */
-    public String getDownloadTemplate()
+    public String getFilesSection()
     {
-        return this.adminToolsManager.getDownloadTemplate();
+        return this.adminToolsManager.getFilesSection();
     }
 }

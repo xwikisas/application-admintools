@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download;
+package com.xwiki.admintools.internal.files;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.download.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,17 +56,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link DownloadManager}
+ * Unit test for {@link ImportantFilesManager}
  *
  * @version $Id$
  */
 @ComponentTest
-public class DownloadManagerTest
+public class ImportantFilesManagerTest
 {
     private final String templatePath = "filesSectionTemplate.vm";
 
     @InjectMockComponents
-    private DownloadManager downloadManager;
+    private ImportantFilesManager importantFilesManager;
 
     @MockComponent
     private Provider<List<DataResource>> dataResources;
@@ -104,7 +104,7 @@ public class DownloadManagerTest
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         when(archiverDataResource.getByteData("input")).thenReturn(new byte[] { 2 });
 
-        assertArrayEquals(new byte[] { 2 }, downloadManager.getFile("data_resource_identifier", "input"));
+        assertArrayEquals(new byte[] { 2 }, importantFilesManager.getFile("data_resource_identifier", "input"));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class DownloadManagerTest
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         Exception exception = assertThrows(Exception.class, () -> {
-            downloadManager.getFile("data_resource_identifier_invalid", "input");
+            importantFilesManager.getFile("data_resource_identifier_invalid", "input");
         });
         assertEquals("Error while processing file content.", exception.getMessage());
     }
@@ -129,7 +129,7 @@ public class DownloadManagerTest
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         when(archiverDataResource.getByteData("input")).thenThrow(new IOException("IO Error"));
         Exception exception = assertThrows(Exception.class, () -> {
-            downloadManager.getFile("data_resource_identifier", "input");
+            importantFilesManager.getFile("data_resource_identifier", "input");
         });
         assertEquals("Error while managing file.", exception.getMessage());
     }
@@ -154,7 +154,7 @@ public class DownloadManagerTest
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         when(archiverLogsDataResource.getIdentifier()).thenReturn(LogsDataResource.HINT);
 
-        downloadManager.downloadMultipleFiles(request);
+        importantFilesManager.getFilesArchive(request);
         verify(archiverDataResource).addZipEntry(any(ZipOutputStream.class), isNull());
         verify(archiverLogsDataResource).addZipEntry(any(ZipOutputStream.class), eq(filters));
     }
@@ -163,7 +163,7 @@ public class DownloadManagerTest
     void downloadMultipleFilesNoArchiverFound()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);
+        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
 
         String[] files = { "data_resource_identifier_invalid", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
@@ -173,7 +173,7 @@ public class DownloadManagerTest
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         Exception exception = assertThrows(Exception.class, () -> {
-            downloadManager.downloadMultipleFiles(request);
+            importantFilesManager.getFilesArchive(request);
         });
 
         assertEquals("Error while generating the file archive.", exception.getMessage());
@@ -185,7 +185,7 @@ public class DownloadManagerTest
     void downloadMultipleFilesInvalidRequest()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);
+        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
 
         String[] files = { "data_resource_identifier", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
@@ -197,7 +197,7 @@ public class DownloadManagerTest
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         Exception exception = assertThrows(Exception.class, () -> {
-            downloadManager.downloadMultipleFiles(request);
+            importantFilesManager.getFilesArchive(request);
         });
 
         assertEquals("Error while generating the file archive.", exception.getMessage());
@@ -213,23 +213,23 @@ public class DownloadManagerTest
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
-        assertEquals("success", downloadManager.renderTemplate());
-        verify(scriptContext).setAttribute("found", "true", ScriptContext.ENGINE_SCOPE);
+        assertEquals("success", importantFilesManager.renderTemplate());
+        verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
     void renderTemplateWithRenderingError() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(downloadManager, "logger", this.logger);
+        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenThrow(new Exception("Render failed."));
 
-        assertNull(downloadManager.renderTemplate());
-        verify(scriptContext).setAttribute("found", "false", ScriptContext.ENGINE_SCOPE);
+        assertNull(importantFilesManager.renderTemplate());
+        verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
         verify(logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
     }
 }

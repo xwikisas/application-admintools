@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.resources;
+package com.xwiki.admintools.internal.files.resources;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -52,7 +52,7 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import static java.lang.Integer.parseInt;
 
 /**
- * Collection of functions used for accessing log files.
+ * {@link DataResource} implementation for accessing log files.
  *
  * @version $Id$
  * @since 1.0
@@ -159,7 +159,7 @@ public class LogsDataResource implements DataResource
                 }
             }
         } catch (Exception e) {
-            logger.warn("Failed to download logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to files logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
     }
 

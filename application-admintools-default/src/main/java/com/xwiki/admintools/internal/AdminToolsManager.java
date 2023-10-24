@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.download.DownloadManager;
+import com.xwiki.admintools.internal.files.ImportantFilesManager;
 
 /**
  * Manages the data providers.
@@ -55,7 +55,7 @@ public class AdminToolsManager
     private CurrentServer currentServer;
 
     @Inject
-    private DownloadManager downloadManager;
+    private ImportantFilesManager importantFilesManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -114,8 +114,8 @@ public class AdminToolsManager
      *
      * @return a {@link String} representation of the template.
      */
-    public String getDownloadTemplate()
+    public String getFilesSection()
     {
-        return this.downloadManager.renderTemplate();
+        return this.importantFilesManager.renderTemplate();
     }
 }

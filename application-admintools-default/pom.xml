@@ -63,6 +63,6 @@
     </dependency>
   </dependencies>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.77</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.81</xwiki.jacoco.instructionRatio>
   </properties>
 </project>

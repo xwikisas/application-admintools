@@ -42,8 +42,8 @@ import org.xwiki.security.authorization.Right;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
-import com.xwiki.admintools.internal.download.DownloadManager;
-import com.xwiki.admintools.internal.download.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 import com.xwiki.admintools.rest.AdminToolsResource;
 
 /**
@@ -61,10 +61,10 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     private Logger logger;
 
     /**
-     * Handles download requests.
+     * Handles files requests.
      */
     @Inject
-    private DownloadManager downloadManager;
+    private ImportantFilesManager importantFilesManager;
 
     @Inject
     private AuthorizationManager authorizationManager;
@@ -86,9 +86,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
                 if (noLines == null || noLines.equals("")) {
                     noLines = "1000";
                 }
-                fileContent = downloadManager.getFile(hint, noLines);
+                fileContent = importantFilesManager.getFile(hint, noLines);
             } else {
-                fileContent = downloadManager.getFile(hint, null);
+                fileContent = importantFilesManager.getFile(hint, null);
             }
             InputStream inputStream = new ByteArrayInputStream(fileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
@@ -114,12 +114,12 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
-            byte[] filesArchive = downloadManager.downloadMultipleFiles(formParameters);
-            // Set the appropriate response headers to indicate a zip file download.
+            byte[] filesArchive = importantFilesManager.getFilesArchive(formParameters);
+            // Set the appropriate response headers to indicate a zip file files.
             return Response.ok(filesArchive).type("application/zip")
                 .header("Content-Disposition", "attachment; filename=AdminToolsFiles.zip").build();
         } catch (Exception e) {
-            logger.warn("Failed to download files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to files files. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }

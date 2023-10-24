@@ -21,9 +21,9 @@
 #includeMacros("AdminTools.Code.Macros")
 #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
 #viewLastNLinesMoldal("files")
-#downloadArchiveModal("files")
+#downloadArchiveModal()
 {{html clean='false'}}
-#if ($found == 'true')
+#if ($found)
   <div class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('download')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))</h2>
@@ -31,7 +31,7 @@
     <hr/>
     <ul>
       <li>
-        <a href="#filesDownloadFilesModal"  data-toggle="modal" data-target="#filesDownloadFilesModal">
+        <a href="#DownloadFilesModal"  data-toggle="modal" data-target="#DownloadFilesModal">
           $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.label'))</a>
       </li>
       <li>

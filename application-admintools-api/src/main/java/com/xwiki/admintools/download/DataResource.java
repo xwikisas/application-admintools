@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream;
 import org.xwiki.component.annotation.Role;
 
 /**
- * Endpoint to access server files.
+ * Access server files.
  *
  * @version $Id$
  * @since 1.0

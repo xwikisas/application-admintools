@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.resources;
+package com.xwiki.admintools.internal.files.resources;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -57,15 +57,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link XWikiConfigFileDataResource}
+ * Unit test for {@link XWikiPropertiesFileDataResource}
  *
  * @version $Id$
  */
 @ComponentTest
-public class XWikiConfigFileDataResourceTest
+public class XWikiPropertiesFileDataResourceTest
 {
     @InjectMockComponents
-    private XWikiConfigFileDataResource configFileDataResource;
+    private XWikiPropertiesFileDataResource propertiesFileDataResource;
 
     @MockComponent
     private CurrentServer currentServer;
@@ -88,24 +88,24 @@ public class XWikiConfigFileDataResourceTest
 
     private File testFile;
 
-    private File cfgDir;
+    private File propertiesDir;
 
-    private String cfgDirPath;
+    private String propertiesDirPath;
 
     private List<String> excludedLines;
 
     @BeforeComponent
     void setUp() throws IOException
     {
-        cfgDir = new File(tmpDir, "xwiki_cfg_folder");
-        cfgDir.mkdir();
-        cfgDir.deleteOnExit();
-        testFile = new File(cfgDir, "xwiki.cfg");
+        propertiesDir = new File(tmpDir, "xwiki_properties_folder");
+        propertiesDir.mkdir();
+        propertiesDir.deleteOnExit();
+        testFile = new File(propertiesDir, "xwiki.properties");
         testFile.createNewFile();
-        cfgDirPath = cfgDir.getAbsolutePath() + "/";
+        propertiesDirPath = propertiesDir.getAbsolutePath() + "/";
         BufferedWriter writer = new BufferedWriter(new FileWriter(testFile.getAbsolutePath()));
         for (int i = 0; i < 100; i++) {
-            writer.append(String.format("cfg line %d\n", i));
+            writer.append(String.format("prop line %d\n", i));
         }
         writer.append("excl l1\n");
         writer.append("excl l2\n");
@@ -121,7 +121,7 @@ public class XWikiConfigFileDataResourceTest
     @Test
     void getIdentifier()
     {
-        assertEquals(XWikiConfigFileDataResource.HINT, configFileDataResource.getIdentifier());
+        assertEquals(XWikiPropertiesFileDataResource.HINT, propertiesFileDataResource.getIdentifier());
     }
 
     @Test
@@ -129,50 +129,51 @@ public class XWikiConfigFileDataResourceTest
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(propertiesDirPath);
 
-        assertArrayEquals(readLines(), configFileDataResource.getByteData(null));
+        assertArrayEquals(readLines(), propertiesFileDataResource.getByteData(null));
     }
 
     @Test
     void getByteDataFileNotFound()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
+        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
 
-        File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
-        cfgDir2.mkdir();
-        cfgDir2.deleteOnExit();
+        File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
+        propertiesDir2.mkdir();
+        propertiesDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(propertiesDir2.getAbsolutePath() + "/");
         Exception exception = assertThrows(Exception.class, () -> {
-            configFileDataResource.getByteData(null);
+            propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Could not find xwiki.cfg file.", exception.getMessage());
-        verify(logger).warn("Could not find xwiki.cfg file. Root cause is: [{}]",
-            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)");
+        assertEquals("Could not find xwiki.properties file.", exception.getMessage());
+        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
+            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
+                + "directory)");
     }
 
     @Test
     void getByteDataServerNotFound() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
+        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
 
-        File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
-        cfgDir2.mkdir();
-        cfgDir2.deleteOnExit();
+        File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
+        propertiesDir2.mkdir();
+        propertiesDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
         Exception exception = assertThrows(Exception.class, () -> {
-            configFileDataResource.getByteData(null);
+            propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Failed to get content of xwiki.cfg.", exception.getMessage());
-        verify(logger).warn("Failed to get content of xwiki.cfg. Root cause is: [{}]",
+        assertEquals("Failed to get content of xwiki.properties.", exception.getMessage());
+        verify(logger).warn("Failed to get content of xwiki.properties. Root cause is: [{}]",
             "NullPointerException: SERVER NOT FOUND");
     }
 
@@ -181,8 +182,8 @@ public class XWikiConfigFileDataResourceTest
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
-        configFileDataResource.addZipEntry(zipOutputStream, null);
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(propertiesDirPath);
+        propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         byte[] buff = readLines();
         int buffLength = buff.length;
         verify(zipOutputStream).write(AdditionalMatchers.aryEq(buff), eq(0), eq(buffLength));
@@ -192,20 +193,21 @@ public class XWikiConfigFileDataResourceTest
     void addZipEntryGetByteFail() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
+        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
 
-        File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
-        cfgDir2.mkdir();
-        cfgDir2.deleteOnExit();
+        File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
+        propertiesDir2.mkdir();
+        propertiesDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
+        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(propertiesDir2.getAbsolutePath() + "/");
 
-        configFileDataResource.addZipEntry(zipOutputStream, null);
+        propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).warn("Could not find xwiki.cfg file. Root cause is: [{}]",
-            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)");
+        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
+            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
+                + "directory)");
     }
 
     private byte[] readLines() throws IOException

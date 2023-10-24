@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.resources;
+package com.xwiki.admintools.internal.files.resources;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,22 +41,22 @@ import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Collection of functions used for accessing XWiki configuration file.
+ * {@link DataResource} implementation for accessing the xwiki.properties file.
  *
  * @version $Id$
  * @since 1.0
  */
 @Component
-@Named(XWikiConfigFileDataResource.HINT)
+@Named(XWikiPropertiesFileDataResource.HINT)
 @Singleton
-public class XWikiConfigFileDataResource implements DataResource
+public class XWikiPropertiesFileDataResource implements DataResource
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "xwikiConfig";
+    public static final String HINT = "xwikiProperties";
 
-    private static final String XWIKI_CFG = "xwiki.cfg";
+    private static final String XWIKI_PROPERTIES = "xwiki.properties";
 
     private static final String ERROR_SOURCE = " Root cause is: [{}]";
 
@@ -71,7 +71,7 @@ public class XWikiConfigFileDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws Exception
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
     {
         addZipEntry(zipOutputStream);
     }
@@ -81,7 +81,7 @@ public class XWikiConfigFileDataResource implements DataResource
     {
         try {
             List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
-            String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_CFG;
+            String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_PROPERTIES;
             File inputFile = new File(filePath);
             try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -99,11 +99,11 @@ public class XWikiConfigFileDataResource implements DataResource
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
-            String errMessage = String.format("Could not find %s file.", XWIKI_CFG);
+            String errMessage = String.format("Could not find %s file.", XWIKI_PROPERTIES);
             logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
             throw new IOException(errMessage, exception);
         } catch (Exception e) {
-            String errMessage = String.format("Failed to get content of %s.", XWIKI_CFG);
+            String errMessage = String.format("Failed to get content of %s.", XWIKI_PROPERTIES);
             logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(e));
             throw new Exception(errMessage, e);
         }
@@ -119,7 +119,7 @@ public class XWikiConfigFileDataResource implements DataResource
     {
         try {
             byte[] buffer = getByteData(null);
-            ZipEntry zipEntry = new ZipEntry(XWIKI_CFG);
+            ZipEntry zipEntry = new ZipEntry(XWIKI_PROPERTIES);
             zipOutputStream.putNextEntry(zipEntry);
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();

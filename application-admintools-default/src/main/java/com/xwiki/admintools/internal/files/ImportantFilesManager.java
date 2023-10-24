@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download;
+package com.xwiki.admintools.internal.files;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import org.xwiki.template.TemplateManager;
 
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.download.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 
 /**
  * Endpoints used for accessing important server files.
@@ -48,9 +48,9 @@ import com.xwiki.admintools.internal.download.resources.LogsDataResource;
  * @version $Id$
  * @since 1.0
  */
-@Component(roles = DownloadManager.class)
+@Component(roles = ImportantFilesManager.class)
 @Singleton
-public class DownloadManager
+public class ImportantFilesManager
 {
     private static final String FROM = "from";
 
@@ -91,21 +91,21 @@ public class DownloadManager
     }
 
     /**
-     * Retrieve files from the request and create an archive with the given entries.
+     * Get an archive that contains specific files. For some of these files, a period filtering might also be applied.
      *
-     * @param request {@link Map} With the
-     * @return {@link Byte} array representing the request archive.
+     * @param params parameters needed for filtering the requested files
+     * @return an archive with files
      */
-    public byte[] downloadMultipleFiles(Map<String, String[]> request) throws Exception
+    public byte[] getFilesArchive(Map<String, String[]> params) throws Exception
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            for (String dataResourceHint : request.get("files")) {
+            for (String dataResourceHint : params.get("files")) {
                 Map<String, String> filters = null;
                 if (dataResourceHint.equals(LogsDataResource.HINT)) {
                     filters = new HashMap<>();
-                    filters.put(FROM, !Objects.equals(request.get(FROM)[0], "") ? request.get(FROM)[0] : null);
-                    filters.put(TO, !Objects.equals(request.get(TO)[0], "") ? request.get(TO)[0] : null);
+                    filters.put(FROM, !Objects.equals(params.get(FROM)[0], "") ? params.get(FROM)[0] : null);
+                    filters.put(TO, !Objects.equals(params.get(TO)[0], "") ? params.get(TO)[0] : null);
                 }
                 DataResource archiver = findDataResource(dataResourceHint);
                 if (archiver != null) {
@@ -133,10 +133,7 @@ public class DownloadManager
     public String renderTemplate()
     {
         try {
-            String found = "false";
-            if (currentServer.getCurrentServer() != null) {
-                found = "true";
-            }
+            boolean found = currentServer.getCurrentServer() != null;
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);
             return this.templateManager.render("filesSectionTemplate.vm");

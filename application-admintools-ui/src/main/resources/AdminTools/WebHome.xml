@@ -216,7 +216,7 @@ $services.admintools.getConfigurationData('configuration')
     </class>
     <property>
       <content>{{velocity}}
-$services.admintools.getDownloadTemplate()
+$services.admintools.getFilesSection()
 {{/velocity}}</content>
     </property>
     <property>
@@ -334,18 +334,18 @@ $services.admintools.getDownloadTemplate()
     <property>
       <code>#template('colorThemeInit.vm')
 
-.adminToolsDashboardItem{
+.adminToolsDashboardItem {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   min-height: 35rem;
   padding: 1rem 1.1rem;
 }
 
-.logs-modal-content{
+.logs-modal-content {
   text-align: center;
 }
 
-.download-modal-content{
+.download-modal-content {
   padding-left: 5rem;
 }
 

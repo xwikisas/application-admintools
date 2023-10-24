@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.download.resources;
+package com.xwiki.admintools.internal.files.resources;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -272,7 +272,7 @@ public class LogsDataResourceTest
         filters.put("from", "2023-10-03");
         filters.put("to", "2023-10-05");
         logsDataResource.addZipEntry(zipOutputStream, filters);
-        verify(logger).warn("Failed to download logs. Root cause is: [{}]",
+        verify(logger).warn("Failed to files logs. Root cause is: [{}]",
             "DateTimeParseException: Text 'server' could not be parsed at index 0");
     }
 
