@@ -163,6 +163,71 @@ $services.admintools.getConfigurationData('configuration')
   </object>
   <object>
     <name>AdminTools.WebHome</name>
+    <number>2</number>
+    <className>XWiki.GadgetClass</className>
+    <guid>8035a2a3-0eca-490c-a572-91a4d0e4b787</guid>
+    <class>
+      <name>XWiki.GadgetClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <content>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>content</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>content</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <position>
+        <disabled>0</disabled>
+        <name>position</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>position</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </position>
+      <title>
+        <disabled>0</disabled>
+        <name>title</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>title</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </title>
+    </class>
+    <property>
+      <content>{{velocity}}
+$services.admintools.getFilesSection()
+{{/velocity}}</content>
+    </property>
+    <property>
+      <position>2, 1</position>
+    </property>
+    <property>
+      <title></title>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.WebHome</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>52539531-ed11-4f41-b6a4-f6125adc2287</guid>
@@ -269,9 +334,27 @@ $services.admintools.getConfigurationData('configuration')
     <property>
       <code>#template('colorThemeInit.vm')
 
-.adminToolsDashboardItem{
+.adminToolsDashboardItem {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
+  min-height: 35rem;
+  padding: 1rem 1.1rem;
+}
+
+.logs-modal-content {
+  text-align: center;
+}
+
+.download-modal-content {
+  padding-left: 5rem;
+}
+
+.dateFields {
+  margin: 2rem 4rem;
+}
+
+.bootstrap-datetimepicker-widget {
+  z-index: 99999 !important;
 }</code>
     </property>
     <property>

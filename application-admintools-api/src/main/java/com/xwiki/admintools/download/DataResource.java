@@ -17,34 +17,45 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.configuration;
+package com.xwiki.admintools.download;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.stability.Unstable;
 
 /**
- * Admin Tools configurations.
+ * Access server files.
  *
  * @version $Id$
  * @since 1.0
  */
 @Role
-@Unstable
-public interface AdminToolsConfiguration
+public interface DataResource
 {
     /**
-     * Get the server installation path.
+     * Retrieves the content of a system file and adds it as an entry inside a {@link ZipOutputStream}.
      *
-     * @return the server installation path.
+     * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
+     * @param filters store filters that can be used for file selection.
+     * @throws IOException
      */
-    String getServerPath();
+    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws Exception;
 
     /**
-     * Get the lines that are to be excluded from xwiki.cfg and xwiki.properties files.
+     * Retrieve the content of a system file.
      *
-     * @return {@link List} with the lines to be excluded.
+     * @param input Can be used to send additional info to the component.
+     * @return the content of the file as an {@link Byte} array.
+     * @throws IOException
      */
-    List<String> getExcludedLines();
+    byte[] getByteData(String input) throws Exception;
+
+    /**
+     * Get the hint of a component.
+     *
+     * @return the component hint.
+     */
+    String getIdentifier();
 }

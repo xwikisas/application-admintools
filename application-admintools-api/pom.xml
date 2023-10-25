@@ -45,5 +45,10 @@
       <artifactId>xwiki-platform-job-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rest-server</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
   </dependencies>
 </project>

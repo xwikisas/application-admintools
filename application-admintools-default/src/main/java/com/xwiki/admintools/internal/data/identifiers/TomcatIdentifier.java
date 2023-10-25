@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -54,9 +55,9 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-            if (catalinaBase != null) {
+            if (catalinaBase != null && !catalinaBase.isEmpty()) {
                 return checkAndSetServerPath(catalinaBase);
-            } else if (catalinaHome != null) {
+            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
                 return checkAndSetServerPath(catalinaHome);
             }
         }
@@ -80,6 +81,24 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+    }
+
+    @Override
+    public String getLogsFolderPath()
+    {
+        return this.serverPath + "/logs";
+    }
+
+    @Override
+    public String getLastLogFilePath()
+    {
+        return this.serverPath + "/logs/catalina.out";
+    }
+
+    @Override
+    public Pattern getLogsPattern()
+    {
+        return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
     }
 
     private boolean checkAndSetServerPath(String path)

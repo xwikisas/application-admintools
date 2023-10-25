@@ -21,6 +21,8 @@ package com.xwiki.admintools;
 
 import org.xwiki.component.annotation.Role;
 
+import java.util.regex.Pattern;
+
 /**
  * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
  * files.
@@ -65,4 +67,32 @@ public interface ServerIdentifier
      * Update the possible paths to the configuration files.
      */
     void updatePossiblePaths();
+
+    /**
+     * Get path to server.
+     *
+     * @return {@link String} with server path.
+     */
+    String getServerPath();
+
+    /**
+     * Get path to server logs folder.
+     *
+     * @return {@link String} with server logs folder path.
+     */
+    String getLogsFolderPath();
+
+    /**
+     * Get path to server last updated main log file.
+     *
+     * @return {@link String} path to server log file.
+     */
+    String getLastLogFilePath();
+
+    /**
+     * Get server pattern for identifying log files date.
+     *
+     * @return {@link Pattern} representing the date format in server log files names.
+     */
+    Pattern getLogsPattern();
 }

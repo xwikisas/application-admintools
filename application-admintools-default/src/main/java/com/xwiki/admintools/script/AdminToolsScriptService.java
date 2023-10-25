@@ -94,6 +94,16 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
+     * Get the rendered template for accessing the downloads UI.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getFilesSection()
+    {
+        return this.adminToolsManager.getFilesSection();
+    }
+
+    /**
      * TBC.
      *
      * @return TBC.

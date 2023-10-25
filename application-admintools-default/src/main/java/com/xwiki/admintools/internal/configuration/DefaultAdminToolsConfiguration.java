@@ -19,6 +19,9 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -42,6 +45,8 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 {
     private static final String SERVER_LOCATION = "serverLocation";
 
+    private static final String EXCLUDED_LINES = "excludedLines";
+
     @Inject
     @Named(AdminToolsConfigurationSource.HINT)
     private ConfigurationSource mainConfiguration;
@@ -50,6 +55,12 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     public String getServerPath()
     {
         return this.getProperty(SERVER_LOCATION, "");
+    }
+
+    @Override
+    public List<String> getExcludedLines()
+    {
+        return new ArrayList<>(List.of(this.getProperty(EXCLUDED_LINES, "NO_EXCLUDED_LINE").split(",")));
     }
 
     private <T> T getProperty(String key, T defaultValue)

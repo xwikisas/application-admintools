@@ -49,6 +49,12 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     protected String serverPath;
 
     @Override
+    public String getServerPath()
+    {
+        return serverPath;
+    }
+
+    @Override
     public String getServerCfgPath()
     {
         for (String serverCfgPath : this.serverCfgPossiblePaths) {
