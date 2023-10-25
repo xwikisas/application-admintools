@@ -93,7 +93,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             InputStream inputStream = new ByteArrayInputStream(fileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (IOException e) {
-            logger.warn("Could not find file from DataResource [{}]. Root cause: [{}]", hint,
+            logger.warn("Error while handling file from DataResource [{}]. Root cause: [{}]", hint,
                 ExceptionUtils.getRootCauseMessage(e));
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception e) {

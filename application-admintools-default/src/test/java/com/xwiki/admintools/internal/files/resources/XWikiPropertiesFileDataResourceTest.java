@@ -150,10 +150,7 @@ public class XWikiPropertiesFileDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Could not find xwiki.properties file.", exception.getMessage());
-        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
+        assertEquals("Error while handling xwiki.properties file.", exception.getMessage());
     }
 
     @Test
@@ -172,9 +169,28 @@ public class XWikiPropertiesFileDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Failed to get content of xwiki.properties.", exception.getMessage());
-        verify(logger).warn("Failed to get content of xwiki.properties. Root cause is: [{}]",
+        assertEquals("Server not found.", exception.getMessage());
+        verify(logger).warn("Server not found. Root cause is: [{}]",
             "NullPointerException: SERVER NOT FOUND");
+    }
+
+    @Test
+    void getByteDataConfigError() throws Exception
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
+
+        File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
+        propertiesDir2.mkdir();
+        propertiesDir2.deleteOnExit();
+
+        when(adminToolsConfiguration.getExcludedLines()).thenThrow(new RuntimeException("CONFIGURATION ERROR"));
+        Exception exception = assertThrows(Exception.class, () -> {
+            propertiesFileDataResource.getByteData(null);
+        });
+        assertEquals("Error while retrieving data from Admin Tools configuration.", exception.getMessage());
+        verify(logger).warn("Error while retrieving data from Admin Tools configuration. Root cause is: [{}]",
+            "RuntimeException: CONFIGURATION ERROR");
     }
 
     @Test
@@ -205,9 +221,6 @@ public class XWikiPropertiesFileDataResourceTest
 
         propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
         verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.properties",
             "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
                 + "directory)");

@@ -22,6 +22,7 @@ package com.xwiki.admintools.internal.data;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -112,7 +113,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      *
      * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported.
      */
-    private String identifyDB() throws Exception
+    private String identifyDB()
     {
         String usedDB = null;
         try {
@@ -137,9 +138,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
                 this.logger.warn("Failed to find database. Used database may not be supported!");
             }
         } catch (NullPointerException e) {
-            throw new Exception("Failed to identify used Database.", e);
-        } catch (Exception exception) {
-            this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
+            throw new NullPointerException("Failed to identify used Database.");
+        } catch (IOException exception) {
+            this.logger.warn("Error while handling database configuration file. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
         }
 

@@ -120,7 +120,7 @@ public class DefaultAdminToolsResourceTest
         when(importantFilesManager.getFile("resource_hint", null)).thenThrow(new IOException("FILE NOT FOUND"));
 
         assertEquals(404, defaultAdminToolsResource.getFile("resource_hint").getStatus());
-        verify(logger).warn("Could not find file from DataResource [{}]. Root cause: [{}]", "resource_hint",
+        verify(logger).warn("Error while handling file from DataResource [{}]. Root cause: [{}]", "resource_hint",
             "IOException: FILE NOT FOUND");
     }
 

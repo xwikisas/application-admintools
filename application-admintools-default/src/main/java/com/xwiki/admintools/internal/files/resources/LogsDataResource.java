@@ -121,10 +121,10 @@ public class LogsDataResource implements DataResource
                 String.format("Could not find log files at %s.", currentServer.getCurrentServer().getLastLogFilePath());
             logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
             throw new IOException(errMessage, exception);
-        } catch (Exception exception) {
+        } catch (RuntimeException exception) {
             String errMessage = "Failed to retrieve logs.";
             logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new Exception(errMessage, exception);
+            throw new RuntimeException(errMessage, exception);
         }
     }
 

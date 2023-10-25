@@ -98,13 +98,14 @@ public class XWikiPropertiesFileDataResource implements DataResource
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
-            String errMessage = String.format("Could not find %s file.", XWIKI_PROPERTIES);
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new IOException(errMessage, exception);
-        } catch (Exception e) {
-            String errMessage = String.format("Failed to get content of %s.", XWIKI_PROPERTIES);
+            throw new IOException(String.format("Error while handling %s file.", XWIKI_PROPERTIES), exception);
+        } catch (NullPointerException e) {
+            logger.warn("Server not found. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new NullPointerException("Server not found.");
+        } catch (RuntimeException e) {
+            String errMessage = "Error while retrieving data from Admin Tools configuration.";
             logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(e));
-            throw new Exception(errMessage, e);
+            throw new RuntimeException(errMessage, e);
         }
     }
 

@@ -195,7 +195,7 @@ public class ConfigurationDataProviderTest
         json.put("xwikiCfgPath", cfgFolderPath);
 
         assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to open database configuration file. Root cause is: [{}]",
+        verify(this.logger).warn("Error while handling database configuration file. Root cause is: [{}]",
             "FileNotFoundException: " + cfgFolderPath + "hibernate.cfg.xml (No such file or directory)");
         configDirectory.delete();
     }
