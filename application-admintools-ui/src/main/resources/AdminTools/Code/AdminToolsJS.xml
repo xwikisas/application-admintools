@@ -124,9 +124,9 @@
     </property>
     <property>
       <code>require(['jquery'], function($) {
-  $(document).on('click', '#DownloadFilesModal .btn-primary', function(event) {
+  $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {
     event.preventDefault();
-    const downloadForm = $('#DownloadFilesModal form');
+    const downloadForm = $('#downloadFilesModal form');
 
     // Simulate a click on a link to initialize the download.
     const link = document.createElement('a');
@@ -153,11 +153,11 @@
     link.click();
   });
 
-  $(document).on('change', '#DownloadFilesModal input[name="files"][value="logsDataResource"]', function() {
+  $(document).on('change', '#downloadFilesModal input[name="files"][value="logsDataResource"]', function() {
     if ($(this).is(':checked')) {
-        $('#DownloadFilesModal .dateFields').show();
+        $('#downloadFilesModal .dateFields').show();
     } else {
-        $('#DownloadFilesModal .dateFields').hide();
+        $('#downloadFilesModal .dateFields').hide();
     }
   });
 });</code>
