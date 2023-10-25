@@ -20,27 +20,46 @@
 package com.xwiki.admintools.internal.health.checks.configuration;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
-import javax.inject.Named;
+import javax.inject.Provider;
+
+import org.slf4j.Logger;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 public abstract class AbstractConfigurationHealthCheck implements HealthCheck
 {
     @Inject
-    @Named(ConfigurationDataProvider.HINT)
-    private DataProvider configurationDataProvider;
+    Logger logger;
 
-    protected Map<String, String> getJson()
+    @Inject
+    private Provider<List<DataProvider>> dataProviders;
+
+    protected Map<String, String> getJson(String hint)
     {
+
         try {
-            return configurationDataProvider.provideJson();
+            TimeUnit.SECONDS.sleep(1);
+            return findDataProvider(hint).getDataAsJSON();
         } catch (Exception e) {
             return new HashMap<>();
         }
+    }
+
+    private DataProvider findDataProvider(String hint)
+    {
+        for (DataProvider dataProvider : dataProviders.get())
+        {
+            if(dataProvider.getIdentifier().equals(hint))
+            {
+                return dataProvider;
+            }
+        }
+        return null;
     }
 }

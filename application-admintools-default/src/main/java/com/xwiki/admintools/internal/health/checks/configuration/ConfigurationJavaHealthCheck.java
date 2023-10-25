@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 @Component
 @Named(ConfigurationJavaHealthCheck.HINT)
@@ -42,16 +43,19 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     @Override
     public HealthCheckResult check()
     {
-        String javaVersionString = getJson().get("javaVersion");
+        String javaVersionString = getJson(ConfigurationDataProvider.HINT).get("javaVersion");
         if (javaVersionString == null) {
+            logger.warn("Java version not found.");
             return new HealthCheckResult("java_version_not_found", "java_installation_link");
         }
-        String xwikiVersionString = getJson().get("xwikiVersion");
+        String xwikiVersionString = getJson(ConfigurationDataProvider.HINT).get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
         if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
+            logger.warn("Java version is not compatible with the current XWiki installation.");
             return new HealthCheckResult("java_xwiki_comp", xwikiJavaCompatibilityLink);
         }
+        logger.info("Java is OK.");
         return new HealthCheckResult();
     }
 

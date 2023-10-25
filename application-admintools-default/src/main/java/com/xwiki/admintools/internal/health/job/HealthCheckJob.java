@@ -42,7 +42,7 @@ import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthCheckJobStatus>
 {
     /**
-     * The PDF export job type.
+     * Admin Tools health check job type.
      */
     public static final String JOB_TYPE = "admintools.healthcheck";
 

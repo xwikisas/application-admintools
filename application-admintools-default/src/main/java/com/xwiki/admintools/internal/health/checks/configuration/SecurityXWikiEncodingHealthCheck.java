@@ -19,32 +19,38 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 @Component
-@Named(ConfigurationOsHealthCheck.HINT)
+@Named(SecurityXWikiEncodingHealthCheck.HINT)
 @Singleton
-public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
+public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "CONFIG_OS_HEALTH_CHECK";
+    public final static String HINT = "SECURITY_XWIKI_ENCODING_HEALTH_CHECK";
+
+    private final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
 
     @Override
     public HealthCheckResult check()
     {
-        if (getJson(ConfigurationDataProvider.HINT).get("osName") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osVersion") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osArch") == null)
+        Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
+        if (!acceptedEncodings.contains(securityJson.get("activeEncoding"))
+            || !acceptedEncodings.contains(securityJson.get("configurationEncoding")))
         {
-            logger.warn("There has been an error while gathering OS info.");
-            return new HealthCheckResult("os_issue", "os_support");
+            logger.warn("XWiki encoding might be at risk!");
+            return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
-        logger.info("OS info retrieval was successful.");
+        logger.info("XWiki encoding is configured correctly.");
         return new HealthCheckResult();
     }
 }

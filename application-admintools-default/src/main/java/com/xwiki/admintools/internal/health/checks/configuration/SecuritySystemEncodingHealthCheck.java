@@ -19,32 +19,38 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 @Component
-@Named(ConfigurationOsHealthCheck.HINT)
+@Named(SecuritySystemEncodingHealthCheck.HINT)
 @Singleton
-public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
+public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "CONFIG_OS_HEALTH_CHECK";
+    public final static String HINT = "SECURITY_SYSTEM_ENCODING_HEALTH_CHECK";
+
+    private final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
 
     @Override
     public HealthCheckResult check()
     {
-        if (getJson(ConfigurationDataProvider.HINT).get("osName") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osVersion") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osArch") == null)
+        Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
+        if (!acceptedEncodings.contains(securityJson.get("LANG").split("\\.")[1])
+            || !acceptedEncodings.contains(securityJson.get("fileEncoding")))
         {
-            logger.warn("There has been an error while gathering OS info.");
-            return new HealthCheckResult("os_issue", "os_support");
+            logger.warn("System encoding should be UTF-8!");
+            return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
-        logger.info("OS info retrieval was successful.");
+        logger.info("System encoding is safe.");
         return new HealthCheckResult();
     }
 }

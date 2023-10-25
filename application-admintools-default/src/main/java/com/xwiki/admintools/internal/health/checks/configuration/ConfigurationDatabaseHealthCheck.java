@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 @Component
 @Named(ConfigurationDatabaseHealthCheck.HINT)
@@ -36,9 +37,11 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     @Override
     public HealthCheckResult check()
     {
-        if (getJson().get("database") == null) {
+        if (getJson(ConfigurationDataProvider.HINT).get("database") == null) {
+            logger.warn("There are issues regarding the database.");
             return new HealthCheckResult("database_not_detected", "xwiki_db_configuration");
         }
+        logger.info("Database status OK");
         return new HealthCheckResult();
     }
 }

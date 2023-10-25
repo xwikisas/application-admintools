@@ -19,6 +19,9 @@
  */
 package com.xwiki.admintools.jobs;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.xwiki.job.AbstractRequest;
 import org.xwiki.job.Request;
 import org.xwiki.stability.Unstable;
@@ -28,13 +31,19 @@ public class HealthCheckJobRequest extends AbstractRequest
 {
     public HealthCheckJobRequest()
     {
+        setDefaultId();
     }
 
-    /**
-     * @param request the request to copy
-     */
-    public HealthCheckJobRequest(Request request)
+    public HealthCheckJobRequest(String wiki) {
+        setDefaultId();
+        getId().add(wiki);
+    }
+
+    private void setDefaultId()
     {
-        super(request);
+        List<String> id = new ArrayList<>();
+        id.add("adminTools");
+        id.add("healthCheck");
+        setId(id);
     }
 }

@@ -61,6 +61,21 @@
       <version>${commons.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-cache-api</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.oshi</groupId>
+      <artifactId>oshi-core</artifactId>
+      <version>5.8.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-jmx</artifactId>
+      <version>3.0.13</version>
+    </dependency>
   </dependencies>
   <properties>
     <xwiki.jacoco.instructionRatio>0.66</xwiki.jacoco.instructionRatio>
