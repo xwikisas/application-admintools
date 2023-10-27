@@ -170,11 +170,8 @@ public class LogsDataResourceTest
         IOException exception = assertThrows(IOException.class, () -> {
             logsDataResource.getByteData(null);
         });
-        assertEquals(String.format("Could not find log files at %s.", testFile.getAbsolutePath()),
+        assertEquals(String.format("Error while accessing log files at %s.", testFile.getAbsolutePath()),
             exception.getMessage());
-        verify(logger).warn(
-            String.format("Could not find log files at %s. Root cause is: [{}]", testFile.getAbsolutePath()),
-            String.format("FileNotFoundException: %s (No such file or directory)", testFile.getAbsolutePath()));
     }
 
     @Test
@@ -183,15 +180,11 @@ public class LogsDataResourceTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
 
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
         Exception exception = assertThrows(Exception.class, () -> {
             this.logsDataResource.getByteData("44");
         });
-        assertEquals(String.format("Failed to retrieve logs.", logsDir.getAbsolutePath()),
+        assertEquals("Server not found! Configure path in extension configuration.",
             exception.getMessage());
-        verify(logger).warn(String.format("Failed to retrieve logs. Root cause is: [{}]", logsDir.getAbsolutePath()),
-            String.format("NullPointerException: SERVER NOT FOUND", logsDir.getAbsolutePath()));
         logsDir.delete();
     }
 
@@ -206,10 +199,7 @@ public class LogsDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             logsDataResource.getByteData("not a number");
         });
-        assertEquals("Failed to retrieve logs.", exception.getMessage());
-
-        verify(logger).warn("Failed to retrieve logs. Root cause is: [{}]",
-            "NumberFormatException: For input string: " + "\"not a number\"");
+        assertEquals("Input [not a number] is not a valid number!", exception.getMessage());
     }
 
     @Test

@@ -164,33 +164,11 @@ public class XWikiPropertiesFileDataResourceTest
         propertiesDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
+        when(currentServer.getCurrentServer()).thenReturn(null);
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Server not found.", exception.getMessage());
-        verify(logger).warn("Server not found. Root cause is: [{}]",
-            "NullPointerException: SERVER NOT FOUND");
-    }
-
-    @Test
-    void getByteDataConfigError() throws Exception
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
-        File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
-        propertiesDir2.mkdir();
-        propertiesDir2.deleteOnExit();
-
-        when(adminToolsConfiguration.getExcludedLines()).thenThrow(new RuntimeException("CONFIGURATION ERROR"));
-        Exception exception = assertThrows(Exception.class, () -> {
-            propertiesFileDataResource.getByteData(null);
-        });
-        assertEquals("Error while retrieving data from Admin Tools configuration.", exception.getMessage());
-        verify(logger).warn("Error while retrieving data from Admin Tools configuration. Root cause is: [{}]",
-            "RuntimeException: CONFIGURATION ERROR");
+        assertEquals("Server not found! Configure path in extension configuration.", exception.getMessage());
     }
 
     @Test
@@ -221,9 +199,9 @@ public class XWikiPropertiesFileDataResourceTest
 
         propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.properties",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
+        verify(logger).error("Could not add [{}] to the archive. Root cause is: [{}]", "xwiki.properties",
+            "FileNotFoundException: " + propertiesDir2.getAbsolutePath()
+                + "/xwiki.properties (No such file or directory)");
     }
 
     private byte[] readLines() throws IOException

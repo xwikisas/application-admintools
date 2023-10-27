@@ -50,7 +50,7 @@ public interface DataProvider
      * Provides the info structured in a json.
      *
      * @return a {@link Map} with the generated info.
-     * @throws Exception
+     * @throws Exception if there are any errors while gathering the needed data.
      */
     Map<String, String> getDataAsJSON() throws Exception;
 }

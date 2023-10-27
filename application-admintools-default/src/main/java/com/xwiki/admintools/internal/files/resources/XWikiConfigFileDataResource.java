@@ -36,6 +36,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -71,17 +72,21 @@ public class XWikiConfigFileDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws Exception
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
         addZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws Exception
+    public byte[] getByteData(String input) throws IOException
     {
         try {
+            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            if (usedServer == null) {
+                throw new NullPointerException("Server not found! Configure path in extension configuration.");
+            }
             List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
-            String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_CFG;
+            String filePath = usedServer.getXwikiCfgFolderPath() + XWIKI_CFG;
             File inputFile = new File(filePath);
             try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -100,13 +105,6 @@ public class XWikiConfigFileDataResource implements DataResource
             }
         } catch (IOException exception) {
             throw new IOException(String.format("Error while handling %s file.", XWIKI_CFG), exception);
-        } catch (NullPointerException e) {
-            logger.warn("Server not found. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
-            throw new NullPointerException("Server not found.");
-        } catch (RuntimeException e) {
-            String errMessage = "Error while retrieving data from Admin Tools configuration.";
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(e));
-            throw new RuntimeException(errMessage, e);
         }
     }
 

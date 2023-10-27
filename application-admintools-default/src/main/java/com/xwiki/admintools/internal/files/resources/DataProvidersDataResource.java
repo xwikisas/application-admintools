@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.files.resources;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class DataProvidersDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws IOException
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
     {
         addZipEntry(zipOutputStream);
     }
@@ -76,7 +75,6 @@ public class DataProvidersDataResource implements DataResource
             } catch (Exception e) {
                 String errMessage =
                     String.format("Error getting json from DataProvider %s.", dataProvider.getIdentifier());
-                logger.warn(errMessage + " Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
                 throw new Exception(errMessage, e);
             }
         }

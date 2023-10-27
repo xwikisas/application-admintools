@@ -46,6 +46,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -89,10 +90,15 @@ public class LogsDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(String input) throws Exception
+    public byte[] getByteData(String input) throws IOException, NumberFormatException
     {
         try {
-            File file = new File(currentServer.getCurrentServer().getLastLogFilePath());
+            // verify if null and throw if it is
+            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            if (usedServer == null) {
+                throw new NullPointerException("Server not found! Configure path in extension configuration.");
+            }
+            File file = new File(usedServer.getLastLogFilePath());
 
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
                 int lines = parseInt(input);
@@ -104,6 +110,7 @@ public class LogsDataResource implements DataResource
                 long startPosition = fileLength - 1;
                 for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
                     randomAccessFile.seek(startPosition - 1);
+
                     int currentByte = randomAccessFile.read();
                     if (currentByte == '\n' || currentByte == '\r') {
                         // Found a newline character, add the line to the list.
@@ -117,14 +124,11 @@ public class LogsDataResource implements DataResource
                 return String.join("\n", logLines).getBytes();
             }
         } catch (IOException exception) {
-            String errMessage =
-                String.format("Could not find log files at %s.", currentServer.getCurrentServer().getLastLogFilePath());
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
+            String errMessage = String.format("Error while accessing log files at %s.",
+                currentServer.getCurrentServer().getLastLogFilePath());
             throw new IOException(errMessage, exception);
-        } catch (RuntimeException exception) {
-            String errMessage = "Failed to retrieve logs.";
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new RuntimeException(errMessage, exception);
+        } catch (NumberFormatException exception) {
+            throw new NumberFormatException(String.format("Input [%s] is not a valid number!", input));
         }
     }
 
@@ -139,10 +143,8 @@ public class LogsDataResource implements DataResource
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
                 if (file.isFile()) {
-                    if (filters != null) {
-                        if (!checkFilters(file, filters)) {
-                            continue;
-                        }
+                    if (filters != null && (!checkFilters(file, filters))) {
+                        continue;
                     }
                     // Create a new zip entry and add the content.
                     try (FileInputStream fileInputStream = new FileInputStream(file)) {

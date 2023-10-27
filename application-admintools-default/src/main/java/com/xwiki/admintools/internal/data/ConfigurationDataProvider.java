@@ -94,6 +94,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance configuration data.", e);
         }
     }
@@ -137,8 +139,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             if (usedDB == null) {
                 this.logger.warn("Failed to find database. Used database may not be supported!");
             }
-        } catch (NullPointerException e) {
-            throw new NullPointerException("Failed to identify used Database.");
         } catch (IOException exception) {
             this.logger.warn("Error while handling database configuration file. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
@@ -166,7 +166,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
         if (serverIdentifier == null) {
-            logger.warn("Failed to retrieve used server. Server not found.");
             throw new NullPointerException("Failed to retrieve the used server. Server not found.");
         }
         return serverIdentifier;
