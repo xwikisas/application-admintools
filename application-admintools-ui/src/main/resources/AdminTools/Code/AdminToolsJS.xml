@@ -123,114 +123,133 @@
       <cache>default</cache>
     </property>
     <property>
-      <code>require(['jquery'], function($) {
-    $(document).ready(function(){
-      if ($('#healthCheck').length) {
-        let jobState = $('input[name="jobState"]').val();
-        if (jobState == "RUNNING") {
-          let documentReference = XWiki.Model.resolve('wiki:AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
-          const resourcesUrl = new XWiki.Document(documentReference).getURL('get');
-          $.get(resourcesUrl, function(data) {
-            let jobMinJsURL = $(data).find('input[name="jobMinJsURL"]').val();
-            require.config({
-              paths: {
-                'health-check-job': $('#healthCheckResources input[name="jobMinJsURL"]').val()
-              }
-            });
-            require(['health-check-job'], function(){});
-            // Inject the content into the job-status div
-            let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
-            $('.job-status').attr('data-url', healthCheckJobStatusURL);
-            $('#admin_tools_job_start').prop("disabled", true);
-          });
+      <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
+
+  const getResourceURL = function() {
+    let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
+    return new XWiki.Document(documentReference).getURL('get');
+  }
+  const runHealthCheckJob = function() {
+    var data = [];
+    data.push(
+      {name: 'outputSyntax', value: 'plain'},
+      {name: 'sheet', value: 'wiki:AdminTools.Code.HealthCheckResources'},
+      {name: 'action', value: 'healthCheck'},
+      {name: 'form_token', value: xwikiMeta.form_token}
+    );
+    return Promise.resolve(new JobRunner({
+      createStatusRequest: function(jobId) {
+        return {
+          url: getResourceURL(),
+          data: {
+            outputSyntax: 'plain',
+            sheet: 'AdminTools.Code.HealthCheckResources',
+            data: 'jobStatus',
+            jobId: jobId.join('/')
+          }
+        };
+      }
+    }).run(getResourceURL(), data)).catch((reason) => {
+      return Promise.reject(reason);
+    }).finally(() => {
+      $('#admin_tools_job_start').prop("disabled", false);
+    });
+  }
+
+  const reinitialiseProgressBar = function() {
+    $.get(getResourceURL(), function(data) {
+      let progressBar = $(data).find('div.ui-progress');
+      $('#healthCheck .successmessage').replaceWith(progressBar)
+      $('#healthCheck .warningmessage').replaceWith(progressBar)
+      $('#healthCheck .errormessage').replaceWith(progressBar)
+    });
+  }
+
+  const initialiseJobJS = function() {
+    require.undef('health-check-job');
+    $.get(getResourceURL(), function(data) {
+      let jobMinJsURL = $(data).find('input[name="jobMinJsURL"]').val();
+
+      require.config({
+        paths: {
+          'health-check-job': jobMinJsURL
         }
-        else {
+      });
+      require(['health-check-job'], function(){});
+    });
+  }
+
+  $(document).ready(function(){
+    if ($('#healthCheck').length) {
+      $.get(getResourceURL(), function(data) {
+        let jobState = $(data).find('input[name="jobState"]').val();
+        if (jobState == "RUNNING") {
+          initialiseJobJS()
+          runHealthCheckJob()
+          // Inject the content into the job-status div
+          let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
+          $('.job-status').attr('data-url', healthCheckJobStatusURL);
+          $('#admin_tools_job_start').prop("disabled", true);
+          $('.job-status').show();
+        } else {
           $('.job-status').show();
         }
-      }
-    });
-  
-    $(document).on('click', '#admin_tools_job_start', function(event) {
-      event.preventDefault();
-      require.undef('health-check-job');
-      $(".log").empty();
-      $('#admin_tools_job_start').prop("disabled", true);
-      let documentReference = XWiki.Model.resolve('wiki:AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
-      const resourcesUrl = new XWiki.Document(documentReference).getURL('get');
-      $.get(resourcesUrl, function(data) {
-        let progressBar = $(data).find('div.ui-progress');
-        $('#healthCheck .successmessage').replaceWith(progressBar)
-        $('#healthCheck .warningmessage').replaceWith(progressBar)
-        $('#healthCheck .errormessage').replaceWith(progressBar)
-  
-        let jobMinJsURL = $(data).find('input[name="jobMinJsURL"]').val();
-        require.config({
-          paths: {
-            'health-check-job': jobMinJsURL
-          }
-        });
-        require(['health-check-job'], function(){});
-        // Inject the content into the job-status div
-        let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
-  
-        $('.job-status').attr('data-url', healthCheckJobStatusURL);
-  
-        // Function to poll job status
-        function pollJobStatus() {
-          $.get(healthCheckJobStatusURL, function(jobStatus) {
-            //console.log(jobStatus);
-            if (jobStatus.state === 'FINISHED') {
-              $('#admin_tools_job_start').prop("disabled", false);
-              //console.log('Job finished!');
-            } else {
-              // If the job is not done, continue polling
-              setTimeout(pollJobStatus, 1000); // Poll every second
-            }
-          });
-        }
-        // Start polling
-        pollJobStatus();
       });
-      $('.job-status').show();
+    }
+  });
+
+  $(document).on('click', '#admin_tools_job_start', function(event) {
+    event.preventDefault();
+    $(".log").empty();
+    $('#admin_tools_job_start').prop("disabled", true);
+    $.get(getResourceURL(), function(data) {
+      reinitialiseProgressBar()
+      initialiseJobJS()
+      runHealthCheckJob()
+      // Inject the content into the job-status div
+      let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
+      $('.job-status').attr('data-url', healthCheckJobStatusURL);
     });
-  
-    $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {
-      event.preventDefault();
-      const downloadForm = $('#downloadFilesModal form');
-  
-      // Simulate a click on a link to initialize the download.
-      const link = document.createElement('a');
-      link.href = downloadForm.attr('action') + '?' + downloadForm.serialize();
-      link.click();
-    });
-  
-    $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
-                   function(event) {
-      event.preventDefault();
-      const modal = $(event.currentTarget).closest('.modal');
-      const downloadForm = modal.find('form');
-      let noLines = modal.find("input[name='noLines']").val();
-  
-      // If the input is empty, the default value of 1000 will be requested.
-      if (noLines == '') {
-        noLines = '1000';
-      }
-  
-      // Simulate a click on a link to request the last 'noLines' logs.
-      const link = document.createElement('a');
-      link.href = downloadForm.attr('action') + '?noLines=' + noLines;
-      link.target='_blank';
-      link.click();
-    });
-  
-    $(document).on('change', '#downloadFilesModal input[name="files"][value="logsDataResource"]', function() {
-      if ($(this).is(':checked')) {
-        $('#downloadFilesModal .dateFields').show();
-      } else {
-        $('#downloadFilesModal .dateFields').hide();
-      }
-    });
-  });</code>
+    $('.job-status').show();
+  });
+
+  $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {
+    event.preventDefault();
+    const downloadForm = $('#downloadFilesModal form');
+
+    // Simulate a click on a link to initialize the download.
+    const link = document.createElement('a');
+    link.href = downloadForm.attr('action') + '?' + downloadForm.serialize();
+    link.click();
+  });
+
+  $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
+                 function(event) {
+    event.preventDefault();
+    const modal = $(event.currentTarget).closest('.modal');
+    const downloadForm = modal.find('form');
+    let noLines = modal.find("input[name='noLines']").val();
+
+    // If the input is empty, the default value of 1000 will be requested.
+    if (noLines == '') {
+      noLines = '1000';
+    }
+
+    // Simulate a click on a link to request the last 'noLines' logs.
+    const link = document.createElement('a');
+    link.href = downloadForm.attr('action') + '?noLines=' + noLines;
+    link.target='_blank';
+    link.click();
+  });
+
+  $(document).on('change', '#downloadFilesModal input[name="files"][value="logsDataResource"]', function() {
+    if ($(this).is(':checked')) {
+      $('#downloadFilesModal .dateFields').show();
+    } else {
+      $('#downloadFilesModal .dateFields').hide();
+    }
+  });
+});</code>
     </property>
     <property>
       <name>AdminToolsJavaScript</name>

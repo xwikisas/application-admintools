@@ -120,14 +120,12 @@ public class AdminToolsScriptService implements ScriptService
     /**
      * TBC.
      *
-     * @param wiki TBC.
+     * @param healthCheckJobRequest TBC.
      * @return TBC.
      */
-    public Job runHealthChecks(String wiki)
+    public Job runHealthChecks(HealthCheckJobRequest healthCheckJobRequest)
     {
         try {
-            HealthCheckJobRequest healthCheckJobRequest = new HealthCheckJobRequest(wiki);
-
             Job job = this.jobExecutor.getJob(healthCheckJobRequest.getId());
             if (job == null) {
                 return this.jobExecutor.execute(HealthCheckJob.JOB_TYPE, healthCheckJobRequest);
@@ -137,5 +135,16 @@ public class AdminToolsScriptService implements ScriptService
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * TBC.
+     *
+     * @param wiki TBC.
+     * @return TBC.
+     */
+    public HealthCheckJobRequest createJobRequest(String wiki)
+    {
+        return new HealthCheckJobRequest(wiki);
     }
 }

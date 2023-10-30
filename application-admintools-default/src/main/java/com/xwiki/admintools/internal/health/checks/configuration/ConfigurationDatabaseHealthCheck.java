@@ -38,7 +38,7 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     public HealthCheckResult check()
     {
         if (getJson(ConfigurationDataProvider.HINT).get("database") == null) {
-            logger.warn("There are issues regarding the database.");
+            logger.warn("Database not found!");
             return new HealthCheckResult("database_not_detected", "xwiki_db_configuration");
         }
         logger.info("Database status OK");

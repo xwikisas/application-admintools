@@ -44,13 +44,14 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
     public HealthCheckResult check()
     {
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
-        if (!acceptedEncodings.contains(securityJson.get("LANG").split("\\.")[1])
-            || !acceptedEncodings.contains(securityJson.get("fileEncoding")))
+        String langEnc = securityJson.get("LANG").split("\\.")[1];
+        String fileEnc = securityJson.get("fileEncoding");
+        if (!acceptedEncodings.contains(langEnc) || !acceptedEncodings.contains(fileEnc))
         {
-            logger.warn("System encoding should be UTF-8!");
+            logger.warn("System encoding is [{}] should be UTF-8!", fileEnc);
             return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
-        logger.info("System encoding is safe.");
+        logger.info("System encoding OK.");
         return new HealthCheckResult();
     }
 }

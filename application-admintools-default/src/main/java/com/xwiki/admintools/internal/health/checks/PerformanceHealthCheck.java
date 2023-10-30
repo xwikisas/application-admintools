@@ -50,10 +50,9 @@ public class PerformanceHealthCheck implements HealthCheck
     public HealthCheckResult check()
     {
         if (!hasFreeSpace() || !hasMinimumCPURequirements() || !hasMinimumMemoryRequirements()) {
-            logger.warn("There might be some performance issues!");
             return new HealthCheckResult("performance issues", "minimum sys req link");
         }
-        logger.info("System performance is OK for the XWiki installation!");
+        logger.info("System performance status OK!");
         return new HealthCheckResult();
     }
 
@@ -68,7 +67,12 @@ public class PerformanceHealthCheck implements HealthCheck
         long freePartitionSpace = diskPartition.getFreeSpace();
         float freeSpace = (float) freePartitionSpace / (1024 * 1024 * 1024);
 
-        return freeSpace > 2;
+        if(freeSpace > 2) {
+            return true;
+        } else {
+            logger.warn("There is not enough free space for the XWiki installation!");
+            return false;
+        }
     }
 
     private boolean hasMinimumMemoryRequirements()
@@ -77,7 +81,12 @@ public class PerformanceHealthCheck implements HealthCheck
             .getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
         float totalMemory = (float) memorySize / (1024 * 1024 * 1024) + 1;
 
-        return totalMemory > 2;
+        if (totalMemory > 2) {
+            return true;
+        } else {
+            logger.warn("There is not enough memory to safely run the XWiki installation!");
+            return false;
+        }
     }
 
     private boolean hasMinimumCPURequirements()
@@ -87,6 +96,12 @@ public class PerformanceHealthCheck implements HealthCheck
         CentralProcessor processor = hardware.getProcessor();
         int cpuCores = processor.getPhysicalProcessorCount();
         long maxFreq = processor.getMaxFreq() / (1024 * 1024);
-        return cpuCores > 2 && maxFreq > 2048;
+
+        if (cpuCores > 2 && maxFreq > 2048) {
+            return true;
+        } else {
+            logger.warn("The CPU does not satisfy the minimum system requirements!");
+            return false;
+        }
     }
 }

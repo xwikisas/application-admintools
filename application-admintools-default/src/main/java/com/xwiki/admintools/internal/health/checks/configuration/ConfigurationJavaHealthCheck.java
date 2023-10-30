@@ -45,17 +45,17 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     {
         String javaVersionString = getJson(ConfigurationDataProvider.HINT).get("javaVersion");
         if (javaVersionString == null) {
-            logger.warn("Java version not found.");
+            logger.warn("Java version not found!");
             return new HealthCheckResult("java_version_not_found", "java_installation_link");
         }
         String xwikiVersionString = getJson(ConfigurationDataProvider.HINT).get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
         if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
-            logger.warn("Java version is not compatible with the current XWiki installation.");
+            logger.warn("Java version is not compatible with the current XWiki installation!");
             return new HealthCheckResult("java_xwiki_comp", xwikiJavaCompatibilityLink);
         }
-        logger.info("Java is OK.");
+        logger.info("Java status OK.");
         return new HealthCheckResult();
     }
 

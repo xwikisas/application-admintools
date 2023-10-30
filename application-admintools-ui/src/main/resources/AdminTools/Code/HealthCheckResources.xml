@@ -36,28 +36,59 @@
   <hidden>true</hidden>
   <content>{{template name="job_macros.vm"/}}
 
-{{velocity}}
-#set ($adminToolsHealthJob = $services.admintools.runHealthChecks($services.wiki.getCurrentWikiId()))
-#set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
-  'jobId': $adminToolsHealthJob.request.id,
-  'outputSyntax': 'plain'
-})))
-#set($jobMinJsURL = $xwiki.getSkinFile('uicomponents/job/job.min.js'))
-{{html clean=false}}
-&lt;div hidden>
-  &lt;input type="text" name="healthCheckJobStatusURL" value=$healthJobStatusURL>&lt;/input>
-  &lt;input type="text" name="jobMinJsURL" value=$jobMinJsURL>&lt;/input>
+{{velocity output="false"}}
+#macro (returnHealthCheckJobStatusJSON $healthCheckJobId)
+  #set ($healthCheckJobStatus = $services.job.getJobStatus($healthCheckJobId))
+  #set ($healthCheckJobStatusJSON = {
+    'id': $healthCheckJobStatus.request.id,
+    'state': $healthCheckJobStatus.state,
+    'progress': {
+      'offset': $healthCheckJobStatus.progress.offset
+    }
+  })
+  #jsonResponse($healthCheckJobStatusJSON)
+#end
+{{/velocity}}
 
-  &lt;div class="ui-progress">
-    &lt;div class="box info hidden" id="state-none-hint">
-      This job is waiting to start, please be patient: another job might be running on the same pages.
+{{velocity}}
+#if ($xcontext.action == 'get')
+  #if ("$!request.action" != '' &amp;&amp; !$services.csrf.isTokenValid($request.form_token))
+    #set ($discard = $response.sendError(401, 'CSRF token verification failed!'))
+  #elseif ($request.action == 'healthCheck')
+    #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
+    #set ($healthCheckJob = $services.admintools.runHealthChecks($healthCheckJobRequest))
+    #returnHealthCheckJobStatusJSON($healthCheckJobRequest.id)
+  #elseif ($request.data == 'jobStatus')
+    #set ($healthCheckJobId = $request.jobId.split('/'))
+    #returnHealthCheckJobStatusJSON($healthCheckJobId)
+  #else
+    #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
+    #set ($jobId = $healthCheckJobRequest.id)
+    #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
+      'jobId': $jobId,
+      'outputSyntax': 'plain'
+    })))
+    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
+    #set ($jobMinJsURL = $xwiki.getSkinFile('uicomponents/job/job.min.js'))
+    {{html clean=false}}
+    &lt;div hidden>
+      &lt;input type="text" name="healthCheckJobStatusURL" value=$healthJobStatusURL>&lt;/input>
+      &lt;input type="text" name="jobMinJsURL" value=$jobMinJsURL>&lt;/input>
+      &lt;input type="text" name="jobState" value=$healthJobStatus.state>&lt;/input>
+      &lt;div class="ui-progress">
+        &lt;div class="box info hidden" id="state-none-hint">
+          This job is waiting to start, please be patient: another job might be running on the same pages.
+        &lt;/div>
+        &lt;div class="ui-progress-background">
+          &lt;div class="ui-progress-bar green" style="width:0%">&lt;/div>
+        &lt;/div>
+      &lt;/div>
     &lt;/div>
-    &lt;div class="ui-progress-background">
-      &lt;div class="ui-progress-bar green" style="width:0%">&lt;/div>
-    &lt;/div>
-  &lt;/div>
-&lt;/div>
-{{/html}}
+    {{/html}}
+  #end
+#end
+
+
 
 {{/velocity}}
 </content>

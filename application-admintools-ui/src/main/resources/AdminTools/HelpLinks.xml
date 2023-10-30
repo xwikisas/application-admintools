@@ -22,7 +22,7 @@
   <web>AdminTools</web>
   <name>HelpLinks</name>
   <language/>
-  <defaultLanguage/>
+  <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>AdminTools.WebHome</parent>
@@ -33,7 +33,7 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
+  <hidden>false</hidden>
   <content>{{box cssClass="floatinginfobox" title="**Contents**"}}
 {{toc/}}
 {{/box}}

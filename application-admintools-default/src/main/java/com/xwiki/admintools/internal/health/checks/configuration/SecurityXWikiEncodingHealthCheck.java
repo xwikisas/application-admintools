@@ -44,10 +44,12 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
     public HealthCheckResult check()
     {
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
-        if (!acceptedEncodings.contains(securityJson.get("activeEncoding"))
-            || !acceptedEncodings.contains(securityJson.get("configurationEncoding")))
+        String activeEnc = securityJson.get("activeEncoding");
+        String configEnc = securityJson.get("configurationEncoding");
+        if (!acceptedEncodings.contains(activeEnc)
+            || !acceptedEncodings.contains(configEnc))
         {
-            logger.warn("XWiki encoding might be at risk!");
+            logger.warn("XWiki encoding is [{}]. The encoding should be UTF-8!", activeEnc);
             return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
         logger.info("XWiki encoding is configured correctly.");
