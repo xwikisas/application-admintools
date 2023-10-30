@@ -75,6 +75,7 @@
     &lt;/div>
   {{/html}}
 #end
+
 #macro (downloadArchiveModal)
 
   {{html clean='false'}}
@@ -155,6 +156,30 @@
       &lt;/div>
     &lt;/div>
   {{/html}}
+#end
+
+#macro (jobFinishedMessage $status $translationPrefix $successKey $errorKey $canceledKey $warningKey)
+  #if ($status.error)
+    #set($messageKeys = [$errorKey, "${translationPrefix}.finish.error", "job.status.${status.jobType}.error", 'job.status.error'])
+    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
+    #set($messageClass = 'errormessage')
+  #elseif ($status.canceled)
+    #set($messageKeys = [$canceledKey, "${translationPrefix}.finish.canceled", "job.status.${status.jobType}.canceled", 'job.status.canceled'])
+    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
+    #set($messageClass = 'warningmessage')
+  #elseif ($status.logTail.hasLogLevel('error'))
+    #set($healthCheckReportMessage = 'Critical issues were found, please consult the log!')
+    #set($messageClass = 'errormessage')
+  #elseif ($status.logTail.hasLogLevel('warn'))
+    #set($healthCheckReportMessage = 'Some issues have been found, for more details please see the log.')
+    #set($messageClass = 'warningmessage')
+  #else
+    #set($healthCheckReportMessage = 'No issue found!')
+    #set($messageClass = 'successmessage')
+  #end
+  &lt;div class="box $messageClass">
+    $healthCheckReportMessage
+  &lt;/div>
 #end
 {{/velocity}}</content>
 </xwikidoc>
