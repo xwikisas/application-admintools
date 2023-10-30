@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,16 +26,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.store.XWikiCacheStoreInterface;
-import com.xpn.xwiki.store.XWikiHibernateBaseStore;
-import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.util.PingProvider;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
@@ -57,8 +53,15 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
     private static final String TEMPLATE_NAME = "configurationTemplate.vm";
 
+    private final String dbName = "dbName";
+
+    private final String dbVersion = "dbVersion";
+
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private PingProvider pingProvider;
 
     @Override
     public String getIdentifier()
@@ -84,11 +87,15 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
-            systemInfo.put("database", this.identifyDB());
+            Map<String, String> dbMetadata = this.identifyDB();
+            systemInfo.put("databaseName", dbMetadata.get(dbName));
+            systemInfo.put("databaseVersion", dbMetadata.get(dbVersion));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            systemInfo.put("usedServer", this.getCurrentServer().getServerNameAndVersion());
+            Map<String, String> serverMetadata = this.getCurrentServer().getServerMetadata();
+            systemInfo.put("usedServerName", serverMetadata.get("serverName"));
+            systemInfo.put("usedServerVersion", serverMetadata.get("serverVersion"));
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
@@ -108,43 +115,21 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Identify the used database for XWiki by accessing the {@link DatabaseMetaData}.
+     * Identify the used database for XWiki by accessing the {@link DatabasePing}.
      *
-     * @return the name and version of the used database or {@code null} in case an error occurred or the used DB is
-     * not supported.
+     * @return the name and version of the used database or {@code null} in case an error occurred or the used DB is not
+     *     supported.
      */
-    private String identifyDB()
+    private Map<String, String> identifyDB()
     {
-        String usedDB = null;
-        try {
-            DatabaseMetaData metaData = getDBMetaData();
-            if (metaData != null) {
-                usedDB = metaData.getDatabaseProductName() + " - " + metaData.getDatabaseProductVersion();
-            } else {
-                this.logger.warn("Failed to get database metadata.");
-            }
-        } catch (SQLException e) {
-            this.logger.warn("Failed to compute database name and version. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-        } catch (Exception exception) {
-            this.logger.warn("Failed to get database metadata. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(exception));
-        }
-        return usedDB;
-    }
+        // integrate in a
 
-    private DatabaseMetaData getDBMetaData()
-    {
-        DatabaseMetaData metaData = null;
-        XWikiStoreInterface storeInterface = xcontextProvider.get().getWiki().getStore();
-        if (storeInterface instanceof XWikiCacheStoreInterface) {
-            storeInterface = ((XWikiCacheStoreInterface) storeInterface).getStore();
+        DatabasePing databasePing = pingProvider.getDatabasePing();
+        if (databasePing == null) {
+            return new HashMap<>();
         }
-        if (XWikiHibernateBaseStore.class.isAssignableFrom(storeInterface.getClass())) {
-            XWikiHibernateBaseStore baseStore = (XWikiHibernateBaseStore) storeInterface;
-            metaData = baseStore.getDatabaseMetaData();
-        }
-        return metaData;
+        return Map.of(dbName, databasePing.getName(), dbVersion,
+            databasePing.getVersion());
     }
 
     /**

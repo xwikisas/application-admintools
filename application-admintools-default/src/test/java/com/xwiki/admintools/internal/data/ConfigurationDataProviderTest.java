@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
@@ -42,12 +41,9 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.store.XWikiCacheStore;
-import com.xpn.xwiki.store.XWikiCacheStoreInterface;
-import com.xpn.xwiki.store.XWikiHibernateBaseStore;
-import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.util.PingProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -67,12 +63,6 @@ public class ConfigurationDataProviderTest
     static Map<String, String> defaultJson;
 
     private final String templatePath = "configurationTemplate.vm";
-
-    @Mock
-    XWikiHibernateBaseStore baseStore;
-
-    @Mock
-    DatabaseMetaData metaData;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -104,24 +94,26 @@ public class ConfigurationDataProviderTest
     @Mock
     private ScriptContext scriptContext;
 
-    @Mock
-    private XWikiHibernateStore xWikiStoreInterface;
+    @MockComponent
+    private PingProvider pingProvider;
 
     @Mock
-    private XWikiCacheStoreInterface xWikiCacheStore;
+    private DatabasePing databasePing;
 
     @BeforeAll
     static void setUp()
     {
         // Prepare expected json.
         defaultJson = new HashMap<>();
-        defaultJson.put("database", "MySQL - x.y.z");
+        defaultJson.put("databaseName", "MySQL");
+        defaultJson.put("databaseVersion", "x.y.z");
         defaultJson.put("osVersion", "test_os_version");
         defaultJson.put("javaVersion", "used_java_version");
         defaultJson.put("osArch", "test_os_arch");
         defaultJson.put("tomcatConfPath", "server_config_folder_path");
         defaultJson.put("xwikiCfgPath", "xwiki_config_folder_path");
-        defaultJson.put("usedServer", "test_server_name - test_server_version");
+        defaultJson.put("usedServerName", "test_server_name");
+        defaultJson.put("usedServerVersion", "test_server_version");
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
 
@@ -150,9 +142,11 @@ public class ConfigurationDataProviderTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getServerNameAndVersion()).thenReturn("test_server_name - test_server_version");
-        when(wiki.getStore()).thenReturn(xWikiCacheStore);
-        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(xWikiStoreInterface);
+        when(serverIdentifier.getServerMetadata()).thenReturn(
+            Map.of("serverName", "test_server_name", "serverVersion", "test_server_version"));
+        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
+        when(databasePing.getName()).thenReturn("MySQL");
+        when(databasePing.getVersion()).thenReturn("x.y.z");
     }
 
     @Test
@@ -162,61 +156,25 @@ public class ConfigurationDataProviderTest
     }
 
     @Test
-    void getDataAsJsonMetaDataFail() throws Exception
+    void getDataAsJsonDatabaseFail() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        when(wiki.getStore()).thenReturn(null);
-
+        when(pingProvider.getDatabasePing()).thenReturn(null);
         Map<String, String> json = new HashMap<>(defaultJson);
-        json.put("database", null);
+        json.put("databaseName", null);
+        json.put("databaseVersion", null);
 
         assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to get database metadata. Root cause is: [{}]", "NullPointerException: ");
-    }
-
-    @Test
-    void getDataAsJsonMetaDataNotFound() throws Exception
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(new XWikiCacheStore());
-
-        Map<String, String> json = new HashMap<>(defaultJson);
-        json.put("database", null);
-
-        assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to get database metadata.");
-    }
-
-    @Test
-    void getDataAsJsonMetaDataError() throws Exception
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-
-        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
-        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
-        when(metaData.getDatabaseProductName()).thenThrow(new SQLException("metaData-err"));
-
-        Map<String, String> json = new HashMap<>(defaultJson);
-        json.put("database", null);
-
-        assertEquals(json, configurationDataProvider.getDataAsJSON());
-        verify(this.logger).warn("Failed to compute database name and version. Root cause is: [{}]",
-            "SQLException: metaData-err");
     }
 
     @Test
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
-        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
-        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
-        when(metaData.getDatabaseProductName()).thenReturn("MySQL");
-        when(metaData.getDatabaseProductVersion()).thenReturn("x.y.z");
-
         Map<String, String> json = new HashMap<>(defaultJson);
-
+        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
+        when(databasePing.getName()).thenReturn("MySQL");
+        when(databasePing.getVersion()).thenReturn("x.y.z");
         assertEquals(json, configurationDataProvider.getDataAsJSON());
     }
 
@@ -238,10 +196,6 @@ public class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecution() throws Exception
     {
-        baseStore = (XWikiHibernateBaseStore) xWikiStoreInterface;
-        when(baseStore.getDatabaseMetaData()).thenReturn(metaData);
-        when(metaData.getDatabaseProductName()).thenReturn("MySQL");
-        when(metaData.getDatabaseProductVersion()).thenReturn("x.y.z");
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("serverFound", "true");
@@ -260,11 +214,11 @@ public class ConfigurationDataProviderTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-
-        when(((XWikiCacheStoreInterface) xWikiCacheStore).getStore()).thenReturn(new XWikiCacheStore());
+        when(pingProvider.getDatabasePing()).thenReturn(null);
 
         Map<String, String> json = new HashMap<>(defaultJson);
-        json.put("database", null);
+        json.put("databaseName", null);
+        json.put("databaseVersion", null);
         json.put("serverFound", "true");
 
         // Mock the renderer.
@@ -274,7 +228,6 @@ public class ConfigurationDataProviderTest
         // Verify the result and method invocations.
         assertEquals("success", configurationDataProvider.getRenderedData());
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
-        verify(this.logger).warn("Failed to get database metadata.");
     }
 
     @Test

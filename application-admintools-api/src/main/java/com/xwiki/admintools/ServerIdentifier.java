@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools;
 
+import java.util.Map;
+
 import org.xwiki.component.annotation.Role;
 
 /**
@@ -71,5 +73,5 @@ public interface ServerIdentifier
      *
      * @return the used server name and version.
      */
-    String getServerNameAndVersion();
+    Map<String, String> getServerMetadata();
 }

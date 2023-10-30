@@ -24,8 +24,6 @@ import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.xwiki.activeinstalls2.internal.PingDataProvider;
-
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
@@ -44,10 +42,6 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
     @Inject
     @Named("default")
     protected AdminToolsConfiguration adminToolsConfig;
-
-    @Inject
-    @Named("servlet")
-    protected PingDataProvider servletPingDataProvider;
 
     /**
      * The path to the server.

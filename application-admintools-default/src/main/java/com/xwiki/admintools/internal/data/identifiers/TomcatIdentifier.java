@@ -20,14 +20,17 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.xwiki.activeinstalls2.internal.data.Ping;
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.internal.util.PingProvider;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
@@ -45,14 +48,15 @@ public class TomcatIdentifier extends AbstractServerIdentifier
      */
     public static final String HINT = "Tomcat";
 
-    private Ping ping = new Ping();
+    @Inject
+    private PingProvider pingProvider;
 
     @Override
     public boolean isUsed()
     {
         this.serverPath = null;
         String providedConfigServerPath = this.adminToolsConfig.getServerPath();
-        if (providedConfigServerPath != null && !providedConfigServerPath.equals("")) {
+        if (providedConfigServerPath != null && !providedConfigServerPath.isEmpty()) {
             return checkAndSetServerPath(providedConfigServerPath);
         } else {
             String catalinaBase = System.getProperty("catalina.base");
@@ -86,12 +90,12 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public String getServerNameAndVersion()
+    public Map<String, String> getServerMetadata()
     {
-        servletPingDataProvider.provideData(ping);
-        String serverName = ping.getServletContainer().getName();
-        String serverVersion = ping.getServletContainer().getVersion();
-        return String.format("%s - %s", serverName, serverVersion);
+        ServletContainerPing servletPing = pingProvider.getServletPing();
+        String serverName = servletPing.getName();
+        String serverVersion = servletPing.getVersion();
+        return Map.of("serverName", serverName, "serverVersion", serverVersion);
     }
 
     private boolean checkAndSetServerPath(String path)
