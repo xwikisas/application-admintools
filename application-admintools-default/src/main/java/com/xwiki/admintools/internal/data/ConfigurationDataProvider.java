@@ -53,9 +53,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
     private static final String TEMPLATE_NAME = "configurationTemplate.vm";
 
-    private final String dbName = "dbName";
+    private static final String METADATA_NAME = "name";
 
-    private final String dbVersion = "dbVersion";
+    private static final String METADATA_VERSION = "version";
 
     @Inject
     private CurrentServer currentServer;
@@ -88,14 +88,14 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         try {
             Map<String, String> systemInfo = new HashMap<>();
             Map<String, String> dbMetadata = this.identifyDB();
-            systemInfo.put("databaseName", dbMetadata.get(dbName));
-            systemInfo.put("databaseVersion", dbMetadata.get(dbVersion));
+            systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
+            systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
             Map<String, String> serverMetadata = this.getCurrentServer().getServerMetadata();
-            systemInfo.put("usedServerName", serverMetadata.get("serverName"));
-            systemInfo.put("usedServerVersion", serverMetadata.get("serverVersion"));
+            systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
+            systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
@@ -122,13 +122,11 @@ public class ConfigurationDataProvider extends AbstractDataProvider
      */
     private Map<String, String> identifyDB()
     {
-        // integrate in a
-
         DatabasePing databasePing = pingProvider.getDatabasePing();
         if (databasePing == null) {
             return new HashMap<>();
         }
-        return Map.of(dbName, databasePing.getName(), dbVersion,
+        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION,
             databasePing.getVersion());
     }
 

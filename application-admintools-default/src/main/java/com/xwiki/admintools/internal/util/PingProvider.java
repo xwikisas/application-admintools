@@ -35,7 +35,6 @@ import org.xwiki.component.phase.InitializationException;
  * Retrieves {@link Ping} data from Active Installs 2.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component(roles = PingProvider.class)
 @Singleton
@@ -65,7 +64,7 @@ public class PingProvider implements Initializable
     /**
      * Initialize and get {@link DatabasePing}.
      *
-     * @return {@link DatabasePing} containing info about database name and version.
+     * @return {@link DatabasePing} containing info about the used database.
      */
     public DatabasePing getDatabasePing()
     {
@@ -76,7 +75,7 @@ public class PingProvider implements Initializable
     /**
      * Initialize and get {@link ServletContainerPing}.
      *
-     * @return {@link ServletContainerPing} containing info about server name and version.
+     * @return {@link ServletContainerPing} containing info about the used server.
      */
     public ServletContainerPing getServletPing()
     {

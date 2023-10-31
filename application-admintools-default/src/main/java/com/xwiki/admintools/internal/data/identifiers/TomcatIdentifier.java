@@ -95,7 +95,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         ServletContainerPing servletPing = pingProvider.getServletPing();
         String serverName = servletPing.getName();
         String serverVersion = servletPing.getVersion();
-        return Map.of("serverName", serverName, "serverVersion", serverVersion);
+        return Map.of("name", serverName, "version", serverVersion);
     }
 
     private boolean checkAndSetServerPath(String path)

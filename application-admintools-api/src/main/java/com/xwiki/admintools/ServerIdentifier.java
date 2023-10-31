@@ -69,9 +69,9 @@ public interface ServerIdentifier
     void updatePossiblePaths();
 
     /**
-     * Access the Active Installs 2 Ping to retrieve server name and version.
+     * Access a JSON containing the server metadata.
      *
-     * @return the used server name and version.
+     * @return the server metadata.
      */
     Map<String, String> getServerMetadata();
 }
