@@ -117,8 +117,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     /**
      * Identify the used database for XWiki by accessing the {@link DatabasePing}.
      *
-     * @return the name and version of the used database or {@code null} in case an error occurred or the used DB is not
-     *     supported.
+     * @return database metadata or {@code null} in case of an error or if the used DB is not supported.
      */
     private Map<String, String> identifyDB()
     {
@@ -126,8 +125,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         if (databasePing == null) {
             return new HashMap<>();
         }
-        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION,
-            databasePing.getVersion());
+        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION, databasePing.getVersion());
     }
 
     /**
