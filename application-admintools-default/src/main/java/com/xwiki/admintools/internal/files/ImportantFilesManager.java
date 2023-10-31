@@ -46,7 +46,6 @@ import com.xwiki.admintools.internal.files.resources.LogsDataResource;
  * Endpoints used for accessing important server files.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component(roles = ImportantFilesManager.class)
 @Singleton
@@ -55,6 +54,8 @@ public class ImportantFilesManager
     private static final String FROM = "from";
 
     private static final String TO = "to";
+
+    private static final String TEMPLATE_NAME = "filesSectionTemplate.vm";
 
     @Inject
     private Provider<List<DataResource>> dataResources;
@@ -80,8 +81,11 @@ public class ImportantFilesManager
      */
     public byte[] getFile(String hint, String input) throws Exception
     {
+        DataResource fileViewerProvider = findDataResource(hint);
+        if (fileViewerProvider == null) {
+            throw new NullPointerException("File provider not found!");
+        }
         try {
-            DataResource fileViewerProvider = findDataResource(hint);
             return fileViewerProvider.getByteData(input);
         } catch (IOException e) {
             throw new IOException("Error while managing file.", e);
@@ -119,9 +123,7 @@ public class ImportantFilesManager
             byteArrayOutputStream.close();
             return byteArrayOutputStream.toByteArray();
         } catch (Exception e) {
-            logger.warn("Error while generating the file archive. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
-            throw new Exception("Error while generating the file archive.", e);
+            throw new Exception("Error while generating the files archive.", e);
         }
     }
 
@@ -136,9 +138,9 @@ public class ImportantFilesManager
             boolean found = currentServer.getCurrentServer() != null;
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);
-            return this.templateManager.render("filesSectionTemplate.vm");
+            return this.templateManager.render(TEMPLATE_NAME);
         } catch (Exception e) {
-            this.logger.warn("Failed to render custom template. Root cause is: [{}]",
+            this.logger.warn("Failed to render [{}] template. Root cause is: [{}]", TEMPLATE_NAME,
                 ExceptionUtils.getRootCauseMessage(e));
             return null;
         }

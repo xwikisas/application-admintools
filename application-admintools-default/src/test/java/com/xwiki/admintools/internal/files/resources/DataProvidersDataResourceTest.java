@@ -107,7 +107,7 @@ public class DataProvidersDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);
         });
-        assertEquals("Error getting json from DataProvider data_provider_identifier.", exception.getMessage());
+        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.", exception.getMessage());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class DataProvidersDataResourceTest
         dataProviderResource.addZipEntry(zipOutputStream, null);
 
         verify(zipOutputStream, never()).write(any(), eq(0), eq(0));
-        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: {}",
+        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: [{}]",
             "Exception: ERROR AT GET DATA AS JASON.");
     }
 }

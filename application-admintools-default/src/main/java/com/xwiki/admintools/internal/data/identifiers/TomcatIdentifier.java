@@ -33,7 +33,6 @@ import com.xwiki.admintools.ServerIdentifier;
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(TomcatIdentifier.HINT)

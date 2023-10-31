@@ -150,7 +150,7 @@ public class XWikiPropertiesFileDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Error while handling xwiki.properties file.", exception.getMessage());
+        assertEquals("Error while handling [xwiki.properties] file.", exception.getMessage());
     }
 
     @Test

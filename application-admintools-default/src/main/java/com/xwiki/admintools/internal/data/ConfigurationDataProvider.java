@@ -44,7 +44,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(ConfigurationDataProvider.HINT)
@@ -166,7 +165,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
         if (serverIdentifier == null) {
-            throw new NullPointerException("Failed to retrieve the used server. Server not found.");
+            throw new NullPointerException("Failed to retrieve the current used server, check your configurations.");
         }
         return serverIdentifier;
     }

@@ -34,7 +34,6 @@ import com.xwiki.admintools.internal.AdminToolsManager;
  * Admin Tools script services.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named("admintools")

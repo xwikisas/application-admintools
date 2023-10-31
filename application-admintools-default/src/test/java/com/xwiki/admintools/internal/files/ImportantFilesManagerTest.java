@@ -117,7 +117,7 @@ public class ImportantFilesManagerTest
         Exception exception = assertThrows(Exception.class, () -> {
             importantFilesManager.getFile("data_resource_identifier_invalid", "input");
         });
-        assertEquals("Error while processing file content.", exception.getMessage());
+        assertEquals("File provider not found!", exception.getMessage());
     }
 
     @Test
@@ -176,9 +176,7 @@ public class ImportantFilesManagerTest
             importantFilesManager.getFilesArchive(request);
         });
 
-        assertEquals("Error while generating the file archive.", exception.getMessage());
-        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]",
-            "NullPointerException: ");
+        assertEquals("Error while generating the files archive.", exception.getMessage());
     }
 
     @Test
@@ -200,8 +198,7 @@ public class ImportantFilesManagerTest
             importantFilesManager.getFilesArchive(request);
         });
 
-        assertEquals("Error while generating the file archive.", exception.getMessage());
-        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]", "NullPointerException: ");
+        assertEquals("Error while generating the files archive.", exception.getMessage());
     }
 
     @Test
@@ -230,6 +227,7 @@ public class ImportantFilesManagerTest
 
         assertNull(importantFilesManager.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
+        verify(logger).warn("Failed to render [{}] template. Root cause is: [{}]", "filesSectionTemplate.vm",
+            "Exception: Render failed.");
     }
 }

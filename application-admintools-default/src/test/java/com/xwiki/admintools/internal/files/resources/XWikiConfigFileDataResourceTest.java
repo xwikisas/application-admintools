@@ -150,7 +150,7 @@ public class XWikiConfigFileDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             configFileDataResource.getByteData(null);
         });
-        assertEquals("Error while handling xwiki.cfg file.", exception.getMessage());
+        assertEquals("Error while handling [xwiki.cfg] file.", exception.getMessage());
     }
 
     @Test

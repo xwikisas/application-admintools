@@ -27,7 +27,6 @@ import org.xwiki.component.annotation.Role;
  * Gathers specific data and returns it in a specific format, using a template.
  *
  * @version $Id$
- * @since 1.0
  */
 @Role
 public interface DataProvider

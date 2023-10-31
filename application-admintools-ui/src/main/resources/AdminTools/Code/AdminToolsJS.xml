@@ -155,9 +155,9 @@
 
   $(document).on('change', '#downloadFilesModal input[name="files"][value="logsDataResource"]', function() {
     if ($(this).is(':checked')) {
-        $('#downloadFilesModal .dateFields').show();
+      $('#downloadFilesModal .dateFields').show();
     } else {
-        $('#downloadFilesModal .dateFields').hide();
+      $('#downloadFilesModal .dateFields').hide();
     }
   });
 });</code>

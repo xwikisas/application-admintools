@@ -29,7 +29,6 @@ import org.xwiki.component.annotation.Role;
  * Access server files.
  *
  * @version $Id$
- * @since 1.0
  */
 @Role
 public interface DataResource

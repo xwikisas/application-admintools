@@ -41,7 +41,6 @@ import com.xwiki.admintools.download.DataResource;
  * Merges data from all {@link DataProvider} to be retrieved as a file.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(DataProvidersDataResource.HINT)
@@ -51,7 +50,7 @@ public class DataProvidersDataResource implements DataResource
     /**
      * Component identifier.
      */
-    public static final String HINT = "dataProviderResource";
+    public static final String HINT = "dataProvider";
 
     @Inject
     private Provider<List<DataProvider>> dataProviders;
@@ -73,9 +72,9 @@ public class DataProvidersDataResource implements DataResource
             try {
                 providersResults.put(dataProvider.getIdentifier(), dataProvider.getDataAsJSON());
             } catch (Exception e) {
-                String errMessage =
-                    String.format("Error getting json from DataProvider %s.", dataProvider.getIdentifier());
-                throw new Exception(errMessage, e);
+                throw new Exception(
+                    String.format("Error while getting JSON data for [%s] DataProvider.", dataProvider.getIdentifier()),
+                    e);
             }
         }
         return providersResults.toString().getBytes();
@@ -96,7 +95,7 @@ public class DataProvidersDataResource implements DataResource
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
         } catch (Exception exception) {
-            logger.warn("Could not add gathered configuration to the archive. Root cause is: {}",
+            logger.warn("Could not add gathered configuration to the archive. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(exception));
         }
     }

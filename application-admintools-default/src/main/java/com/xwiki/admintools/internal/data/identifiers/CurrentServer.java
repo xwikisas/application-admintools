@@ -38,7 +38,6 @@ import com.xwiki.admintools.ServerIdentifier;
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component(roles = CurrentServer.class)
 @Singleton

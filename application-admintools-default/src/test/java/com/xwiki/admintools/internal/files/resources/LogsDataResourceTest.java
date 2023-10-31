@@ -170,7 +170,7 @@ public class LogsDataResourceTest
         IOException exception = assertThrows(IOException.class, () -> {
             logsDataResource.getByteData(null);
         });
-        assertEquals(String.format("Error while accessing log files at %s.", testFile.getAbsolutePath()),
+        assertEquals(String.format("Error while accessing log files at [%s].", testFile.getAbsolutePath()),
             exception.getMessage());
     }
 
@@ -183,8 +183,7 @@ public class LogsDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             this.logsDataResource.getByteData("44");
         });
-        assertEquals("Server not found! Configure path in extension configuration.",
-            exception.getMessage());
+        assertEquals("Server not found! Configure path in extension configuration.", exception.getMessage());
         logsDir.delete();
     }
 
@@ -196,10 +195,10 @@ public class LogsDataResourceTest
 
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        Exception exception = assertThrows(Exception.class, () -> {
-            logsDataResource.getByteData("not a number");
-        });
-        assertEquals("Input [not a number] is not a valid number!", exception.getMessage());
+        String invalidInput = "not a number";
+        Exception exception = assertThrows(Exception.class, () -> logsDataResource.getByteData(invalidInput));
+        assertEquals(String.format("The given [%s] lines number is not a valid number.", invalidInput),
+            exception.getMessage());
     }
 
     @Test

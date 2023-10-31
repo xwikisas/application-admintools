@@ -45,7 +45,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * {@link DataResource} implementation for accessing the xwiki.cfg file.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(XWikiConfigFileDataResource.HINT)
@@ -58,8 +57,6 @@ public class XWikiConfigFileDataResource implements DataResource
     public static final String HINT = "xwikiConfig";
 
     private static final String XWIKI_CFG = "xwiki.cfg";
-
-    private static final String ERROR_SOURCE = " Root cause is: [{}]";
 
     @Inject
     @Named("default")
@@ -104,7 +101,7 @@ public class XWikiConfigFileDataResource implements DataResource
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
-            throw new IOException(String.format("Error while handling %s file.", XWIKI_CFG), exception);
+            throw new IOException(String.format("Error while handling [%s] file.", XWIKI_CFG), exception);
         }
     }
 
@@ -123,7 +120,7 @@ public class XWikiConfigFileDataResource implements DataResource
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
         } catch (Exception exception) {
-            logger.warn("Could not add {} to the archive." + ERROR_SOURCE, XWIKI_CFG,
+            logger.warn("Could not add {} to the archive. Root cause is: [{}]", XWIKI_CFG,
                 ExceptionUtils.getRootCauseMessage(exception));
         }
     }

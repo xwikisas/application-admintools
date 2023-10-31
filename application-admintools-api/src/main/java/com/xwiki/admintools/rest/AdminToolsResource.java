@@ -31,7 +31,6 @@ import org.xwiki.rest.XWikiRestException;
  * Provides the APIs needed by the Admin Tools server in order to download and view configuration files and logs.
  *
  * @version $Id$
- * @since 1.0
  */
 @Path("/admintools")
 public interface AdminToolsResource extends XWikiRestComponent

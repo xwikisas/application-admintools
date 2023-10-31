@@ -37,7 +37,6 @@ import com.xpn.xwiki.XWikiContext;
  * info.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(SecurityDataProvider.HINT)

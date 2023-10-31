@@ -45,7 +45,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * {@link DataResource} implementation for accessing the xwiki.properties file.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(XWikiPropertiesFileDataResource.HINT)
@@ -58,8 +57,6 @@ public class XWikiPropertiesFileDataResource implements DataResource
     public static final String HINT = "xwikiProperties";
 
     private static final String XWIKI_PROPERTIES = "xwiki.properties";
-
-    private static final String ERROR_SOURCE = " ";
 
     @Inject
     @Named("default")
@@ -103,7 +100,7 @@ public class XWikiPropertiesFileDataResource implements DataResource
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
-            throw new IOException(String.format("Error while handling %s file.", XWIKI_PROPERTIES), exception);
+            throw new IOException(String.format("Error while handling [%s] file.", XWIKI_PROPERTIES), exception);
         }
     }
 

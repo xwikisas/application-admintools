@@ -36,7 +36,6 @@ import com.xwiki.admintools.internal.files.ImportantFilesManager;
  * Manages the data providers.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component(roles = AdminToolsManager.class)
 @Singleton

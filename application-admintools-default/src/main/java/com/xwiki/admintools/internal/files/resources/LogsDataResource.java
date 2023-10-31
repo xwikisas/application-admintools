@@ -56,7 +56,6 @@ import static java.lang.Integer.parseInt;
  * {@link DataResource} implementation for accessing log files.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(LogsDataResource.HINT)
@@ -66,13 +65,11 @@ public class LogsDataResource implements DataResource
     /**
      * Component identifier.
      */
-    public static final String HINT = "logsDataResource";
+    public static final String HINT = "logs";
 
     private static final String FROM_DATE_FILTER_KEY = "from";
 
     private static final String TO_DATE_FILTER_KEY = "to";
-
-    private static final String ERROR_SOURCE = " Root cause is: [{}]";
 
     @Inject
     private Logger logger;
@@ -93,7 +90,6 @@ public class LogsDataResource implements DataResource
     public byte[] getByteData(String input) throws IOException, NumberFormatException
     {
         try {
-            // verify if null and throw if it is
             ServerIdentifier usedServer = currentServer.getCurrentServer();
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
@@ -124,11 +120,10 @@ public class LogsDataResource implements DataResource
                 return String.join("\n", logLines).getBytes();
             }
         } catch (IOException exception) {
-            String errMessage = String.format("Error while accessing log files at %s.",
-                currentServer.getCurrentServer().getLastLogFilePath());
-            throw new IOException(errMessage, exception);
+            throw new IOException(String.format("Error while accessing log files at [%s].",
+                currentServer.getCurrentServer().getLastLogFilePath()), exception);
         } catch (NumberFormatException exception) {
-            throw new NumberFormatException(String.format("Input [%s] is not a valid number!", input));
+            throw new NumberFormatException(String.format("The given [%s] lines number is not a valid number.", input));
         }
     }
 

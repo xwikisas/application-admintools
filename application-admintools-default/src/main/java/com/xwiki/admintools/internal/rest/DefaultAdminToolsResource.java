@@ -50,7 +50,6 @@ import com.xwiki.admintools.rest.AdminToolsResource;
  * Default implementation of {@link AdminToolsResource}.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named("com.xwiki.admintools.internal.rest.DefaultAdminToolsResource")
