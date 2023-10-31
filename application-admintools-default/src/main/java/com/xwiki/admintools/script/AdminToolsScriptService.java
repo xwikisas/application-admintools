@@ -27,17 +27,20 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
 
 /**
  * Admin Tools script services.
  *
+ * @since 1.0
  * @version $Id$
  */
 @Component
 @Named("admintools")
 @Singleton
+@Unstable
 public class AdminToolsScriptService implements ScriptService
 {
     @Inject

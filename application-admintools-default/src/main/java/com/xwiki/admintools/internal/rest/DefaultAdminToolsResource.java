@@ -43,7 +43,6 @@ import org.xwiki.security.authorization.Right;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 import com.xwiki.admintools.rest.AdminToolsResource;
 
 /**
@@ -78,17 +77,11 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
         }
         try {
             byte[] fileContent;
-            if (hint.equals(LogsDataResource.HINT)) {
-                XWikiContext wikiContext = xcontextProvider.get();
-                XWikiRequest xWikiRequest = wikiContext.getRequest();
-                String noLines = xWikiRequest.getParameter("noLines");
-                if (noLines == null || noLines.equals("")) {
-                    noLines = "1000";
-                }
-                fileContent = importantFilesManager.getFile(hint, noLines);
-            } else {
-                fileContent = importantFilesManager.getFile(hint, null);
-            }
+            XWikiContext wikiContext = xcontextProvider.get();
+            XWikiRequest xWikiRequest = wikiContext.getRequest();
+            Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
+
+            fileContent = importantFilesManager.getFile(hint, formParameters);
             InputStream inputStream = new ByteArrayInputStream(fileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (IOException e) {

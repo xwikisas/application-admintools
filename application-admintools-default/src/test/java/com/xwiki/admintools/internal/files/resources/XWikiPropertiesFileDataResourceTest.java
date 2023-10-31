@@ -137,9 +137,6 @@ public class XWikiPropertiesFileDataResourceTest
     @Test
     void getByteDataFileNotFound()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
         File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
         propertiesDir2.mkdir();
         propertiesDir2.deleteOnExit();
@@ -156,9 +153,6 @@ public class XWikiPropertiesFileDataResourceTest
     @Test
     void getByteDataServerNotFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
         File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
         propertiesDir2.mkdir();
         propertiesDir2.deleteOnExit();

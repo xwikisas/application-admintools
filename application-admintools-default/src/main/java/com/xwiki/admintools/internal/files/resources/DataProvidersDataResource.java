@@ -59,13 +59,13 @@ public class DataProvidersDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> filters)
     {
         addZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws Exception
+    public byte[] getByteData(Map<String, String[]> params) throws Exception
     {
         Map<String, Map<String, String>> providersResults = new HashMap<>();
         for (DataProvider dataProvider : dataProviders.get()) {

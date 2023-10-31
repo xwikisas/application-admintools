@@ -72,6 +72,8 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class LogsDataResourceTest
 {
+    private final Map<String, String[]> params = Map.of("noLines", new String[] { "44" });
+
     @Mock
     ZipOutputStream zipOutputStream;
 
@@ -153,15 +155,12 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         readLines(44);
 
-        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData("44"));
+        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
     }
 
     @Test
     void getByteDataFileNotFound()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         File testFile = new File("server.2023-10-06.log");
         assertFalse(testFile.exists());
 
@@ -177,11 +176,8 @@ public class LogsDataResourceTest
     @Test
     void getByteDataServerNotFound()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         Exception exception = assertThrows(Exception.class, () -> {
-            this.logsDataResource.getByteData("44");
+            this.logsDataResource.getByteData(params);
         });
         assertEquals("Server not found! Configure path in extension configuration.", exception.getMessage());
         logsDir.delete();
@@ -190,15 +186,37 @@ public class LogsDataResourceTest
     @Test
     void getByteDataIncorrectInput()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         String invalidInput = "not a number";
-        Exception exception = assertThrows(Exception.class, () -> logsDataResource.getByteData(invalidInput));
+        Map<String, String[]> params = Map.of("noLines", new String[] { "not a number" });
+        Exception exception = assertThrows(Exception.class, () -> logsDataResource.getByteData(params));
         assertEquals(String.format("The given [%s] lines number is not a valid number.", invalidInput),
             exception.getMessage());
+    }
+
+    @Test
+    void getByteDataNullInput() throws IOException
+    {
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+
+        readLines(1000);
+
+        assertArrayEquals(String.join("\n", logLines).getBytes(),
+            logsDataResource.getByteData(null));
+    }
+
+    @Test
+    void getByteDataNullNoLines() throws IOException
+    {
+        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        Map<String, String[]> params = Map.of("noLines", new String[] { null });
+        readLines(1000);
+
+        assertArrayEquals(String.join("\n", logLines).getBytes(),
+            logsDataResource.getByteData(params));
     }
 
     @Test
@@ -218,9 +236,9 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
-        Map<String, String> filters = new HashMap<>();
-        filters.put("from", "06-10-2023");
-        filters.put("to", "07-10-2023");
+        Map<String, String[]> filters = new HashMap<>();
+        filters.put("from", new String[]{"06-10-2023"});
+        filters.put("to", new String[]{"07-10-2023"});
         readLines(400);
         logsDataResource.addZipEntry(zipOutputStream, filters);
         byte[] buff = new byte[2048];
@@ -240,9 +258,9 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd yy MM");
 
-        Map<String, String> filters = new HashMap<>();
-        filters.put("from", "10 23 10");
-        filters.put("to", null);
+        Map<String, String[]> filters = new HashMap<>();
+        filters.put("from", new String[]{"10 23 10"});
+        filters.put("to", new String[]{ null });
 
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(zipOutputStream, never()).closeEntry();
@@ -257,9 +275,9 @@ public class LogsDataResourceTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
-        Map<String, String> filters = new HashMap<>();
-        filters.put("from", "2023-10-03");
-        filters.put("to", "2023-10-05");
+        Map<String, String[]> filters = new HashMap<>();
+        filters.put("from", new String[]{"2023-10-03"});
+        filters.put("to", new String[]{"2023-10-05"});
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(logger).warn("Failed to get logs. Root cause is: [{}]",
             "DateTimeParseException: Text 'server' could not be parsed at index 0");
@@ -268,15 +286,12 @@ public class LogsDataResourceTest
     @Test
     void addZipEntryPatternNotFound() throws IOException
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}_\\d{2}_\\d{2}"));
-        Map<String, String> filters = new HashMap<>();
-        filters.put("from", "2023-10-03");
-        filters.put("to", "2023-10-05");
+        Map<String, String[]> filters = new HashMap<>();
+        filters.put("from", new String[]{"2023-10-03"});
+        filters.put("to", new String[]{"2023-10-05"});
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(zipOutputStream, never()).closeEntry();
     }

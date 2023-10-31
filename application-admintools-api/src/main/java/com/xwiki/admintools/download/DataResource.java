@@ -39,7 +39,7 @@ public interface DataResource
      * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
      * @param filters store filters that can be used for file selection.
      */
-    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters);
+    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> filters);
 
     /**
      * Retrieve the content of a system file.
@@ -49,7 +49,7 @@ public interface DataResource
      * @throws IOException when there are errors while handling searched files.
      * @throws NumberFormatException when there is an invalid numeric input.
      */
-    byte[] getByteData(String input) throws Exception;
+    byte[] getByteData(Map<String, String[]> input) throws Exception;
 
     /**
      * Get the hint of a component.

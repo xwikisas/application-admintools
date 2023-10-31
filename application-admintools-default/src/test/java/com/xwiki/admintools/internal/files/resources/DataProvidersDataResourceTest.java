@@ -100,9 +100,6 @@ public class DataProvidersDataResourceTest
     @Test
     void getByteDataThrowError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
-
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("TEST - PROVIDER ERROR AT GET DATA AS JASON!"));
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);

@@ -29,7 +29,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>AdminTools</title>
+  <title>Admin Tools</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -87,7 +87,7 @@
       </scope>
     </class>
     <property>
-      <roleHint>AdminToolsConfigEventListener</roleHint>
+      <roleHint>AdminToolsEventListener</roleHint>
     </property>
     <property>
       <roleType>org.xwiki.observation.EventListener</roleType>

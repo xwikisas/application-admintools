@@ -69,13 +69,13 @@ public class XWikiConfigFileDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> filters)
     {
         addZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws IOException
+    public byte[] getByteData(Map<String, String[]> input) throws IOException
     {
         try {
             ServerIdentifier usedServer = currentServer.getCurrentServer();

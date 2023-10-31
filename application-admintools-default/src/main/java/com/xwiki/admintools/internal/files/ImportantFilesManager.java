@@ -21,10 +21,9 @@ package com.xwiki.admintools.internal.files;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
@@ -40,7 +39,6 @@ import org.xwiki.template.TemplateManager;
 
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 
 /**
  * Endpoints used for accessing important server files.
@@ -51,11 +49,9 @@ import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 @Singleton
 public class ImportantFilesManager
 {
-    private static final String FROM = "from";
-
-    private static final String TO = "to";
-
     private static final String TEMPLATE_NAME = "filesSectionTemplate.vm";
+
+    private static final String REQUESTED_FILES_KEY = "files";
 
     @Inject
     private Provider<List<DataResource>> dataResources;
@@ -76,17 +72,18 @@ public class ImportantFilesManager
      * Access system file content.
      *
      * @param hint file type identifier.
-     * @param input {@link String} representing the file type.
+     * @param params {@link Map} containing the needed filters.
      * @return filtered file content as a {@link Byte} array
      */
-    public byte[] getFile(String hint, String input) throws Exception
+    public byte[] getFile(String hint, Map<String, String[]> params) throws Exception
     {
         DataResource fileViewerProvider = findDataResource(hint);
         if (fileViewerProvider == null) {
-            throw new NullPointerException("File provider not found!");
+            throw new NullPointerException(
+                String.format("Could not find a DataResource implementation for [%s].", hint));
         }
         try {
-            return fileViewerProvider.getByteData(input);
+            return fileViewerProvider.getByteData(params);
         } catch (IOException e) {
             throw new IOException("Error while managing file.", e);
         } catch (Exception e) {
@@ -104,16 +101,14 @@ public class ImportantFilesManager
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream)) {
-            for (String dataResourceHint : params.get("files")) {
-                Map<String, String> filters = null;
-                if (dataResourceHint.equals(LogsDataResource.HINT)) {
-                    filters = new HashMap<>();
-                    filters.put(FROM, !Objects.equals(params.get(FROM)[0], "") ? params.get(FROM)[0] : null);
-                    filters.put(TO, !Objects.equals(params.get(TO)[0], "") ? params.get(TO)[0] : null);
-                }
+            for (String dataResourceHint : params.get(REQUESTED_FILES_KEY)) {
                 DataResource archiver = findDataResource(dataResourceHint);
+                // Get only the filters and exclude the requested files.
+                Map<String, String[]> filteredParams =
+                    params.entrySet().stream().filter(entry -> !entry.getKey().equals(REQUESTED_FILES_KEY))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 if (archiver != null) {
-                    archiver.addZipEntry(zipOutputStream, filters);
+                    archiver.addZipEntry(zipOutputStream, filteredParams);
                 }
             }
 

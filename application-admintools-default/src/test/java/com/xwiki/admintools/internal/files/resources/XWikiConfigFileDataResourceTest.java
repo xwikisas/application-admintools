@@ -137,9 +137,6 @@ public class XWikiConfigFileDataResourceTest
     @Test
     void getByteDataFileNotFound()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
-
         File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
         cfgDir2.mkdir();
         cfgDir2.deleteOnExit();
@@ -156,9 +153,6 @@ public class XWikiConfigFileDataResourceTest
     @Test
     void getByteDataServerNotFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
-
         File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
         cfgDir2.mkdir();
         cfgDir2.deleteOnExit();
