@@ -44,7 +44,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * Listens to configuration updates.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(AdminToolsEventListener.HINT)

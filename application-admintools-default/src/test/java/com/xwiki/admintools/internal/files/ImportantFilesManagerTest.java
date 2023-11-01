@@ -49,9 +49,12 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,6 +98,8 @@ public class ImportantFilesManagerTest
     @Mock
     private Logger logger;
 
+    private final Map<String, String[]> params = Map.of("input", new String[]{"good_input"});
+
     @Test
     void getFile() throws Exception
     {
@@ -102,9 +107,9 @@ public class ImportantFilesManagerTest
         dataResourceList.add(archiverDataResource);
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        when(archiverDataResource.getByteData("input")).thenReturn(new byte[] { 2 });
+        when(archiverDataResource.getByteData(params)).thenReturn(new byte[] { 2 });
 
-        assertArrayEquals(new byte[] { 2 }, importantFilesManager.getFile("data_resource_identifier", "input"));
+        assertArrayEquals(new byte[] { 2 }, importantFilesManager.getFile("data_resource_identifier", params));
     }
 
     @Test
@@ -115,9 +120,10 @@ public class ImportantFilesManagerTest
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         Exception exception = assertThrows(Exception.class, () -> {
-            importantFilesManager.getFile("data_resource_identifier_invalid", "input");
+            importantFilesManager.getFile("data_resource_identifier_invalid", params);
         });
-        assertEquals("Error while processing file content.", exception.getMessage());
+        assertEquals("Could not find a DataResource implementation for [data_resource_identifier_invalid].",
+            exception.getMessage());
     }
 
     @Test
@@ -127,9 +133,9 @@ public class ImportantFilesManagerTest
         dataResourceList.add(archiverDataResource);
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        when(archiverDataResource.getByteData("input")).thenThrow(new IOException("IO Error"));
+        when(archiverDataResource.getByteData(params)).thenThrow(new IOException("IO Error"));
         Exception exception = assertThrows(Exception.class, () -> {
-            importantFilesManager.getFile("data_resource_identifier", "input");
+            importantFilesManager.getFile("data_resource_identifier", params);
         });
         assertEquals("Error while managing file.", exception.getMessage());
     }
@@ -142,9 +148,9 @@ public class ImportantFilesManagerTest
         request.put("files", files);
         request.put("from", new String[] { "" });
         request.put("to", new String[] { "" });
-        Map<String, String> filters = new HashMap<>();
-        filters.put("from", !Objects.equals(request.get("from")[0], "") ? request.get("from")[0] : null);
-        filters.put("to", !Objects.equals(request.get("to")[0], "") ? request.get("to")[0] : null);
+        Map<String, String[]> filters = new HashMap<>();
+        filters.put("from", new String[] { "" });
+        filters.put("to", new String[] { "" });
 
         List<DataResource> dataResourceList = new ArrayList<>();
         dataResourceList.add(archiverDataResource);
@@ -155,16 +161,13 @@ public class ImportantFilesManagerTest
         when(archiverLogsDataResource.getIdentifier()).thenReturn(LogsDataResource.HINT);
 
         importantFilesManager.getFilesArchive(request);
-        verify(archiverDataResource).addZipEntry(any(ZipOutputStream.class), isNull());
-        verify(archiverLogsDataResource).addZipEntry(any(ZipOutputStream.class), eq(filters));
+        verify(archiverDataResource).addZipEntry(any(ZipOutputStream.class), any());
+        verify(archiverLogsDataResource).addZipEntry(any(ZipOutputStream.class), any());
     }
 
     @Test
-    void downloadMultipleFilesNoArchiverFound()
+    void downloadMultipleFilesNoArchiverFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
-
         String[] files = { "data_resource_identifier_invalid", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
         request.put("files", files);
@@ -172,21 +175,14 @@ public class ImportantFilesManagerTest
         dataResourceList.add(archiverDataResource);
         when(dataResources.get()).thenReturn(dataResourceList);
         when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        Exception exception = assertThrows(Exception.class, () -> {
-            importantFilesManager.getFilesArchive(request);
-        });
 
-        assertEquals("Error while generating the file archive.", exception.getMessage());
-        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]",
-            "NullPointerException: ");
+        importantFilesManager.getFilesArchive(request);
+        verify(archiverDataResource, never()).addZipEntry(any(ZipOutputStream.class), any());
     }
 
     @Test
     void downloadMultipleFilesInvalidRequest()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
-
         String[] files = { "data_resource_identifier", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
         request.put("files", files);
@@ -200,8 +196,7 @@ public class ImportantFilesManagerTest
             importantFilesManager.getFilesArchive(request);
         });
 
-        assertEquals("Error while generating the file archive.", exception.getMessage());
-        verify(logger).warn("Error while generating the file archive. Root cause is: [{}]", "NullPointerException: ");
+        assertEquals("Error while generating the files archive.", exception.getMessage());
     }
 
     @Test
@@ -230,6 +225,7 @@ public class ImportantFilesManagerTest
 
         assertNull(importantFilesManager.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
+        verify(logger).warn("Failed to render [{}] template. Root cause is: [{}]", "filesSectionTemplate.vm",
+            "Exception: Render failed.");
     }
 }

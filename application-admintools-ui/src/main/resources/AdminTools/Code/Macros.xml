@@ -51,7 +51,7 @@
               &lt;/h1>
             &lt;/div>
             &lt;div class="modal-body">
-              &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logsDataResource">
+              &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs">
                 &lt;dl>
                   &lt;dt>
                     &lt;label for="noLines">$escapetool.xml($services.localization.render(
@@ -105,12 +105,12 @@
                     &lt;/label>
                   &lt;/dt>
                   &lt;dt>
-                    &lt;label>&lt;input type="checkbox" name="files" value="dataProviderResource" checked>
+                    &lt;label>&lt;input type="checkbox" name="files" value="dataProvider" checked>
                       $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))
                     &lt;/label>
                   &lt;/dt>
                   &lt;dt>
-                    &lt;label>&lt;input type="checkbox" name="files" value="logsDataResource" checked>
+                    &lt;label>&lt;input type="checkbox" name="files" value="logs" checked>
                       $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.logs.title'))
                     &lt;/label>
                   &lt;/dt>

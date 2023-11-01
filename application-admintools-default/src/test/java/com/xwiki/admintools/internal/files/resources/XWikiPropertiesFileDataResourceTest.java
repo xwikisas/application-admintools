@@ -137,9 +137,6 @@ public class XWikiPropertiesFileDataResourceTest
     @Test
     void getByteDataFileNotFound()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
         File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
         propertiesDir2.mkdir();
         propertiesDir2.deleteOnExit();
@@ -150,31 +147,22 @@ public class XWikiPropertiesFileDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Could not find xwiki.properties file.", exception.getMessage());
-        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
+        assertEquals("Error while handling [xwiki.properties] file.", exception.getMessage());
     }
 
     @Test
     void getByteDataServerNotFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
         File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
         propertiesDir2.mkdir();
         propertiesDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenThrow(new NullPointerException("SERVER NOT FOUND"));
+        when(currentServer.getCurrentServer()).thenReturn(null);
         Exception exception = assertThrows(Exception.class, () -> {
             propertiesFileDataResource.getByteData(null);
         });
-        assertEquals("Failed to get content of xwiki.properties.", exception.getMessage());
-        verify(logger).warn("Failed to get content of xwiki.properties. Root cause is: [{}]",
-            "NullPointerException: SERVER NOT FOUND");
+        assertEquals("Server not found! Configure path in extension configuration.", exception.getMessage());
     }
 
     @Test
@@ -205,12 +193,9 @@ public class XWikiPropertiesFileDataResourceTest
 
         propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).warn("Could not find xwiki.properties file. Root cause is: [{}]",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
-        verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.properties",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or "
-                + "directory)");
+        verify(logger).error("Could not add [{}] to the archive. Root cause is: [{}]", "xwiki.properties",
+            "FileNotFoundException: " + propertiesDir2.getAbsolutePath()
+                + "/xwiki.properties (No such file or directory)");
     }
 
     private byte[] readLines() throws IOException

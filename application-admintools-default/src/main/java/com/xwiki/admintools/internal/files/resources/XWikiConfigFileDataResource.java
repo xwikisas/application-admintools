@@ -36,6 +36,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -44,7 +45,6 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
  * {@link DataResource} implementation for accessing the xwiki.cfg file.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(XWikiConfigFileDataResource.HINT)
@@ -58,8 +58,6 @@ public class XWikiConfigFileDataResource implements DataResource
 
     private static final String XWIKI_CFG = "xwiki.cfg";
 
-    private static final String ERROR_SOURCE = " Root cause is: [{}]";
-
     @Inject
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
@@ -71,17 +69,21 @@ public class XWikiConfigFileDataResource implements DataResource
     private Logger logger;
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters) throws Exception
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> filters)
     {
         addZipEntry(zipOutputStream);
     }
 
     @Override
-    public byte[] getByteData(String input) throws Exception
+    public byte[] getByteData(Map<String, String[]> params) throws IOException
     {
         try {
+            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            if (usedServer == null) {
+                throw new NullPointerException("Server not found! Configure path in extension configuration.");
+            }
             List<String> excludedLinesHints = adminToolsConfig.getExcludedLines();
-            String filePath = currentServer.getCurrentServer().getXwikiCfgFolderPath() + XWIKI_CFG;
+            String filePath = usedServer.getXwikiCfgFolderPath() + XWIKI_CFG;
             File inputFile = new File(filePath);
             try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -99,13 +101,7 @@ public class XWikiConfigFileDataResource implements DataResource
                 return stringBuilder.toString().getBytes();
             }
         } catch (IOException exception) {
-            String errMessage = String.format("Could not find %s file.", XWIKI_CFG);
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new IOException(errMessage, exception);
-        } catch (Exception e) {
-            String errMessage = String.format("Failed to get content of %s.", XWIKI_CFG);
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(e));
-            throw new Exception(errMessage, e);
+            throw new IOException(String.format("Error while handling [%s] file.", XWIKI_CFG), exception);
         }
     }
 
@@ -124,7 +120,7 @@ public class XWikiConfigFileDataResource implements DataResource
             zipOutputStream.write(buffer, 0, buffer.length);
             zipOutputStream.closeEntry();
         } catch (Exception exception) {
-            logger.warn("Could not add {} to the archive." + ERROR_SOURCE, XWIKI_CFG,
+            logger.warn("Could not add {} to the archive. Root cause is: [{}]", XWIKI_CFG,
                 ExceptionUtils.getRootCauseMessage(exception));
         }
     }

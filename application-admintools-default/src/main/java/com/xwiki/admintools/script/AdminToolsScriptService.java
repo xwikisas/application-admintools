@@ -29,6 +29,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
@@ -37,12 +38,13 @@ import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 /**
  * Admin Tools script services.
  *
- * @version $Id$
  * @since 1.0
+ * @version $Id$
  */
 @Component
 @Named("admintools")
 @Singleton
+@Unstable
 public class AdminToolsScriptService implements ScriptService
 {
     @Inject

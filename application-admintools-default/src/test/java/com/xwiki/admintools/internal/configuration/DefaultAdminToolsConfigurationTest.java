@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
+import java.util.List;
+
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
@@ -27,8 +29,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 /**
@@ -43,7 +45,7 @@ public class DefaultAdminToolsConfigurationTest
     private DefaultAdminToolsConfiguration defaultAdminToolsConfiguration;
 
     @MockComponent
-    @Named("admintools.configuration.current")
+    @Named(AdminToolsConfigurationSource.HINT)
     private ConfigurationSource adminToolsConfigurationSource;
 
     @Test
@@ -54,11 +56,10 @@ public class DefaultAdminToolsConfigurationTest
     }
 
     @Test
-    void getServerPathMissingValue()
+    void getExcludedLines()
     {
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            this.defaultAdminToolsConfiguration.getServerPath();
-        });
-        assertEquals("The serverLocation is missing.", exception.getMessage());
+        when(this.adminToolsConfigurationSource.getProperty("excludedLines", "NO_EXCLUDED_LINE")).thenReturn(
+            "excluded_line");
+        assertEquals(List.of("excluded_line".split(",")), this.defaultAdminToolsConfiguration.getExcludedLines());
     }
 }

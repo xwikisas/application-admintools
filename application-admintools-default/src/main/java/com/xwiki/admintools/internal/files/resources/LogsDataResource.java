@@ -28,8 +28,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -46,6 +48,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -55,7 +58,6 @@ import static java.lang.Integer.parseInt;
  * {@link DataResource} implementation for accessing log files.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(LogsDataResource.HINT)
@@ -65,13 +67,15 @@ public class LogsDataResource implements DataResource
     /**
      * Component identifier.
      */
-    public static final String HINT = "logsDataResource";
+    public static final String HINT = "logs";
 
-    private static final String FROM_DATE_FILTER_KEY = "from";
+    private static final String FROM = "from";
 
-    private static final String TO_DATE_FILTER_KEY = "to";
+    private static final String TO = "to";
 
-    private static final String ERROR_SOURCE = " Root cause is: [{}]";
+    private static final String NO_LINES = "noLines";
+
+    private static final String DEFAULT_NO_LINES = "1000";
 
     @Inject
     private Logger logger;
@@ -89,13 +93,17 @@ public class LogsDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(String input) throws Exception
+    public byte[] getByteData(Map<String, String[]> params) throws IOException, NumberFormatException
     {
         try {
-            File file = new File(currentServer.getCurrentServer().getLastLogFilePath());
+            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            if (usedServer == null) {
+                throw new NullPointerException("Server not found! Configure path in extension configuration.");
+            }
+            File file = new File(usedServer.getLastLogFilePath());
 
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-                int lines = parseInt(input);
+                int lines = getLines(params);
 
                 long fileLength = randomAccessFile.length();
                 List<String> logLines = new ArrayList<>();
@@ -104,6 +112,7 @@ public class LogsDataResource implements DataResource
                 long startPosition = fileLength - 1;
                 for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
                     randomAccessFile.seek(startPosition - 1);
+
                     int currentByte = randomAccessFile.read();
                     if (currentByte == '\n' || currentByte == '\r') {
                         // Found a newline character, add the line to the list.
@@ -117,20 +126,18 @@ public class LogsDataResource implements DataResource
                 return String.join("\n", logLines).getBytes();
             }
         } catch (IOException exception) {
-            String errMessage =
-                String.format("Could not find log files at %s.", currentServer.getCurrentServer().getLastLogFilePath());
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new IOException(errMessage, exception);
-        } catch (Exception exception) {
-            String errMessage = "Failed to retrieve logs.";
-            logger.warn(errMessage + ERROR_SOURCE, ExceptionUtils.getRootCauseMessage(exception));
-            throw new Exception(errMessage, exception);
+            throw new IOException(String.format("Error while accessing log files at [%s].",
+                currentServer.getCurrentServer().getLastLogFilePath()), exception);
+        } catch (NumberFormatException exception) {
+            throw new NumberFormatException(
+                String.format("The given [%s] lines number is not a valid number.", params.get(NO_LINES)[0]));
         }
     }
 
     @Override
-    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String> filters)
+    public void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> params)
     {
+        Map<String, String> filters = getFilters(params);
         byte[] buffer = new byte[2048];
         try {
             File logsFolder = new File(currentServer.getCurrentServer().getLogsFolderPath());
@@ -139,10 +146,8 @@ public class LogsDataResource implements DataResource
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
                 if (file.isFile()) {
-                    if (filters != null) {
-                        if (!checkFilters(file, filters)) {
-                            continue;
-                        }
+                    if (filters != null && (!checkFilters(file, filters))) {
+                        continue;
                     }
                     // Create a new zip entry and add the content.
                     try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -161,6 +166,31 @@ public class LogsDataResource implements DataResource
         } catch (Exception e) {
             logger.warn("Failed to get logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    private static Map<String, String> getFilters(Map<String, String[]> params)
+    {
+        Map<String, String> filters = new HashMap<>();
+        if (params != null) {
+            filters.put(FROM, !Objects.equals(params.get(FROM)[0], "") ? params.get(FROM)[0] : null);
+            filters.put(TO, !Objects.equals(params.get(TO)[0], "") ? params.get(TO)[0] : null);
+        }
+        return filters;
+    }
+
+    private int getLines(Map<String, String[]> params)
+    {
+        String noLines;
+        if (params == null) {
+            noLines = DEFAULT_NO_LINES;
+        } else {
+            noLines = params.get(NO_LINES)[0];
+            if (noLines == null || noLines.isEmpty()) {
+                noLines = DEFAULT_NO_LINES;
+            }
+        }
+        int lines = parseInt(noLines);
+        return lines;
     }
 
     /**
@@ -182,15 +212,15 @@ public class LogsDataResource implements DataResource
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
             DateTimeFormatter filtersFormatter = DateTimeFormatter.ofPattern(userDateFormat);
-            if (filters.get(FROM_DATE_FILTER_KEY) != null && filters.get(TO_DATE_FILTER_KEY) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY), filtersFormatter);
-                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY), filtersFormatter);
+            if (filters.get(FROM) != null && filters.get(TO) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM), filtersFormatter);
+                LocalDate toDate = LocalDate.parse(filters.get(TO), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1)) && fileDate.isBefore(toDate.plusDays(1));
-            } else if (filters.get(FROM_DATE_FILTER_KEY) != null) {
-                LocalDate fromDate = LocalDate.parse(filters.get(FROM_DATE_FILTER_KEY), filtersFormatter);
+            } else if (filters.get(FROM) != null) {
+                LocalDate fromDate = LocalDate.parse(filters.get(FROM), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1));
-            } else if (filters.get(TO_DATE_FILTER_KEY) != null) {
-                LocalDate toDate = LocalDate.parse(filters.get(TO_DATE_FILTER_KEY), filtersFormatter);
+            } else if (filters.get(TO) != null) {
+                LocalDate toDate = LocalDate.parse(filters.get(TO), filtersFormatter);
                 return fileDate.isBefore(toDate.plusDays(1));
             } else {
                 return true;

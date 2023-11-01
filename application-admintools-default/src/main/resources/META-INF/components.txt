@@ -21,3 +21,4 @@ com.xwiki.admintools.internal.health.checks.PerformanceHealthCheck
 com.xwiki.admintools.internal.health.checks.CacheHealthCheck
 com.xwiki.admintools.internal.health.job.HealthCheckJob
 com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
+com.xwiki.admintools.internal.PingProvider

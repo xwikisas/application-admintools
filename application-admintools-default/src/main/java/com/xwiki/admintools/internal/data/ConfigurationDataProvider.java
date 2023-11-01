@@ -19,31 +19,27 @@
  */
 package com.xwiki.admintools.internal.data;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(ConfigurationDataProvider.HINT)
@@ -57,8 +53,15 @@ public class ConfigurationDataProvider extends AbstractDataProvider
 
     private static final String TEMPLATE_NAME = "configurationTemplate.vm";
 
+    private static final String METADATA_NAME = "name";
+
+    private static final String METADATA_VERSION = "version";
+
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private PingProvider pingProvider;
 
     @Override
     public String getIdentifier()
@@ -84,15 +87,21 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
-            systemInfo.put("database", this.identifyDB());
+            Map<String, String> dbMetadata = this.identifyDB();
+            systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
+            systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            systemInfo.put("usedServer", this.getCurrentServer().getComponentHint());
+            Map<String, String> serverMetadata = this.getCurrentServer().getServerMetadata();
+            systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
+            systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance configuration data.", e);
         }
     }
@@ -108,42 +117,17 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Identify the used database for XWiki by verifying the configration files.
+     * Identify the used database for XWiki by accessing the {@link DatabasePing}.
      *
-     * @return the name of the used database or {@code null} in case an error occurred or the used DB is not supported.
+     * @return database metadata or {@code null} in case of an error or if the used DB is not supported.
      */
-    private String identifyDB() throws Exception
+    private Map<String, String> identifyDB()
     {
-        String usedDB = null;
-        try {
-            ServerIdentifier server = getCurrentServer();
-            String databaseCfgPath = server.getXwikiCfgFolderPath() + "hibernate.cfg.xml";
-            String patternString = "<property name=\"connection.url\">jdbc:(.*?)://";
-            Pattern pattern = Pattern.compile(patternString);
-            File file = new File(databaseCfgPath);
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-
-            while (bufferedReader.ready()) {
-                String line = bufferedReader.readLine();
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    String foundDB = matcher.group(1);
-                    usedDB = this.currentServer.getSupportedDBs().getOrDefault(foundDB, null);
-                    break;
-                }
-            }
-            bufferedReader.close();
-            if (usedDB == null) {
-                this.logger.warn("Failed to find database. Used database may not be supported!");
-            }
-        } catch (NullPointerException e) {
-            throw new Exception("Failed to identify used Database.", e);
-        } catch (Exception exception) {
-            this.logger.warn("Failed to open database configuration file. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(exception));
+        DatabasePing databasePing = pingProvider.getDatabasePing();
+        if (databasePing == null) {
+            return new HashMap<>();
         }
-
-        return usedDB;
+        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION, databasePing.getVersion());
     }
 
     /**
@@ -165,8 +149,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
         if (serverIdentifier == null) {
-            logger.warn("Failed to retrieve used server. Server not found.");
-            throw new NullPointerException("Failed to retrieve the used server. Server not found.");
+            throw new NullPointerException("Failed to retrieve the current used server, check your configurations.");
         }
         return serverIdentifier;
     }

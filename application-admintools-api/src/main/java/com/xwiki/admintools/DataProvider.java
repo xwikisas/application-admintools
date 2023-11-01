@@ -27,7 +27,6 @@ import org.xwiki.component.annotation.Role;
  * Gathers specific data and returns it in a specific format, using a template.
  *
  * @version $Id$
- * @since 1.0
  */
 @Role
 public interface DataProvider
@@ -50,7 +49,7 @@ public interface DataProvider
      * Provides the info structured in a json.
      *
      * @return a {@link Map} with the generated info.
-     * @throws Exception
+     * @throws Exception if there are any errors while gathering the needed data.
      */
     Map<String, String> getDataAsJSON() throws Exception;
 }

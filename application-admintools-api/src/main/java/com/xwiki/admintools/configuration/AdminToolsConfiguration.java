@@ -22,16 +22,13 @@ package com.xwiki.admintools.configuration;
 import java.util.List;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.stability.Unstable;
 
 /**
  * Admin Tools configurations.
  *
  * @version $Id$
- * @since 1.0
  */
 @Role
-@Unstable
 public interface AdminToolsConfiguration
 {
     /**

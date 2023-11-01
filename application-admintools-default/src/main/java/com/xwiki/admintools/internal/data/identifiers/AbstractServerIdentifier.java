@@ -31,7 +31,6 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * Common methods for {@link ServerIdentifier} classes.
  *
  * @version $Id$
- * @since 1.0
  */
 public abstract class AbstractServerIdentifier implements ServerIdentifier
 {

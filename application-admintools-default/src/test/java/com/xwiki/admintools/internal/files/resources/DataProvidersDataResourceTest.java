@@ -100,16 +100,11 @@ public class DataProvidersDataResourceTest
     @Test
     void getByteDataThrowError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
-
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("TEST - PROVIDER ERROR AT GET DATA AS JASON!"));
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);
         });
-        assertEquals("Error getting json from DataProvider data_provider_identifier.", exception.getMessage());
-        verify(logger).warn("Error getting json from DataProvider data_provider_identifier. Root cause is: [{}]",
-            "Exception: TEST - PROVIDER ERROR AT GET DATA AS JASON!");
+        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.", exception.getMessage());
     }
 
     @Test
@@ -137,10 +132,8 @@ public class DataProvidersDataResourceTest
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("ERROR AT GET DATA AS JASON."));
         dataProviderResource.addZipEntry(zipOutputStream, null);
 
-        verify(logger).warn("Error getting json from DataProvider data_provider_identifier. Root cause is: [{}]",
-            "Exception: ERROR AT GET DATA AS JASON.");
         verify(zipOutputStream, never()).write(any(), eq(0), eq(0));
-        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: {}",
+        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: [{}]",
             "Exception: ERROR AT GET DATA AS JASON.");
     }
 }

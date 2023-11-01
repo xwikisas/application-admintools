@@ -85,6 +85,8 @@ public class DefaultAdminToolsResourceTest
     @Mock
     private Logger logger;
 
+    private final Map<String, String[]> params = Map.of("noLines", new String[]{"1000"});
+
     @BeforeComponent
     void beforeComponent()
     {
@@ -101,13 +103,13 @@ public class DefaultAdminToolsResourceTest
         when(xWikiContext.getWikiReference()).thenReturn(wikiReference);
         when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(true);
         when(xWikiContext.getRequest()).thenReturn(xWikiRequest);
+        when(xWikiRequest.getParameterMap()).thenReturn(params);
     }
 
     @Test
     void getFile() throws Exception
     {
-        when(importantFilesManager.getFile("resource_hint", null)).thenReturn(new byte[] { 2 });
-
+        when(importantFilesManager.getFile("resource_hint", params)).thenReturn(new byte[] { 2 });
         assertEquals(200, defaultAdminToolsResource.getFile("resource_hint").getStatus());
     }
 
@@ -117,10 +119,10 @@ public class DefaultAdminToolsResourceTest
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
 
-        when(importantFilesManager.getFile("resource_hint", null)).thenThrow(new IOException("FILE NOT FOUND"));
+        when(importantFilesManager.getFile("resource_hint", params)).thenThrow(new IOException("FILE NOT FOUND"));
 
         assertEquals(404, defaultAdminToolsResource.getFile("resource_hint").getStatus());
-        verify(logger).warn("Could not find file from DataResource [{}]. Root cause: [{}]", "resource_hint",
+        verify(logger).warn("Error while handling file from DataResource [{}]. Root cause: [{}]", "resource_hint",
             "IOException: FILE NOT FOUND");
     }
 
@@ -196,15 +198,14 @@ public class DefaultAdminToolsResourceTest
     @Test
     void getLastLogs() throws Exception
     {
-        when(importantFilesManager.getFile(LogsDataResource.HINT, "30")).thenReturn(new byte[] { 2 });
-        when(xWikiRequest.getParameter("noLines")).thenReturn("30");
+        when(importantFilesManager.getFile(LogsDataResource.HINT, params)).thenReturn(new byte[] { 2 });
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }
 
     @Test
     void getLastLogsNoInput() throws Exception
     {
-        when(importantFilesManager.getFile(LogsDataResource.HINT, "1000")).thenReturn(new byte[] { 2 });
+        when(importantFilesManager.getFile(LogsDataResource.HINT, params)).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("");
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
     }
