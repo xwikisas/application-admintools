@@ -37,11 +37,11 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     @Override
     public HealthCheckResult check()
     {
-        if (getJson(ConfigurationDataProvider.HINT).get("database") == null) {
-            logger.warn("Database not found!");
+        if (getJson(ConfigurationDataProvider.HINT).get("databaseName") == null) {
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.database.warn"));
             return new HealthCheckResult("database_not_detected", "xwiki_db_configuration");
         }
-        logger.info("Database status OK");
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.database.info"));
         return new HealthCheckResult();
     }
 }

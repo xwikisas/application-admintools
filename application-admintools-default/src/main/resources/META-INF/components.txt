@@ -18,7 +18,7 @@ com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOsHealthC
 com.xwiki.admintools.internal.health.checks.configuration.SecuritySystemEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.SecurityXWikiEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.PerformanceHealthCheck
-com.xwiki.admintools.internal.health.checks.CacheHealthCheck
+com.xwiki.admintools.internal.health.checks.MemoryHealthCheck
 com.xwiki.admintools.internal.health.job.HealthCheckJob
 com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
 com.xwiki.admintools.internal.PingProvider

@@ -46,13 +46,13 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
         String activeEnc = securityJson.get("activeEncoding");
         String configEnc = securityJson.get("configurationEncoding");
-        if (!acceptedEncodings.contains(activeEnc)
-            || !acceptedEncodings.contains(configEnc))
-        {
-            logger.warn("XWiki encoding is [{}]. The encoding should be UTF-8!", activeEnc);
+        if (!acceptedEncodings.contains(activeEnc) || !acceptedEncodings.contains(configEnc)) {
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.warn"),
+                activeEnc);
             return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
-        logger.info("XWiki encoding is configured correctly.");
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.info"));
         return new HealthCheckResult();
     }
 }

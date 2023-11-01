@@ -22,18 +22,21 @@ package com.xwiki.admintools.internal.health.checks.configuration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 
 import org.slf4j.Logger;
+import org.xwiki.localization.ContextualLocalizationManager;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.health.HealthCheck;
 
 public abstract class AbstractConfigurationHealthCheck implements HealthCheck
 {
+    @Inject
+    protected ContextualLocalizationManager localization;
+
     @Inject
     Logger logger;
 
@@ -42,9 +45,7 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
 
     protected Map<String, String> getJson(String hint)
     {
-
         try {
-            TimeUnit.SECONDS.sleep(1);
             return findDataProvider(hint).getDataAsJSON();
         } catch (Exception e) {
             return new HashMap<>();
@@ -53,10 +54,8 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
 
     private DataProvider findDataProvider(String hint)
     {
-        for (DataProvider dataProvider : dataProviders.get())
-        {
-            if(dataProvider.getIdentifier().equals(hint))
-            {
+        for (DataProvider dataProvider : dataProviders.get()) {
+            if (dataProvider.getIdentifier().equals(hint)) {
                 return dataProvider;
             }
         }

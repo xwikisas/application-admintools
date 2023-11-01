@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.localization.ContextualLocalizationManager;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
@@ -44,15 +45,21 @@ public class PerformanceHealthCheck implements HealthCheck
     public final static String HINT = "PERFORMANCE_HEALTH_CHECK";
 
     @Inject
+    protected ContextualLocalizationManager localization;
+
+    @Inject
     private Logger logger;
 
     @Override
     public HealthCheckResult check()
     {
-        if (!hasFreeSpace() || !hasMinimumCPURequirements() || !hasMinimumMemoryRequirements()) {
+        boolean hasFreeSpace = hasFreeSpace();
+        boolean hasMinimumCPURequirements = hasMinimumCPURequirements();
+        boolean hasMinimumMemoryRequirements = hasMinimumMemoryRequirements();
+        if (!hasFreeSpace || !hasMinimumCPURequirements || !hasMinimumMemoryRequirements) {
             return new HealthCheckResult("performance issues", "minimum sys req link");
         }
-        logger.info("System performance status OK!");
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.info"));
         return new HealthCheckResult();
     }
 
@@ -67,24 +74,26 @@ public class PerformanceHealthCheck implements HealthCheck
         long freePartitionSpace = diskPartition.getFreeSpace();
         float freeSpace = (float) freePartitionSpace / (1024 * 1024 * 1024);
 
-        if(freeSpace > 2) {
+        if (freeSpace > 2) {
             return true;
         } else {
-            logger.warn("There is not enough free space for the XWiki installation!");
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.space.warn"));
             return false;
         }
     }
 
     private boolean hasMinimumMemoryRequirements()
     {
-        long memorySize = ((com.sun.management.OperatingSystemMXBean) ManagementFactory
-            .getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
+        long memorySize =
+            ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
         float totalMemory = (float) memorySize / (1024 * 1024 * 1024) + 1;
 
         if (totalMemory > 2) {
             return true;
         } else {
-            logger.warn("There is not enough memory to safely run the XWiki installation!");
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.memory.warn"));
             return false;
         }
     }
@@ -100,7 +109,8 @@ public class PerformanceHealthCheck implements HealthCheck
         if (cpuCores > 2 && maxFreq > 2048) {
             return true;
         } else {
-            logger.warn("The CPU does not satisfy the minimum system requirements!");
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.cpu.warn"));
             return false;
         }
     }

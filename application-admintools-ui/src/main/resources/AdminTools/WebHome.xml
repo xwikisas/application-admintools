@@ -228,13 +228,15 @@ $services.admintools.getFilesSection()
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
   #set ($jobId = $healthCheckJobRequest.id)
-  #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-{{html clean='false'}}
+  #if ($jobId)
+    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
+  #end{{html clean='false'}}
   &lt;div class="adminToolsDashboardItem" id="healthCheck">
     &lt;h2>$services.icon.renderHTML('bug')
-      Health check&lt;/h2>
-    &lt;p>Check if your instance is configured correctly and is properly running. For any issues, check out this
-        &lt;a href="$xwiki.getURL("AdminTools.HelpLinks")">&lt;strong>solutions&lt;/strong>&lt;/a>.&lt;/p>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.title'))&lt;/h2>
+    &lt;p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.description'))
+        &lt;a href="$xwiki.getURL('AdminTools.HelpLinks')">&lt;strong>$escapetool.xml($services.localization.render(
+        'adminTools.dashboard.section.healthcheck.description.link'))&lt;/strong>&lt;/a>.&lt;/p>
     &lt;hr/>
     &lt;div class="healthCheckWrapper">
       &lt;div class="healthCheckLastCheck">

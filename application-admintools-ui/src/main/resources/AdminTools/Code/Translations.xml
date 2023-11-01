@@ -42,23 +42,6 @@ AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 admin.admintools.description=Configure Admin Tools Application
 
-## Modals
-adminTools.dashboard.download.modal.button=Download
-adminTools.dashboard.download.modal.date.from=From
-adminTools.dashboard.download.modal.date.to=To
-adminTools.dashboard.download.modal.provided=Configuration info
-adminTools.dashboard.download.modal.title=Get support files
-adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
-adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
-adminTools.dashboard.download.modal.logs.title=Logs
-adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
-adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
-adminTools.dashboard.logs.modal.submit=View
-adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
-adminTools.dashboard.logs.modal.title=Show last n lines of log
-adminTools.dashboard.logs.modal.nLines.hint=Limited at 50000 lines. If the input is empty, the default of 1000 lines will be returned.
-adminTools.dashboard.showLogs=View last n lines of log...
-
 ## Dashboard sections
 ## Config
 adminTools.dashboard.section.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
@@ -84,6 +67,33 @@ adminTools.dashboard.section.download.view.description=View files content
 adminTools.dashboard.section.download.view.properties=XWiki properties file
 adminTools.dashboard.section.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
 
+## Health check
+adminTools.dashboard.section.healthcheck.database.info=Database status OK
+adminTools.dashboard.section.healthcheck.database.warn=Database not found!
+adminTools.dashboard.section.healthcheck.description=Check if your instance is configured correctly and is properly running. For any issues, check out this
+adminTools.dashboard.section.healthcheck.description.link=solutions
+adminTools.dashboard.section.healthcheck.java.info=Java status OK
+adminTools.dashboard.section.healthcheck.java.warn.found=Java version not found!
+adminTools.dashboard.section.healthcheck.java.warn.incompatible=Java version is not compatible with the current XWiki installation!
+adminTools.dashboard.section.healthcheck.memory.cache.info=Cache status OK
+adminTools.dashboard.section.healthcheck.memory.cache.warn=Store cache capacity is set at 500. Check Cache recommendations in solutions.
+adminTools.dashboard.section.healthcheck.memory.mem.free.error=Your JVM instance has only [{}]MB free memory left! Consult the solution link for support!
+adminTools.dashboard.section.healthcheck.memory.mem.free.warn=Your instance memory is running low. Currently only [{}]MB free left.
+adminTools.dashboard.section.healthcheck.memory.mem.info=Memory status OK
+adminTools.dashboard.section.healthcheck.memory.mem.maxcapacity.error=JVM memory is less than 1024MB. Currently: [{}]MB
+adminTools.dashboard.section.healthcheck.os.info=OS info retrieval OK
+adminTools.dashboard.section.healthcheck.os.warn=There has been an error while gathering OS info!
+adminTools.dashboard.section.healthcheck.performance.cpu.warn=The CPU does not satisfy the minimum system requirements!
+adminTools.dashboard.section.healthcheck.performance.info=System performance OK
+adminTools.dashboard.section.healthcheck.performance.memory.warn=There is not enough memory to safely run the XWiki installation!
+adminTools.dashboard.section.healthcheck.performance.space.warn=There is not enough free space for the XWiki installation!
+adminTools.dashboard.section.healthcheck.security.system.info=System encoding OK
+adminTools.dashboard.section.healthcheck.security.system.warn=System encoding is [{}] but should be UTF-8!
+adminTools.dashboard.section.healthcheck.security.xwiki.info=XWiki encoding OK
+adminTools.dashboard.section.healthcheck.security.xwiki.warn=XWiki encoding is [{}]. The encoding should be UTF-8!
+adminTools.dashboard.section.healthcheck.title=Health check
+
+
 ## Security
 adminTools.dashboard.section.security.activeEncoding=Active encoding
 adminTools.dashboard.section.security.configurationEncoding=Configuration encoding
@@ -94,7 +104,22 @@ adminTools.dashboard.section.security.lang=Used language
 adminTools.dashboard.section.security.pwd=Working directory
 adminTools.dashboard.section.security.title=Security
 
-  </content>
+## Modals
+adminTools.dashboard.download.modal.button=Download
+adminTools.dashboard.download.modal.date.from=From
+adminTools.dashboard.download.modal.date.to=To
+adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
+adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
+adminTools.dashboard.download.modal.logs.title=Logs
+adminTools.dashboard.download.modal.provided=Configuration info
+adminTools.dashboard.download.modal.title=Get support files
+adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
+adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
+adminTools.dashboard.logs.modal.nLines.hint=Limited at 50000 lines. If the input is empty, the default of 1000 lines will be returned.
+adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
+adminTools.dashboard.logs.modal.submit=View
+adminTools.dashboard.logs.modal.title=Show last n lines of log
+adminTools.dashboard.showLogs=View last n lines of log...</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

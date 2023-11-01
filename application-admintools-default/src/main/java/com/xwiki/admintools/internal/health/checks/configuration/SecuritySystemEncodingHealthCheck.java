@@ -46,12 +46,13 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
         String langEnc = securityJson.get("LANG").split("\\.")[1];
         String fileEnc = securityJson.get("fileEncoding");
-        if (!acceptedEncodings.contains(langEnc) || !acceptedEncodings.contains(fileEnc))
-        {
-            logger.warn("System encoding is [{}] should be UTF-8!", fileEnc);
+        if (!acceptedEncodings.contains(langEnc) || !acceptedEncodings.contains(fileEnc)) {
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.warn"),
+                fileEnc);
             return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
         }
-        logger.info("System encoding OK.");
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.info"));
         return new HealthCheckResult();
     }
 }
