@@ -7,4 +7,4 @@ com.xwiki.admintools.internal.data.identifiers.TomcatIdentifier
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
-com.xwiki.admintools.internal.util.PingProvider
+com.xwiki.admintools.internal.PingProvider

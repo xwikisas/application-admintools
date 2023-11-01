@@ -30,7 +30,7 @@ import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.util.PingProvider;
+import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.

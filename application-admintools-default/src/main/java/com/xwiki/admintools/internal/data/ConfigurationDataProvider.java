@@ -33,7 +33,7 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.util.PingProvider;
+import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
