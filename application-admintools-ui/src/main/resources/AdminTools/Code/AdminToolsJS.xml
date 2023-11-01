@@ -129,6 +129,7 @@
     let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
     return new XWiki.Document(documentReference).getURL('get');
   }
+
   const runHealthCheckJob = function() {
     var data = [];
     data.push(
@@ -169,7 +170,6 @@
     require.undef('health-check-job');
     $.get(getResourceURL(), function(data) {
       let jobMinJsURL = $(data).find('input[name="jobMinJsURL"]').val();
-
       require.config({
         paths: {
           'health-check-job': jobMinJsURL
@@ -191,7 +191,7 @@
           $('.job-status').attr('data-url', healthCheckJobStatusURL);
           $('#admin_tools_job_start').prop("disabled", true);
           $('.job-status').show();
-        } else {
+        } else if (jobState == "FINISHED") {
           $('.job-status').show();
         }
       });
@@ -203,9 +203,9 @@
     $(".log").empty();
     $('#admin_tools_job_start').prop("disabled", true);
     $.get(getResourceURL(), function(data) {
+      runHealthCheckJob()
       reinitialiseProgressBar()
       initialiseJobJS()
-      runHealthCheckJob()
       // Inject the content into the job-status div
       let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
       $('.job-status').attr('data-url', healthCheckJobStatusURL);

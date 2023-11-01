@@ -37,67 +37,6 @@
   <content>{{dashboard/}}</content>
   <object>
     <name>AdminTools.WebHome</name>
-    <number>0</number>
-    <className>XWiki.ComponentClass</className>
-    <guid>0c51bf0c-1de8-49b1-bf13-701ba2160c5b</guid>
-    <class>
-      <name>XWiki.ComponentClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <roleHint>
-        <disabled>0</disabled>
-        <name>roleHint</name>
-        <number>2</number>
-        <prettyName>Component Role Hint</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </roleHint>
-      <roleType>
-        <disabled>0</disabled>
-        <name>roleType</name>
-        <number>1</number>
-        <prettyName>Component Role Type</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </roleType>
-      <scope>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>scope</name>
-        <number>3</number>
-        <prettyName>Component Scope</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>wiki=Current Wiki|user=Current User|global=Global</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </scope>
-    </class>
-    <property>
-      <roleHint>AdminToolsEventListener</roleHint>
-    </property>
-    <property>
-      <roleType>org.xwiki.observation.EventListener</roleType>
-    </property>
-    <property>
-      <scope>wiki</scope>
-    </property>
-  </object>
-  <object>
-    <name>AdminTools.WebHome</name>
     <number>1</number>
     <className>XWiki.GadgetClass</className>
     <guid>82e79922-f521-4a5b-b99c-dc752711ec94</guid>
@@ -290,38 +229,40 @@ $services.admintools.getFilesSection()
   #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
   #set ($jobId = $healthCheckJobRequest.id)
   #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-
 {{html clean='false'}}
-&lt;div class="adminToolsDashboardItem" id="healthCheck">
-  &lt;h2>$services.icon.renderHTML('bug')
-    Health check&lt;/h2>
-  &lt;p>Check if your instance is configured correctly and is properly running. For any issues, check out this &lt;a href="$xwiki.getURL("AdminTools.HelpLinks")">&lt;strong>solutions&lt;/strong>&lt;/a>.&lt;/p>
-  &lt;hr/>
-  &lt;div class="healthCheckWrapper">
-    &lt;div class="healthCheckLastCheck">
-      Time since the last health check: $services.date.displayTimeAgo($healthJobStatus.getEndDate())
+  &lt;div class="adminToolsDashboardItem" id="healthCheck">
+    &lt;h2>$services.icon.renderHTML('bug')
+      Health check&lt;/h2>
+    &lt;p>Check if your instance is configured correctly and is properly running. For any issues, check out this
+        &lt;a href="$xwiki.getURL("AdminTools.HelpLinks")">&lt;strong>solutions&lt;/strong>&lt;/a>.&lt;/p>
+    &lt;hr/>
+    &lt;div class="healthCheckWrapper">
+      &lt;div class="healthCheckLastCheck">
+        Time since the last health check: $services.date.displayTimeAgo($healthJobStatus.getEndDate())
+      &lt;/div>
+      &lt;div class="buttonwrapper">
+        &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
+          value="startHealthCheck">Start health check&lt;/button>
+      &lt;/div>
     &lt;/div>
-    &lt;div class="buttonwrapper">
-      &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck" value="startHealthCheck">Start health check&lt;/button>
-    &lt;/div>
-  &lt;/div>
-  &lt;div hidden class="xcontent job-status" data-url="">
-    #if ($healthJobStatus.state != 'FINISHED')
-      #displayJobProgressBar($jobStatus)
-    #else
-      #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
-    #end
-    #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
+    &lt;div hidden class="xcontent job-status" data-url="">
       #if ($healthJobStatus.state != 'FINISHED')
-        #displayJobStatusLog($jobStatus true)
+        #displayJobProgressBar($jobStatus)
       #else
-        #displayJobStatusLog($healthJobStatus true)
+        #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
       #end
-    #end
+      #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
+        #if ($healthJobStatus.state != 'FINISHED')
+          #displayJobStatusLog($jobStatus true)
+        #else
+          #displayJobStatusLog($healthJobStatus true)
+        #end
+      #end
+    &lt;/div>
   &lt;/div>
-&lt;/div>
 {{/html}}
-{{/velocity}}</content>
+{{/velocity}}
+</content>
     </property>
     <property>
       <position>1, 2</position>
