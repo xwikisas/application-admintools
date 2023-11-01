@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.annotation.Component;
 

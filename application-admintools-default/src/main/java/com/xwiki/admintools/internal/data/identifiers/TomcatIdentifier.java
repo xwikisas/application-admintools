@@ -20,8 +20,8 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
-import java.util.regex.Pattern;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,7 +34,7 @@ import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.PingProvider;
 
 /**
- * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
+ * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
  *
  * @version $Id$
  */
