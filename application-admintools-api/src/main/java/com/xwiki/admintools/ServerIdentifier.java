@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools;
 
+import java.util.Map;
+
 import org.xwiki.component.annotation.Role;
 
 import java.util.regex.Pattern;
@@ -65,6 +67,13 @@ public interface ServerIdentifier
      * Update the possible paths to the configuration files.
      */
     void updatePossiblePaths();
+
+    /**
+     * Access a JSON containing the server metadata.
+     *
+     * @return the server metadata.
+     */
+    Map<String, String> getServerMetadata();
 
     /**
      * Get path to server.

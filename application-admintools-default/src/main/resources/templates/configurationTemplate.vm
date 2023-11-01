@@ -43,8 +43,8 @@
         $configuration['javaVersion']
       </li>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer')):
-        $configuration['usedServer']
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
+        $configuration['usedServerName'] - $configuration['usedServerVersion']
       </li>
       <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
         <ul>
@@ -56,9 +56,9 @@
             $configuration['osArch']</li>
         </ul>
       </li>
-      #if ($configuration['database'] != $null)
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB')):
-        $configuration['database']</li>
+      #if ($configuration['databaseName'] != $null)
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
+        $configuration['databaseName'] - $configuration['databaseVersion']</li>
       #else
         #set($warningDatabaseMessage = $escapetool.xml(
           $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')) + ':')
