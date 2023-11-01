@@ -75,7 +75,7 @@ public class XWikiConfigFileDataResource implements DataResource
     }
 
     @Override
-    public byte[] getByteData(Map<String, String[]> input) throws IOException
+    public byte[] getByteData(Map<String, String[]> params) throws IOException
     {
         try {
             ServerIdentifier usedServer = currentServer.getCurrentServer();

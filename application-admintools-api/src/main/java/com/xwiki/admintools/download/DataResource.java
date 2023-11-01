@@ -44,12 +44,12 @@ public interface DataResource
     /**
      * Retrieve the content of a system file.
      *
-     * @param input Can be used to send additional info to the component.
+     * @param params Can be used to send additional info to the component.
      * @return the content of the file as an {@link Byte} array.
      * @throws IOException when there are errors while handling searched files.
      * @throws NumberFormatException when there is an invalid numeric input.
      */
-    byte[] getByteData(Map<String, String[]> input) throws Exception;
+    byte[] getByteData(Map<String, String[]> params) throws Exception;
 
     /**
      * Get the hint of a component.
