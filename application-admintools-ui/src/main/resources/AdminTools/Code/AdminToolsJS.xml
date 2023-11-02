@@ -242,7 +242,7 @@
     link.click();
   });
 
-  $(document).on('change', '#downloadFilesModal input[name="files"][value="logsDataResource"]', function() {
+  $(document).on('change', '#downloadFilesModal input[name="files"][value="logs"]', function() {
     if ($(this).is(':checked')) {
       $('#downloadFilesModal .dateFields').show();
     } else {
