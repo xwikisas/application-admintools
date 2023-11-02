@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 /**
  * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
  * files.
- *
  * @version $Id$
  */
 @Role

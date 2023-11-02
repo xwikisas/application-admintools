@@ -91,8 +91,7 @@
     <property>
       <content>{{velocity}}
 $services.admintools.getConfigurationData('configuration')
-{{/velocity}}
-</content>
+{{/velocity}}</content>
     </property>
     <property>
       <position>1, 1</position>
@@ -157,117 +156,10 @@ $services.admintools.getConfigurationData('configuration')
     <property>
       <content>{{velocity}}
 $services.admintools.getFilesSection()
-{{/velocity}}
-</content>
+{{/velocity}}</content>
     </property>
     <property>
       <position>2, 1</position>
-    </property>
-    <property>
-      <title></title>
-    </property>
-  </object>
-  <object>
-    <name>AdminTools.WebHome</name>
-    <number>3</number>
-    <className>XWiki.GadgetClass</className>
-    <guid>e26584bd-f916-43fd-b57c-4030ba639a9a</guid>
-    <class>
-      <name>XWiki.GadgetClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <content>
-        <disabled>0</disabled>
-        <editor>---</editor>
-        <name>content</name>
-        <number>2</number>
-        <picker>0</picker>
-        <prettyName>content</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </content>
-      <position>
-        <disabled>0</disabled>
-        <name>position</name>
-        <number>3</number>
-        <picker>0</picker>
-        <prettyName>position</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </position>
-      <title>
-        <disabled>0</disabled>
-        <name>title</name>
-        <number>1</number>
-        <picker>0</picker>
-        <prettyName>title</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </title>
-    </class>
-    <property>
-      <content>{{template name="job_macros.vm"/}}
-
-{{velocity}}
-  #includeMacros("AdminTools.Code.Macros")
-  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
-  #set ($jobId = $healthCheckJobRequest.id)
-  #if ($jobId)
-    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-  #end{{html clean='false'}}
-  &lt;div class="adminToolsDashboardItem" id="healthCheck">
-    &lt;h2>$services.icon.renderHTML('bug')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.title'))&lt;/h2>
-    &lt;p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.description'))
-        &lt;a href="$xwiki.getURL('AdminTools.HelpLinks')">&lt;strong>$escapetool.xml($services.localization.render(
-        'adminTools.dashboard.section.healthcheck.description.link'))&lt;/strong>&lt;/a>.&lt;/p>
-    &lt;hr/>
-    &lt;div class="healthCheckWrapper">
-      &lt;div class="healthCheckLastCheck">
-        Time since the last health check: $services.date.displayTimeAgo($healthJobStatus.getEndDate())
-      &lt;/div>
-      &lt;div class="buttonwrapper">
-        &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
-          value="startHealthCheck">Start health check&lt;/button>
-      &lt;/div>
-    &lt;/div>
-    &lt;div hidden class="xcontent job-status" data-url="">
-      #if ($healthJobStatus.state != 'FINISHED')
-        #displayJobProgressBar($jobStatus)
-      #else
-        #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
-      #end
-      #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
-        #if ($healthJobStatus.state != 'FINISHED')
-          #displayJobStatusLog($jobStatus true)
-        #else
-          #displayJobStatusLog($healthJobStatus true)
-        #end
-      #end
-    &lt;/div>
-  &lt;/div>
-{{/html}}
-{{/velocity}}
-</content>
-    </property>
-    <property>
-      <position>1, 2</position>
     </property>
     <property>
       <title></title>
@@ -402,16 +294,6 @@ $services.admintools.getFilesSection()
 
 .bootstrap-datetimepicker-widget {
   z-index: 99999 !important;
-}
-
-.healthCheckWrapper {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 2rem;
-}
-
-.healthCheckWrapper button {
-    margin-top: 2rem;
 }</code>
     </property>
     <property>
