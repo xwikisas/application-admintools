@@ -37,12 +37,20 @@ import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
 
+/**
+ * Implementation of {@link HealthCheck} for checking system hardware meets XWiki requirements.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(PerformanceHealthCheck.HINT)
 @Singleton
 public class PerformanceHealthCheck implements HealthCheck
 {
-    public final static String HINT = "PERFORMANCE_HEALTH_CHECK";
+    /**
+     * Component identifier.
+     */
+    public static final String HINT = "PERFORMANCE_HEALTH_CHECK";
 
     @Inject
     protected ContextualLocalizationManager localization;
@@ -86,7 +94,8 @@ public class PerformanceHealthCheck implements HealthCheck
     private boolean hasMinimumMemoryRequirements()
     {
         long memorySize =
-            ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
+            ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean())
+                .getTotalPhysicalMemorySize();
         float totalMemory = (float) memorySize / (1024 * 1024 * 1024) + 1;
 
         if (totalMemory > 2) {

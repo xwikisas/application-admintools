@@ -27,19 +27,21 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
+/**
+ * Extension of {@link AbstractConfigurationHealthCheck} for checking the Java configuration.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(ConfigurationJavaHealthCheck.HINT)
 @Singleton
 public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "CONFIG_JAVA_HEALTH_CHECK";
-
-    private static final String xwikiJavaCompatibilityLink =
-        "https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/JavaSupportStrategy/";
-
     /**
-     * @return
+     * Component identifier.
      */
+    public static final String HINT = "CONFIG_JAVA_HEALTH_CHECK";
+
     @Override
     public HealthCheckResult check()
     {
@@ -54,10 +56,9 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
             logger.warn(
                 localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.warn.incompatible"));
-            return new HealthCheckResult("java_xwiki_comp", xwikiJavaCompatibilityLink);
+            return new HealthCheckResult("java_xwiki_not_compatible", "java_issue_rec");
         }
-        logger.info(
-            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.info"));
         return new HealthCheckResult();
     }
 
@@ -69,13 +70,23 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
 
     private boolean isJavaXWikiCompatible(float xwikiVersion, float javaVersion)
     {
-        return inInterval(xwikiVersion, 0, 6) && javaVersion != 1.6
-            || inInterval(xwikiVersion, 6, 8.1f) && javaVersion != 1.7
-            || inInterval(xwikiVersion, 8.1f, 11.3f) && javaVersion != 1.8 || inInterval(xwikiVersion, 11.2f, 14) && (
-            javaVersion != 1.8 || inInterval(javaVersion, 10.99f, 12))
-            || inInterval(xwikiVersion, 13.9f, 14.10f) && javaVersion >= 11
-            || inInterval(xwikiVersion, 14.10f, Float.MAX_VALUE) && (inInterval(javaVersion, 10.99f, 12) || inInterval(
-            javaVersion, 16.99f, 18));
+        boolean isCompatible = false;
+
+        if (inInterval(xwikiVersion, 0, 6)) {
+            isCompatible = javaVersion != 1.6;
+        } else if (inInterval(xwikiVersion, 6, 8.1f)) {
+            isCompatible = javaVersion != 1.7;
+        } else if (inInterval(xwikiVersion, 8.1f, 11.3f)) {
+            isCompatible = javaVersion != 1.8;
+        } else if (inInterval(xwikiVersion, 11.2f, 14)) {
+            isCompatible = (javaVersion != 1.8) || inInterval(javaVersion, 10.99f, 12);
+        } else if (inInterval(xwikiVersion, 13.9f, 14.10f)) {
+            isCompatible = javaVersion >= 11;
+        } else if (inInterval(xwikiVersion, 14.10f, Float.MAX_VALUE)) {
+            isCompatible = inInterval(javaVersion, 10.99f, 12) || inInterval(javaVersion, 16.99f, 18);
+        }
+
+        return isCompatible;
     }
 
     private boolean inInterval(float checkedValue, float lowerBound, float upperBound)

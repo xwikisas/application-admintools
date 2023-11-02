@@ -38,8 +38,8 @@ import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 /**
  * Admin Tools script services.
  *
- * @since 1.0
  * @version $Id$
+ * @since 1.0
  */
 @Component
 @Named("admintools")
@@ -106,24 +106,10 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * TBC.
+     * Start the execution of the given Admin Tools health check request.
      *
-     * @return TBC.
-     */
-    public Job runHealthChecks()
-    {
-        try {
-            return this.jobExecutor.execute(HealthCheckJob.JOB_TYPE, new HealthCheckJobRequest());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * TBC.
-     *
-     * @param healthCheckJobRequest TBC.
-     * @return TBC.
+     * @param healthCheckJobRequest the health check request to be executed.
+     * @return the asynchronous background job that will execute the request.
      */
     public Job runHealthChecks(HealthCheckJobRequest healthCheckJobRequest)
     {
@@ -140,10 +126,10 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * TBC.
+     * Create health check request.
      *
-     * @param wiki TBC.
-     * @return TBC.
+     * @param wiki the ID of the wiki from where the request was made.
+     * @return a new health check request, initialized based on the given wiki ID.
      */
     public HealthCheckJobRequest createJobRequest(String wiki)
     {

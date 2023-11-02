@@ -31,12 +31,20 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
+/**
+ * Extension of {@link AbstractConfigurationHealthCheck} for checking system security configuration.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(SecuritySystemEncodingHealthCheck.HINT)
 @Singleton
 public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "SECURITY_SYSTEM_ENCODING_HEALTH_CHECK";
+    /**
+     * Component identifier.
+     */
+    public static final String HINT = "SECURITY_SYSTEM_ENCODING_HEALTH_CHECK";
 
     private final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
 
@@ -44,15 +52,37 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
     public HealthCheckResult check()
     {
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
-        String langEnc = securityJson.get("LANG").split("\\.")[1];
-        String fileEnc = securityJson.get("fileEncoding");
-        if (!acceptedEncodings.contains(langEnc) || !acceptedEncodings.contains(fileEnc)) {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.warn"),
-                fileEnc);
-            return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
+        String langEnc = securityJson.getOrDefault("LANG", "invalid.invalid").split("\\.")[1];
+        String fileEnc = securityJson.getOrDefault("fileEncoding", "invalid");
+        boolean isSafeLangEnc = isSafeLanguageEncoding(langEnc);
+        boolean isSafeFileEnc = isSafeFileEncoding(fileEnc);
+
+        if (!isSafeLangEnc || !isSafeFileEnc) {
+            return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.info"));
         return new HealthCheckResult();
+    }
+
+    private boolean isSafeLanguageEncoding(String langEnc)
+    {
+        if (acceptedEncodings.contains(langEnc)) {
+            return true;
+        }
+        logger.warn(
+            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.lang.warn"),
+            langEnc);
+        return false;
+    }
+
+    private boolean isSafeFileEncoding(String fileEnc)
+    {
+        if (acceptedEncodings.contains(fileEnc)) {
+            return true;
+        }
+        logger.warn(
+            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.file.warn"),
+            fileEnc);
+        return false;
     }
 }

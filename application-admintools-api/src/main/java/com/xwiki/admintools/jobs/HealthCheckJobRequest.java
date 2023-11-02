@@ -23,18 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.xwiki.job.AbstractRequest;
-import org.xwiki.job.Request;
 import org.xwiki.stability.Unstable;
 
+/**
+ * Represents a request to start a health check on current wiki.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
 @Unstable
 public class HealthCheckJobRequest extends AbstractRequest
 {
+    /**
+     * Default constructor.
+     */
     public HealthCheckJobRequest()
     {
         setDefaultId();
     }
 
-    public HealthCheckJobRequest(String wiki) {
+    /**
+     * Creates a request specific to the wiki from which the call was made.
+     *
+     * @param wiki the wiki ID from which the request was made.
+     */
+    public HealthCheckJobRequest(String wiki)
+    {
         setDefaultId();
         getId().add(wiki);
     }

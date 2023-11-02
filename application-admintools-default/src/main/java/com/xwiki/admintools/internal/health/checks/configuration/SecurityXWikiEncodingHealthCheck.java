@@ -31,12 +31,22 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
+/**
+ * Extension of {@link AbstractConfigurationHealthCheck} for checking XWiki security configuration.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(SecurityXWikiEncodingHealthCheck.HINT)
 @Singleton
 public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "SECURITY_XWIKI_ENCODING_HEALTH_CHECK";
+    /**
+     * Component identifier.
+     */
+    public static final String HINT = "SECURITY_XWIKI_ENCODING_HEALTH_CHECK";
+
+    private static final String INVALID = "INVALID";
 
     private final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
 
@@ -44,15 +54,36 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
     public HealthCheckResult check()
     {
         Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
-        String activeEnc = securityJson.get("activeEncoding");
-        String configEnc = securityJson.get("configurationEncoding");
-        if (!acceptedEncodings.contains(activeEnc) || !acceptedEncodings.contains(configEnc)) {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.warn"),
-                activeEnc);
-            return new HealthCheckResult("xwiki_encoding err", "xwiki config tutorial link");
+        String activeEnc = securityJson.getOrDefault("activeEncoding", INVALID);
+        String configEnc = securityJson.getOrDefault("configurationEncoding", INVALID);
+        boolean isActiveEncSafe = isSafeActiveEncoding(activeEnc);
+        boolean isConfigEncSafe = isSafeConfigEncoding(configEnc);
+        if (!isActiveEncSafe || !isConfigEncSafe) {
+            return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.info"));
         return new HealthCheckResult();
+    }
+
+    private boolean isSafeActiveEncoding(String activeEnc)
+    {
+        if (acceptedEncodings.contains(activeEnc)) {
+            return true;
+        }
+        logger.warn(
+            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.active.warn"),
+            activeEnc);
+        return false;
+    }
+
+    private boolean isSafeConfigEncoding(String configEnc)
+    {
+        if (acceptedEncodings.contains(configEnc)) {
+            return true;
+        }
+        logger.warn(
+            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.config.warn"),
+            configEnc);
+        return false;
     }
 }

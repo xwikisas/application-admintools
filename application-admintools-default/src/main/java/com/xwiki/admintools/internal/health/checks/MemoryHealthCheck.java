@@ -25,7 +25,6 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
-import org.xwiki.cache.CacheManagerConfiguration;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.localization.ContextualLocalizationManager;
@@ -35,11 +34,19 @@ import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 
+/**
+ * Implementation of {@link HealthCheck} for checking instance memory performance.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(MemoryHealthCheck.HINT)
 @Singleton
 public class MemoryHealthCheck implements HealthCheck
 {
+    /**
+     * Component identifier.
+     */
     public static final String HINT = "CACHE_HEALTH_CHECK";
 
     @Inject
@@ -47,9 +54,6 @@ public class MemoryHealthCheck implements HealthCheck
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
-
-    @Inject
-    CacheManagerConfiguration cacheManagerConfiguration;
 
     @Inject
     @Named("xwikicfg")
@@ -72,8 +76,15 @@ public class MemoryHealthCheck implements HealthCheck
     private boolean isEnoughCache()
     {
         String storeCacheCapacity = configurationSource.getProperty("xwiki.store.cache.capacity");
-        if (storeCacheCapacity == null || storeCacheCapacity.equals("500")) {
-            logger.warn(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.warn"));
+        if (storeCacheCapacity == null) {
+
+            logger.warn(
+                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.null.warn"));
+            return false;
+        }
+        if (Integer.parseInt(storeCacheCapacity) <= 500) {
+            logger.warn(localization.getTranslationPlain(
+                "adminTools.dashboard.section.healthcheck.memory.cache.value.warn"), storeCacheCapacity);
             return false;
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.info"));

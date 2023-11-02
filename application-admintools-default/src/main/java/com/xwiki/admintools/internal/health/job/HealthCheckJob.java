@@ -28,15 +28,18 @@ import javax.inject.Provider;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
-import org.xwiki.job.Job;
 import org.xwiki.job.event.status.CancelableJobStatus;
-import org.xwiki.job.event.status.JobStatus;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
+/**
+ * The Admin Tools health check job.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(HealthCheckJob.JOB_TYPE)
 public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthCheckJobStatus>
@@ -58,11 +61,12 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
     @Override
     protected HealthCheckJobStatus createNewStatus(HealthCheckJobRequest request)
     {
-        Job currentJob = this.jobContext.getCurrentJob();
-        JobStatus currentJobStatus = currentJob != null ? currentJob.getStatus() : null;
-        return new HealthCheckJobStatus(request, currentJobStatus, observationManager, loggerManager);
+        return new HealthCheckJobStatus(JOB_TYPE, request, observationManager, loggerManager);
     }
 
+    /**
+     * Run the health check job.
+     */
     @Override
     protected void runInternal()
     {
@@ -76,7 +80,10 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                         break;
                     } else {
                         progressManager.startStep(this);
+                        // We start the check for the current HealthCheck in the iterator.
                         HealthCheckResult checkResult = healthCheckIterator.next().check();
+                        // If the check return a result with a null error message then no issue was found, so we do not
+                        // add the result to the status HealthCheckResult list.
                         if (checkResult.getErrorMessage() != null) {
                             status.getHealthCheckResults().add(checkResult);
                         }

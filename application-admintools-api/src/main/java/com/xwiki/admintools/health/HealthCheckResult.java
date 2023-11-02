@@ -19,31 +19,76 @@
  */
 package com.xwiki.admintools.health;
 
+import org.xwiki.stability.Unstable;
+
+/**
+ * Result of a health check. Stores the error message and recommendation.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
+@Unstable
 public class HealthCheckResult
 {
-    String errorMessage;
+    private String errorMessage;
 
-    String link;
+    private String recommendation;
 
-    public HealthCheckResult(String errMsg, String link)
+    /**
+     * Used for registering an error.
+     *
+     * @param errMsg Error message representing the summary of the found issue.
+     * @param recommendation Suggestion for fixing the issue.
+     */
+    public HealthCheckResult(String errMsg, String recommendation)
     {
         this.errorMessage = errMsg;
-        this.link = link;
+        this.recommendation = recommendation;
     }
 
+    /**
+     * Used for initializing an empty body result.
+     */
     public HealthCheckResult()
     {
         errorMessage = null;
-        link = null;
+        recommendation = null;
     }
 
+    /**
+     * Get the error body.
+     * @return a summary of the error.
+     */
     public String getErrorMessage()
     {
         return errorMessage;
     }
 
-    public String getLink()
+    /**
+     * Get the recommendation for the set error.
+     *
+     * @return a suggestion for fixing the error.
+     */
+    public String getRecommendation()
     {
-        return link;
+        return recommendation;
+    }
+
+    /**
+     * Set the message error.
+     * @param err summary of the error.
+     */
+    public void setErrorMessage(String err)
+    {
+        this.errorMessage = err;
+    }
+
+    /**
+     * Set the error recommendation.
+     * @param recommendation summary of the fix.
+     */
+    public void setRecommendation(String recommendation)
+    {
+        this.recommendation = recommendation;
     }
 }

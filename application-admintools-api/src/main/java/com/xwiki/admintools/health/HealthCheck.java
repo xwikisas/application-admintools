@@ -19,15 +19,21 @@
  */
 package com.xwiki.admintools.health;
 
-import java.util.Map;
-
 import org.xwiki.component.annotation.Role;
 
+/**
+ * Check for issues in the current wiki.
+ *
+ * @version $Id$
+ */
 @Role
 public interface HealthCheck
 {
     /**
-     * @return
+     * Execute the health check on the wiki instance.
+     *
+     * @return a {@link HealthCheckResult} with {@code null} values if no issue was found, or with initialized values
+     * otherwise.
      */
     HealthCheckResult check();
 }

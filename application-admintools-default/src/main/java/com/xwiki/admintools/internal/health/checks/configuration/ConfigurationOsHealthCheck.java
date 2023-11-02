@@ -27,12 +27,20 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
+/**
+ * Extension of {@link AbstractConfigurationHealthCheck} for checking the OS configuration.
+ *
+ * @version $Id$
+ */
 @Component
 @Named(ConfigurationOsHealthCheck.HINT)
 @Singleton
 public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
 {
-    public final static String HINT = "CONFIG_OS_HEALTH_CHECK";
+    /**
+     * Component identifier.
+     */
+    public static final String HINT = "CONFIG_OS_HEALTH_CHECK";
 
     @Override
     public HealthCheckResult check()

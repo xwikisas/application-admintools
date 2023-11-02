@@ -23,23 +23,43 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.xwiki.job.DefaultJobStatus;
-import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.logging.LoggerManager;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.health.HealthCheckResult;
 
+/**
+ * The status of the health check job.
+ *
+ * @version $Id$
+ * @since 1.0
+ */
+@Unstable
 public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
 {
     private final List<HealthCheckResult> healthCheckResults = new LinkedList<>();
 
-    public HealthCheckJobStatus(HealthCheckJobRequest request,
-        JobStatus parentJobStatus, ObservationManager observationManager, LoggerManager loggerManager)
+    /**
+     * Create a new health check job status.
+     *
+     * @param jobType the job type
+     * @param request the request provided when the job was started
+     * @param observationManager the observation manager
+     * @param loggerManager the logger manager
+     */
+    public HealthCheckJobStatus(String jobType, HealthCheckJobRequest request, ObservationManager observationManager,
+        LoggerManager loggerManager)
     {
-        super("admintools.healthcheck", request, parentJobStatus, observationManager, loggerManager);
+        super(jobType, request, null, observationManager, loggerManager);
         setCancelable(true);
     }
 
+    /**
+     * Get the list issues list from the job.
+     *
+     * @return list with {@link HealthCheckResult} containing errors.
+     */
     public List<HealthCheckResult> getHealthCheckResults()
     {
         return healthCheckResults;
