@@ -37,7 +37,6 @@ import com.xpn.xwiki.XWikiContext;
  * info.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(SecurityDataProvider.HINT)
@@ -88,6 +87,8 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
             return securityDetails;
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance security data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance security data.", e);
         }
     }
@@ -107,8 +108,6 @@ public class SecurityDataProvider extends AbstractDataProvider
             results.put("configurationEncoding", this.configurationSource.getProperty("xwiki.encoding", String.class));
             return results;
         } catch (Exception e) {
-            this.logger.warn("Failed to generate xwiki security info. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate xwiki security info.", e);
         }
     }

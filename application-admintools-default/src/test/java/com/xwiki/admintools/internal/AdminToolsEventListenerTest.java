@@ -39,7 +39,6 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

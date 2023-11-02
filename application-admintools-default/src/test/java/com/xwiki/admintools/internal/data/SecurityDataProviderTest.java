@@ -198,7 +198,7 @@ public class SecurityDataProviderTest
 
         // Verify the result and method invocations.
         assertEquals(null, securityDataProvider.getRenderedData());
-        verify(this.logger).warn("Failed to generate xwiki security info. Root cause is: [{}]",
+        verify(this.logger).warn("Failed to generate the instance security data. Root cause is: [{}]",
             "NullPointerException: ConfigurationSourceNotFound");
         verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
         verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);

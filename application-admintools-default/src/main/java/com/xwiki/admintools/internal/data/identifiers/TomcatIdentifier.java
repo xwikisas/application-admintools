@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,10 +34,9 @@ import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.internal.PingProvider;
 
 /**
- * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving it's info.
+ * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(TomcatIdentifier.HINT)
@@ -61,9 +61,9 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-            if (catalinaBase != null) {
+            if (catalinaBase != null && !catalinaBase.isEmpty()) {
                 return checkAndSetServerPath(catalinaBase);
-            } else if (catalinaHome != null) {
+            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
                 return checkAndSetServerPath(catalinaHome);
             }
         }
@@ -96,6 +96,24 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         String serverName = servletPing.getName();
         String serverVersion = servletPing.getVersion();
         return Map.of("name", serverName, "version", serverVersion);
+    }
+
+    @Override
+    public String getLogsFolderPath()
+    {
+        return this.serverPath + "/logs";
+    }
+
+    @Override
+    public String getLastLogFilePath()
+    {
+        return this.serverPath + "/logs/catalina.out";
+    }
+
+    @Override
+    public Pattern getLogsPattern()
+    {
+        return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
     }
 
     private boolean checkAndSetServerPath(String path)

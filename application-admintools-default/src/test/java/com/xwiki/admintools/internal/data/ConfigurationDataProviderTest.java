@@ -190,7 +190,8 @@ public class ConfigurationDataProviderTest
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
-        verify(this.logger).warn("Failed to retrieve used server. Server not found.");
+        verify(this.logger).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
     }
 
     @Test
@@ -245,7 +246,8 @@ public class ConfigurationDataProviderTest
 
         assertEquals("success", configurationDataProvider.getRenderedData());
         assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
-        verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
+        verify(this.logger, times(2)).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
@@ -269,7 +271,8 @@ public class ConfigurationDataProviderTest
         });
         assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
 
-        verify(this.logger, times(2)).warn("Failed to retrieve used server. Server not found.");
+        verify(this.logger, times(2)).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
         verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }

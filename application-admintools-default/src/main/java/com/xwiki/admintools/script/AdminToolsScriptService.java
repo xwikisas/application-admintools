@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.internal.AdminToolsManager;
 
@@ -39,6 +40,7 @@ import com.xwiki.admintools.internal.AdminToolsManager;
 @Component
 @Named("admintools")
 @Singleton
+@Unstable
 public class AdminToolsScriptService implements ScriptService
 {
     @Inject
@@ -84,5 +86,15 @@ public class AdminToolsScriptService implements ScriptService
     public List<String> getSupportedServers()
     {
         return this.adminToolsManager.getSupportedServers();
+    }
+
+    /**
+     * Get the rendered template for accessing the downloads UI.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getFilesSection()
+    {
+        return this.adminToolsManager.getFilesSection();
     }
 }

@@ -19,13 +19,15 @@
  */
 package com.xwiki.admintools.internal.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
-import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
@@ -33,14 +35,14 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * Default implementation of {@link AdminToolsConfiguration}.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Singleton
-@Unstable
 public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 {
     private static final String SERVER_LOCATION = "serverLocation";
+
+    private static final String EXCLUDED_LINES = "excludedLines";
 
     @Inject
     @Named(AdminToolsConfigurationSource.HINT)
@@ -49,15 +51,13 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     @Override
     public String getServerPath()
     {
-        return this.getProperty(SERVER_LOCATION, "");
+        return this.mainConfiguration.getProperty(SERVER_LOCATION, "");
     }
 
-    private <T> T getProperty(String key, T defaultValue)
+    @Override
+    public List<String> getExcludedLines()
     {
-        T value = this.mainConfiguration.getProperty(key, defaultValue);
-        if (value == null) {
-            throw new RuntimeException(String.format("The %s is missing.", key));
-        }
-        return value;
+        return new ArrayList<>(
+            List.of(this.mainConfiguration.getProperty(EXCLUDED_LINES, "NO_EXCLUDED_LINE").split(",")));
     }
 }

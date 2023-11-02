@@ -19,23 +19,29 @@
  */
 package com.xwiki.admintools.configuration;
 
+import java.util.List;
+
 import org.xwiki.component.annotation.Role;
-import org.xwiki.stability.Unstable;
 
 /**
  * Admin Tools configurations.
  *
  * @version $Id$
- * @since 1.0
  */
 @Role
-@Unstable
 public interface AdminToolsConfiguration
 {
     /**
      * Get the server installation path.
      *
-     * @return the server installation path.
+     * @return {@link String} representing the server installation path.
      */
     String getServerPath();
+
+    /**
+     * Get the lines that are to be excluded from xwiki.cfg and xwiki.properties files.
+     *
+     * @return {@link List} with the lines to be excluded.
+     */
+    List<String> getExcludedLines();
 }

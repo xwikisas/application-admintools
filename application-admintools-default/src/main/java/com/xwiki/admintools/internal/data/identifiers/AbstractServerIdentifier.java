@@ -31,7 +31,6 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  * Common methods for {@link ServerIdentifier} classes.
  *
  * @version $Id$
- * @since 1.0
  */
 public abstract class AbstractServerIdentifier implements ServerIdentifier
 {
@@ -47,6 +46,12 @@ public abstract class AbstractServerIdentifier implements ServerIdentifier
      * The path to the server.
      */
     protected String serverPath;
+
+    @Override
+    public String getServerPath()
+    {
+        return serverPath;
+    }
 
     @Override
     public String getServerCfgPath()

@@ -17,39 +17,44 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools;
+package com.xwiki.admintools.download;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 import org.xwiki.component.annotation.Role;
 
 /**
- * Gathers specific data and returns it in a specific format, using a template.
+ * Access server files.
  *
  * @version $Id$
  */
 @Role
-public interface DataProvider
+public interface DataResource
 {
     /**
-     * Provides the data provider information in a format given by the associated template.
+     * Retrieves the content of a system file and adds it as an entry inside a {@link ZipOutputStream}.
      *
-     * @return the information formatted by the associated template as a {@link String}.
+     * @param zipOutputStream {@link ZipOutputStream} represents the zip archive in which the entry is written.
+     * @param filters store filters that can be used for file selection.
      */
-    String getRenderedData();
+    void addZipEntry(ZipOutputStream zipOutputStream, Map<String, String[]> filters);
 
     /**
-     * Extract the hint of a component.
+     * Retrieve the content of a system file.
+     *
+     * @param params Can be used to send additional info to the component.
+     * @return the content of the file as an {@link Byte} array.
+     * @throws IOException when there are errors while handling searched files.
+     * @throws NumberFormatException when there is an invalid numeric input.
+     */
+    byte[] getByteData(Map<String, String[]> params) throws Exception;
+
+    /**
+     * Get the hint of a component.
      *
      * @return the component hint.
      */
     String getIdentifier();
-
-    /**
-     * Provides the info structured in a json.
-     *
-     * @return a {@link Map} with the generated info.
-     * @throws Exception if there are any errors while gathering the needed data.
-     */
-    Map<String, String> getDataAsJSON() throws Exception;
 }

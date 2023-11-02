@@ -34,7 +34,6 @@ import org.xwiki.model.reference.LocalDocumentReference;
  * Admin tools configuration source corresponding to the current wiki.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(AdminToolsConfigurationSource.HINT)

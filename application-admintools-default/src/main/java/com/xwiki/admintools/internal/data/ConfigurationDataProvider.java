@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.annotation.Component;
 
@@ -39,7 +40,6 @@ import com.xwiki.admintools.internal.PingProvider;
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component
 @Named(ConfigurationDataProvider.HINT)
@@ -100,6 +100,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance configuration data.", e);
         }
     }
@@ -147,8 +149,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
         if (serverIdentifier == null) {
-            logger.warn("Failed to retrieve used server. Server not found.");
-            throw new NullPointerException("Failed to retrieve the used server. Server not found.");
+            throw new NullPointerException("Failed to retrieve the current used server, check your configurations.");
         }
         return serverIdentifier;
     }

@@ -4,7 +4,13 @@ com.xwiki.admintools.internal.data.ConfigurationDataProvider
 com.xwiki.admintools.internal.data.SecurityDataProvider
 com.xwiki.admintools.internal.data.identifiers.CurrentServer
 com.xwiki.admintools.internal.data.identifiers.TomcatIdentifier
+com.xwiki.admintools.internal.files.resources.XWikiPropertiesFileDataResource
+com.xwiki.admintools.internal.files.resources.XWikiConfigFileDataResource
+com.xwiki.admintools.internal.files.resources.LogsDataResource
+com.xwiki.admintools.internal.files.resources.DataProvidersDataResource
+com.xwiki.admintools.internal.files.ImportantFilesManager
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
+com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
 com.xwiki.admintools.internal.PingProvider

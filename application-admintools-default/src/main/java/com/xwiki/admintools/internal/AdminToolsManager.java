@@ -30,12 +30,12 @@ import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.files.ImportantFilesManager;
 
 /**
  * Manages the data providers.
  *
  * @version $Id$
- * @since 1.0
  */
 @Component(roles = AdminToolsManager.class)
 @Singleton
@@ -52,6 +52,9 @@ public class AdminToolsManager
      */
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private ImportantFilesManager importantFilesManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -92,7 +95,7 @@ public class AdminToolsManager
      */
     public List<String> getSupportedDBs()
     {
-        return  new ArrayList<>(this.currentServer.getSupportedDBs().values());
+        return new ArrayList<>(this.currentServer.getSupportedDBs().values());
     }
 
     /**
@@ -103,5 +106,15 @@ public class AdminToolsManager
     public List<String> getSupportedServers()
     {
         return this.currentServer.getSupportedServers();
+    }
+
+    /**
+     * Get the rendered template for accessing the downloads UI.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getFilesSection()
+    {
+        return this.importantFilesManager.renderTemplate();
     }
 }

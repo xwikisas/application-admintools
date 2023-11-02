@@ -37,7 +37,6 @@ import com.xwiki.admintools.DataProvider;
  * {@link DataProvider} implementations to simplify the code.
  *
  * @version $Id$
- * @since 1.0
  */
 public abstract class AbstractDataProvider implements DataProvider
 {
