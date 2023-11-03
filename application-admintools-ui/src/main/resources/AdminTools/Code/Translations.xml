@@ -56,7 +56,7 @@ adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
 adminTools.dashboard.logs.modal.submit=View
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
 adminTools.dashboard.logs.modal.title=Show last n lines of log
-adminTools.dashboard.logs.modal.nLines.hint=Limited at 50000 lines. If the input is empty, the default of 1000 lines will be returned.
+adminTools.dashboard.logs.modal.nLines.hint=The maximum number of lines is 50000, since the complete logs can also be downloaded. If no value is defined, 1000 will be used as a default value.
 adminTools.dashboard.showLogs=View last n lines of log...
 
 ## Dashboard sections
