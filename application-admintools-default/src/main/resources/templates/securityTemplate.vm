@@ -54,6 +54,7 @@
   #end
   {{/html}}
 #else
+  #includeMacros('Licenses.Code.VelocityMacros')
   {{error}}
     #getMissingLicenseMessage('adminTools.extension.name')
   {{/error}}
