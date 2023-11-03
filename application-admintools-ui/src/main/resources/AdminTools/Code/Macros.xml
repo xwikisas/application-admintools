@@ -181,5 +181,52 @@
     $healthCheckReportMessage
   &lt;/div>
 #end
+
+#macro (healthCheckUI)
+  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
+  #set ($jobId = $healthCheckJobRequest.id)
+  #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
+    'jobId': $jobId,
+    'outputSyntax': 'plain'
+  })))
+  #if ($jobId)
+    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
+  #end
+  {{html clean='false'}}
+    &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}">&lt;/input>
+    &lt;div class="adminToolsDashboardItem" id="healthCheck">
+      &lt;h2>$services.icon.renderHTML('bug')
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.title'))&lt;/h2>
+      &lt;p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.description'))
+        &lt;a href="$xwiki.getURL('AdminTools.HelpLinks')">&lt;strong>$escapetool.xml($services.localization.render(
+          'adminTools.dashboard.section.healthcheck.description.link'))&lt;/strong>&lt;/a>.&lt;/p>
+      &lt;hr/>
+      &lt;div class="healthCheckWrapper">
+        &lt;div class="healthCheckLastCheck">
+          Time since the last health check: $services.date.displayTimeAgo($healthJobStatus.getEndDate())
+        &lt;/div>
+        &lt;div class="buttonwrapper">
+          &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
+            value="startHealthCheck">Start health check&lt;/button>
+        &lt;/div>
+      &lt;/div>
+      &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}">
+        #if ($healthJobStatus.state != 'FINISHED')
+          #displayJobProgressBar($jobStatus)
+        #else
+          #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+        #end
+        #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
+          #if ($healthJobStatus.state != 'FINISHED')
+            #displayJobStatusLog($jobStatus true)
+          #else
+            #displayJobStatusLog($healthJobStatus true)
+          #end
+        #end
+      &lt;/div>
+    &lt;/div>
+  {{/html}}
+#end
 {{/velocity}}</content>
 </xwikidoc>

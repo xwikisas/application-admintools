@@ -124,11 +124,10 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
-
   const getResourceURL = function() {
     let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
     return new XWiki.Document(documentReference).getURL('get');
-  }
+  };
 
   const runHealthCheckJob = function() {
     var data = [];
@@ -155,7 +154,7 @@
     }).finally(() => {
       $('#admin_tools_job_start').prop("disabled", false);
     });
-  }
+  };
 
   const reinitialiseProgressBar = function() {
     $.get(getResourceURL(), function(data) {
@@ -164,8 +163,12 @@
       $('#healthCheck .warningmessage').replaceWith(progressBar)
       $('#healthCheck .errormessage').replaceWith(progressBar)
     });
-  }
+  };
 
+  // Need to call job.min.js only after the job has started its execution and the result message has been changed for
+  // the progress bar. Otherwise, job.js won't see .ui-progress and will not initialize and run a new JobRunner
+  // with the requested configuration. To make sure the job .ui-progress is seen, we need to undefine and request the
+  // resource again.
   const initialiseJobJS = function() {
     require.undef('health-check-job');
     $.get(getResourceURL(), function(data) {
@@ -177,24 +180,19 @@
       });
       require(['health-check-job'], function(){});
     });
-  }
+  };
 
-  $(document).ready(function(){
+  $(document).ready(function() {
     if ($('#healthCheck').length) {
-      $.get(getResourceURL(), function(data) {
-        let jobState = $(data).find('input[name="jobState"]').val();
-        if (jobState == "RUNNING") {
-          initialiseJobJS()
-          runHealthCheckJob()
-          // Inject the content into the job-status div
-          let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
-          $('.job-status').attr('data-url', healthCheckJobStatusURL);
-          $('#admin_tools_job_start').prop("disabled", true);
-          $('.job-status').show();
-        } else if (jobState == "FINISHED") {
-          $('.job-status').show();
-        }
-      });
+      let jobState = $('input[name="jobState"]').val();
+      if (jobState == "RUNNING") {
+        initialiseJobJS();
+        runHealthCheckJob();
+        $('#admin_tools_job_start').prop("disabled", true);
+        $('.job-status').show();
+      } else if (jobState == "FINISHED") {
+        $('.job-status').show();
+      }
     }
   });
 
@@ -202,14 +200,9 @@
     event.preventDefault();
     $(".log").empty();
     $('#admin_tools_job_start').prop("disabled", true);
-    $.get(getResourceURL(), function(data) {
-      runHealthCheckJob()
-      reinitialiseProgressBar()
-      initialiseJobJS()
-      // Inject the content into the job-status div
-      let healthCheckJobStatusURL = $(data).find('input[name="healthCheckJobStatusURL"]').val();
-      $('.job-status').attr('data-url', healthCheckJobStatusURL);
-    });
+    runHealthCheckJob();
+    reinitialiseProgressBar();
+    initialiseJobJS();
     $('.job-status').show();
   });
 

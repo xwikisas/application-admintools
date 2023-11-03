@@ -48,6 +48,18 @@
   })
   #jsonResponse($healthCheckJobStatusJSON)
 #end
+
+#macro (getHealthCheckResources)
+  #set ($jobMinJsURL = $xwiki.getSkinFile('uicomponents/job/job.min.js'))
+  #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
+  #set ($healthJobStatus = $services.job.getJobStatus($healthCheckJobRequest.id))
+  {{html clean=false}}
+   &lt;div hidden>
+     &lt;input type="text" id="jobMinJsURL" name="jobMinJsURL" value=$jobMinJsURL>&lt;/input>
+     #displayJobProgressBar($healthJobStatus)
+    &lt;/div>
+  {{/html}}
+#end
 {{/velocity}}
 
 {{velocity}}
@@ -62,27 +74,7 @@
     #set ($healthCheckJobId = $request.jobId.split('/'))
     #returnHealthCheckJobStatusJSON($healthCheckJobId)
   #else
-    #set ($jobMinJsURL = $xwiki.getSkinFile('uicomponents/job/job.min.js'))
-    #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
-    #set ($jobId = $healthCheckJobRequest.id)
-    #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
-      'jobId': $jobId,
-      'outputSyntax': 'plain'
-    })))
-    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-    #set ($percent = $healthJobStatus.progress.offset)
-    #if (!$percent)
-      #set ($percent = 0)
-    #end
-    #set ($percent = $numbertool.toNumber($mathtool.mul($percent, 100)).intValue())
-    {{html clean=false}}
-    &lt;div hidden>
-      &lt;input type="text" name="healthCheckJobStatusURL" value=$healthJobStatusURL>&lt;/input>
-      &lt;input type="text" id="jobMinJsURL" name="jobMinJsURL" value=$jobMinJsURL>&lt;/input>
-      &lt;input type="text" name="jobState" value=$healthJobStatus.state>&lt;/input>
-      #displayJobProgressBar($healthJobStatus)
-    &lt;/div>
-    {{/html}}
+    #getHealthCheckResources()
   #end
 #end
 {{/velocity}}</content>
