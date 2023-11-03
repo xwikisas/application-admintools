@@ -17,36 +17,44 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-{{html clean='false'}}
-#if($security['serverFound'] == 'true')
-  <div class="adminToolsDashboardItem">
-    <h2>$services.icon.renderHTML('lock')
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>
-    <hr/>
-    <ul>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
-        $security['activeEncoding']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
-        $security['configurationEncoding']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
-        $security['fileEncoding']
-      </li>
-    </ul>
-  </div>
+#includeMacros('Licenses.Code.VelocityMacros')
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  {{html clean='false'}}
+  #if($security['serverFound'] == 'true')
+    <div class="adminToolsDashboardItem">
+      <h2>$services.icon.renderHTML('lock')
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>
+      <hr/>
+      <ul>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
+          $security['activeEncoding']
+        </li>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
+          $security['configurationEncoding']
+        </li>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
+        </li>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
+        </li>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
+          $security['fileEncoding']
+        </li>
+      </ul>
+    </div>
+  #else
+    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
+    #warning($warningMessage)
+  #end
+  {{/html}}
 #else
-  #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
-  #warning($warningMessage)
+  {{error}}
+    #getMissingLicenseMessage('adminTools.extension.name')
+  {{/error}}
 #end
-{{/html}}

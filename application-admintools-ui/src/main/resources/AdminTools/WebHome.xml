@@ -34,7 +34,18 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{dashboard/}}</content>
+  <content>{{include reference="Licenses.Code.VelocityMacros"/}}
+
+{{velocity}}
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  {{dashboard/}}
+#else
+{{error}}
+  #getMissingLicenseMessage('adminTools.extension.name')
+{{/error}}
+#end
+{{/velocity}}</content>
   <object>
     <name>AdminTools.WebHome</name>
     <number>1</number>
