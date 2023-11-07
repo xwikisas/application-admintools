@@ -43,9 +43,9 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   {{dashboard/}}
 #else
-{{error}}
-  #getMissingLicenseMessage('adminTools.extension.name')
-{{/error}}
+  {{error}}
+    #getMissingLicenseMessage('adminTools.extension.name')
+  {{/error}}
 #end
 {{/velocity}}</content>
   <object>
