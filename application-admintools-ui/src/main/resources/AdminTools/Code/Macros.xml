@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -19,6 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
+
 <xwikidoc version="1.4" reference="AdminTools.Code.Macros" locale="">
   <web>AdminTools.Code</web>
   <name>Macros</name>
@@ -38,84 +39,84 @@
   <content>{{velocity output='false'}}
 #macro (viewLastNLinesMoldal $id)
   #set ($modalId = $id + 'ViewLastNLinesModal')
-  &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label">
-    &lt;div class="modal-dialog modal-sm" role="document">
-      &lt;div class="modal-content">
-        &lt;div class="logs-modal-content">
-          &lt;div class="modal-header">
-            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-            &lt;h1 class="modal-title">
+  &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label"&gt;
+    &lt;div class="modal-dialog modal-sm" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="logs-modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+            &lt;h1 class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
-            &lt;/h1>
-          &lt;/div>
-          &lt;div class="modal-body">
-            &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs">
-              &lt;dl>
-                &lt;dt>
-                  &lt;label for="noLines">$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>
-                  &lt;span class="xHint">$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span>
-                &lt;/dt>
-                &lt;dd>&lt;input type="number" name="noLines" placeholder="1000">&lt;/dd>
-              &lt;/dl>
-            &lt;/form>
-          &lt;/div>
-          &lt;div class="modal-footer">
-            &lt;button type="button" class="btn btn-primary">
-              $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button>
-            &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-              $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-          &lt;/div>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
+            &lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
+              &lt;dl&gt;
+                &lt;dt&gt;
+                  &lt;label for="noLines"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label&gt;
+                  &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span&gt;
+                &lt;/dt&gt;
+                &lt;dd&gt;&lt;input type="number" name="noLines" placeholder="1000"&gt;&lt;/dd&gt;
+              &lt;/dl&gt;
+            &lt;/form&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-primary"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 #macro (downloadArchiveModal)
   &lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby=
-    "downloadFilesModalLabel">
-    &lt;div class="modal-dialog" role="document">
-      &lt;div class="modal-content">
-        &lt;div class="modal-header">
-          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-          &lt;h1 class="modal-title">
+    "downloadFilesModalLabel"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+          &lt;h1 class="modal-title"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.title'))
-          &lt;/h1>
-        &lt;/div>
-        &lt;div class="modal-body">
-          &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files">
-            &lt;div class="download-modal-content">
-              &lt;dl>
-                &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiConfig" checked>
+          &lt;/h1&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files"&gt;
+            &lt;div class="download-modal-content"&gt;
+              &lt;dl&gt;
+                &lt;dt&gt;&lt;label&gt;&lt;input type="checkbox" name="files" value="xwikiConfig" checked&gt;
                     $escapetool.xml($services.localization.render(
                     'adminTools.dashboard.download.modal.xwikiConfig.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiProperties" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;&lt;label&gt;&lt;input type="checkbox" name="files" value="xwikiProperties" checked&gt;
                     $escapetool.xml($services.localization.render(
                     'adminTools.dashboard.download.modal.xwikiProperties.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;label>&lt;input type="checkbox" name="files" value="dataProvider" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;label&gt;&lt;input type="checkbox" name="files" value="dataProvider" checked&gt;
                     $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;label>&lt;input type="checkbox" name="files" value="logs" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;label&gt;&lt;input type="checkbox" name="files" value="logs" checked&gt;
                     $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.logs.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;div class="dateFields">
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;div class="dateFields"&gt;
                     #set ($defaultDateFormat = 'dd-MM-yyyy')
                     #set ($dateFormat = $xwiki.getXWikiPreference('dateformat', $defaultDateFormat))
-                    &lt;label for="downloadFilesModalFromDate">$escapetool.xml($services.localization.render(
+                    &lt;label for="downloadFilesModalFromDate"&gt;$escapetool.xml($services.localization.render(
                       'adminTools.dashboard.download.modal.date.from'))
-                    &lt;/label>
+                    &lt;/label&gt;
                     #set ($dateFromParams = {
                       'id': "downloadFilesModalFromDate",
                       'name': 'from',
@@ -124,9 +125,9 @@
                         'adminTools.dashboard.download.modal.logs.filter.placeholder.from'))
                     })
                     #dateTimePicker($dateFromParams)
-                    &lt;label for="downloadFilesModalToDate">$escapetool.xml($services.localization.render(
+                    &lt;label for="downloadFilesModalToDate"&gt;$escapetool.xml($services.localization.render(
                       'adminTools.dashboard.download.modal.date.to'))
-                    &lt;/label>
+                    &lt;/label&gt;
                     #set ($dateToParams = {
                       'id': "downloadFilesModalToDate",
                       'name': 'to',
@@ -135,21 +136,21 @@
                         'adminTools.dashboard.download.modal.logs.filter.placeholder.to'))
                     })
                     #dateTimePicker($dateToParams)
-                  &lt;/div>
-                &lt;/dt>
-              &lt;/dl>
-            &lt;/div>
-          &lt;/form>
-        &lt;/div>
-        &lt;div class="modal-footer">
-          &lt;button type="button" class="btn btn-primary">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))&lt;/button>
-          &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-            $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
+                  &lt;/div&gt;
+                &lt;/dt&gt;
+              &lt;/dl&gt;
+            &lt;/div&gt;
+          &lt;/form&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-primary"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))&lt;/button&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 {{/velocity}}</content>
 </xwikidoc>
