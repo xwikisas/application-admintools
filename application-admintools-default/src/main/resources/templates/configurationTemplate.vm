@@ -21,7 +21,6 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #includeMacros("AdminTools.Code.Macros")
-  {{html clean='false'}}
   #if ($configuration['serverFound'] == 'true')
     <div class="adminToolsDashboardItem">
       <h2>$services.icon.renderHTML('world')
@@ -80,7 +79,6 @@
       + $stringtool.join($services.admintools.getSupportedServers(), ', '))
     #warning($warningMessage)
   #end
-  {{/html}}
 #else
   #includeMacros('Licenses.Code.VelocityMacros')
   {{error}}

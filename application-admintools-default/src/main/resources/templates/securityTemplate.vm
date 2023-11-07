@@ -20,7 +20,6 @@
 #includeMacros('Licenses.Code.VelocityMacros')
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  {{html clean='false'}}
   #if($security['serverFound'] == 'true')
     <div class="adminToolsDashboardItem">
       <h2>$services.icon.renderHTML('lock')
@@ -52,7 +51,6 @@
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
     #warning($warningMessage)
   #end
-  {{/html}}
 #else
   #includeMacros('Licenses.Code.VelocityMacros')
   {{error}}
