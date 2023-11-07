@@ -49,10 +49,10 @@ public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
             || getJson(ConfigurationDataProvider.HINT).get("osVersion") == null
             || getJson(ConfigurationDataProvider.HINT).get("osArch") == null)
         {
-            logger.warn(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.os.warn"));
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.warn"));
             return new HealthCheckResult("os_issue", "os_support");
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.os.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.info"));
         return new HealthCheckResult();
     }
 }

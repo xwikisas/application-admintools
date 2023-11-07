@@ -71,15 +71,11 @@
       <artifactId>xwiki-commons-cache-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <!-- Access CPU info to be used by the health check. -->
     <dependency>
       <groupId>com.github.oshi</groupId>
       <artifactId>oshi-core</artifactId>
       <version>5.8.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.groovy</groupId>
-      <artifactId>groovy-jmx</artifactId>
-      <version>3.0.13</version>
     </dependency>
   </dependencies>
   <properties>

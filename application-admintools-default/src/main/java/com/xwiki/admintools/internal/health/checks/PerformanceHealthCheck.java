@@ -67,7 +67,7 @@ public class PerformanceHealthCheck implements HealthCheck
         if (!hasFreeSpace || !hasMinimumCPURequirements || !hasMinimumMemoryRequirements) {
             return new HealthCheckResult("performance issues", "minimum sys req link");
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.info"));
         return new HealthCheckResult();
     }
 
@@ -86,7 +86,7 @@ public class PerformanceHealthCheck implements HealthCheck
             return true;
         } else {
             logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.space.warn"));
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.space.warn"));
             return false;
         }
     }
@@ -102,7 +102,7 @@ public class PerformanceHealthCheck implements HealthCheck
             return true;
         } else {
             logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.memory.warn"));
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.memory.warn"));
             return false;
         }
     }
@@ -119,7 +119,7 @@ public class PerformanceHealthCheck implements HealthCheck
             return true;
         } else {
             logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.performance.cpu.warn"));
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.cpu.warn"));
             return false;
         }
     }

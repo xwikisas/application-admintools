@@ -21,32 +21,32 @@
 #if($security['serverFound'] == 'true')
   <div class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('lock')
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.security.title'))</h2>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
     <hr/>
     <ul>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.activeEncoding')):
         $security['activeEncoding']
       </li>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.configurationEncoding')):
         $security['configurationEncoding']
       </li>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.PWD')): $security['PWD']
       </li>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.LANG')): $security['LANG']
       </li>
       <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.fileEncoding')):
         $security['fileEncoding']
       </li>
     </ul>
   </div>
 #else
-  #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
+  #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.security.error')))
   #warning($warningMessage)
 #end
 {{/html}}

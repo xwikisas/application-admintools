@@ -61,7 +61,7 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
         if (!isActiveEncSafe || !isConfigEncSafe) {
             return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.xwiki.info"));
         return new HealthCheckResult();
     }
 
@@ -71,7 +71,7 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
             return true;
         }
         logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.active.warn"),
+            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.xwiki.active.warn"),
             activeEnc);
         return false;
     }
@@ -82,7 +82,7 @@ public class SecurityXWikiEncodingHealthCheck extends AbstractConfigurationHealt
             return true;
         }
         logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.xwiki.config.warn"),
+            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.xwiki.config.warn"),
             configEnc);
         return false;
     }

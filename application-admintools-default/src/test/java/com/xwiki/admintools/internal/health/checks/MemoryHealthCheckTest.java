@@ -70,24 +70,24 @@ public class MemoryHealthCheckTest
     @BeforeComponent
     static void setUp() throws Exception
     {
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.info")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.info")).thenReturn(
             "Cache status OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.mem.info")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.info")).thenReturn(
             "Memory status OK");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.memory.cache.null.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.memory.cache.null")).thenReturn(
             "Store cache capacity is set at 500. Check Cache recommendations in solutions.");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.memory.cache.value.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.memory.cache.low")).thenReturn(
             "Store cache capacity is set at [{}]. Check Cache recommendations in solutions.");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.memory.mem.free.error")).thenReturn(
+            "adminTools.dashboard.healthcheck.memory.free.error")).thenReturn(
             "Your JVM instance has only [{}]MB free memory left! Consult the solution link for support!");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.memory.mem.free.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.memory.free.warn")).thenReturn(
             "Your instance memory is running low. Currently only [{}]MB free left.");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.memory.mem.maxcapacity.error")).thenReturn(
+            "adminTools.dashboard.healthcheck.memory.maxcapacity.error")).thenReturn(
             "JVM memory is less than 1024MB. Currently: [{}]MB");
     }
 

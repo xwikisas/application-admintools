@@ -79,15 +79,15 @@ public class MemoryHealthCheck implements HealthCheck
         if (storeCacheCapacity == null) {
 
             logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.null.warn"));
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.null"));
             return false;
         }
         if (Integer.parseInt(storeCacheCapacity) <= 500) {
             logger.warn(localization.getTranslationPlain(
-                "adminTools.dashboard.section.healthcheck.memory.cache.value.warn"), storeCacheCapacity);
+                "adminTools.dashboard.healthcheck.memory.cache.low"), storeCacheCapacity);
             return false;
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.cache.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.info"));
         return true;
     }
 
@@ -100,21 +100,21 @@ public class MemoryHealthCheck implements HealthCheck
 
         if (maxMemoryGB < 1) {
             logger.error(localization.getTranslationPlain(
-                "adminTools.dashboard.section.healthcheck.memory.mem.maxcapacity.error"), maxMemoryGB * 1024);
+                "adminTools.dashboard.healthcheck.memory.maxcapacity.error"), maxMemoryGB * 1024);
             return false;
         }
         if (totalFreeMemory < 512) {
             logger.error(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.mem.free.error"),
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.error"),
                 totalFreeMemory);
             return false;
         } else if (totalFreeMemory < 1024) {
             logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.mem.free.warn"),
+                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.warn"),
                 totalFreeMemory);
             return true;
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.memory.mem.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.info"));
         return true;
     }
 }

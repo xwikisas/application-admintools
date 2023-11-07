@@ -76,12 +76,12 @@ public class SecurityXWikiEncodingHealthCheckTest
         when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
 
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.xwiki.info")).thenReturn("XWiki encoding OK");
+            "adminTools.dashboard.healthcheck.security.xwiki.info")).thenReturn("XWiki encoding OK");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.xwiki.active.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.security.xwiki.active.warn")).thenReturn(
             "XWiki active encoding is [{}] but should be UTF-8!");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.xwiki.config.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.security.xwiki.config.warn")).thenReturn(
             "XWiki configuration encoding is [{}] but should be UTF-8!");
     }
 

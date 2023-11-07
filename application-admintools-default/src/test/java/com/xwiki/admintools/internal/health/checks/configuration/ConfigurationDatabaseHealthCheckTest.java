@@ -76,9 +76,9 @@ public class ConfigurationDatabaseHealthCheckTest
         when(firstDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
 
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.database.info"))
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.info"))
             .thenReturn("Database status OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.database.warn"))
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.warn"))
             .thenReturn("Database not found!");
     }
 

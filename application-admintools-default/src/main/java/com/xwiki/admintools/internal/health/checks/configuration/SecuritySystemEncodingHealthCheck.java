@@ -60,7 +60,7 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
         if (!isSafeLangEnc || !isSafeFileEnc) {
             return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.info"));
+        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.info"));
         return new HealthCheckResult();
     }
 
@@ -70,7 +70,7 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
             return true;
         }
         logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.lang.warn"),
+            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.lang.warn"),
             langEnc);
         return false;
     }
@@ -81,7 +81,7 @@ public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHeal
             return true;
         }
         logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.security.system.file.warn"),
+            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.file.warn"),
             fileEnc);
         return false;
     }

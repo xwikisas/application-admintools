@@ -76,12 +76,12 @@ public class SecuritySystemEncodingHealthCheckTest
         when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
 
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.system.info")).thenReturn("System encoding OK");
+            "adminTools.dashboard.healthcheck.security.system.info")).thenReturn("System encoding OK");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.system.lang.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.security.system.lang.warn")).thenReturn(
             "System language encoding is [{}] but should be UTF-8!");
         when(localization.getTranslationPlain(
-            "adminTools.dashboard.section.healthcheck.security.system.file.warn")).thenReturn(
+            "adminTools.dashboard.healthcheck.security.system.file.warn")).thenReturn(
             "System file encoding is [{}] but should be UTF-8!");
     }
 

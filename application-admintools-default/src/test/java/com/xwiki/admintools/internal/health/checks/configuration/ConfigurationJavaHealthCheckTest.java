@@ -75,11 +75,11 @@ public class ConfigurationJavaHealthCheckTest
 
         when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
 
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.info"))
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.info"))
             .thenReturn("Java status OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.warn.found"))
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.found"))
             .thenReturn("Java version not found!");
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.java.warn.incompatible"))
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.incompatible"))
             .thenReturn("Java version is not compatible with the current XWiki installation!");
     }
 

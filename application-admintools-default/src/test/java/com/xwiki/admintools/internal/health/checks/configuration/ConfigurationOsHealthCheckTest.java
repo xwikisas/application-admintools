@@ -77,9 +77,9 @@ public class ConfigurationOsHealthCheckTest
         when(firstDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
 
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.os.info")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.info")).thenReturn(
             "OS info retrieval OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.section.healthcheck.os.warn")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.warn")).thenReturn(
             "There has been an error while gathering OS info!");
     }
 

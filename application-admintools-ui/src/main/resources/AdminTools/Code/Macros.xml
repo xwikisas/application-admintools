@@ -193,14 +193,17 @@
   #if ($jobId)
     #set ($healthJobStatus = $services.job.getJobStatus($jobId))
   #end
+  #set($solutionLink = $xwiki.getURL('AdminTools.HelpLinks'))
+  #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
+    '__STARTLINK__',
+    '__ENDLINK__'
+  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'>&lt;strong>").replace('__ENDLINK__', '&lt;/strong>&lt;/a>'))
   {{html clean='false'}}
     &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}">&lt;/input>
     &lt;div class="adminToolsDashboardItem" id="healthCheck">
       &lt;h2>$services.icon.renderHTML('bug')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.title'))&lt;/h2>
-      &lt;p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.healthcheck.description'))
-        &lt;a href="$xwiki.getURL('AdminTools.HelpLinks')">&lt;strong>$escapetool.xml($services.localization.render(
-          'adminTools.dashboard.section.healthcheck.description.link'))&lt;/strong>&lt;/a>.&lt;/p>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2>
+      &lt;p>$description&lt;/p>
       &lt;hr/>
       &lt;div class="healthCheckWrapper">
         &lt;div class="healthCheckLastCheck">
