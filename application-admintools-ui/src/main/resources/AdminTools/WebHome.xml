@@ -90,7 +90,9 @@
     </class>
     <property>
       <content>{{velocity}}
-$services.admintools.getConfigurationData('configuration')
+{{html clean='false'}}
+  $services.admintools.getConfigurationData('configuration')
+{{/html}}
 {{/velocity}}</content>
     </property>
     <property>
@@ -155,7 +157,9 @@ $services.admintools.getConfigurationData('configuration')
     </class>
     <property>
       <content>{{velocity}}
-$services.admintools.getFilesSection()
+{{html clean='false'}}
+  $services.admintools.getFilesSection()
+{{/html}}
 {{/velocity}}</content>
     </property>
     <property>

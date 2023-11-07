@@ -22,7 +22,6 @@
 #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
 #viewLastNLinesMoldal("files")
 #downloadArchiveModal()
-{{html clean='false'}}
 #if ($found)
   <div class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('download')
@@ -66,4 +65,3 @@
     + $stringtool.join($services.admintools.getSupportedServers(), ', '))
   #warning($warningMessage)
 #end
-{{/html}}
