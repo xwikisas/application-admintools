@@ -41,6 +41,7 @@ AdminTools.Code.ConfigurationClass_excludedLines=Excluded lines
 AdminTools.Code.ConfigurationClass_excludedLines.hint=Lines containing sensitive info in xwiki.cfg and xwiki.properties files
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
+AdminTools.home.title=Admin Tools
 admin.admintools.description=Configure Admin Tools Application
 
 ## Modals

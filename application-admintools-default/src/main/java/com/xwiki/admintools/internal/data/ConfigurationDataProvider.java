@@ -93,7 +93,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            Map<String, String> serverMetadata = this.getCurrentServer().getServerMetadata();
+            Map<String, String> serverMetadata = this.currentServer.getServerMetadata();
             systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
             systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiVersion", getXWikiVersion());

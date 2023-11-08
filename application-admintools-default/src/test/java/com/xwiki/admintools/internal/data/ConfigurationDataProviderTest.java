@@ -142,7 +142,7 @@ public class ConfigurationDataProviderTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getServerMetadata()).thenReturn(
+        when(currentServer.getServerMetadata()).thenReturn(
             Map.of("name", "test_server_name", "version", "test_server_version"));
         when(pingProvider.getDatabasePing()).thenReturn(databasePing);
         when(databasePing.getName()).thenReturn("MySQL");

@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.admintools</groupId>
     <artifactId>application-admintools-test</artifactId>
-    <version>1.0.139-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
   </parent>
   <artifactId>application-admintools-test-docker</artifactId>
   <name>Admin Tools Application - Tests - Functional Docker Tests</name>
@@ -48,6 +48,12 @@
       <version>${platform.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-panels-ui</artifactId>
+      <version>${platform.version}</version>
+      <type>xar</type>
+    </dependency>
     <!-- Test only dependencies. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -59,6 +65,12 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>application-admintools-test-pageobjects</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-panels-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -89,11 +101,14 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <systemPropertyVariables>
+              <systemProperties combine.children="append">
                 <!-- Tell the Docker-based test to activate the Clover profile so that the Clover JAR is added to
                      WEB-INF/lib -->
-                <xwiki.test.ui.profiles>clover</xwiki.test.ui.profiles>
-              </systemPropertyVariables>
+                <property>
+                  <name>xwiki.test.ui.profiles</name>
+                  <value>clover</value>
+                </property>
+              </systemProperties>
             </configuration>
           </plugin>
         </plugins>

@@ -20,18 +20,14 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
-import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
@@ -46,29 +42,7 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     /**
      * Component identifier.
      */
-    public static final String HINT = "Tomcat";
-
-    @Inject
-    private PingProvider pingProvider;
-
-    @Override
-    public boolean isUsed()
-    {
-        this.serverPath = null;
-        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
-        if (providedConfigServerPath != null && !providedConfigServerPath.isEmpty()) {
-            return checkAndSetServerPath(providedConfigServerPath);
-        } else {
-            String catalinaBase = System.getProperty("catalina.base");
-            String catalinaHome = System.getenv("CATALINA_HOME");
-            if (catalinaBase != null && !catalinaBase.isEmpty()) {
-                return checkAndSetServerPath(catalinaBase);
-            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
-                return checkAndSetServerPath(catalinaHome);
-            }
-        }
-        return false;
-    }
+    public static final String HINT = "tomcat";
 
     @Override
     public String getComponentHint()
@@ -90,15 +64,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     }
 
     @Override
-    public Map<String, String> getServerMetadata()
-    {
-        ServletContainerPing servletPing = pingProvider.getServletPing();
-        String serverName = servletPing.getName();
-        String serverVersion = servletPing.getVersion();
-        return Map.of("name", serverName, "version", serverVersion);
-    }
-
-    @Override
     public String getLogsFolderPath()
     {
         return this.serverPath + "/logs";
@@ -114,6 +79,25 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     public Pattern getLogsPattern()
     {
         return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+    }
+
+    @Override
+    public boolean foundServerPath()
+    {
+        this.serverPath = null;
+        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
+        if (providedConfigServerPath != null && !providedConfigServerPath.isEmpty()) {
+            return checkAndSetServerPath(providedConfigServerPath);
+        } else {
+            String catalinaBase = System.getProperty("catalina.base");
+            String catalinaHome = System.getenv("CATALINA_HOME");
+            if (catalinaBase != null && !catalinaBase.isEmpty()) {
+                return checkAndSetServerPath(catalinaBase);
+            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
+                return checkAndSetServerPath(catalinaHome);
+            }
+        }
+        return false;
     }
 
     private boolean checkAndSetServerPath(String path)

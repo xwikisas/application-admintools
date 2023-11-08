@@ -19,24 +19,51 @@
  */
 package com.xwiki.admintools.test.ui;
 
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.test.docker.junit5.TestConfiguration;
-import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
-import org.xwiki.test.docker.junit5.browser.Browser;
-import org.xwiki.test.docker.junit5.database.Database;
-import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 
-@UITest(database = Database.MYSQL, databaseTag = "8", servletEngine = ServletEngine.TOMCAT, servletEngineTag = "8",
-    browser = Browser.CHROME)
+import com.xwiki.admintools.test.po.AdminToolsHomePage;
+import com.xwiki.admintools.test.po.AdminToolsViewPage;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@UITest
 class AdminToolsIT
 {
-    @Test
-    void testTry(TestUtils testUtils, TestReference testReference,
-        TestConfiguration testConfiguration)
+    private final List<String> supportedServers = List.of("TOMCAT");
+
+    @BeforeAll
+    static void createUsers(TestUtils setup)
     {
-        String test = testUtils.getDriver().getCurrentUrl();
-        System.out.println(test);
+        setup.createUser("JonSnow", "pass", setup.getURLToNonExistentPage(), "first_name", "Jon", "last_name", "Snow");
+    }
+
+    @BeforeEach
+    void setUp(TestUtils setup)
+    {
+        setup.login("JonSnow", "pass");
+    }
+
+    @Test
+    @Order(1)
+    void AdminToolsHomePage(TestUtils testUtils, TestConfiguration testConfiguration)
+    {
+        AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
+        testUtils.gotoPage(page.getPageURL());
+        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
+        String serverType = testConfiguration.getServletEngine().name();
+        System.out.println(serverType);
+        if (!supportedServers.contains(serverType)) {
+            assertEquals(0, webHomePage.getDashboardElements().size());
+        } else {
+            assertEquals(2, webHomePage.getDashboardElements().size());
+        }
     }
 }

@@ -26,6 +26,8 @@ import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -34,6 +36,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+import com.xwiki.admintools.internal.PingProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -60,6 +63,11 @@ public class CurrentServerTest
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
+    @MockComponent
+    private PingProvider pingProvider;
+
+    private ServletContainerPing containerPing;
+
     @BeforeComponent
     void setUp()
     {
@@ -67,10 +75,16 @@ public class CurrentServerTest
         List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
         mockServerIdentifiers.add(serverIdentifier);
         when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(serverIdentifier.isUsed()).thenReturn(true);
+        when(serverIdentifier.foundServerPath()).thenReturn(true);
+        when(serverIdentifier.getComponentHint()).thenReturn("tomcat");
 
         // Mock the behavior of adminToolsConfig.
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
+
+        containerPing = new ServletContainerPing();
+        containerPing.setName("tomcat");
+        containerPing.setVersion("x.y.z");
+        when(pingProvider.getServletPing()).thenReturn(containerPing);
     }
 
     @Test
@@ -86,7 +100,7 @@ public class CurrentServerTest
     @Test
     void initializeWithServerNotFound() throws InitializationException
     {
-        when(serverIdentifier.isUsed()).thenReturn(false);
+        when(serverIdentifier.foundServerPath()).thenReturn(false);
         currentServer.initialize();
 
         assertNull(currentServer.getCurrentServer());
@@ -95,11 +109,11 @@ public class CurrentServerTest
     @Test
     void updateCurrentServer()
     {
-        when(serverIdentifier.isUsed()).thenReturn(false);
+        when(serverIdentifier.foundServerPath()).thenReturn(false);
         currentServer.updateCurrentServer();
         assertNull(currentServer.getCurrentServer());
 
-        when(serverIdentifier.isUsed()).thenReturn(true);
+        when(serverIdentifier.foundServerPath()).thenReturn(true);
         currentServer.updateCurrentServer();
         assertEquals(serverIdentifier, currentServer.getCurrentServer());
     }

@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!--
+/*
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -18,22 +16,32 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
--->
+ */
+package com.xwiki.admintools.test.po;
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.xwiki.admintools</groupId>
-    <artifactId>application-admintools-test</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>application-admintools-test-pageobjects</artifactId>
-  <name>Admin Tools Application - Tests - Page Objects</name>
-  <dependencies>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-test-ui</artifactId>
-      <version>${platform.version}</version>
-    </dependency>
-  </dependencies>
-</project>
+import org.xwiki.test.ui.po.ViewPage;
+
+public class AdminToolsHomePage extends ViewPage
+{
+    public static AdminToolsHomePage gotoPage()
+    {
+        getUtil().gotoPage(getSpace(), getPage());
+        return new AdminToolsHomePage();
+    }
+
+    public static String getPage()
+    {
+        return "WebHome";
+    }
+
+    public static String getSpace()
+    {
+        return "AdminTools";
+    }
+
+    public static String getUrl()
+    {
+        return getUtil().getURL(getSpace(), getPage());
+    }
+}
+
