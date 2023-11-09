@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -19,7 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="AdminTools.Code.Macros" locale="">
+
+<xwikidoc version="1.5" reference="AdminTools.Code.Macros" locale="">
   <web>AdminTools.Code</web>
   <name>Macros</name>
   <language/>
@@ -38,85 +39,85 @@
   <content>{{velocity output='false'}}
 #macro (viewLastNLinesMoldal $id)
   #set ($modalId = $id + 'ViewLastNLinesModal')
-  &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label">
-    &lt;div class="modal-dialog modal-sm" role="document">
-      &lt;div class="modal-content">
-        &lt;div class="logs-modal-content">
-          &lt;div class="modal-header">
-            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-            &lt;h1 class="modal-title">
+  &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label"&gt;
+    &lt;div class="modal-dialog modal-sm" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="logs-modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+            &lt;h1 class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
-            &lt;/h1>
-          &lt;/div>
-          &lt;div class="modal-body">
-            &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs">
-              &lt;dl>
-                &lt;dt>
-                  &lt;label for="noLines">$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label>
-                  &lt;span class="xHint">$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span>
-                &lt;/dt>
-                &lt;dd>&lt;input type="number" name="noLines" placeholder="1000">&lt;/dd>
-              &lt;/dl>
-            &lt;/form>
-          &lt;/div>
-          &lt;div class="modal-footer">
-            &lt;button type="button" class="btn btn-primary">
-              $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button>
-            &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-              $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-          &lt;/div>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
+            &lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
+              &lt;dl&gt;
+                &lt;dt&gt;
+                  &lt;label for="noLines"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label&gt;
+                  &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span&gt;
+                &lt;/dt&gt;
+                &lt;dd&gt;&lt;input type="number" name="noLines" placeholder="1000"&gt;&lt;/dd&gt;
+              &lt;/dl&gt;
+            &lt;/form&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-primary"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 
 #macro (downloadArchiveModal)
   &lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby=
-    "downloadFilesModalLabel">
-    &lt;div class="modal-dialog" role="document">
-      &lt;div class="modal-content">
-        &lt;div class="modal-header">
-          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            &lt;span aria-hidden="true">&amp;times;&lt;/span>&lt;/button>
-          &lt;h1 class="modal-title">
+    "downloadFilesModalLabel"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+          &lt;h1 class="modal-title"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.title'))
-          &lt;/h1>
-        &lt;/div>
-        &lt;div class="modal-body">
-          &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files">
-            &lt;div class="download-modal-content">
-              &lt;dl>
-                &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiConfig" checked>
+          &lt;/h1&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files"&gt;
+            &lt;div class="download-modal-content"&gt;
+              &lt;dl&gt;
+                &lt;dt&gt;&lt;label&gt;&lt;input type="checkbox" name="files" value="xwikiConfig" checked&gt;
                     $escapetool.xml($services.localization.render(
                     'adminTools.dashboard.download.modal.xwikiConfig.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>&lt;label>&lt;input type="checkbox" name="files" value="xwikiProperties" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;&lt;label&gt;&lt;input type="checkbox" name="files" value="xwikiProperties" checked&gt;
                     $escapetool.xml($services.localization.render(
                     'adminTools.dashboard.download.modal.xwikiProperties.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;label>&lt;input type="checkbox" name="files" value="dataProvider" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;label&gt;&lt;input type="checkbox" name="files" value="dataProvider" checked&gt;
                     $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.provided'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;label>&lt;input type="checkbox" name="files" value="logs" checked>
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;label&gt;&lt;input type="checkbox" name="files" value="logs" checked&gt;
                     $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.logs.title'))
-                  &lt;/label>
-                &lt;/dt>
-                &lt;dt>
-                  &lt;div class="dateFields">
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dt&gt;
+                  &lt;div class="dateFields"&gt;
                     #set ($defaultDateFormat = 'dd-MM-yyyy')
                     #set ($dateFormat = $xwiki.getXWikiPreference('dateformat', $defaultDateFormat))
-                    &lt;label for="downloadFilesModalFromDate">$escapetool.xml($services.localization.render(
+                    &lt;label for="downloadFilesModalFromDate"&gt;$escapetool.xml($services.localization.render(
                       'adminTools.dashboard.download.modal.date.from'))
-                    &lt;/label>
+                    &lt;/label&gt;
                     #set ($dateFromParams = {
                       'id': "downloadFilesModalFromDate",
                       'name': 'from',
@@ -125,9 +126,9 @@
                         'adminTools.dashboard.download.modal.logs.filter.placeholder.from'))
                     })
                     #dateTimePicker($dateFromParams)
-                    &lt;label for="downloadFilesModalToDate">$escapetool.xml($services.localization.render(
+                    &lt;label for="downloadFilesModalToDate"&gt;$escapetool.xml($services.localization.render(
                       'adminTools.dashboard.download.modal.date.to'))
-                    &lt;/label>
+                    &lt;/label&gt;
                     #set ($dateToParams = {
                       'id': "downloadFilesModalToDate",
                       'name': 'to',
@@ -136,30 +137,32 @@
                         'adminTools.dashboard.download.modal.logs.filter.placeholder.to'))
                     })
                     #dateTimePicker($dateToParams)
-                  &lt;/div>
-                &lt;/dt>
-              &lt;/dl>
-            &lt;/div>
-          &lt;/form>
-        &lt;/div>
-        &lt;div class="modal-footer">
-          &lt;button type="button" class="btn btn-primary">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))&lt;/button>
-          &lt;button type="button" class="btn btn-default" data-dismiss="modal">
-            $escapetool.xml($services.localization.render('cancel'))&lt;/button>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
+                  &lt;/div&gt;
+                &lt;/dt&gt;
+              &lt;/dl&gt;
+            &lt;/div&gt;
+          &lt;/form&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-primary"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.button'))&lt;/button&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 
 #macro (jobFinishedMessage $status $translationPrefix $successKey $errorKey $canceledKey $warningKey)
   #if ($status.error)
-    #set($messageKeys = [$errorKey, "${translationPrefix}.finish.error", "job.status.${status.jobType}.error", 'job.status.error'])
+    #set($messageKeys = [$errorKey, "${translationPrefix}.finish.error", "job.status.${status.jobType}.error",
+    'job.status.error'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
     #set($messageClass = 'errormessage')
   #elseif ($status.canceled)
-    #set($messageKeys = [$canceledKey, "${translationPrefix}.finish.canceled", "job.status.${status.jobType}.canceled", 'job.status.canceled'])
+    #set($messageKeys = [$canceledKey, "${translationPrefix}.finish.canceled", "job.status.${status.jobType}.canceled",
+    'job.status.canceled'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
     #set($messageClass = 'warningmessage')
   #elseif ($status.logTail.hasLogLevel('error'))
@@ -172,15 +175,14 @@
     #set($healthCheckReportMessage = 'No issue found!')
     #set($messageClass = 'successmessage')
   #end
-  &lt;div class="box $messageClass">
+  &lt;div class="box $messageClass"&gt;
     $healthCheckReportMessage
-  &lt;/div>
+  &lt;/div&gt;
 #end
 
 #macro (healthCheckUI)
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #set ($healthCheckJobRequest = $services.admintools.createJobRequest($services.wiki.getCurrentWikiId()))
-  #set ($jobId = $healthCheckJobRequest.id)
+  #set ($jobId = ['adminTools', 'healthcheck', $services.wiki.getCurrentWikiId()])
   #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
     'jobId': $jobId,
     'outputSyntax': 'plain'
@@ -192,39 +194,43 @@
   #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
     '__STARTLINK__',
     '__ENDLINK__'
-  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'>&lt;strong>").replace('__ENDLINK__', '&lt;/strong>&lt;/a>'))
-  {{html clean='false'}}
-    &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}">&lt;/input>
-    &lt;div class="adminToolsDashboardItem" id="healthCheck">
-      &lt;h2>$services.icon.renderHTML('bug')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2>
-      &lt;p>$description&lt;/p>
-      &lt;hr/>
-      &lt;div class="healthCheckWrapper">
-        &lt;div class="healthCheckLastCheck">
-          Time since the last health check: $services.date.displayTimeAgo($healthJobStatus.getEndDate())
-        &lt;/div>
-        &lt;div class="buttonwrapper">
-          &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
-            value="startHealthCheck">Start health check&lt;/button>
-        &lt;/div>
-      &lt;/div>
-      &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}">
+  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
+    &lt;/strong&gt;&lt;/a&gt;'))
+  &lt;jobState
+    data-state="${healthJobStatus.state}"
+  &lt;/jobState&gt;
+  &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}"&gt;&lt;/input&gt;
+  &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
+    &lt;h2&gt;$services.icon.renderHTML('bug')
+      $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
+    &lt;p&gt;$description&lt;/p&gt;
+    &lt;hr/&gt;
+    &lt;div class="healthCheckWrapper"&gt;
+      &lt;div class="healthCheckLastCheck"&gt;
+        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time')):
+          $services.date.displayTimeAgo($healthJobStatus.getEndDate())
+      &lt;/div&gt;
+      &lt;div class="buttonwrapper"&gt;
+        &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
+          value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
+            'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
+      #if ($healthJobStatus.state != 'FINISHED')
+        #displayJobProgressBar($jobStatus)
+      #else
+        #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+      #end
+      #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
         #if ($healthJobStatus.state != 'FINISHED')
-          #displayJobProgressBar($jobStatus)
+          #displayJobStatusLog($jobStatus true)
         #else
-          #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+          #displayJobStatusLog($healthJobStatus true)
         #end
-        #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
-          #if ($healthJobStatus.state != 'FINISHED')
-            #displayJobStatusLog($jobStatus true)
-          #else
-            #displayJobStatusLog($healthJobStatus true)
-          #end
-        #end
-      &lt;/div>
-    &lt;/div>
-  {{/html}}
+      #end
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 {{/velocity}}</content>
 </xwikidoc>

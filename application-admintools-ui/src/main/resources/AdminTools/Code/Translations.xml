@@ -1,4 +1,4 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -19,7 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="AdminTools.Code.Translations" locale="">
+
+<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="">
   <web>AdminTools.Code</web>
   <name>Translations</name>
   <language/>
@@ -94,6 +95,9 @@ adminTools.dashboard.healthcheck.security.xwiki.info=XWiki encoding OK
 adminTools.dashboard.healthcheck.security.xwiki.active.warn=XWiki active encoding is [{}]. The encoding should be UTF-8!
 adminTools.dashboard.healthcheck.security.xwiki.config.warn=XWiki configuration encoding is [{}]. The encoding should be UTF-8!
 adminTools.dashboard.healthcheck.title=Health check
+adminTools.dashboard.healthcheck.time=Time since the last health check
+adminTools.dashboard.healthcheck.start=Start health check
+adminTools.job.notFound=Health check job status not found
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -104,6 +108,27 @@ adminTools.dashboard.security.fileEncoding=File encoding
 adminTools.dashboard.security.lang=Used language
 adminTools.dashboard.security.pwd=Working directory
 adminTools.dashboard.security.title=Security
+
+
+##Help links
+adminTools.helppage.browser.support=Browser support
+adminTools.helppage.browser.title=Browser
+adminTools.helppage.database.instructions=Specific databases instructions
+adminTools.helppage.database.mysql.install=MySQL installation guide
+adminTools.helppage.database.mysql.troubleshoot=MySQL troubleshoot
+adminTools.helppage.database.supported=Supported databases
+adminTools.helppage.database.title=Database issues
+adminTools.helppage.java.memory=Java memory
+adminTools.helppage.java.support=Java support
+adminTools.helppage.java.title=Java
+adminTools.helppage.other.title=Other issues
+adminTools.helppage.performance.cache=Cache recommendations
+adminTools.helppage.performance.hardware=Hardware requirements
+adminTools.helppage.performance.memory=Memory recommendations
+adminTools.helppage.performance.title=Performance issues
+adminTools.helppage.server.supported=Supported servers
+adminTools.helppage.server.title=Server issues
+adminTools.helppage.server.tomcat=Tomcat recommendations
 
 
 ## Modals
@@ -147,8 +172,8 @@ adminTools.dashboard.showLogs=View last n lines of log...</content>
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator></separator>
-        <separators>|,</separators>
+        <separator> </separator>
+        <separators>|, </separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>

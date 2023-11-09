@@ -85,8 +85,8 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                     if (checkResult.getErrorMessage() != null) {
                         status.getHealthCheckResults().add(checkResult);
                     }
-                    Thread.yield();
                     progressManager.endStep(this);
+                    Thread.yield();
                 }
             }
         } finally {

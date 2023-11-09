@@ -43,10 +43,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class MemoryHealthCheckTest
+class MemoryHealthCheckTest
 {
     @MockComponent
     private static ContextualLocalizationManager localization;
+
+    @InjectMockComponents
+    private MemoryHealthCheck memoryHealthCheck;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -61,9 +64,6 @@ public class MemoryHealthCheckTest
     @Mock
     private XWiki xwiki;
 
-    @InjectMockComponents
-    private MemoryHealthCheck memoryHealthCheck;
-
     @Mock
     private Logger logger;
 
@@ -74,20 +74,15 @@ public class MemoryHealthCheckTest
             "Cache status OK");
         when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.info")).thenReturn(
             "Memory status OK");
-        when(localization.getTranslationPlain(
-            "adminTools.dashboard.healthcheck.memory.cache.null")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.null")).thenReturn(
             "Store cache capacity is set at 500. Check Cache recommendations in solutions.");
-        when(localization.getTranslationPlain(
-            "adminTools.dashboard.healthcheck.memory.cache.low")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.low")).thenReturn(
             "Store cache capacity is set at [{}]. Check Cache recommendations in solutions.");
-        when(localization.getTranslationPlain(
-            "adminTools.dashboard.healthcheck.memory.free.error")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.error")).thenReturn(
             "Your JVM instance has only [{}]MB free memory left! Consult the solution link for support!");
-        when(localization.getTranslationPlain(
-            "adminTools.dashboard.healthcheck.memory.free.warn")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.warn")).thenReturn(
             "Your instance memory is running low. Currently only [{}]MB free left.");
-        when(localization.getTranslationPlain(
-            "adminTools.dashboard.healthcheck.memory.maxcapacity.error")).thenReturn(
+        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.maxcapacity.error")).thenReturn(
             "JVM memory is less than 1024MB. Currently: [{}]MB");
     }
 

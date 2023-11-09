@@ -20,13 +20,14 @@
 package com.xwiki.admintools.internal.health.checks.configuration;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
+import javax.inject.Named;
 
 import org.slf4j.Logger;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.localization.ContextualLocalizationManager;
 
 import com.xwiki.admintools.DataProvider;
@@ -49,7 +50,8 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
     protected Logger logger;
 
     @Inject
-    private Provider<List<DataProvider>> dataProviders;
+    @Named("context")
+    private ComponentManager contextComponentManager;
 
     /**
      * Get the JSON needed in the health checks execution.
@@ -57,7 +59,7 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
      * @param hint identifies the {@link DataProvider} for which JSON is required.
      * @return a {@link Map} with the {@link DataProvider} info, or an empty {@link Map} in case of an error.
      */
-    protected Map<String, String> getJson(String hint)
+    protected Map<String, String> getJSON(String hint)
     {
         try {
             DataProvider dataProvider = findDataProvider(hint);
@@ -70,13 +72,8 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
         }
     }
 
-    private DataProvider findDataProvider(String hint)
+    private DataProvider findDataProvider(String hint) throws ComponentLookupException
     {
-        for (DataProvider dataProvider : dataProviders.get()) {
-            if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider;
-            }
-        }
-        return null;
+        return this.contextComponentManager.getInstance(DataProvider.class, hint);
     }
 }

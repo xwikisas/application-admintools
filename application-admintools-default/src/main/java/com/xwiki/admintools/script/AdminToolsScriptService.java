@@ -26,6 +26,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.script.service.ScriptService;
@@ -70,7 +71,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param hint {@link String} representing the data provider
      * @return a {@link String} representing a specific template.
      */
-    public String getConfigurationData(String hint)
+    public String getConfigurationData(String hint) throws ComponentLookupException
     {
         return this.adminToolsManager.generateData(hint);
     }
@@ -106,16 +107,18 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * Start the execution of the given Admin Tools health check request.
+     * Check if an Admin Tools Health Check job for the wiki from where the request was made exists. If it does, return
+     * the job instance, else create a new Admin Tools health check request for the given wiki and start the execution.
      *
-     * @param healthCheckJobRequest the health check request to be executed.
+     * @param requestId the ID to be used for the request.
      * @return the asynchronous background job that will execute the request.
      */
-    public Job runHealthChecks(HealthCheckJobRequest healthCheckJobRequest)
+    public Job runHealthChecks(List<String> requestId)
     {
         try {
-            Job job = this.jobExecutor.getJob(healthCheckJobRequest.getId());
+            Job job = this.jobExecutor.getJob(requestId);
             if (job == null) {
+                HealthCheckJobRequest healthCheckJobRequest = new HealthCheckJobRequest(requestId);
                 return this.jobExecutor.execute(HealthCheckJob.JOB_TYPE, healthCheckJobRequest);
             } else {
                 return job;
@@ -123,16 +126,5 @@ public class AdminToolsScriptService implements ScriptService
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * Create health check request.
-     *
-     * @param wiki the ID of the wiki from where the request was made.
-     * @return a new health check request, initialized based on the given wiki ID.
-     */
-    public HealthCheckJobRequest createJobRequest(String wiki)
-    {
-        return new HealthCheckJobRequest(wiki);
     }
 }

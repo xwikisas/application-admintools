@@ -23,10 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -41,6 +45,11 @@ import com.xwiki.admintools.internal.files.ImportantFilesManager;
 @Singleton
 public class AdminToolsManager
 {
+    private static final String GET_DATA_PROVIDER_ERROR_MESSAGE = "Could not find the requested Data Provider!";
+
+    @Inject
+    private Logger logger;
+
     /**
      * A list of all the data providers for Admin Tools.
      */
@@ -55,6 +64,10 @@ public class AdminToolsManager
 
     @Inject
     private ImportantFilesManager importantFilesManager;
+
+    @Inject
+    @Named("context")
+    private ComponentManager contextComponentManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -78,14 +91,14 @@ public class AdminToolsManager
      * @param hint {@link String} represents the data provider identifier.
      * @return a {@link String} representing a template
      */
-    public String generateData(String hint)
+    public String generateData(String hint) throws ComponentLookupException
     {
-        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.getRenderedData();
-            }
+        DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+        if (dataProvider == null) {
+            logger.error(GET_DATA_PROVIDER_ERROR_MESSAGE);
+            throw new NullPointerException(GET_DATA_PROVIDER_ERROR_MESSAGE);
         }
-        return null;
+        return dataProvider.getRenderedData();
     }
 
     /**

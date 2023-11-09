@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.health.checks;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,6 +27,8 @@ import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.localization.ContextualLocalizationManager;
 
 import com.xwiki.admintools.health.HealthCheck;
@@ -45,7 +46,7 @@ import oshi.hardware.HardwareAbstractionLayer;
 @Component
 @Named(PerformanceHealthCheck.HINT)
 @Singleton
-public class PerformanceHealthCheck implements HealthCheck
+public class PerformanceHealthCheck implements HealthCheck, Initializable
 {
     /**
      * Component identifier.
@@ -57,6 +58,15 @@ public class PerformanceHealthCheck implements HealthCheck
 
     @Inject
     private Logger logger;
+
+    private HardwareAbstractionLayer hardware;
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        SystemInfo systemInfo = new SystemInfo();
+        this.hardware = systemInfo.getHardware();
+    }
 
     @Override
     public HealthCheckResult check()
@@ -85,32 +95,25 @@ public class PerformanceHealthCheck implements HealthCheck
         if (freeSpace > 2) {
             return true;
         } else {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.space.warn"));
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.space.warn"));
             return false;
         }
     }
 
     private boolean hasMinimumMemoryRequirements()
     {
-        long memorySize =
-            ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean())
-                .getTotalPhysicalMemorySize();
-        float totalMemory = (float) memorySize / (1024 * 1024 * 1024) + 1;
+        float totalMemory = (float) hardware.getMemory().getTotal() / (1024 * 1024 * 1024) + 1;
 
         if (totalMemory > 2) {
             return true;
         } else {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.memory.warn"));
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.memory.warn"));
             return false;
         }
     }
 
     private boolean hasMinimumCPURequirements()
     {
-        SystemInfo systemInfo = new SystemInfo();
-        HardwareAbstractionLayer hardware = systemInfo.getHardware();
         CentralProcessor processor = hardware.getProcessor();
         int cpuCores = processor.getPhysicalProcessorCount();
         long maxFreq = processor.getMaxFreq() / (1024 * 1024);
@@ -118,8 +121,7 @@ public class PerformanceHealthCheck implements HealthCheck
         if (cpuCores > 2 && maxFreq > 2048) {
             return true;
         } else {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.cpu.warn"));
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.cpu.warn"));
             return false;
         }
     }

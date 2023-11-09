@@ -1,4 +1,5 @@
-<?xml version='1.1' encoding='UTF-8'?>
+<?xml version="1.1" encoding="UTF-8"?>
+
 <!--
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
@@ -18,7 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
-<xwikidoc version="1.4" reference="AdminTools.WebHome" locale="">
+
+<xwikidoc version="1.5" reference="AdminTools.WebHome" locale="">
   <web>AdminTools</web>
   <name>WebHome</name>
   <language/>
@@ -99,7 +101,7 @@
       <position>1, 1</position>
     </property>
     <property>
-      <title></title>
+      <title/>
     </property>
   </object>
   <object>
@@ -166,14 +168,14 @@
       <position>2, 1</position>
     </property>
     <property>
-      <title></title>
+      <title/>
     </property>
   </object>
   <object>
     <name>AdminTools.WebHome</name>
     <number>3</number>
     <className>XWiki.GadgetClass</className>
-    <guid>e26584bd-f916-43fd-b57c-4030ba639a9a</guid>
+    <guid>7ac72ccf-e4d2-474f-b279-ae650ac57a58</guid>
     <class>
       <name>XWiki.GadgetClass</name>
       <customClass/>
@@ -227,14 +229,16 @@
 
 {{velocity}}
   #includeMacros("AdminTools.Code.Macros")
-  #healthCheckUI()
+  {{html clean='false'}}
+    #healthCheckUI()
+  {{/html}}
 {{/velocity}}</content>
     </property>
     <property>
       <position>1, 2</position>
     </property>
     <property>
-      <title></title>
+      <title/>
     </property>
   </object>
   <object>

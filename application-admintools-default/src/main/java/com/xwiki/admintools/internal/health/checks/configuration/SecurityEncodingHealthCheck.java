@@ -37,52 +37,48 @@ import com.xwiki.admintools.internal.data.SecurityDataProvider;
  * @version $Id$
  */
 @Component
-@Named(SecuritySystemEncodingHealthCheck.HINT)
+@Named(SecurityEncodingHealthCheck.HINT)
 @Singleton
-public class SecuritySystemEncodingHealthCheck extends AbstractConfigurationHealthCheck
+public class SecurityEncodingHealthCheck extends AbstractConfigurationHealthCheck
 {
     /**
      * Component identifier.
      */
     public static final String HINT = "SECURITY_SYSTEM_ENCODING_HEALTH_CHECK";
 
+    private static final String INVALID = "INVALID";
+
     private final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
 
     @Override
     public HealthCheckResult check()
     {
-        Map<String, String> securityJson = getJson(SecurityDataProvider.HINT);
+        Map<String, String> securityJson = getJSON(SecurityDataProvider.HINT);
+        String activeEnc = securityJson.getOrDefault("activeEncoding", INVALID);
+        String configEnc = securityJson.getOrDefault("configurationEncoding", INVALID);
         String langEnc = securityJson.getOrDefault("LANG", "invalid.invalid").split("\\.")[1];
-        String fileEnc = securityJson.getOrDefault("fileEncoding", "invalid");
-        boolean isSafeLangEnc = isSafeLanguageEncoding(langEnc);
-        boolean isSafeFileEnc = isSafeFileEncoding(fileEnc);
+        String fileEnc = securityJson.getOrDefault("fileEncoding", INVALID);
 
-        if (!isSafeLangEnc || !isSafeFileEnc) {
+        boolean isSafeLangEnc = isSafeEncoding(langEnc, "adminTools.dashboard.healthcheck.security.system.lang.warn");
+        boolean isSafeFileEnc = isSafeEncoding(fileEnc, "adminTools.dashboard.healthcheck.security.system.file.warn");
+        boolean isActiveEncSafe =
+            isSafeEncoding(activeEnc, "adminTools.dashboard.healthcheck.security.xwiki.active.warn");
+        boolean isConfigEncSafe =
+            isSafeEncoding(configEnc, "adminTools.dashboard.healthcheck.security.xwiki.config.warn");
+
+        if (!isSafeLangEnc || !isSafeFileEnc || !isActiveEncSafe || !isConfigEncSafe) {
             return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.info"));
         return new HealthCheckResult();
     }
 
-    private boolean isSafeLanguageEncoding(String langEnc)
+    private boolean isSafeEncoding(String encoding, String message)
     {
-        if (acceptedEncodings.contains(langEnc)) {
+        if (acceptedEncodings.contains(encoding)) {
             return true;
         }
-        logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.lang.warn"),
-            langEnc);
-        return false;
-    }
-
-    private boolean isSafeFileEncoding(String fileEnc)
-    {
-        if (acceptedEncodings.contains(fileEnc)) {
-            return true;
-        }
-        logger.warn(
-            localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.file.warn"),
-            fileEnc);
+        logger.warn(localization.getTranslationPlain(message), encoding);
         return false;
     }
 }

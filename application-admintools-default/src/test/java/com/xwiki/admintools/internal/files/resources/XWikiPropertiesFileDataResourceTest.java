@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class XWikiPropertiesFileDataResourceTest
+class XWikiPropertiesFileDataResourceTest
 {
     @InjectMockComponents
     private XWikiPropertiesFileDataResource propertiesFileDataResource;

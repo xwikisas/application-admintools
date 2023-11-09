@@ -37,12 +37,12 @@ public class HealthCheckResult
     /**
      * Used for registering an error.
      *
-     * @param errMsg Error message representing the summary of the found issue.
+     * @param errorMessage Error message representing the summary of the found issue.
      * @param recommendation Suggestion for fixing the issue.
      */
-    public HealthCheckResult(String errMsg, String recommendation)
+    public HealthCheckResult(String errorMessage, String recommendation)
     {
-        this.errorMessage = errMsg;
+        this.errorMessage = errorMessage;
         this.recommendation = recommendation;
     }
 
@@ -51,8 +51,7 @@ public class HealthCheckResult
      */
     public HealthCheckResult()
     {
-        errorMessage = null;
-        recommendation = null;
+        this(null, null);
     }
 
     /**

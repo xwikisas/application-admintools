@@ -47,7 +47,7 @@ public class MemoryHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "CACHE_HEALTH_CHECK";
+    public static final String HINT = "MEMORY_HEALTH_CHECK";
 
     @Inject
     protected ContextualLocalizationManager localization;
@@ -78,13 +78,12 @@ public class MemoryHealthCheck implements HealthCheck
         String storeCacheCapacity = configurationSource.getProperty("xwiki.store.cache.capacity");
         if (storeCacheCapacity == null) {
 
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.null"));
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.null"));
             return false;
         }
         if (Integer.parseInt(storeCacheCapacity) <= 500) {
-            logger.warn(localization.getTranslationPlain(
-                "adminTools.dashboard.healthcheck.memory.cache.low"), storeCacheCapacity);
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.low"),
+                storeCacheCapacity);
             return false;
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.info"));
@@ -99,18 +98,16 @@ public class MemoryHealthCheck implements HealthCheck
         float maxMemoryGB = maxMemory / (1024.0f * 1024 * 1024);
 
         if (maxMemoryGB < 1) {
-            logger.error(localization.getTranslationPlain(
-                "adminTools.dashboard.healthcheck.memory.maxcapacity.error"), maxMemoryGB * 1024);
+            logger.error(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.maxcapacity.error"),
+                maxMemoryGB * 1024);
             return false;
         }
         if (totalFreeMemory < 512) {
-            logger.error(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.error"),
+            logger.error(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.error"),
                 totalFreeMemory);
             return false;
         } else if (totalFreeMemory < 1024) {
-            logger.warn(
-                localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.warn"),
+            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.warn"),
                 totalFreeMemory);
             return true;
         }

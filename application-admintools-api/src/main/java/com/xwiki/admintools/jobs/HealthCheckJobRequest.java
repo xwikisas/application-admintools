@@ -45,12 +45,11 @@ public class HealthCheckJobRequest extends AbstractRequest
     /**
      * Creates a request specific to the wiki from which the call was made.
      *
-     * @param wiki the wiki ID from which the request was made.
+     * @param requestId the ID for the request.
      */
-    public HealthCheckJobRequest(String wiki)
+    public HealthCheckJobRequest(List<String> requestId)
     {
-        setDefaultId();
-        getId().add(wiki);
+        setId(requestId);
     }
 
     private void setDefaultId()

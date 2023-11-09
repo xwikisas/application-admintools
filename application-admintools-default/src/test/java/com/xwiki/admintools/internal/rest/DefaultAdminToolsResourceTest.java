@@ -57,15 +57,17 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class DefaultAdminToolsResourceTest
+class DefaultAdminToolsResourceTest
 {
-    XWikiContext xWikiContext;
-
-    @Mock
-    XWikiRequest xWikiRequest;
+    private final Map<String, String[]> params = Map.of("noLines", new String[] { "1000" });
 
     @InjectMockComponents
     private DefaultAdminToolsResource defaultAdminToolsResource;
+
+    private XWikiContext xWikiContext;
+
+    @Mock
+    private XWikiRequest xWikiRequest;
 
     @MockComponent
     private ImportantFilesManager importantFilesManager;
@@ -84,8 +86,6 @@ public class DefaultAdminToolsResourceTest
 
     @Mock
     private Logger logger;
-
-    private final Map<String, String[]> params = Map.of("noLines", new String[]{"1000"});
 
     @BeforeComponent
     void beforeComponent()

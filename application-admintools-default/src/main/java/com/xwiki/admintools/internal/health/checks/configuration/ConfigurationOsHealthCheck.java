@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.Map;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -45,10 +47,8 @@ public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
     @Override
     public HealthCheckResult check()
     {
-        if (getJson(ConfigurationDataProvider.HINT).get("osName") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osVersion") == null
-            || getJson(ConfigurationDataProvider.HINT).get("osArch") == null)
-        {
+        Map<String, String> dataJSON = getJSON(ConfigurationDataProvider.HINT);
+        if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.warn"));
             return new HealthCheckResult("os_issue", "os_support");
         }

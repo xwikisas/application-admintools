@@ -19,16 +19,16 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import javax.inject.Provider;
+import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -45,11 +45,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class ConfigurationOsHealthCheckTest
+class ConfigurationOsHealthCheckTest
 {
-    @MockComponent
-    private static Provider<List<DataProvider>> dataProviders;
-
     @MockComponent
     private static DataProvider firstDataProvider;
 
@@ -62,16 +59,16 @@ public class ConfigurationOsHealthCheckTest
     @InjectMockComponents
     private ConfigurationOsHealthCheck osHealthCheck;
 
+    @MockComponent
+    @Named("context")
+    private ComponentManager contextComponentManager;
+
     @Mock
     private Logger logger;
 
     @BeforeComponent
     static void setUp() throws Exception
     {
-        List<DataProvider> dataProviderList = new ArrayList<>();
-        dataProviderList.add(firstDataProvider);
-        dataProviderList.add(secondDataProvider);
-        when(dataProviders.get()).thenReturn(dataProviderList);
         Map<String, String> jsonResponse =
             Map.of("osName", "testDBName", "osVersion", "os_version", "osArch", "os_arch");
         when(firstDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
@@ -84,13 +81,14 @@ public class ConfigurationOsHealthCheckTest
     }
 
     @BeforeEach
-    void beforeEach()
+    void beforeEach() throws ComponentLookupException
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(osHealthCheck, "logger", this.logger);
 
-        when(firstDataProvider.getIdentifier()).thenReturn(ConfigurationDataProvider.HINT);
-        when(secondDataProvider.getIdentifier()).thenReturn("second");
+        when(contextComponentManager.getInstance(DataProvider.class, ConfigurationDataProvider.HINT)).thenReturn(
+            firstDataProvider);
+        when(contextComponentManager.getInstance(DataProvider.class, "second")).thenReturn(secondDataProvider);
     }
 
     @Test

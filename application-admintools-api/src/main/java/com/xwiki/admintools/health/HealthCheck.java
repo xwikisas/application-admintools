@@ -20,13 +20,16 @@
 package com.xwiki.admintools.health;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
  * Check for issues in the current wiki.
  *
+ * @since 1.0
  * @version $Id$
  */
 @Role
+@Unstable
 public interface HealthCheck
 {
     /**
