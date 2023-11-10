@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 public class AdminToolsViewPage extends ViewPage
@@ -30,8 +31,16 @@ public class AdminToolsViewPage extends ViewPage
     public List<WebElement> dashboardElements =
         getDriver().findElements(By.xpath("//div[contains(@class, 'adminToolsDashboardItem')]"));
 
+    @FindBy(xpath = "//div[@id = 'adminToolsBackendSection'] /ul")
+    public WebElement backendContent;
+
     public List<WebElement> getDashboardElements()
     {
         return dashboardElements;
+    }
+
+    public WebElement getBackendContent()
+    {
+        return backendContent;
     }
 }

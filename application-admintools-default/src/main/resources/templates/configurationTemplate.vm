@@ -21,7 +21,7 @@
 #includeMacros("AdminTools.Code.Macros")
 #viewLastNLinesMoldal("configuration")
 #if ($configuration['serverFound'] == 'true')
-  <div class="adminToolsDashboardItem">
+  <div id="adminToolsBackendSection" class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('world')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>

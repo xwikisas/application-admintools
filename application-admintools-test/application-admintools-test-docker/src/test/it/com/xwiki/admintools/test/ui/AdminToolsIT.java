@@ -25,8 +25,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
@@ -34,7 +37,7 @@ import com.xwiki.admintools.test.po.AdminToolsViewPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@UITest
+@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "9")
 class AdminToolsIT
 {
     private final List<String> supportedServers = List.of("TOMCAT");
@@ -65,5 +68,10 @@ class AdminToolsIT
         } else {
             assertEquals(2, webHomePage.getDashboardElements().size());
         }
+        WebElement test1 = webHomePage.getBackendContent();
+        String a = test1.getText();
+        System.out.println(test1.getText());
+        List<WebElement> test2 = test1.findElements(By.tagName("li"));
+        System.out.println(test1.getCssValue("width"));
     }
 }

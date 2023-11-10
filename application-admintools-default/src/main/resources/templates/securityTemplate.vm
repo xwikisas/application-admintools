@@ -18,7 +18,7 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 #if($security['serverFound'] == 'true')
-  <div class="adminToolsDashboardItem">
+  <div id="adminToolsSecuritySection" class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('lock')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>

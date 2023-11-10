@@ -23,7 +23,7 @@
 #viewLastNLinesMoldal("files")
 #downloadArchiveModal()
 #if ($found)
-  <div class="adminToolsDashboardItem">
+  <div id="adminToolsFilesSection" class="adminToolsDashboardItem">
     <h2>$services.icon.renderHTML('download')
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))</h2>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.download.description'))</p>
