@@ -17,63 +17,71 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-#includeMacros("AdminTools.Code.Macros")
-#viewLastNLinesMoldal("configuration")
-#if ($configuration['serverFound'] == 'true')
-  <div class="adminToolsDashboardItem">
-    <h2>$services.icon.renderHTML('world')
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
-    <hr/>
-    <ul>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')):
-        $configuration['xwikiVersion']
-      </li>
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  #includeMacros("AdminTools.Code.Macros")
+  #if ($configuration['serverFound'] == 'true')
+    <div class="adminToolsDashboardItem">
+      <h2>$services.icon.renderHTML('world')
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
+      <hr/>
       <ul>
         <li>
-          <a href="#configurationViewLastNLinesModal"  data-toggle="modal" data-target="#configurationViewLastNLinesModal">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.xwiki.version')):
+          $configuration['xwikiVersion']
         </li>
-      </ul>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java')):
-        $configuration['javaVersion']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
-        $configuration['usedServerName'] - $configuration['usedServerVersion']
-      </li>
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
         <ul>
-          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.name')):
-            $configuration['osName']</li>
-          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.version')):
-            $configuration['osVersion']</li>
-          <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.architecture')):
-            $configuration['osArch']</li>
+          <li>
+            <a href="#configurationViewLastNLinesModal"  data-toggle="modal" data-target="#configurationViewLastNLinesModal">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
+          </li>
         </ul>
-      </li>
-      #if ($configuration['databaseName'] != $null)
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
-        $configuration['databaseName'] - $configuration['databaseVersion']</li>
-      #else
-        #set($warningDatabaseMessage = $escapetool.xml(
-          $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')) + ':')
-        #set($warningDatabaseMessage = $warningDatabaseMessage +
-          $stringtool.join($services.admintools.getSupportedDatabases(), ', '))
-      <li>$escapetool.xml(
-        $services.localization.render('adminTools.dashboard.section.backend.usedDB')) #warning($warningDatabaseMessage)
-      </li>
-      #end
-    </ul>
-  </div>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.java')):
+          $configuration['javaVersion']
+        </li>
+        <li>
+          $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer'))
+          $configuration['usedServerName'] - $configuration['usedServerVersion']
+        </li>
+        <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
+          <ul>
+            <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.name')):
+              $configuration['osName']</li>
+            <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.version')):
+              $configuration['osVersion']</li>
+            <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.architecture')):
+              $configuration['osArch']</li>
+          </ul>
+        </li>
+        #if ($configuration['databaseName'] != $null)
+        <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
+          $configuration['databaseName'] - $configuration['databaseVersion']</li>
+        #else
+          #set($warningDatabaseMessage = $escapetool.xml(
+            $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')) + ':')
+          #set($warningDatabaseMessage = $warningDatabaseMessage +
+            $stringtool.join($services.admintools.getSupportedDatabases(), ', '))
+        <li>$escapetool.xml(
+          $services.localization.render('adminTools.dashboard.section.backend.usedDB')) #warning($warningDatabaseMessage)
+        </li>
+        #end
+      </ul>
+    </div>
+    #viewLastNLinesMoldal("configuration")
+  #else
+    #set($warningMessage =
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
+    #set($warningMessage = $warningMessage +
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error')) + ':'
+      + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+    #warning($warningMessage)
+  #end
 #else
-  #set($warningMessage =
-    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
-  #set($warningMessage = $warningMessage +
-    $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error')) + ':'
-    + $stringtool.join($services.admintools.getSupportedServers(), ', '))
-  #warning($warningMessage)
+  #includeMacros('Licenses.Code.VelocityMacros')
+  {{error}}
+    #getMissingLicenseMessage('adminTools.extension.name')
+  {{/error}}
 #end
