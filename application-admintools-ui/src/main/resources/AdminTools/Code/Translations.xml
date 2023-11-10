@@ -42,6 +42,7 @@ AdminTools.Code.ConfigurationClass_excludedLines.hint=Lines containing sensitive
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 admin.admintools.description=Configure Admin Tools Application
+adminTools.extension.name=Admin Tools Application (Pro)
 
 ## Dashboard sections
 ## Config
@@ -172,8 +173,8 @@ adminTools.dashboard.showLogs=View last n lines of log...</content>
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
+        <separator/>
+        <separators>|,</separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>

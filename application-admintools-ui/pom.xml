@@ -36,15 +36,29 @@
     <!-- Name to display by the Extension Manager -->
     <xwiki.extension.name>Admin Tools Application (Pro)</xwiki.extension.name>
     <xwiki.extension.category>application</xwiki.extension.category>
+    <!-- The list of documents that have an implicit unlimited free license. The users can view these documents without
+      buying a license or getting a trial license, but they cannot edit or delete them. -->
+    <xwiki.extension.licensing.publicDocuments>
+      AdminTools.WebHome
+    </xwiki.extension.licensing.publicDocuments>
+    <!-- The list of documents that are not covered by the extension license. The user that installs the extension has
+      full access to these documents (view, edit, delete) without having a license, so use this property wisely. -->
+    <xwiki.extension.licensing.excludedDocuments>
+      AdminTools.Code.Configuration
+    </xwiki.extension.licensing.excludedDocuments>
     <!-- Don't run CLIRR here since there's no Java code. -->
     <xwiki.clirr.skip>true</xwiki.clirr.skip>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.xwiki.admintools</groupId>
       <artifactId>application-admintools-default</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-licensor-api</artifactId>
+      <version>${licensing.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
