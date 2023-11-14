@@ -35,7 +35,9 @@
   <description>The Admin Tools Pro application gives you full control and visibility over your XWiki instance.
     Use it to manage your XWiki installation. Easily generate configuration reports. Perform sanity checks and show
     logs history.</description>
-
+  <properties>
+    <licensing.version>1.24.1</licensing.version>
+  </properties>
   <issueManagement>
     <system>GitHub</system>
     <url>https://github.com/xwikisas/application-admintools/issues</url>

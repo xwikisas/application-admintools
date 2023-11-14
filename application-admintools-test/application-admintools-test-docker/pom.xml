@@ -41,6 +41,20 @@
       <artifactId>application-admintools-ui</artifactId>
       <version>${project.version}</version>
       <type>xar</type>
+      <exclusions>
+        <!-- Run the functional tests without a license. -->
+        <exclusion>
+          <groupId>com.xwiki.licensing</groupId>
+          <artifactId>application-licensing-licensor-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Use a fake licensor script service while running the functional tests. -->
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-test-api</artifactId>
+      <version>${licensing.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -59,6 +73,13 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-test-docker</artifactId>
       <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-test-dependencies</artifactId>
+      <version>${licensing.version}</version>
+      <type>pom</type>
       <scope>test</scope>
     </dependency>
     <dependency>
