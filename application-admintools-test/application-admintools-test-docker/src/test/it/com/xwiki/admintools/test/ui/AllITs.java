@@ -22,6 +22,7 @@ package com.xwiki.admintools.test.ui;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 
 /**
  * All UI tests for the Poll application.
@@ -29,7 +30,7 @@ import org.xwiki.test.docker.junit5.UITest;
  * @version $Id$
  * @since 2.2
  */
-@UITest
+@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "9")
 class AllITs
 {
     @Nested

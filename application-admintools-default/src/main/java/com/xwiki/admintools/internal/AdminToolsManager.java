@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -95,7 +94,7 @@ public class AdminToolsManager
      */
     public List<String> getSupportedDBs()
     {
-        return new ArrayList<>(this.currentServer.getSupportedDBs().values());
+        return this.currentServer.getSupportedDBs();
     }
 
     /**

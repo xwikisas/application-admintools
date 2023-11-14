@@ -37,13 +37,13 @@
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.description'))
         <ul>
           <li>
-            <a href="$adminToolsFilesPath/xwikiConfig"
+            <a id="filesConfig" href="$adminToolsFilesPath/xwikiConfig"
             target="_blank">
               $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.configuration'))
             </a>
           </li>
           <li>
-            <a href="$adminToolsFilesPath/xwikiProperties"
+            <a id="filesProperties" href="$adminToolsFilesPath/xwikiProperties"
             target="_blank">
               $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.properties'))
             </a>

@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,19 +73,13 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Get a {@link Map} with the supported databases.
+     * Get a {@link List} with the supported databases.
      *
      * @return the supported databases.
      */
-    public Map<String, String> getSupportedDBs()
+    public List<String> getSupportedDBs()
     {
-        Map<String, String> supportedDBs = new HashMap<>();
-        supportedDBs.put("mysql", "MySQL");
-        supportedDBs.put("hsqldb", "HSQLDB");
-        supportedDBs.put("mariadb", "MariaDB");
-        supportedDBs.put("postgresql", "PostgreSQL");
-        supportedDBs.put("oracle", "Oracle");
-        return supportedDBs;
+        return List.of("MySQL", "HSQL", "MariaDB", "PostgreSQL", "Oracle");
     }
 
     /**

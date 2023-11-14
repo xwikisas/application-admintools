@@ -37,6 +37,16 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output='false'}}
+#macro (databaseIsSupported $databaseName $supportedDatabases $isSupported)
+  #set ($isSupported = false)
+  #set($lowercaseDBName = $databaseName.toLowerCase())
+  #foreach ($database in $supportedDatabases)
+    #if ($lowercaseDBName.contains($database.toLowerCase()))
+      #set ($isSupported = true)
+      #break
+    #end
+  #end
+#end
 #macro (viewLastNLinesMoldal $id)
   #set ($modalId = $id + 'ViewLastNLinesModal')
   &lt;div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label"&gt;

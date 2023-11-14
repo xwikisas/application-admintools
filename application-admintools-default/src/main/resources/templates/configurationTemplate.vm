@@ -55,17 +55,28 @@
             $configuration['osArch']</li>
         </ul>
       </li>
-      #if ($configuration['databaseName'] != $null)
-      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
-        $configuration['databaseName'] - $configuration['databaseVersion']</li>
+      #set($databaseName = $configuration['databaseName'])
+      #if ($databaseName != $null)
+        <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedDB'))
+          $databaseName - $configuration['databaseVersion']</li>
+          #set ($supportedDatabases = $services.admintools.getSupportedDatabases())
+          #set ($isSupported = false)
+          #databaseIsSupported($databaseName $supportedDatabases $isSupported)
+          #if (!$isSupported)
+            #set($warningDatabaseMessage = $escapetool.xml(
+              $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')) + ':')
+            #set($warningDatabaseMessage = $warningDatabaseMessage +
+              $stringtool.join($supportedDatabases, ', '))
+              #warning($warningDatabaseMessage)
+          #end
       #else
         #set($warningDatabaseMessage = $escapetool.xml(
           $services.localization.render('adminTools.dashboard.section.backend.supportedDB.error')) + ':')
         #set($warningDatabaseMessage = $warningDatabaseMessage +
           $stringtool.join($services.admintools.getSupportedDatabases(), ', '))
-      <li>$escapetool.xml(
-        $services.localization.render('adminTools.dashboard.section.backend.usedDB')) #warning($warningDatabaseMessage)
-      </li>
+        <li>$escapetool.xml(
+          $services.localization.render('adminTools.dashboard.section.backend.usedDB')) #warning($warningDatabaseMessage)
+        </li>
       #end
     </ul>
   </div>

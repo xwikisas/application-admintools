@@ -31,16 +31,60 @@ public class AdminToolsViewPage extends ViewPage
     public List<WebElement> dashboardElements =
         getDriver().findElements(By.xpath("//div[contains(@class, 'adminToolsDashboardItem')]"));
 
+    public List<WebElement> warningElements =
+        getDriver().findElements(By.xpath("//div[contains(@class, 'warningmessage')]"));
+
+    @FindBy(xpath = "//a[@data-target = '#configurationViewLastNLinesModal']")
+    public WebElement backendLogsHyperlink;
+
     @FindBy(xpath = "//div[@id = 'adminToolsBackendSection'] /ul")
     public WebElement backendContent;
+
+    @FindBy(xpath = "//div[@id = 'adminToolsFilesSection'] /ul")
+    public WebElement filesContent;
 
     public List<WebElement> getDashboardElements()
     {
         return dashboardElements;
     }
 
+    public List<WebElement> getWarningElements()
+    {
+        return warningElements;
+    }
+
     public WebElement getBackendContent()
     {
         return backendContent;
+    }
+
+    public List<WebElement> getBackendErrorMessages()
+    {
+        return backendContent.findElements(By.className("warningmessage"));
+    }
+
+    public String getBackendText()
+    {
+        return backendContent.getText();
+    }
+
+    public WebElement getBackendLogsHyperlink()
+    {
+        return backendLogsHyperlink;
+    }
+
+    public WebElement getFilesArchiveHyperlink()
+    {
+        return filesContent.findElement(By.cssSelector("a[href='#downloadFilesModal'"));
+    }
+
+    public WebElement getPropertiesHyperlink()
+    {
+        return filesContent.findElement(By.id("filesProperties"));
+    }
+
+    public WebElement getConfigurationHyperlink()
+    {
+        return filesContent.findElement(By.id("filesConfig"));
     }
 }
