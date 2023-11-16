@@ -64,4 +64,20 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
     {
         return healthCheckResults;
     }
+
+    /**
+     * Get the list issues list from the job.
+     * @param level the logger manager
+     *
+     * @return boolean with {@link HealthCheckResult} containing errors.
+     */
+    public boolean hasErrorLevel(String level)
+    {
+        for (HealthCheckResult checkResult : healthCheckResults) {
+            if (checkResult.getLevel().equals(level)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

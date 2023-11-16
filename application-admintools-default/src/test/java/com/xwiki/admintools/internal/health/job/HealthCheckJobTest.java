@@ -68,8 +68,8 @@ class HealthCheckJobTest
         healthCheckList.add(secondHealthCheck);
 
         when(listProvider.get()).thenReturn(healthCheckList);
-        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", "err_rec"));
-        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult());
+        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", "err_rec", "error"));
+        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", "info"));
 
         healthCheckJob.initialize(new HealthCheckJobRequest());
         healthCheckJob.runInternal();

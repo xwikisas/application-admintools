@@ -68,16 +68,16 @@ public class MemoryHealthCheck implements HealthCheck
         boolean cacheOk = isEnoughCache();
         boolean memoryOk = hasEnoughMemory();
         if (cacheOk && memoryOk) {
-            return new HealthCheckResult();
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.info", "info");
         }
-        return new HealthCheckResult("There are memory issues!", "dummy memory help link");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.null", "dummy memory help link",
+            "warn");
     }
 
     private boolean isEnoughCache()
     {
         String storeCacheCapacity = configurationSource.getProperty("xwiki.store.cache.capacity");
         if (storeCacheCapacity == null) {
-
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.cache.null"));
             return false;
         }
@@ -109,7 +109,7 @@ public class MemoryHealthCheck implements HealthCheck
         } else if (totalFreeMemory < 1024) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.free.warn"),
                 totalFreeMemory);
-            return true;
+            return false;
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.memory.info"));
         return true;

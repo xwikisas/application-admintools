@@ -48,17 +48,19 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         String javaVersionString = getJSON(ConfigurationDataProvider.HINT).get("javaVersion");
         if (javaVersionString == null) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.found"));
-            return new HealthCheckResult("java_version_not_found", "java_installation_link");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn.found", "java_installation_link",
+                "warn");
         }
         String xwikiVersionString = getJSON(ConfigurationDataProvider.HINT).get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
         if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.incompatible"));
-            return new HealthCheckResult("java_xwiki_not_compatible", "java_issue_rec");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn.incompatible", "java_issue_rec",
+                "warn");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.info"));
-        return new HealthCheckResult();
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", "info");
     }
 
     private static float parseFloat(String javaVersionString)

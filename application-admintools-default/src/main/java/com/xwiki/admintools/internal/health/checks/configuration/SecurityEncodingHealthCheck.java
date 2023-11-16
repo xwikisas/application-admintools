@@ -67,10 +67,12 @@ public class SecurityEncodingHealthCheck extends AbstractConfigurationHealthChec
             isSafeEncoding(configEnc, "adminTools.dashboard.healthcheck.security.xwiki.config.warn");
 
         if (!isSafeLangEnc || !isSafeFileEnc || !isActiveEncSafe || !isConfigEncSafe) {
-            return new HealthCheckResult("xwiki_encoding_err", "xwiki config tutorial link");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn", "xwiki config"
+                + " tutorial link", "warn");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.security.system.info"));
-        return new HealthCheckResult();
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn", "xwiki config"
+            + " tutorial link", "warn");
     }
 
     private boolean isSafeEncoding(String encoding, String message)

@@ -47,9 +47,10 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     {
         if (getJSON(ConfigurationDataProvider.HINT).get("databaseName") == null) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.warn"));
-            return new HealthCheckResult("database_not_detected", "xwiki_db_configuration");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn", "xwiki_db_configuration",
+                "warn");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.info"));
-        return new HealthCheckResult();
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info", "info");
     }
 }

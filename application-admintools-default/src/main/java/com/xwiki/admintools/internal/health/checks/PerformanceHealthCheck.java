@@ -75,10 +75,11 @@ public class PerformanceHealthCheck implements HealthCheck, Initializable
         boolean hasMinimumCPURequirements = hasMinimumCPURequirements();
         boolean hasMinimumMemoryRequirements = hasMinimumMemoryRequirements();
         if (!hasFreeSpace || !hasMinimumCPURequirements || !hasMinimumMemoryRequirements) {
-            return new HealthCheckResult("performance issues", "minimum sys req link");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.info", "minimum sys req link",
+                "error");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.performance.info"));
-        return new HealthCheckResult();
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.info", "info");
     }
 
     private boolean hasFreeSpace()

@@ -50,9 +50,9 @@ public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
         Map<String, String> dataJSON = getJSON(ConfigurationDataProvider.HINT);
         if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
             logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.warn"));
-            return new HealthCheckResult("os_issue", "os_support");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", "os_support", "warn");
         }
         logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.info"));
-        return new HealthCheckResult();
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.os.info", "info");
     }
 }

@@ -34,28 +34,35 @@ public class HealthCheckResult
 
     private String recommendation;
 
+    private String level;
+
+    private String currentValue;
+
     /**
      * Used for registering an error.
      *
      * @param errorMessage Error message representing the summary of the found issue.
      * @param recommendation Suggestion for fixing the issue.
+     * @param level Suggestion for fixing the issue.
      */
-    public HealthCheckResult(String errorMessage, String recommendation)
+    public HealthCheckResult(String errorMessage, String recommendation, String level)
     {
         this.errorMessage = errorMessage;
         this.recommendation = recommendation;
+        this.level = level;
     }
 
     /**
      * Used for initializing an empty body result.
      */
-    public HealthCheckResult()
+    public HealthCheckResult(String errorMessage, String level)
     {
-        this(null, null);
+        this(errorMessage, null, level);
     }
 
     /**
      * Get the error body.
+     *
      * @return a summary of the error.
      */
     public String getErrorMessage()
@@ -74,20 +81,29 @@ public class HealthCheckResult
     }
 
     /**
-     * Set the message error.
-     * @param err summary of the error.
+     * Get the severity level a detected error, where 0 is info, 1 is a warning and 2 is an error.
+     *
+     * @return the severity level of an error.
      */
-    public void setErrorMessage(String err)
+    public String getLevel()
     {
-        this.errorMessage = err;
+        return level;
     }
-
-    /**
-     * Set the error recommendation.
-     * @param recommendation summary of the fix.
-     */
-    public void setRecommendation(String recommendation)
-    {
-        this.recommendation = recommendation;
-    }
+//    /**
+//     * Set the message error.
+//     * @param err summary of the error.
+//     */
+//    public void setErrorMessage(String err)
+//    {
+//        this.errorMessage = err;
+//    }
+//
+//    /**
+//     * Set the error recommendation.
+//     * @param recommendation summary of the fix.
+//     */
+//    public void setRecommendation(String recommendation)
+//    {
+//        this.recommendation = recommendation;
+//    }
 }

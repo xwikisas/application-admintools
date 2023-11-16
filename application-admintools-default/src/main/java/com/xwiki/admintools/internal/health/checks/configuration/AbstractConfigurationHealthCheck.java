@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal.health.checks.configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -62,6 +63,7 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
     protected Map<String, String> getJSON(String hint)
     {
         try {
+            TimeUnit.SECONDS.sleep(1);
             DataProvider dataProvider = findDataProvider(hint);
             if (dataProvider == null) {
                 throw new NullPointerException("Could not find a matching DataProvider.");
