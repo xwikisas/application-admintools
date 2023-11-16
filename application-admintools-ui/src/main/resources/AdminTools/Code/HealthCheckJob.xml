@@ -38,13 +38,13 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #template('job_macros.vm')
-#includeMacros("AdminTools.Code.Macros")
+#includeMacros("AdminTools.Code.HealthCheckMacros")
 
 #set($jobId = $request.getParameterValues('jobId'))
 #set($jobStatus = $services.job.getJobStatus($jobId))
 
 #if ($jobStatus)
-  #outputJobStatusJSON($jobStatus)
+  #healthCheckOutputJobStatus($jobStatus)
 #else
   $response.setStatus(404)
   #error($escapetool.xml($services.localization.render("admintools.job.notFound")))

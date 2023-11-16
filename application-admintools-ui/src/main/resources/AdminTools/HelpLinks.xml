@@ -41,51 +41,54 @@
 {{/box}}
 
 {{velocity}}
-= $escapetool.xml($services.localization.render('adminTools.helppage.performance.title')) =
+= $escapetool.xml($services.localization.render('adminTools.helpPage.performance.title')) =
 
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.performance.hardware'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.performance.hardware'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HSizing||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.performance.memory'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.performance.memory'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HMemory||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.performance.cache'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.performance.cache'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HDocumentCache
 ||target="_blank"]]
 
-= $escapetool.xml($services.localization.render('adminTools.helppage.server.title')) =
+= $escapetool.xml($services.localization.render('adminTools.helpPage.server.title')) =
 
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.server.supported'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.server.security'))
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Configuration/Encoding/
+||target="_blank"]]
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.server.supported'))
 &gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/ServletContainerSupportStrategy/
 ||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.server.tomcat'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.server.tomcat'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationTomcat/#HRecommendations
 ||target="_blank"]]
 
-= $escapetool.xml($services.localization.render('adminTools.helppage.database.title')) =
+= $escapetool.xml($services.localization.render('adminTools.helpPage.database.title')) =
 
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.database.supported'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.database.supported'))
 &gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/DatabaseSupportStrategy||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.database.instructions'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.database.instructions'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/#HSpecificdatabasesinstructions
 ||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.database.mysql.install'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.database.mysql.install'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HInstallationSteps
 ||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.database.mysql.troubleshoot'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.database.mysql.troubleshoot'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HTroubleshooting
 ||target="_blank"]]
 
-= $escapetool.xml($services.localization.render('adminTools.helppage.other.title')) =
-== $escapetool.xml($services.localization.render('adminTools.helppage.java.title')) ==
+= $escapetool.xml($services.localization.render('adminTools.helpPage.other.title')) =
+== $escapetool.xml($services.localization.render('adminTools.helpPage.java.title')) ==
 
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.java.memory'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.java.memory'))
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationTomcat/#HGeneralMemorySettings
 ||target="_blank"]]
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.java.support'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.java.support'))
 &gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/JavaSupportStrategy/||target="_blank"]]
 
-== $escapetool.xml($services.localization.render('adminTools.helppage.browser.title')) ==
+== $escapetool.xml($services.localization.render('adminTools.helpPage.browser.title')) ==
 
-* [[$escapetool.xml($services.localization.render('adminTools.helppage.browser.support'))
+* [[$escapetool.xml($services.localization.render('adminTools.helpPage.browser.support'))
 &gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/BrowserSupportStrategy||target="_blank"]]
 {{/velocity}}
 </content>

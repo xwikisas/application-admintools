@@ -17,9 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.checks.configuration;
-
-import java.util.Map;
+package com.xwiki.admintools.internal.health.checks.memory;
 
 import javax.inject.Named;
 
@@ -27,63 +25,58 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
-
-import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class ConfigurationJavaHealthCheckTest
+class CacheMemoryHealthCheckTest
 {
-    @MockComponent
-    @Named(ConfigurationDataProvider.HINT)
-    private static DataProvider dataProvider;
-
     @InjectMockComponents
-    private ConfigurationJavaHealthCheck javaHealthCheck;
+    private CacheMemoryHealthCheck cacheMemoryHealthCheck;
+
+    @MockComponent
+    @Named("xwikicfg")
+    private ConfigurationSource configurationSource;
 
     @Mock
     private Logger logger;
 
     @BeforeEach
-    void beforeEach() throws Exception
+    void beforeEach()
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(javaHealthCheck, "logger", this.logger);
+        ReflectionUtils.setFieldValue(cacheMemoryHealthCheck, "logger", this.logger);
 
-        Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "14.10.2");
-        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
     }
 
     @Test
     void check()
     {
-        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+        when(configurationSource.getProperty("xwiki.store.cache.capacity")).thenReturn("1000");
+        assertEquals("adminTools.dashboard.healthcheck.memory.cache.info", cacheMemoryHealthCheck.check().getMessage());
     }
 
     @Test
-    void checkNullJson() throws Exception
+    void checkCacheLow()
     {
-        when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
-
-        assertEquals("adminTools.dashboard.healthcheck.java.warn", javaHealthCheck.check().getMessage());
-        verify(logger).warn("Java version not found!");
+        when(configurationSource.getProperty("xwiki.store.cache.capacity")).thenReturn("400");
+        assertEquals("adminTools.dashboard.healthcheck.memory.cache.low", cacheMemoryHealthCheck.check().getMessage());
+        verify(logger).warn("Store cache capacity is set to [{}].", "400");
     }
 
+
     @Test
-    void checkJavaVersionIncompatible() throws Exception
+    void checkCacheNotDefined()
     {
-        Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "6.10.2");
-        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-        assertEquals("adminTools.dashboard.healthcheck.java.error", javaHealthCheck.check().getMessage());
-        verify(logger).error("Java version is not compatible with the current XWiki installation!");
+        when(configurationSource.getProperty("xwiki.store.cache.capacity")).thenReturn(null);
+        assertEquals("adminTools.dashboard.healthcheck.memory.cache.null", cacheMemoryHealthCheck.check().getMessage());
+        verify(logger).warn("Store cache capacity not defined. Set by default at 500.");
     }
 }

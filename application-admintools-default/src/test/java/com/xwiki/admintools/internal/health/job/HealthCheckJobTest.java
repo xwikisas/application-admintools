@@ -74,6 +74,6 @@ class HealthCheckJobTest
         healthCheckJob.initialize(new HealthCheckJobRequest());
         healthCheckJob.runInternal();
         HealthCheckJobStatus healthCheckJobStatus = healthCheckJob.getStatus();
-        assertEquals(1, healthCheckJobStatus.getHealthCheckResults().size());
+        assertEquals(2, healthCheckJobStatus.getHealthCheckResults().size());
     }
 }

@@ -17,11 +17,12 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.checks.configuration;
+package com.xwiki.admintools.internal.health.checks.security;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,32 +31,37 @@ import org.slf4j.Logger;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 /**
- * {@link HealthCheck} implementations to simplify the code for configuration related health checks.
+ * {@link HealthCheck} implementations to simplify the code for security related health checks.
  *
  * @version $Id$
  */
-public abstract class AbstractConfigurationHealthCheck implements HealthCheck
+public abstract class AbstractSecurityHealthCheck implements HealthCheck
 {
+    protected final List<String> acceptedEncodings = new ArrayList<>(List.of("UTF8", "UTF-8", "utf8", "utf-8"));
+
     @Inject
     protected Logger logger;
 
     @Inject
-    @Named(ConfigurationDataProvider.HINT)
-    private DataProvider configurationDataProvider;
+    @Named(SecurityDataProvider.HINT)
+    private DataProvider securityDataProvider;
 
-    /**
-     * Get the JSON needed for the configuration health checks execution.
-     *
-     * @return a {@link Map} with the {@link ConfigurationDataProvider} info, or an empty {@link Map} in case of an
-     *     error.
-     */
+    protected boolean isSafeEncoding(String encoding, String type)
+    {
+        if (acceptedEncodings.contains(encoding)) {
+            return true;
+        }
+        logger.warn(String.format("%s encoding is [{}], but should be UTF-8!", type), encoding);
+        return false;
+    }
+
     protected Map<String, String> getJSON()
     {
         try {
-            return configurationDataProvider.getDataAsJSON();
+            return securityDataProvider.getDataAsJSON();
         } catch (Exception e) {
             return new HashMap<>();
         }

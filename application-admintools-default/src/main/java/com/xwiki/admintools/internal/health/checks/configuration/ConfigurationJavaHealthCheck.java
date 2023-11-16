@@ -19,13 +19,14 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.Map;
+
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 /**
  * Extension of {@link AbstractConfigurationHealthCheck} for checking the Java configuration.
@@ -45,21 +46,22 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     @Override
     public HealthCheckResult check()
     {
-        String javaVersionString = getJSON(ConfigurationDataProvider.HINT).get("javaVersion");
+        Map<String, String> configurationJson = getJSON();
+        String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
-            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.found"));
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn.found", "java_installation_link",
-                "warn");
+            logger.warn("Java version not found!");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn",
+                "adminTools.dashboard.healthcheck.java.warn.recommendation", "warn");
         }
-        String xwikiVersionString = getJSON(ConfigurationDataProvider.HINT).get("xwikiVersion");
+        String xwikiVersionString = configurationJson.get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
-        if (isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
-            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.warn.incompatible"));
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn.incompatible", "java_issue_rec",
-                "warn");
+        if (isNotJavaXWikiCompatible(xwikiVersion, javaVersion)) {
+            logger.error("Java version is not compatible with the current XWiki installation!");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error",
+                "adminTools.dashboard.healthcheck.java.error.recommendation", "error",
+                String.format("Java %s - XWiki %s", javaVersion, xwikiVersion));
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.java.info"));
         return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", "info");
     }
 
@@ -69,7 +71,7 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         return Float.parseFloat(parts[0] + "." + parts[1]);
     }
 
-    private boolean isJavaXWikiCompatible(float xwikiVersion, float javaVersion)
+    private boolean isNotJavaXWikiCompatible(float xwikiVersion, float javaVersion)
     {
         boolean isCompatible = false;
 

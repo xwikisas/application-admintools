@@ -19,13 +19,14 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Extension of {@link AbstractConfigurationHealthCheck} for checking the database configuration.
@@ -42,15 +43,26 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
      */
     public static final String HINT = "CONFIG_DB_HEALTH_CHECK";
 
+    private static final String ERROR_KEY = "error";
+
+    @Inject
+    private CurrentServer currentServer;
+
     @Override
     public HealthCheckResult check()
     {
-        if (getJSON(ConfigurationDataProvider.HINT).get("databaseName") == null) {
-            logger.warn(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.warn"));
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn", "xwiki_db_configuration",
-                "warn");
+        String usedDatabase = getJSON().get("databaseName");
+        if (usedDatabase == null) {
+            logger.warn("Database not found!");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn", ERROR_KEY);
         }
-        logger.info(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.info"));
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info", "info");
+        if (currentServer.getSupportedDBs().stream()
+            .anyMatch(d -> usedDatabase.toLowerCase().contains(d.toLowerCase())))
+        {
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info", "info");
+        }
+        logger.error("Used database is not supported!");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.database.notSupported",
+            "adminTools.dashboard.healthcheck.database.recommendation", ERROR_KEY, usedDatabase);
     }
 }

@@ -239,7 +239,7 @@
       <content>{{template name="job_macros.vm"/}}
 
 {{velocity}}
-  #includeMacros("AdminTools.Code.Macros")
+  #includeMacros("AdminTools.Code.HealthCheckMacros")
   {{html clean='false'}}
     #healthCheckUI()
   {{/html}}

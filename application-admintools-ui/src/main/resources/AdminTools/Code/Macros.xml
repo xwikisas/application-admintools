@@ -74,7 +74,6 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
-
 #macro (downloadArchiveModal)
   &lt;div class="modal fade" id="downloadFilesModal" tabindex="-1" role="dialog" aria-labelledby=
     "downloadFilesModalLabel"&gt;
@@ -150,85 +149,6 @@
             $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-#end
-
-#macro (jobFinishedMessage $status $translationPrefix $successKey $errorKey $canceledKey $warningKey)
-  #if ($status.error)
-    #set($messageKeys = [$errorKey, "${translationPrefix}.finish.error", "job.status.${status.jobType}.error",
-    'job.status.error'])
-    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage')
-  #elseif ($status.canceled)
-    #set($messageKeys = [$canceledKey, "${translationPrefix}.finish.canceled", "job.status.${status.jobType}.canceled",
-    'job.status.canceled'])
-    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'warningmessage')
-  #elseif ($status.logTail.hasLogLevel('error'))
-    #set($healthCheckReportMessage = 'Critical issues were found, please consult the log!')
-    #set($messageClass = 'errormessage')
-  #elseif ($status.logTail.hasLogLevel('warn'))
-    #set($healthCheckReportMessage = 'Some issues have been found, for more details please see the log.')
-    #set($messageClass = 'warningmessage')
-  #else
-    #set($healthCheckReportMessage = 'No issue found!')
-    #set($messageClass = 'successmessage')
-  #end
-  &lt;div class="box $messageClass"&gt;
-    $healthCheckReportMessage
-  &lt;/div&gt;
-#end
-
-#macro (healthCheckUI)
-  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #set ($jobId = ['adminTools', 'healthcheck', $services.wiki.getCurrentWikiId()])
-  #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
-    'jobId': $jobId,
-    'outputSyntax': 'plain'
-  })))
-  #if ($jobId)
-    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-  #end
-  #set($solutionLink = $xwiki.getURL('AdminTools.HelpLinks'))
-  #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
-    '__STARTLINK__',
-    '__ENDLINK__'
-  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
-    &lt;/strong&gt;&lt;/a&gt;'))
-  &lt;jobState
-    data-state="${healthJobStatus.state}"
-  &lt;/jobState&gt;
-  &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}"&gt;&lt;/input&gt;
-  &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
-    &lt;h2&gt;$services.icon.renderHTML('bug')
-      $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
-    &lt;p&gt;$description&lt;/p&gt;
-    &lt;hr/&gt;
-    &lt;div class="healthCheckWrapper"&gt;
-      &lt;div class="healthCheckLastCheck"&gt;
-        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time')):
-          $services.date.displayTimeAgo($healthJobStatus.getEndDate())
-      &lt;/div&gt;
-      &lt;div class="buttonwrapper"&gt;
-        &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
-          value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
-            'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-    &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
-      #if ($healthJobStatus.state != 'FINISHED')
-        #displayJobProgressBar($jobStatus)
-      #else
-        #jobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
-      #end
-      #if ($showLogs || $isAdvancedUser || $isSuperAdmin)
-        #if ($healthJobStatus.state != 'FINISHED')
-          #displayJobStatusLog($jobStatus true)
-        #else
-          #displayJobStatusLog($healthJobStatus true)
-        #end
-      #end
     &lt;/div&gt;
   &lt;/div&gt;
 #end

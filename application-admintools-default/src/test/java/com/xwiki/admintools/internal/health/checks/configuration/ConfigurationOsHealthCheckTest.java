@@ -28,9 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
-import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -48,20 +46,11 @@ import static org.mockito.Mockito.when;
 class ConfigurationOsHealthCheckTest
 {
     @MockComponent
-    private static DataProvider firstDataProvider;
-
-    @MockComponent
-    private static DataProvider secondDataProvider;
-
-    @MockComponent
-    private static ContextualLocalizationManager localization;
+    @Named(ConfigurationDataProvider.HINT)
+    private static DataProvider dataProvider;
 
     @InjectMockComponents
     private ConfigurationOsHealthCheck osHealthCheck;
-
-    @MockComponent
-    @Named("context")
-    private ComponentManager contextComponentManager;
 
     @Mock
     private Logger logger;
@@ -71,13 +60,7 @@ class ConfigurationOsHealthCheckTest
     {
         Map<String, String> jsonResponse =
             Map.of("osName", "testDBName", "osVersion", "os_version", "osArch", "os_arch");
-        when(firstDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-        when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
-
-        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.info")).thenReturn(
-            "OS info retrieval OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.os.warn")).thenReturn(
-            "There has been an error while gathering OS info!");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
     }
 
     @BeforeEach
@@ -85,25 +68,20 @@ class ConfigurationOsHealthCheckTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(osHealthCheck, "logger", this.logger);
-
-        when(contextComponentManager.getInstance(DataProvider.class, ConfigurationDataProvider.HINT)).thenReturn(
-            firstDataProvider);
-        when(contextComponentManager.getInstance(DataProvider.class, "second")).thenReturn(secondDataProvider);
     }
 
     @Test
     void check()
     {
-        assertNull(osHealthCheck.check().getErrorMessage());
-        verify(logger).info("OS info retrieval OK");
+        assertEquals("adminTools.dashboard.healthcheck.os.info", osHealthCheck.check().getMessage());
     }
 
     @Test
     void checkNullJson() throws Exception
     {
-        when(firstDataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
+        when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
-        assertEquals("os_issue", osHealthCheck.check().getErrorMessage());
+        assertEquals("adminTools.dashboard.healthcheck.os.warn", osHealthCheck.check().getMessage());
         verify(logger).warn("There has been an error while gathering OS info!");
     }
 }

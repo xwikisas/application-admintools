@@ -17,9 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.checks.configuration;
-
-import java.util.Map;
+package com.xwiki.admintools.internal.health.checks.security;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,28 +27,35 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheckResult;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the OS configuration.
+ * Extension of {@link AbstractSecurityHealthCheck} for checking XWiki active encoding.
  *
  * @version $Id$
  */
 @Component
-@Named(ConfigurationOsHealthCheck.HINT)
+@Named(ActiveEncodingHealthCheck.HINT)
 @Singleton
-public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
+public class ActiveEncodingHealthCheck extends AbstractSecurityHealthCheck
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "CONFIG_OS_HEALTH_CHECK";
+    public static final String HINT = "ACTIVE_ENCODING_HEALTH_CHECK";
+
+    private static final String WARN_LEVEL = "warn";
 
     @Override
     public HealthCheckResult check()
     {
-        Map<String, String> dataJSON = getJSON();
-        if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
-            logger.warn("There has been an error while gathering OS info!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", "warn");
+        String activeEnc = getJSON().get("activeEncoding");
+        if (activeEnc == null) {
+            logger.warn("Active encoding could not be detected!");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.notFound", WARN_LEVEL);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.os.info", "info");
+        boolean isActiveEncSafe = isSafeEncoding(activeEnc, "XWiki active");
+        if (!isActiveEncSafe) {
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.warn", null,
+                WARN_LEVEL, activeEnc);
+        }
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.info", "info");
     }
 }

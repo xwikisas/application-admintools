@@ -61,6 +61,7 @@
      &lt;jobJsURL
        data-url="${jobMinJsURL}"
      &lt;/jobJsURL&gt;
+     ## MOVE TO MACRO
      #displayJobProgressBar($healthJobStatus)
     &lt;/div&gt;
   {{/html}}
@@ -78,6 +79,7 @@
   #elseif ($request.data == 'jobStatus')
     #set ($healthCheckJobId = $request.jobId.split('/'))
     #returnHealthCheckJobStatusJSON($healthCheckJobId)
+    ## TO BE REMOVED
   #else
     #getHealthCheckResources()
   #end

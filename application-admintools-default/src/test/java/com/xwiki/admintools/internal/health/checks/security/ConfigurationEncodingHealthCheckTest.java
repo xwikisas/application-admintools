@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.checks.configuration;
+package com.xwiki.admintools.internal.health.checks.security;
 
 import java.util.Map;
 
@@ -27,28 +27,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class ConfigurationJavaHealthCheckTest
+class ConfigurationEncodingHealthCheckTest
 {
-    @MockComponent
-    @Named(ConfigurationDataProvider.HINT)
-    private static DataProvider dataProvider;
-
     @InjectMockComponents
-    private ConfigurationJavaHealthCheck javaHealthCheck;
+    private ConfigurationEncodingHealthCheck configurationEncodingHealthCheck;
+
+    @MockComponent
+    @Named(SecurityDataProvider.HINT)
+    private DataProvider dataProvider;
 
     @Mock
     private Logger logger;
@@ -57,16 +56,18 @@ class ConfigurationJavaHealthCheckTest
     void beforeEach() throws Exception
     {
         when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(javaHealthCheck, "logger", this.logger);
+        ReflectionUtils.setFieldValue(configurationEncodingHealthCheck, "logger", this.logger);
 
-        Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "14.10.2");
+        when(dataProvider.getIdentifier()).thenReturn(SecurityDataProvider.HINT);
+        Map<String, String> jsonResponse = Map.of("configurationEncoding", "UTF8");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
     }
 
     @Test
     void check()
     {
-        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+        assertEquals("adminTools.dashboard.healthcheck.security.xwiki.config.info",
+            configurationEncodingHealthCheck.check().getMessage());
     }
 
     @Test
@@ -74,16 +75,18 @@ class ConfigurationJavaHealthCheckTest
     {
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
-        assertEquals("adminTools.dashboard.healthcheck.java.warn", javaHealthCheck.check().getMessage());
-        verify(logger).warn("Java version not found!");
+        assertEquals("adminTools.dashboard.healthcheck.security.xwiki.config.notFound",
+            configurationEncodingHealthCheck.check().getMessage());
+        logger.warn("Configuration encoding could not be detected!");
     }
 
     @Test
-    void checkJavaVersionIncompatible() throws Exception
+    void checkUnsafeEncoding() throws Exception
     {
-        Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "6.10.2");
+        Map<String, String> jsonResponse = Map.of("configurationEncoding", "ISO-8859-1");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-        assertEquals("adminTools.dashboard.healthcheck.java.error", javaHealthCheck.check().getMessage());
-        verify(logger).error("Java version is not compatible with the current XWiki installation!");
+        assertEquals("adminTools.dashboard.healthcheck.security.xwiki.config.warn",
+            configurationEncodingHealthCheck.check().getMessage());
+        verify(logger).warn("XWiki configuration encoding is [{}], but should be UTF-8!", "ISO-8859-1");
     }
 }

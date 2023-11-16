@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -28,9 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.util.ReflectionUtils;
-import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -38,9 +37,9 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,20 +47,14 @@ import static org.mockito.Mockito.when;
 class ConfigurationDatabaseHealthCheckTest
 {
     @MockComponent
-    private static DataProvider firstDataProvider;
-
-    @MockComponent
-    private static DataProvider secondDataProvider;
-
-    @MockComponent
-    private static ContextualLocalizationManager localization;
+    @Named(ConfigurationDataProvider.HINT)
+    private static DataProvider configurationDataProvider;
 
     @InjectMockComponents
     private ConfigurationDatabaseHealthCheck databaseHealthCheck;
 
     @MockComponent
-    @Named("context")
-    private ComponentManager contextComponentManager;
+    private CurrentServer currentServer;
 
     @Mock
     private Logger logger;
@@ -69,50 +62,42 @@ class ConfigurationDatabaseHealthCheckTest
     @BeforeComponent
     static void setUp() throws Exception
     {
-        Map<String, String> jsonResponse = Map.of("databaseName", "testDBName");
-        when(firstDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-        when(secondDataProvider.getDataAsJSON()).thenThrow(new Exception("DATA PROVIDE ERROR"));
-
-        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.info")).thenReturn(
-            "Database status OK");
-        when(localization.getTranslationPlain("adminTools.dashboard.healthcheck.database.warn")).thenReturn(
-            "Database not found!");
+        Map<String, String> jsonResponse = Map.of("databaseName", "MYSQL");
+        when(configurationDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
     }
 
     @BeforeEach
     void beforeEach() throws ComponentLookupException
     {
+        List<String> supportedDatabases = List.of("MySQL", "HSQL");
+        when(currentServer.getSupportedDBs()).thenReturn(supportedDatabases);
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(databaseHealthCheck, "logger", this.logger);
-
-        when(contextComponentManager.getInstance(DataProvider.class, ConfigurationDataProvider.HINT)).thenReturn(
-            firstDataProvider);
-        when(contextComponentManager.getInstance(DataProvider.class, "second")).thenReturn(secondDataProvider);
     }
 
     @Test
     void check()
     {
-        assertNull(databaseHealthCheck.check().getErrorMessage());
-        verify(logger).info("Database status OK");
-    }
-
-    @Test
-    void checkNullProvider() throws ComponentLookupException
-    {
-        when(contextComponentManager.getInstance(DataProvider.class, ConfigurationDataProvider.HINT)).thenReturn(
-            null);
-
-        assertEquals("database_not_detected", databaseHealthCheck.check().getErrorMessage());
-        verify(logger).warn("Database not found!");
+        assertEquals("adminTools.dashboard.healthcheck.database.info", databaseHealthCheck.check().getMessage());
     }
 
     @Test
     void checkNullJson() throws Exception
     {
-        when(firstDataProvider.getDataAsJSON()).thenThrow(new Exception("error while ggenerating the json"));
+        when(configurationDataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
-        assertEquals("database_not_detected", databaseHealthCheck.check().getErrorMessage());
+        assertEquals("adminTools.dashboard.healthcheck.database.warn", databaseHealthCheck.check().getMessage());
         verify(logger).warn("Database not found!");
+    }
+
+    @Test
+    void checkDatabaseNotCompatible() throws Exception
+    {
+        Map<String, String> jsonResponse = Map.of("databaseName", "NOT_COMPATIBLE");
+        when(configurationDataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+
+        assertEquals("adminTools.dashboard.healthcheck.database.notSupported",
+            databaseHealthCheck.check().getMessage());
+        verify(logger).error("Used database is not supported!");
     }
 }

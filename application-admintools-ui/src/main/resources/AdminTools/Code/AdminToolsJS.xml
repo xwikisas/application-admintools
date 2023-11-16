@@ -197,6 +197,10 @@
     }
   });
 
+  $(document).on('click', '.log-item-warn', function(event) {
+    $(this).children(".recommendation").toggle();
+  });
+
   $(document).on('click', '#admin_tools_job_start', function(event) {
     event.preventDefault();
     $(".log").empty();
@@ -214,6 +218,7 @@
     const link = document.createElement('a');
     link.href = downloadForm.attr('action') + '?' + downloadForm.serialize();
     link.click();
+    $(event.currentTarget).closest('.modal').modal('toggle');
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
