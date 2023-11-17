@@ -201,7 +201,7 @@
     }
   });
 
-  $(document).on('click', '.log-item-warn, log-item-error', function(event) {
+  $(document).on('click', '.log-item-warn, .log-item-error', function(event) {
     $(this).children(".recommendation").toggle();
   });
 
