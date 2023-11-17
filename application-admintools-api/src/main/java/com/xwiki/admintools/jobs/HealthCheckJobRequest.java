@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.jobs;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.xwiki.job.AbstractRequest;
@@ -54,9 +53,7 @@ public class HealthCheckJobRequest extends AbstractRequest
 
     private void setDefaultId()
     {
-        List<String> id = new ArrayList<>();
-        id.add("adminTools");
-        id.add("healthCheck");
+        List<String> id = List.of("adminTools", "healthCheck");
         setId(id);
     }
 }

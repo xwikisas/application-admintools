@@ -21,7 +21,6 @@ package com.xwiki.admintools.internal.health.checks.configuration;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;

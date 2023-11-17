@@ -39,10 +39,10 @@
   <content>{{velocity output='false'}}
 #macro (getHealthCheckJobStatusJSON $status $json)
   #set ($results = [])
-  #foreach ($logEvent in $status.getHealthCheckResults())
+  #foreach ($result in $status.getHealthCheckResults())
     #set ($discard = $results.add({
-      'level': $logEvent.getLevel(),
-      'renderedMessage': "#printResult($logEvent)"
+      'level': $result.getLevel(),
+      'renderedMessage': "#printResult($result)"
     }))
   #end
   #set ($json = $NULL)
@@ -72,13 +72,13 @@
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
     #set($messageClass = 'errormessage')
   #elseif ($status.hasErrorLevel('error'))
-    #set($healthCheckReportMessage = 'Critical issues were found, please consult the log!')
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.error')))
     #set($messageClass = 'errormessage')
   #elseif ($status.hasErrorLevel('warn'))
-    #set($healthCheckReportMessage = 'Some issues have been found, for more details please see the log.')
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.warning')))
     #set($messageClass = 'warningmessage')
   #else
-    #set($healthCheckReportMessage = 'No issue found!')
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.success')))
     #set($messageClass = 'successmessage')
   #end
   &lt;div class="box $messageClass"&gt;
@@ -87,7 +87,7 @@
 #end
 
 #macro (printResult $healthCheckResult)
-  &lt;div style="cursor: pointer;"&gt;$escapetool.xml($services.localization.render($healthCheckResult.getErrorMessage()))
+  &lt;div style="cursor: pointer;"&gt;$escapetool.xml($services.localization.render($healthCheckResult.getMessage()))
   #if ($healthCheckResult.getCurrentValue()) $escapetool.xml($services.localization.render(
     'adminTools.dashboard.healthcheck.currentValue')) $healthCheckResult.getCurrentValue()#end&lt;/div&gt;
   #if($healthCheckResult.getRecommendation())
@@ -104,7 +104,7 @@
   &lt;ul class="log"&gt;
   #foreach ($healthCheckResult in $healthCheckResults)
     #set ($resultLevel = $healthCheckResult.getLevel())
-    ## Display the last log item as loading if the associated task is not finished.
+    ## Display the last result item as loading if the associated task is not finished.
     &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
       #printResult($healthCheckResult)
     &lt;/li&gt;
@@ -114,7 +114,6 @@
 
 #macro (displayHealthCheckResults $status $collapsed)
   &lt;dl class="xform"&gt;
-    ## Collapse the job log if the job is waiting for user input (leave more space for the job question).
     &lt;dt&gt;
       &lt;label class="collapse-toggle#if ($collapsed || $status.state == 'WAITING') collapsed#end"
           data-target-xpath="parent::*/following-sibling::*"&gt;
@@ -129,7 +128,7 @@
 
 #macro (healthCheckUI)
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #set ($jobId = ['adminTools', 'healthcheck', $services.wiki.getCurrentWikiId()])
+  #set ($jobId = $services.admintools.getHealthCheckJobId())
   #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
     'jobId': $jobId,
     'outputSyntax': 'plain'
@@ -141,10 +140,9 @@
     '__ENDLINK__'
   ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
     &lt;/strong&gt;&lt;/a&gt;'))
-  &lt;jobState
-    data-state="${healthJobStatus.state}"
-  &lt;/jobState&gt;
-  &lt;input type="hidden" name="jobState" value="${healthJobStatus.state}"&gt;&lt;/input&gt;
+  &lt;span id="healthCheckJobState"
+    data-jobState="${healthJobStatus.state}"&gt;
+  &lt;/span&gt;
   &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
     &lt;h2&gt;$services.icon.renderHTML('bug')
       $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;

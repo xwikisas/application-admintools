@@ -28,7 +28,10 @@ import javax.inject.Provider;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
+import org.xwiki.job.GroupedJob;
+import org.xwiki.job.JobGroupPath;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -41,7 +44,7 @@ import com.xwiki.admintools.jobs.HealthCheckJobStatus;
  */
 @Component
 @Named(HealthCheckJob.JOB_TYPE)
-public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthCheckJobStatus>
+public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthCheckJobStatus> implements GroupedJob
 {
     /**
      * Admin Tools health check job type.
@@ -51,10 +54,21 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
     @Inject
     private Provider<List<HealthCheck>> healthChecks;
 
+    @Inject
+    private Provider<XWikiContext> wikiContextProvider;
+
     @Override
     public String getType()
     {
         return JOB_TYPE;
+    }
+
+    @Override
+    public JobGroupPath getGroupPath()
+    {
+        XWikiContext wikiContext = wikiContextProvider.get();
+        String wikiId = wikiContext.getWikiId();
+        return new JobGroupPath(List.of("adminTools", "healthCheck", wikiId));
     }
 
     @Override

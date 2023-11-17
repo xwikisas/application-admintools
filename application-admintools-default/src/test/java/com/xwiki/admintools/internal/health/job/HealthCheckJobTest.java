@@ -30,6 +30,7 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -46,6 +47,12 @@ class HealthCheckJobTest
 
     @MockComponent
     private Provider<List<HealthCheck>> listProvider;
+
+    @MockComponent
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @MockComponent
+    private XWikiContext wikiContext;
 
     @Mock
     private HealthCheck firstHealthCheck;
@@ -75,5 +82,13 @@ class HealthCheckJobTest
         healthCheckJob.runInternal();
         HealthCheckJobStatus healthCheckJobStatus = healthCheckJob.getStatus();
         assertEquals(2, healthCheckJobStatus.getHealthCheckResults().size());
+    }
+
+    @Test
+    void getGroupPath()
+    {
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWikiId()).thenReturn("xwiki");
+        assertEquals(List.of("adminTools", "healthCheck", "xwiki"), healthCheckJob.getGroupPath().getPath());
     }
 }

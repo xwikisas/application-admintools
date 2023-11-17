@@ -26,6 +26,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
@@ -92,12 +93,14 @@ public class AdminToolsManager
      */
     public String generateData(String hint) throws ComponentLookupException
     {
-        DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
-        if (dataProvider == null) {
-            logger.error(GET_DATA_PROVIDER_ERROR_MESSAGE);
-            throw new NullPointerException(GET_DATA_PROVIDER_ERROR_MESSAGE);
+        try {
+            DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+            return dataProvider.getRenderedData();
+        } catch (ComponentLookupException e) {
+            logger.error("Could not find the requested Data Provider. Root cause: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            throw e;
         }
-        return dataProvider.getRenderedData();
     }
 
     /**

@@ -51,6 +51,24 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <excludedLines>
+        <contenttype>PureText</contenttype>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <hint/>
+        <name>excludedLines</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>excludedLines</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </excludedLines>
       <serverLocation>
         <customDisplay/>
         <disabled>0</disabled>
@@ -58,7 +76,7 @@
         <name>serverLocation</name>
         <number>1</number>
         <picker>1</picker>
-        <prettyName>Server location</prettyName>
+        <prettyName>serverLocation</prettyName>
         <size>30</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -66,6 +84,9 @@
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </serverLocation>
     </class>
+    <property>
+      <excludedLines/>
+    </property>
     <property>
       <serverLocation/>
     </property>

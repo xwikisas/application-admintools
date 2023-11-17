@@ -39,7 +39,8 @@
   <content>{{template name="job_macros.vm"/}}
 
 {{velocity output="false"}}
-#macro (returnHealthCheckJobStatusJSON $healthCheckJobId)
+#macro (returnHealthCheckJobStatusJSON)
+  #set ($healthCheckJobId = $services.admintools.getHealthCheckJobId())
   #set ($healthCheckJobStatus = $services.job.getJobStatus($healthCheckJobId))
   #set ($healthCheckJobStatusJSON = {
     'id': $healthCheckJobStatus.request.id,
@@ -51,18 +52,16 @@
   #jsonResponse($healthCheckJobStatusJSON)
 #end
 
-#macro (getHealthCheckResources)
-  #set ($jobMinJsURL = $xwiki.getSkinFile('uicomponents/job/job.min.js'))
-  #set ($jobId = ['adminTools', 'healthcheck', $services.wiki.getCurrentWikiId()])
+#macro (getHealthCheckJobResources)
+  #set ($jobJsURL = $xwiki.getSkinFile('uicomponents/job/job.js'))
+  #set ($jobId = $services.admintools.getHealthCheckJobId())
   #set ($healthJobStatus = $services.job.getJobStatus($jobId))
   {{html clean=false}}
-   &lt;div hidden&gt;
-   #data($jobMinJsURL)
-     &lt;jobJsURL
-       data-url="${jobMinJsURL}"
-     &lt;/jobJsURL&gt;
-     ## MOVE TO MACRO
-     #displayJobProgressBar($healthJobStatus)
+    &lt;div&gt;
+      &lt;span id="jobJsURL"
+        data-jobJsURL="${jobJsURL}"&gt;
+      &lt;/span&gt;
+      #displayJobProgressBar($healthJobStatus)
     &lt;/div&gt;
   {{/html}}
 #end
@@ -73,15 +72,13 @@
   #if ("$!request.action" != '' &amp;&amp; !$services.csrf.isTokenValid($request.form_token))
     #set ($discard = $response.sendError(401, 'CSRF token verification failed!'))
   #elseif ($request.action == 'healthCheck')
-    #set ($jobId = ['adminTools', 'healthcheck', $services.wiki.getCurrentWikiId()])
-    #set ($healthCheckJob = $services.admintools.runHealthChecks($jobId))
-    #returnHealthCheckJobStatusJSON($jobId)
+    #set ($healthCheckJob = $services.admintools.runHealthChecks())
+    #returnHealthCheckJobStatusJSON()
   #elseif ($request.data == 'jobStatus')
     #set ($healthCheckJobId = $request.jobId.split('/'))
     #returnHealthCheckJobStatusJSON($healthCheckJobId)
-    ## TO BE REMOVED
   #else
-    #getHealthCheckResources()
+    #getHealthCheckJobResources()
   #end
 #end
 {{/velocity}}</content>

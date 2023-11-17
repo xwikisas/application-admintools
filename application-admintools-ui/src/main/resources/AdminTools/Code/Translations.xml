@@ -100,6 +100,7 @@ adminTools.dashboard.healthcheck.performance.memory.info=System memory capacity 
 adminTools.dashboard.healthcheck.performance.memory.recommendation=It is recommended to have at least 2GB of RAM to run XWiki.
 adminTools.dashboard.healthcheck.performance.space.warn=There is not enough free space for the XWiki installation!
 adminTools.dashboard.healthcheck.performance.space.recommendation=There should be at least 16GB of free system space.
+adminTools.dashboard.healthcheck.performance.space.info=The system has enough free space for the XWiki installation.
 adminTools.dashboard.healthcheck.security.system.info=System encoding OK.
 adminTools.dashboard.healthcheck.security.system.file.warn=System file encoding is NOT UTF-8!
 adminTools.dashboard.healthcheck.security.system.file.info=System file encoding is set to UTF-8.
@@ -113,13 +114,17 @@ adminTools.dashboard.healthcheck.security.xwiki.active.warn=XWiki active encodin
 adminTools.dashboard.healthcheck.security.xwiki.active.info=XWiki active encoding is set to UTF-8.
 adminTools.dashboard.healthcheck.security.xwiki.active.notFound=Active encoding could not be detected!
 adminTools.dashboard.healthcheck.security.xwiki.config.warn=XWiki configuration encoding is NOT UTF-8!
-adminTools.dashboard.healthcheck.security.xwiki.config.info=XWiki configuration encoding is set to UTF-8!
+adminTools.dashboard.healthcheck.security.xwiki.config.info=XWiki configuration encoding is set to UTF-8.
 adminTools.dashboard.healthcheck.security.xwiki.config.notFound=Configuration encoding could not be detected!
 adminTools.dashboard.healthcheck.title=Health check
 adminTools.dashboard.healthcheck.time=Time since the last health check
 adminTools.dashboard.healthcheck.start=Start health check
 adminTools.dashboard.healthcheck.currentValue=Current value:
 adminTools.job.notFound=Health check job status not found
+adminTools.dashboard.healthcheck.message.success=No issue found!
+adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
+adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
+
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -195,8 +200,8 @@ adminTools.dashboard.showLogs=View last n lines of log...</content>
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator/>
-        <separators>|,</separators>
+        <separator> </separator>
+        <separators>|, </separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>

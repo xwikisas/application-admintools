@@ -126,7 +126,7 @@
     </property>
     <property>
       <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
-  const getResourceURL = function() {
+  const getHealthCheckActionPageURL = function() {
     let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
     return new XWiki.Document(documentReference).getURL('get');
   };
@@ -143,7 +143,7 @@
     return Promise.resolve(new JobRunner({
       createStatusRequest: function(jobId) {
         return {
-          url: getResourceURL(),
+          url: getHealthCheckActionPageURL(),
           data: {
             outputSyntax: 'plain',
             sheet: 'AdminTools.Code.HealthCheckResources',
@@ -152,18 +152,10 @@
           }
         };
       }
-    }).run(getResourceURL(), data)).catch((reason) =&gt; {
+    }).run(getHealthCheckActionPageURL(), data)).catch((reason) =&gt; {
       return Promise.reject(reason);
     }).finally(() =&gt; {
       $('#admin_tools_job_start').prop("disabled", false);
-    });
-  };
-
-  const reinitialiseProgressBar = function() {
-    $.get(getResourceURL(), function(data) {
-      console.log(data)
-      let progressBar = $(data).find('div.ui-progress');
-      $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
     });
   };
 
@@ -172,23 +164,35 @@
   // with the requested configuration. To make sure the job .ui-progress is seen, we need to undefine and request the
   // resource again.
   const initialiseJobJS = function() {
-    require.undef('health-check-job');
-    $.get(getResourceURL(), function(data) {
-      let jobMinJsURL = $(data).find('jobJsURL').attr('data-url');
+    $.get(getHealthCheckActionPageURL(), function(data) {
+      let jobJsURL = $(data).find('#jobJsURL').attr('data-jobJsURL');
       require.config({
         paths: {
-          'health-check-job': jobMinJsURL
+          'health-check-job': jobJsURL
         }
       });
       require(['health-check-job'], function(){});
     });
   };
 
+  const recallJobJs = function() {
+    require.undef('health-check-job');
+    require(['health-check-job'], function(){});
+  }
+
+  const reinitialiseHealthCheckResources = function() {
+    $.get(getHealthCheckActionPageURL(), function(data) {
+      let progressBar = $(data).find('div.ui-progress');
+      $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
+      recallJobJs()
+    });
+  };
+
   $(document).ready(function() {
     if ($('#healthCheck').length) {
-      let jobState = $('jobState').attr('data-state')
+      initialiseJobJS();
+      let jobState = $('#healthCheckJobState').attr('data-jobState');
       if (jobState == "RUNNING") {
-        initialiseJobJS();
         runHealthCheckJob();
         $('.job-status').show();
       } else if (jobState == "FINISHED") {
@@ -197,7 +201,7 @@
     }
   });
 
-  $(document).on('click', '.log-item-warn', function(event) {
+  $(document).on('click', '.log-item-warn, log-item-error', function(event) {
     $(this).children(".recommendation").toggle();
   });
 
@@ -205,8 +209,7 @@
     event.preventDefault();
     $(".log").empty();
     runHealthCheckJob();
-    reinitialiseProgressBar();
-    initialiseJobJS();
+    reinitialiseHealthCheckResources();
     $('.job-status').show();
   });
 
@@ -222,7 +225,7 @@
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
-  function(event) {
+                 function(event) {
     event.preventDefault();
     const modal = $(event.currentTarget).closest('.modal');
     const downloadForm = modal.find('form');
