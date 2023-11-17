@@ -22,15 +22,19 @@ package com.xwiki.admintools.test.ui;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
 import com.xwiki.admintools.test.po.AdminToolsViewPage;
@@ -98,11 +102,20 @@ class AdminToolsIT
     void goToPage(TestUtils testUtils)
     {
         AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-        testUtils.gotoPage(page.getPageURL());
         page.waitUntilPageIsReady();
     }
 
     @Test
+    void appEntryRedirectsToHomePage()
+    {
+        ApplicationsPanel applicationPanel = ApplicationsPanel.gotoPage();
+        ViewPage vp = applicationPanel.clickApplication("Admin Tools");
+        Assertions.assertEquals(AdminToolsHomePage.getSpace(), vp.getMetaDataValue("space"));
+        assertEquals(AdminToolsHomePage.getPage(), vp.getMetaDataValue("page"));
+    }
+
+    @Test
+    @Order(1)
     void adminToolsHomePageBackend(TestConfiguration testConfiguration)
     {
         if (!isSupportedServer) {
@@ -125,6 +138,7 @@ class AdminToolsIT
     }
 
     @Test
+    @Order(2)
     void adminToolViewLastLogLinesModal(TestUtils testUtils)
     {
         if (!isSupportedServer) {
@@ -146,6 +160,7 @@ class AdminToolsIT
     }
 
     @Test
+    @Order(3)
     void adminToolsHomePageFiles(TestUtils testUtils)
     {
         if (!isSupportedServer) {
@@ -153,20 +168,21 @@ class AdminToolsIT
         }
         excludeContent(testUtils, excludedLines);
         AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-        testUtils.gotoPage(page.getPageURL());
+        page.waitUntilPageIsReady();
         AdminToolsViewPage webHomePage = new AdminToolsViewPage();
         WebElement propertiesHyperlink = webHomePage.getPropertiesHyperlink();
         WebElement configurationHyperlink = webHomePage.getConfigurationHyperlink();
+
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         propertiesHyperlink.click();
         checkXWikiFileOpen(testUtils, mainWindowHandle);
-        testUtils.getDriver().close();
-        testUtils.getDriver().switchTo().window(mainWindowHandle);
+
         configurationHyperlink.click();
         checkXWikiFileOpen(testUtils, mainWindowHandle);
     }
 
     @Test
+    @Order(4)
     void adminToolDownloadArchiveModal()
     {
         if (!isSupportedServer) {
@@ -209,12 +225,15 @@ class AdminToolsIT
     }
 
     @Test
+    @Order(5)
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
         if (!isSupportedServer) {
             return;
         }
         testUtils.login(USER_NAME, PASSWORD);
+        AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
+        page.waitUntilPageIsReady();
         AdminToolsViewPage webHomePage = new AdminToolsViewPage();
         WebElement propertiesHyperlink = webHomePage.getPropertiesHyperlink();
         WebElement configurationHyperlink = webHomePage.getConfigurationHyperlink();
@@ -233,12 +252,13 @@ class AdminToolsIT
         DownloadArchiveModalView archiveModalView = new DownloadArchiveModalView();
         WebElement downloadButton = archiveModalView.getViewButton(DOWNLOAD_FILES_MODAL_ID);
         downloadButton.click();
+        testUtils.getDriver().waitUntilPageIsReloaded();
         WebElement tabContent = testUtils.getDriver().findElement(By.tagName("body"));
         assertTrue(tabContent.getText().contains("Unauthorized"));
     }
 
     /**
-     * Switch to new tab as Selenium does not change focus when a tab is opened.
+     * Switch to the new tab as Selenium does not change focus when a tab is opened.
      */
     private void switchToNewTab(TestUtils testUtils, String mainWindowHandle)
     {
@@ -268,6 +288,8 @@ class AdminToolsIT
         for (String excludedLine : excludedLines) {
             assertFalse(fileContent.contains(excludedLine));
         }
+        testUtils.getDriver().close();
+        testUtils.getDriver().switchTo().window(mainWindowHandle);
     }
 
     private void excludeContent(TestUtils testUtils, List<String> lines)
