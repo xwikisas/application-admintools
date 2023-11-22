@@ -33,6 +33,7 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 
@@ -45,8 +46,6 @@ import com.xwiki.admintools.internal.files.ImportantFilesManager;
 @Singleton
 public class AdminToolsManager
 {
-    private static final String GET_DATA_PROVIDER_ERROR_MESSAGE = "Could not find the requested Data Provider!";
-
     @Inject
     private Logger logger;
 
@@ -64,6 +63,9 @@ public class AdminToolsManager
 
     @Inject
     private ImportantFilesManager importantFilesManager;
+
+    @Inject
+    private InstanceUsage instanceUsage;
 
     @Inject
     @Named("context")
@@ -131,5 +133,10 @@ public class AdminToolsManager
     public String getFilesSection()
     {
         return this.importantFilesManager.renderTemplate();
+    }
+
+    public List<WikiSizeResult> getInstanceNumberOfUsers() throws Exception
+    {
+        return instanceUsage.getGroupNumberOfMembers();
     }
 }

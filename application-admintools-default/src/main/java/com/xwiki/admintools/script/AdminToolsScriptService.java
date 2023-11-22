@@ -34,6 +34,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -143,5 +144,10 @@ public class AdminToolsScriptService implements ScriptService
         XWikiContext wikiContext = wikiContextProvider.get();
         String wikiID = wikiContext.getWikiId();
         return List.of("adminTools", "healthCheck", wikiID);
+    }
+
+    public List<WikiSizeResult> getInstanceNumberOfUsers() throws Exception
+    {
+        return adminToolsManager.getInstanceNumberOfUsers();
     }
 }
