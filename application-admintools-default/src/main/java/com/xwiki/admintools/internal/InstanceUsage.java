@@ -19,40 +19,44 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
+import javax.script.ScriptContext;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
+import org.xwiki.script.ScriptContextManager;
+import org.xwiki.template.TemplateManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
-import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.user.api.XWikiGroupService;
 import com.xwiki.admintools.WikiSizeResult;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
+/**
+ * Access info about the size of the Wikis inside the XWiki instance.
+ *
+ * @version $Id$
+ */
 @Component(roles = InstanceUsage.class)
 @Singleton
 public class InstanceUsage
 {
-    @Inject
-    private PingProvider pingProvider;
+    private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
     @Inject
-    private Provider<XWikiContext> wikiContextProvider;
+    private PingProvider pingProvider;
 
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
@@ -64,41 +68,73 @@ public class InstanceUsage
     @Named("count")
     private QueryFilter countFilter;
 
-    public List<WikiSizeResult> getGroupNumberOfMembers() throws Exception
+    @Inject
+    private Logger logger;
+
+    @Inject
+    private CurrentServer currentServer;
+
+    @Inject
+    private TemplateManager templateManager;
+
+    @Inject
+    private ScriptContextManager scriptContextManager;
+
+    /**
+     * Get the data in a format given by the associated template.
+     *
+     * @return the rendered template as a {@link String}.
+     */
+    public String renderTemplate()
+    {
+        try {
+            ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
+            boolean found = currentServer.getCurrentServer() != null;
+            scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);
+            if (!found) {
+                this.logger.error("Used server not found!");
+                return this.templateManager.render(TEMPLATE_NAME);
+            }
+            List<WikiSizeResult> wikisInfo = getWikisSizeInfo();
+            scriptContext.setAttribute("wikisInfo", wikisInfo, ScriptContext.ENGINE_SCOPE);
+            int numberOfExtensions = pingProvider.getExtensionPing().size();
+            scriptContext.setAttribute("numberOfExtensions", numberOfExtensions, ScriptContext.ENGINE_SCOPE);
+            long totalNumberOfUsers = pingProvider.getUsersPing().getTotal();
+            scriptContext.setAttribute("totalNumberOfUsers", totalNumberOfUsers, ScriptContext.ENGINE_SCOPE);
+            return this.templateManager.render(TEMPLATE_NAME);
+        } catch (Exception e) {
+            this.logger.warn("Failed to render [{}] template. Root cause is: [{}]", TEMPLATE_NAME,
+                ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
+    }
+
+    private List<WikiSizeResult> getWikisSizeInfo()
     {
         List<WikiSizeResult> result = new ArrayList<>();
-        getWikiGroupsUsers();
-        Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManager.getAll();
-
-        for (WikiDescriptor wikiDescriptor : wikisDescriptors) {
-            String wikiId = wikiDescriptor.getId();
-            WikiSizeResult wiki = new WikiSizeResult();
-            wiki.setWikiName(wikiDescriptor.getPrettyName());
-            wiki.setNumberOfUsers(getWikiNumberOfUsers(wikiId));
-            wiki.setNumberOfDocuments(getDocumentsCountInWiki(wikiId));
-            Long attachmentSizeResult = getWikiAttachmentSize(wikiId);
-            Long numberOfAttachments = getWikiNumberOfAttachments(wikiId);
-            wiki.setNumberOfAttachments(numberOfAttachments);
-            wiki.setAttachmentSize(attachmentSizeResult);
-            result.add(wiki);
+        try {
+            Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManager.getAll();
+            for (WikiDescriptor wikiDescriptor : wikisDescriptors) {
+                String wikiId = wikiDescriptor.getId();
+                WikiSizeResult wiki = new WikiSizeResult();
+                wiki.setWikiName(wikiDescriptor.getPrettyName());
+                wiki.setNumberOfUsers(getWikiNumberOfUsers(wikiId));
+                wiki.setNumberOfDocuments(getDocumentsCountInWiki(wikiId));
+                Long attachmentSizeResult = getWikiAttachmentSize(wikiId);
+                Long numberOfAttachments = getWikiNumberOfAttachments(wikiId);
+                wiki.setNumberOfAttachments(numberOfAttachments);
+                wiki.setAttachmentSize(readableSize(attachmentSizeResult));
+                result.add(wiki);
+            }
+            return result;
+        } catch (Exception e) {
+            logger.warn("There have been issues while gathering info about the size of the Wikis. Root cause is: [{}]",
+                org.apache.commons.lang.exception.ExceptionUtils.getRootCauseMessage(e));
+            return new ArrayList<>();
         }
-        return result;
     }
 
-    private Map<String, Long> getWikiGroupsUsers() throws XWikiException
-    {
-        Map<String, Long> groupsMap = new HashMap<>();
-        XWikiContext wikiContext = wikiContextProvider.get();
-        XWikiGroupService groupService = wikiContext.getWiki().getGroupService(wikiContext);
-        List<String> groupNames = (List<String>) groupService.getAllMatchedGroups(null, false, 0, 0, null, wikiContext);
-        for (String groupName : groupNames) {
-            int numberOfGroupMembers = groupService.countAllMembersNamesForGroup(groupName, wikiContext);
-            groupsMap.put(groupName, (long) numberOfGroupMembers);
-        }
-        return groupsMap;
-    }
-
-    private Long getWikiNumberOfUsers(String wikiId) throws WikiManagerException, QueryException
+    private Long getWikiNumberOfUsers(String wikiId) throws QueryException
     {
         Query query = this.queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
             + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
@@ -119,16 +155,30 @@ public class InstanceUsage
     private Long getWikiAttachmentSize(String wikiId) throws QueryException
     {
         List<Long> results = this.queryManager.createQuery(
-            "select sum(attach.longSize) " + "from XWikiAttachment attach, XWikiDocument doc "
-                + "where attach.docId=doc.id", Query.XWQL).setWiki(wikiId).addFilter(this.countFilter).execute();
+            "select sum(attach.longSize) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+            Query.XWQL).setWiki(wikiId).execute();
         return results.get(0);
     }
 
     private Long getWikiNumberOfAttachments(String wikiId) throws QueryException
     {
         List<Long> results = this.queryManager.createQuery(
-            "select count(attach) " + "from XWikiAttachment attach, XWikiDocument doc " + "where attach.docId=doc.id",
-            Query.XWQL).setWiki(wikiId).addFilter(this.countFilter).execute();
+                "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+                Query.XWQL)
+            .setWiki(wikiId).addFilter(this.countFilter).execute();
         return results.get(0);
+    }
+
+    private String readableSize(Long number)
+    {
+        if (number == null || number <= 0) {
+            return "0";
+        }
+        List<String> units = List.of("B", "KB", "MB", "GB");
+
+        int digitGroup = (int) (Math.log10(number) / Math.log10(1024));
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.#");
+        String resultedSize = decimalFormat.format(number / Math.pow(1024, digitGroup));
+        return String.format("%s %s", resultedSize, units.get(digitGroup));
     }
 }

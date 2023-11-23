@@ -33,12 +33,11 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 
 /**
- * Manages the data providers.
+ * Manages the data that needs to be used by the Admin Tools application.
  *
  * @version $Id$
  */
@@ -135,8 +134,13 @@ public class AdminToolsManager
         return this.importantFilesManager.renderTemplate();
     }
 
-    public List<WikiSizeResult> getInstanceNumberOfUsers() throws Exception
+    /**
+     * Get the rendered template for viewing info about the size of the XWiki instance.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getInstanceSizeTemplate()
     {
-        return instanceUsage.getGroupNumberOfMembers();
+        return instanceUsage.renderTemplate();
     }
 }

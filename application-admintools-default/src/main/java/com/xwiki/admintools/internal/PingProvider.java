@@ -23,7 +23,6 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.activeinstalls2.internal.PingDataProvider;
@@ -35,8 +34,6 @@ import org.xwiki.activeinstalls2.internal.data.UsersPing;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
-
-import com.xpn.xwiki.XWikiContext;
 
 /**
  * Retrieves {@link Ping} data from Active Installs 2.
@@ -58,7 +55,11 @@ public class PingProvider implements Initializable
     @Inject
     @Named("extensions")
     private PingDataProvider extensionsPingDataProvider;
-    
+
+    @Inject
+    @Named("users")
+    private PingDataProvider usersPingDataProvider;
+
     private Ping ping;
 
     /**
@@ -97,11 +98,22 @@ public class PingProvider implements Initializable
     /**
      * Initialize and get {@link ExtensionPing}.
      *
-     * @return {@link Collection<ExtensionPing>} containing info about the used server.
+     * @return {@link Collection<ExtensionPing>} containing info about the existing extensions.
      */
     public Collection<ExtensionPing> getExtensionPing()
     {
         extensionsPingDataProvider.provideData(ping);
         return ping.getExtensions();
+    }
+
+    /**
+     * Initialize and get {@link UsersPing}.
+     *
+     * @return {@link UsersPing} containing info about the number of users in the XWiki instance.
+     */
+    public UsersPing getUsersPing()
+    {
+        usersPingDataProvider.provideData(ping);
+        return ping.getUsers();
     }
 }

@@ -125,6 +125,17 @@ adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
 
+##Instance usage
+adminTools.dashboard.instanceUsage.description=See the stats related to the usage of the instance.
+adminTools.dashboard.instanceUsage.error=There have been issues while gathering info about the size of the Wikis.
+adminTools.dashboard.instanceUsage.title=Instance usage
+adminTools.dashboard.instanceUsage.total.extensions=There are {0} extensions installed.
+adminTools.dashboard.instanceUsage.total.users=There are a total of {0} users registered in this XWiki instance.
+adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments:
+adminTools.dashboard.instanceUsage.wiki.documents=Number of documents:
+adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki
+adminTools.dashboard.instanceUsage.wiki.users=Number of users:
+
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding

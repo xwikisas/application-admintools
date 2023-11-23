@@ -34,7 +34,6 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -113,6 +112,16 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
+     * Get the rendered template for viewing info about the size of the XWiki instance.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getInstanceSizeSection() throws Exception
+    {
+        return adminToolsManager.getInstanceSizeTemplate();
+    }
+
+    /**
      * Check if an Admin Tools Health Check job for the wiki from where the request was made exists. If it does, return
      * the job instance, else create a new Admin Tools health check request for the given wiki and start the execution.
      *
@@ -144,10 +153,5 @@ public class AdminToolsScriptService implements ScriptService
         XWikiContext wikiContext = wikiContextProvider.get();
         String wikiID = wikiContext.getWikiId();
         return List.of("adminTools", "healthCheck", wikiID);
-    }
-
-    public List<WikiSizeResult> getInstanceNumberOfUsers() throws Exception
-    {
-        return adminToolsManager.getInstanceNumberOfUsers();
     }
 }

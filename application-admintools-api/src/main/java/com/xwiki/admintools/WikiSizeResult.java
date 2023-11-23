@@ -22,9 +22,7 @@ package com.xwiki.admintools;
 import org.xwiki.stability.Unstable;
 
 /**
- * Result of a health check. May store the error message, severity level, recommendation and the current value of the
- * checked resource. The severity level is used as "info", for informative result, "warn" for warnings and "error" for
- * critical issues.
+ * Stores info about the size of a Wiki.
  *
  * @version $Id$
  * @since 1.0
@@ -36,61 +34,114 @@ public class WikiSizeResult
 
     private Long numberOfUsers;
 
-    private Long attachmentSize;
+    private String attachmentSize;
 
     private Long numberOfAttachments;
 
     private Long numberOfDocuments;
 
+    /**
+     * Null constructor to initialize a {@link WikiSizeResult} object.
+     */
     public WikiSizeResult()
     {
     }
 
+    /**
+     * Get the name of the Wiki.
+     *
+     * @return the name of the Wiki.
+     */
     public String getWikiName()
     {
         return wikiName;
     }
 
+    /**
+     * Set the name of the Wiki.
+     *
+     * @param wikiName representing the name of the Wiki.
+     */
     public void setWikiName(String wikiName)
     {
         this.wikiName = wikiName;
     }
 
+    /**
+     * Get the number of users registered in the Wiki.
+     *
+     * @return {@link Long} representing the number of users in the Wiki.
+     */
     public Long getNumberOfUsers()
     {
         return numberOfUsers;
     }
 
+    /**
+     * Set the number of users registered in the Wiki.
+     *
+     * @param numberOfUsers the number of users in the Wiki.
+     */
     public void setNumberOfUsers(Long numberOfUsers)
     {
         this.numberOfUsers = numberOfUsers;
     }
 
-    public float getAttachmentSize()
+    /**
+     * Get the total size of the attachments in the Wiki.
+     *
+     * @return formatted {@link String} with the size of the attachments in the Wiki and corresponding size unit.
+     */
+    public String getAttachmentSize()
     {
         return attachmentSize;
     }
 
-    public void setAttachmentSize(Long attachmentSize)
+    /**
+     * Set the total size of the attachments in the Wiki.
+     *
+     * @param attachmentSize the size of the attachments in the Wiki and corresponding size unit.
+     */
+    public void setAttachmentSize(String attachmentSize)
     {
         this.attachmentSize = attachmentSize;
     }
 
+    /**
+     * Get the total number of the attachments in Wiki.
+     *
+     * @return the total number of the attachments in Wiki.
+     */
     public Long getNumberOfAttachments()
     {
         return numberOfAttachments;
     }
 
+    /**
+     * Set the total number of the attachments in Wiki.
+     *
+     * @param numberOfAttachments the total number of the attachments in Wiki.
+     */
     public void setNumberOfAttachments(Long numberOfAttachments)
     {
         this.numberOfAttachments = numberOfAttachments;
     }
 
+    /**
+     * Get the total number of documents in Wiki.
+     *
+     * @return the total number of documents in Wiki.
+     */
     public Long getNumberOfDocuments()
     {
         return numberOfDocuments;
     }
 
+    /**
+     * Set the total number of documents in Wiki.
+     *
+     * @param numberOfDocuments the total number of documents in Wiki.
+     */
     public void setNumberOfDocuments(Long numberOfDocuments)
     {
         this.numberOfDocuments = numberOfDocuments;
