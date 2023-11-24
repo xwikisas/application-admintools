@@ -39,10 +39,8 @@
   <content>{{velocity}}
 #template('job_macros.vm')
 #includeMacros("AdminTools.Code.HealthCheckMacros")
-
 #set($jobId = $request.getParameterValues('jobId'))
 #set($jobStatus = $services.job.getJobStatus($jobId))
-
 #if ($jobStatus)
   #healthCheckOutputJobStatus($jobStatus)
 #else

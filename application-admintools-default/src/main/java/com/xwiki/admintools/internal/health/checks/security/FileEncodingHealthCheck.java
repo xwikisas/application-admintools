@@ -39,14 +39,14 @@ public class FileEncodingHealthCheck extends AbstractSecurityHealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "FILE_ENCODING_HEALTH_CHECK";
+    public static final String HINT = "fileEncoding";
 
     private static final String WARN_LEVEL = "warn";
 
     @Override
     public HealthCheckResult check()
     {
-        String fileEnc = getJSON().get("fileEncoding");
+        String fileEnc = getSecurityProviderJSON().get(HINT);
         if (fileEnc == null) {
             logger.warn("File encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.notFound", WARN_LEVEL);

@@ -34,19 +34,19 @@ import com.xwiki.admintools.health.HealthCheckResult;
  * @version $Id$
  */
 @Component
-@Named(ConfigurationOsHealthCheck.HINT)
+@Named(ConfigurationOSHealthCheck.HINT)
 @Singleton
-public class ConfigurationOsHealthCheck extends AbstractConfigurationHealthCheck
+public class ConfigurationOSHealthCheck extends AbstractConfigurationHealthCheck
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "CONFIG_OS_HEALTH_CHECK";
+    public static final String HINT = "configurationOS";
 
     @Override
     public HealthCheckResult check()
     {
-        Map<String, String> dataJSON = getJSON();
+        Map<String, String> dataJSON = getConfigurationProviderJSON();
         if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
             logger.warn("There has been an error while gathering OS info!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", "warn");

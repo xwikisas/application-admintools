@@ -47,7 +47,7 @@ public class PhysicalMemoryHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "PHYSICAL_MEMORY_HEALTH_CHECK";
+    public static final String HINT = "physicalMemory";
 
     @Inject
     private Logger logger;

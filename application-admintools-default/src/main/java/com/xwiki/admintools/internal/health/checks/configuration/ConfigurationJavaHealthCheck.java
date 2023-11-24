@@ -41,12 +41,12 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     /**
      * Component identifier.
      */
-    public static final String HINT = "CONFIG_JAVA_HEALTH_CHECK";
+    public static final String HINT = "configurationJava";
 
     @Override
     public HealthCheckResult check()
     {
-        Map<String, String> configurationJson = getJSON();
+        Map<String, String> configurationJson = getConfigurationProviderJSON();
         String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
             logger.warn("Java version not found!");

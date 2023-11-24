@@ -48,7 +48,7 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "PHYSICAL_SPACE_HEALTH_CHECK";
+    public static final String HINT = "physicalSpace";
 
     @Inject
     private CurrentServer currentServer;

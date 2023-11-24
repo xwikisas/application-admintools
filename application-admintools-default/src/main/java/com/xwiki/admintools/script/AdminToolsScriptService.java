@@ -26,6 +26,8 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
@@ -50,6 +52,9 @@ import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 @Unstable
 public class AdminToolsScriptService implements ScriptService
 {
+    @Inject
+    private Logger logger;
+
     @Inject
     private AdminToolsManager adminToolsManager;
 
@@ -78,7 +83,13 @@ public class AdminToolsScriptService implements ScriptService
      */
     public String getConfigurationData(String hint) throws ComponentLookupException
     {
-        return this.adminToolsManager.generateData(hint);
+        try {
+            return this.adminToolsManager.generateData(hint);
+        } catch (ComponentLookupException e) {
+            logger.error("Could not retrieve data for the given hint [{}]. Root cause is: [{}]", hint,
+                ExceptionUtils.getRootCauseMessage(e));
+            throw e;
+        }
     }
 
     /**

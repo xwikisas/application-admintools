@@ -132,7 +132,7 @@
   };
 
   const runHealthCheckJob = function() {
-    $('#admin_tools_job_start').prop("disabled", true);
+    $('#healthCheckJobStart').prop('disabled', true);
     var data = [];
     data.push(
       {name: 'outputSyntax', value: 'plain'},
@@ -155,7 +155,7 @@
     }).run(getHealthCheckActionPageURL(), data)).catch((reason) =&gt; {
       return Promise.reject(reason);
     }).finally(() =&gt; {
-      $('#admin_tools_job_start').prop("disabled", false);
+      $('#healthCheckJobStart').prop('disabled', false);
     });
   };
 
@@ -165,17 +165,17 @@
   // resource again.
   const initialiseJobJS = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
-      let jobJsURL = $(data).find('#jobJsURL').attr('data-jobJsURL');
+      let jobJSURL = $(data).find('.jobJSURL').attr('data-jobJSURL');
       require.config({
         paths: {
-          'health-check-job': jobJsURL
+          'health-check-job': jobJSURL
         }
       });
       require(['health-check-job'], function(){});
     });
   };
 
-  const recallJobJs = function() {
+  const reinitializeJobJS = function() {
     require.undef('health-check-job');
     require(['health-check-job'], function(){});
   }
@@ -184,33 +184,33 @@
     $.get(getHealthCheckActionPageURL(), function(data) {
       let progressBar = $(data).find('div.ui-progress');
       $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
-      recallJobJs()
+      reinitializeJobJS()
     });
   };
 
   $(document).ready(function() {
     if ($('#healthCheck').length) {
       initialiseJobJS();
-      let jobState = $('#healthCheckJobState').attr('data-jobState');
-      if (jobState == "RUNNING") {
+      let jobState = $('.healthCheckJobState').attr('data-jobState');
+      if (jobState == 'RUNNING') {
         runHealthCheckJob();
-        $('.job-status').show();
-      } else if (jobState == "FINISHED") {
-        $('.job-status').show();
+        $('#healthCheck .job-status').show();
+      } else if (jobState == 'FINISHED') {
+        $('#healthCheck .job-status').show();
       }
     }
   });
 
-  $(document).on('click', '.log-item-warn, .log-item-error', function(event) {
-    $(this).children(".recommendation").toggle();
+  $(document).on('click', '#healthCheck .log-item-warn, #healthCheck .log-item-error', function(event) {
+    $(this).children('.recommendation').toggle();
   });
 
-  $(document).on('click', '#admin_tools_job_start', function(event) {
+  $(document).on('click', '#healthCheckJobStart', function(event) {
     event.preventDefault();
-    $(".log").empty();
+    $('#healthCheck .log').empty();
     runHealthCheckJob();
     reinitialiseHealthCheckResources();
-    $('.job-status').show();
+    $('#healthCheck .job-status').show();
   });
 
   $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {

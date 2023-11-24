@@ -119,7 +119,7 @@
           data-target-xpath="parent::*/following-sibling::*"&gt;
         &lt;span class="icon-closed"&gt;$services.icon.renderHTML('caret-right')&lt;/span&gt;
         &lt;span class="icon-opened"&gt;$services.icon.renderHTML('caret-down')&lt;/span&gt;
-        Health Check Results
+        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.result'))
       &lt;/label&gt;
     &lt;/dt&gt;
     &lt;dd&gt;#printHealthCheckResults($status)&lt;/dd&gt;
@@ -140,7 +140,7 @@
     '__ENDLINK__'
   ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
     &lt;/strong&gt;&lt;/a&gt;'))
-  &lt;span id="healthCheckJobState"
+  &lt;span class="healthCheckJobState"
     data-jobState="${healthJobStatus.state}"&gt;
   &lt;/span&gt;
   &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
@@ -154,7 +154,7 @@
           $services.date.displayTimeAgo($healthJobStatus.getEndDate())
       &lt;/div&gt;
       &lt;div class="buttonwrapper"&gt;
-        &lt;button id="admin_tools_job_start" type="submit" class="btn btn-primary" name="startHealthCheck"
+        &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
           value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
             'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
       &lt;/div&gt;

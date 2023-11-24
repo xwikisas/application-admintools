@@ -43,7 +43,7 @@ public class HealthCheckResult
     /**
      * Used for registering a result.
      *
-     * @param message Error message representing the summary of the found issue.
+     * @param message error message representing the summary of the found issue.
      * @param recommendation suggestion in context of the message.
      * @param level severity level of a result.
      * @param currentValue Current value of the checked resource.
@@ -59,7 +59,7 @@ public class HealthCheckResult
     /**
      * Partial result definition.
      *
-     * @param message Error message representing the summary of the found issue.
+     * @param message error message representing the summary of the found issue.
      * @param recommendation suggestion in context of the message.
      * @param level severity level of a result.
      */
@@ -71,7 +71,7 @@ public class HealthCheckResult
     /**
      * Simple result definition.
      *
-     * @param message Error message representing the summary of the found issue.
+     * @param message error message representing the summary of the found issue.
      * @param level severity level of a result.
      */
     public HealthCheckResult(String message, String level)
