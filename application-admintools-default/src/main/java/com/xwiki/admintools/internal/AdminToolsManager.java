@@ -29,7 +29,10 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.query.QueryException;
 
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -135,5 +138,18 @@ public class AdminToolsManager
     public String getInstanceSizeTemplate()
     {
         return instanceUsage.renderTemplate();
+    }
+
+    /**
+     * Retrieve the pages that have more than a given number of comments.
+     *
+     * @param maxComment maximum number of comments below which the page is ignored.
+     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @throws QueryException if the query to retrieve the document fails.
+     * @throws XWikiException if a document is not found.
+     */
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComment) throws QueryException, XWikiException
+    {
+        return instanceUsage.getPagesOverGivenNumberOfComments(maxComment);
     }
 }

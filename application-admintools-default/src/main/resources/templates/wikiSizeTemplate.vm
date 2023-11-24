@@ -20,7 +20,7 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($found == 'true')
-    <div class="adminToolsDashboardItem">
+    <div class="adminToolsDashboardItem secondRow">
       <h2>$services.icon.renderHTML('drive')
         $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))</h2>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
@@ -49,6 +49,15 @@
         #else
           #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
         #end
+      </div>
+      <hr/>
+      <div class="otherStats">
+        #set ($solutionLink = $xwiki.getURL('AdminTools.SpamPages'))
+        <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.other'))</h2>
+        <ul>
+          <li><a href='${solutionLink}'>
+            $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.other.comments'))</a></li>
+        </ul>
       </div>
     </div>
   #else

@@ -36,6 +36,7 @@ import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -127,9 +128,27 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@link String} representation of the template.
      */
-    public String getInstanceSizeSection() throws Exception
+    public String getInstanceSizeSection()
     {
         return adminToolsManager.getInstanceSizeTemplate();
+    }
+
+    /**
+     * Retrieve the pages that have more than a given number of comments.
+     *
+     * @param maxComments maximum number of comments below which the page is ignored.
+     * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
+     *     any errors.
+     */
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComments)
+    {
+        try {
+            return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);
+        } catch (Exception e) {
+            logger.error("There was an exception while retrieving the pages with over 50 comments. Root cause is [{}]",
+                org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
     }
 
     /**

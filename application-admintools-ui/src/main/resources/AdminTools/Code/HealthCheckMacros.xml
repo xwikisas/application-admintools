@@ -143,7 +143,7 @@
   &lt;span class="healthCheckJobState"
     data-jobState="${healthJobStatus.state}"&gt;
   &lt;/span&gt;
-  &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
+  &lt;div class="adminToolsDashboardItem secondRow" id="healthCheck"&gt;
     &lt;h2&gt;$services.icon.renderHTML('bug')
       $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
     &lt;p&gt;$description&lt;/p&gt;

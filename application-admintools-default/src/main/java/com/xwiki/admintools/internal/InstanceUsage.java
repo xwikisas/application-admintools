@@ -26,12 +26,14 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -41,6 +43,10 @@ import org.xwiki.template.TemplateManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -54,6 +60,12 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 public class InstanceUsage
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
+
+    @Inject
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @Inject
+    private DocumentReferenceResolver<String> resolver;
 
     @Inject
     private PingProvider pingProvider;
@@ -107,6 +119,34 @@ public class InstanceUsage
                 ExceptionUtils.getRootCauseMessage(e));
             return null;
         }
+    }
+
+    /**
+     * Retrieve the pages that have more than a given number of comments.
+     *
+     * @param maxComment maximum number of comments below which the page is ignored.
+     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @throws QueryException if the query to retrieve the document fails.
+     * @throws XWikiException if a document is not found.
+     */
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComment) throws QueryException, XWikiException
+    {
+        List<String> pagesWithComments = this.queryManager.createQuery(
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
+            Query.XWQL).setWiki(wikiDescriptorManager.getCurrentWikiId()).execute();
+
+        List<XWikiDocument> pagesOverMaxComments = new ArrayList<>();
+        for (String pageName : pagesWithComments) {
+            XWikiContext wikiContext = wikiContextProvider.get();
+            XWiki wiki = wikiContext.getWiki();
+            XWikiDocument document = wiki.getDocument(resolver.resolve(pageName), wikiContext);
+            int numberOfComments = document.getComments().size();
+            if (numberOfComments > maxComment) {
+                pagesOverMaxComments.add(document);
+            }
+        }
+        pagesOverMaxComments.sort((t1, t2) -> Integer.compare(t2.getComments().size(), t1.getComments().size()));
+        return pagesOverMaxComments;
     }
 
     private List<WikiSizeResult> getWikisSizeInfo()
@@ -163,9 +203,8 @@ public class InstanceUsage
     private Long getWikiNumberOfAttachments(String wikiId) throws QueryException
     {
         List<Long> results = this.queryManager.createQuery(
-                "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-                Query.XWQL)
-            .setWiki(wikiId).addFilter(this.countFilter).execute();
+            "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+            Query.XWQL).setWiki(wikiId).addFilter(this.countFilter).execute();
         return results.get(0);
     }
 

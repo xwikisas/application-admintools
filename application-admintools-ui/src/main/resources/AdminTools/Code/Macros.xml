@@ -152,5 +152,23 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
+#macro (displayPagesOverNumberOfComments $maxComments)
+  #set ($pages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
+  #if ($pages != $null)
+    #if ($pages.size() != 0)
+      &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.description', [$maxComments]))&lt;/p&gt;
+      &lt;hr/&gt;
+      #foreach ($page in $pages)
+        #set ($pageLink = $xwiki.getURL($page.getDocumentReference()))
+        &lt;p&gt;&lt;a href='${pageLink}'&gt;${page.getTitle()}&lt;/a&gt;
+          $escapetool.xml($services.localization.render('adminTools.spamPage.line', [$page.getComments().size()]))&lt;/p&gt;
+      #end
+    #else
+      &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.notFound', [$maxComments]))&lt;/p&gt;
+    #end
+  #else
+    #error($escapetool.xml($services.localization.render('adminTools.spamPage.error')))
+  #end
+#end
 {{/velocity}}</content>
 </xwikidoc>

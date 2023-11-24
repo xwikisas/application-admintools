@@ -430,10 +430,16 @@
 .adminToolsDashboardItem {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
-  min-height: 40rem;
   padding: 1rem 1.1rem;
 }
 
+.adminToolsDashboardItem.firstRow {
+  min-height: 35rem;
+}
+
+.adminToolsDashboardItem.secondRow {
+  min-height: 51rem;
+}
 .logs-modal-content {
   text-align: center;
 }
