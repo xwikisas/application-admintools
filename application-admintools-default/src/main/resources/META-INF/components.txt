@@ -14,7 +14,7 @@ com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationDatabaseHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationJavaHealthCheck
-com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOsHealthCheck
+com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOSHealthCheck
 com.xwiki.admintools.internal.health.checks.security.ActiveEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.security.ConfigurationEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.security.FileEncodingHealthCheck

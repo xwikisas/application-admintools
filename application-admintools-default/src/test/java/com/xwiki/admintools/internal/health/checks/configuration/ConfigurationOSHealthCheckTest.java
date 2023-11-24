@@ -43,14 +43,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class ConfigurationOsHealthCheckTest
+class ConfigurationOSHealthCheckTest
 {
     @MockComponent
     @Named(ConfigurationDataProvider.HINT)
     private static DataProvider dataProvider;
 
     @InjectMockComponents
-    private ConfigurationOsHealthCheck osHealthCheck;
+    private ConfigurationOSHealthCheck osHealthCheck;
 
     @Mock
     private Logger logger;
@@ -77,7 +77,7 @@ class ConfigurationOsHealthCheckTest
     }
 
     @Test
-    void checkNullJson() throws Exception
+    void checkNullJSON() throws Exception
     {
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 

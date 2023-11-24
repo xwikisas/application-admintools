@@ -39,14 +39,14 @@ public class ActiveEncodingHealthCheck extends AbstractSecurityHealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "ACTIVE_ENCODING_HEALTH_CHECK";
+    public static final String HINT = "activeEncoding";
 
     private static final String WARN_LEVEL = "warn";
 
     @Override
     public HealthCheckResult check()
     {
-        String activeEnc = getJSON().get("activeEncoding");
+        String activeEnc = getSecurityProviderJSON().get(HINT);
         if (activeEnc == null) {
             logger.warn("Active encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.notFound", WARN_LEVEL);

@@ -39,14 +39,14 @@ public class ConfigurationEncodingHealthCheck extends AbstractSecurityHealthChec
     /**
      * Component identifier.
      */
-    public static final String HINT = "CONFIGURATION_ENCODING_HEALTH_CHECK";
+    public static final String HINT = "configurationEncoding";
 
     private static final String WARN_LEVEL = "warn";
 
     @Override
     public HealthCheckResult check()
     {
-        String configEnc = getJSON().get("configurationEncoding");
+        String configEnc = getSecurityProviderJSON().get(HINT);
         if (configEnc == null) {
             logger.warn("Configuration encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.notFound", WARN_LEVEL);
@@ -55,8 +55,7 @@ public class ConfigurationEncodingHealthCheck extends AbstractSecurityHealthChec
 
         if (!isConfigEncSafe) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn", null,
-                WARN_LEVEL,
-                configEnc);
+                WARN_LEVEL, configEnc);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.info", "info");
     }

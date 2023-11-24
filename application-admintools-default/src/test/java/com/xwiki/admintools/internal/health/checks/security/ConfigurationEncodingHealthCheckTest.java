@@ -71,7 +71,7 @@ class ConfigurationEncodingHealthCheckTest
     }
 
     @Test
-    void checkNullJson() throws Exception
+    void checkNullJSON() throws Exception
     {
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
@@ -87,6 +87,6 @@ class ConfigurationEncodingHealthCheckTest
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         assertEquals("adminTools.dashboard.healthcheck.security.xwiki.config.warn",
             configurationEncodingHealthCheck.check().getMessage());
-        verify(logger).warn("XWiki configuration encoding is [{}], but should be UTF-8!", "ISO-8859-1");
+        verify(logger).warn("[{}] encoding is [{}], but should be UTF-8!", "XWiki configuration", "ISO-8859-1");
     }
 }

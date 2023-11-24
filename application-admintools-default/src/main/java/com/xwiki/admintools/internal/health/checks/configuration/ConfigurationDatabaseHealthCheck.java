@@ -41,7 +41,7 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     /**
      * Component identifier.
      */
-    public static final String HINT = "CONFIG_DB_HEALTH_CHECK";
+    public static final String HINT = "configurationDatabase";
 
     private static final String ERROR_KEY = "error";
 
@@ -51,7 +51,7 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     @Override
     public HealthCheckResult check()
     {
-        String usedDatabase = getJSON().get("databaseName");
+        String usedDatabase = getConfigurationProviderJSON().get("databaseName");
         if (usedDatabase == null) {
             logger.warn("Database not found!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn", ERROR_KEY);

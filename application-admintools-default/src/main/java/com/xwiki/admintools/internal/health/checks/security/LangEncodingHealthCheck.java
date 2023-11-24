@@ -39,14 +39,14 @@ public class LangEncodingHealthCheck extends AbstractSecurityHealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "LANGUAGE_ENCODING_HEALTH_CHECK";
+    public static final String HINT = "languageEncoding";
 
     private static final String WARN_LEVEL = "warn";
 
     @Override
     public HealthCheckResult check()
     {
-        String langEnc = getJSON().get("LANG");
+        String langEnc = getSecurityProviderJSON().get("LANG");
         if (langEnc == null) {
             logger.warn("Language encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.lang.notFound", WARN_LEVEL);

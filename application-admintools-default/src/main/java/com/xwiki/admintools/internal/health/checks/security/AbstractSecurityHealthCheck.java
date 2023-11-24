@@ -54,11 +54,11 @@ public abstract class AbstractSecurityHealthCheck implements HealthCheck
         if (acceptedEncodings.contains(encoding)) {
             return true;
         }
-        logger.warn(String.format("%s encoding is [{}], but should be UTF-8!", type), encoding);
+        logger.warn("[{}] encoding is [{}], but should be UTF-8!", type, encoding);
         return false;
     }
 
-    protected Map<String, String> getJSON()
+    protected Map<String, String> getSecurityProviderJSON()
     {
         try {
             return securityDataProvider.getDataAsJSON();

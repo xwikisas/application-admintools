@@ -53,13 +53,13 @@
 #end
 
 #macro (getHealthCheckJobResources)
-  #set ($jobJsURL = $xwiki.getSkinFile('uicomponents/job/job.js'))
+  #set ($jobJSURL = $xwiki.getSkinFile('uicomponents/job/job.js'))
   #set ($jobId = $services.admintools.getHealthCheckJobId())
   #set ($healthJobStatus = $services.job.getJobStatus($jobId))
   {{html clean=false}}
     &lt;div&gt;
-      &lt;span id="jobJsURL"
-        data-jobJsURL="${jobJsURL}"&gt;
+      &lt;span class="jobJSURL"
+        data-jobJSURL="${jobJSURL}"&gt;
       &lt;/span&gt;
       #displayJobProgressBar($healthJobStatus)
     &lt;/div&gt;

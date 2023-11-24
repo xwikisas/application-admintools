@@ -71,7 +71,7 @@ class LangEncodingHealthCheckTest
     }
 
     @Test
-    void checkNullJson() throws Exception
+    void checkNullJSON() throws Exception
     {
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
@@ -87,6 +87,6 @@ class LangEncodingHealthCheckTest
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         assertEquals("adminTools.dashboard.healthcheck.security.system.lang.warn",
             langEncodingHealthCheck.check().getMessage());
-        verify(logger).warn("System language encoding is [{}], but should be UTF-8!", "ISO-8859-1");
+        verify(logger).warn("[{}] encoding is [{}], but should be UTF-8!", "System language", "ISO-8859-1");
     }
 }

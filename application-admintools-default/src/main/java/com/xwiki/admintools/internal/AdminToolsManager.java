@@ -26,8 +26,6 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -45,9 +43,6 @@ import com.xwiki.admintools.internal.files.ImportantFilesManager;
 @Singleton
 public class AdminToolsManager
 {
-    @Inject
-    private Logger logger;
-
     /**
      * A list of all the data providers for Admin Tools.
      */
@@ -98,8 +93,6 @@ public class AdminToolsManager
             DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
             return dataProvider.getRenderedData();
         } catch (ComponentLookupException e) {
-            logger.error("Could not find the requested Data Provider. Root cause: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
             throw e;
         }
     }

@@ -70,7 +70,7 @@ class ConfigurationJavaHealthCheckTest
     }
 
     @Test
-    void checkNullJson() throws Exception
+    void checkNullJSON() throws Exception
     {
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 

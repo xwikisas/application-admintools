@@ -46,12 +46,13 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
     private DataProvider configurationDataProvider;
 
     /**
-     * Get the JSON needed for the configuration health checks execution.
+     * Retrieve a JSON containing the necessary instance configuration information required for executing the
+     * configuration health checks.
      *
      * @return a {@link Map} with the {@link ConfigurationDataProvider} info, or an empty {@link Map} in case of an
      *     error.
      */
-    protected Map<String, String> getJSON()
+    protected Map<String, String> getConfigurationProviderJSON()
     {
         try {
             return configurationDataProvider.getDataAsJSON();

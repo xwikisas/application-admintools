@@ -46,7 +46,7 @@ public class CPUHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "CPU_PERFORMANCE_HEALTH_CHECK";
+    public static final String HINT = "cpuPerformance";
 
     @Inject
     private Logger logger;
