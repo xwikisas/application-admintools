@@ -128,6 +128,7 @@
 
 #macro (healthCheckUI)
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  #includeMacros("AdminTools.Code.Macros")
   #set ($jobId = $services.admintools.getHealthCheckJobId())
   #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
     'jobId': $jobId,
@@ -168,6 +169,17 @@
       #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $isAdmin)
         #displayHealthCheckResults($healthJobStatus true)
       #end
+    &lt;/div&gt;
+    &lt;hr/&gt;
+    &lt;div class="operationMessage"&gt;&lt;/div&gt;
+    &lt;div class="instanceOperations"&gt;
+      #cacheFlushModal()
+      &lt;h3&gt;Instance operations&lt;/h3&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
+          $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 #end

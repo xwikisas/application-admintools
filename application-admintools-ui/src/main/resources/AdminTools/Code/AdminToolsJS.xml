@@ -250,6 +250,23 @@
       $('#downloadFilesModal .dateFields').hide();
     }
   });
+
+  $(document).on('click', '#confirmCacheFlushModal .btn-primary', function(event) {
+    event.preventDefault();
+    const flushButton = $('#confirmCacheFlushModal .btn-primary');
+    const target = flushButton.attr('data-action')
+    $.ajax({
+      url: target,
+      type: 'POST',
+      success: function(response) {
+        $(".operationMessage").html('&lt;div class="successmessage"&gt;'+ response + '&lt;/div&gt;');
+      },
+      error: function(error) {
+        $(".operationMessage").html('&lt;div class="errormessage"&gt;'+ error.statusText + '&lt;/div&gt;');
+      }
+    });
+    $(event.currentTarget).closest('.modal').modal('toggle');
+  });
 });</code>
     </property>
     <property>
