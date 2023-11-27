@@ -20,7 +20,7 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #includeMacros("AdminTools.Code.Macros")
+  #includeMacros('AdminTools.Code.Macros')
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
     <div class="adminToolsDashboardItem">

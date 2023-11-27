@@ -20,7 +20,7 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #includeMacros("AdminTools.Code.Macros")
+  #includeMacros('AdminTools.Code.Macros')
   #if ($configuration['serverFound'] == 'true')
     <div class="adminToolsDashboardItem">
       <h2 id="HBackend">$services.icon.renderHTML('world')
@@ -70,7 +70,7 @@
         #end
       </ul>
     </div>
-    #viewLastNLinesMoldal("configuration")
+    #viewLastNLinesMoldal('configuration')
   #else
     #set($warningMessage =
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
