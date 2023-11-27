@@ -42,6 +42,7 @@ AdminTools.Code.ConfigurationClass_excludedLines.hint=Lines containing sensitive
 AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 admin.admintools.description=Configure Admin Tools Application
+adminTools.extension.name=Admin Tools Application (Pro)
 
 ## Modals
 adminTools.dashboard.download.modal.button=Download
