@@ -1,0 +1,93 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.WikiRecycleBin" locale="">
+  <web>AdminTools</web>
+  <name>WikiRecycleBin</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>WikiRecycleBin</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#if("$!{reqwiki}" == '')
+  #set($requestedWiki = $request.getParameter('reqwiki'))
+  #if($requestedWiki != '' &amp;&amp; $requestedWiki)
+    $xcontext.put('wiki', $requestedWiki)
+  #else
+    #set ($requestedWiki = '')
+  #end
+#end
+##================
+## Find which tab to display
+##================
+#if("$!{view}" == '')
+  #set($view = $request.getParameter('view'))
+  #if("$!{view}" == '')
+    #set ($view = '')
+  #end
+#end
+##========
+## Set Tab Data
+##========
+#set($tabs = [])
+#macro(addAllDocsTab $tab)
+  #if($xwiki.hasAccessLevel('view', "$!xcontext.user", $tab.get('document')))
+    #set($discard = $tabs.add($tab))
+  #end
+#end
+#addAllDocsTab({'tabName' : 'deletedDocs', 'idSuffix' : 'deletedDocs', 'translationKey' : 'platform.index.documentsTrash', 'document' : 'XWiki.DeletedDocuments'})
+#addAllDocsTab({'tabName' : 'deletedAttachments', 'idSuffix' : 'deletedAttachments', 'translationKey' : 'platform.index.attachmentsTrash', 'document' : 'XWiki.DeletedAttachments'})
+##===========
+## Display the Tabs
+##===========
+{{html wiki="true"}}
+  &lt;div class="floatcontainer"&gt;
+    &lt;ul class="xwikitabbar"&gt;
+      #foreach ($tab in $tabs)
+        &lt;li id="xwiki$tab['idSuffix']"#if($view == $tab['tabName']) class="active"#end&gt;&lt;a href="$doc.getURL('view', "reqwiki=${requestedWiki}&amp;view=$tab['tabName']&amp;amp;$!param")"&gt;$services.localization.render($tab['translationKey'])&lt;/a&gt;&lt;/li&gt;
+      #end
+    &lt;/ul&gt;
+  &lt;/div&gt;
+##==========================
+## Include the Tab data for the selected Tab
+##==========================
+  &lt;div class='xwikitabpanescontainer'&gt;
+  #foreach ($tab in $tabs)
+    #if ($tab['tabName'] == $view)
+      {{include reference="$tab['document']"/}}
+      #break
+    #end
+  #end
+  &lt;/div&gt;
+{{/html}}
+{{/velocity}}
+</content>
+</xwikidoc>

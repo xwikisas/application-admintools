@@ -32,10 +32,13 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
+import org.xwiki.query.QueryException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.admintools.health.WikiRecycleBinResult;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -154,5 +157,10 @@ public class AdminToolsScriptService implements ScriptService
         XWikiContext wikiContext = wikiContextProvider.get();
         String wikiID = wikiContext.getWikiId();
         return List.of("adminTools", "healthCheck", wikiID);
+    }
+
+    public List<WikiRecycleBinResult> getWikisRecycleBinSize() throws QueryException, WikiManagerException
+    {
+        return adminToolsManager.getWikisRecycleBinSize();
     }
 }

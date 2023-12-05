@@ -29,10 +29,14 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.query.QueryException;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.admintools.health.WikiRecycleBinResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.health.operations.RecycleBinOperations;
 
 /**
  * Manages the data providers.
@@ -61,6 +65,9 @@ public class AdminToolsManager
     @Inject
     @Named("context")
     private ComponentManager contextComponentManager;
+
+    @Inject
+    private RecycleBinOperations recycleBinOperations;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -122,5 +129,10 @@ public class AdminToolsManager
     public String getFilesSection()
     {
         return this.importantFilesManager.renderTemplate();
+    }
+
+    public List<WikiRecycleBinResult> getWikisRecycleBinSize() throws QueryException, WikiManagerException
+    {
+        return recycleBinOperations.renderWikisRecycleBinTemplate();
     }
 }

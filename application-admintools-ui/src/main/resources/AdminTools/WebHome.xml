@@ -390,6 +390,10 @@
   margin-bottom: 2rem;
 }
 
+.adminToolsBins td, th {
+  text-align: center;
+}
+
 .healthCheckWrapper button {
   margin-top: 2rem;
 }</code>
