@@ -22,9 +22,7 @@ package com.xwiki.admintools.health;
 import org.xwiki.stability.Unstable;
 
 /**
- * Result of a health check. May store the error message, severity level, recommendation and the current value of the
- * checked resource. The severity level is used as "info", for informative result, "warn" for warnings and "error" for
- * critical issues.
+ * Wiki bin result. Stores info about the wiki recycle bin size and wiki identifier.
  *
  * @version $Id$
  * @since 1.0
@@ -32,58 +30,97 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public class WikiRecycleBinResult
 {
-    String wikiId;
+    private String wikiId;
 
-    String wikiName;
+    private String wikiName;
 
-    Long pageSize;
+    private long pageSize;
 
-    Long attachmentSize;
+    private long attachmentSize;
 
+    /**
+     * Initialise an empty {@link WikiRecycleBinResult}.
+     */
     public WikiRecycleBinResult()
     {
     }
 
-    public Long getAttachmentSize()
+    /**
+     * Get the number of deleted attachments in this wiki.
+     * @return number of deleted attachments in wiki.
+     */
+    public long getAttachmentSize()
     {
         return attachmentSize;
     }
 
-    public void setAttachmentSize(Long attachmentSize)
+    /**
+     * Set the number of deleted attachments in this wiki.
+     * @param attachmentSize number of deleted attachments for wiki.
+     */
+    public void setAttachmentSize(long attachmentSize)
     {
         this.attachmentSize = attachmentSize;
     }
 
-    public Long getPageSize()
+    /**
+     * Get the number of deleted documents in this wiki.
+     * @return number of deleted documents in wiki.
+     */
+    public long getPageSize()
     {
         return pageSize;
     }
 
-    public void setPageSize(Long pageSize)
+    /**
+     * Set the number of deleted documents in this wiki.
+     * @param pageSize number of deleted documents for wiki.
+     */
+    public void setPageSize(long pageSize)
     {
         this.pageSize = pageSize;
     }
 
-    public Long getTotal()
+    /**
+     * Get the sum of deleted documents and attachments.
+     * @return total number of deleted files.
+     */
+    public long getTotal()
     {
         return attachmentSize + pageSize;
     }
 
+    /**
+     * Get the pretty name of a wiki.
+     * @return the name of the wiki.
+     */
     public String getWikiName()
     {
         return wikiName;
     }
 
+    /**
+     * Set the name of the wiki.
+     * @param wikiName name of the wiki
+     */
     public void setWikiName(String wikiName)
     {
         this.wikiName = wikiName;
     }
 
+    /**
+     * Get the wiki id.
+     * @return the wiki id.
+     */
     public String getWikiId()
     {
         return wikiId;
     }
 
+    /**
+     * Set the wiki id.
+     * @param wikiId the id of the wiki.
+     */
     public void setWikiId(String wikiId)
     {
         this.wikiId = wikiId;

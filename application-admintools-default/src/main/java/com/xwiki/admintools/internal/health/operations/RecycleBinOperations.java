@@ -24,12 +24,9 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.WikiReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -37,13 +34,10 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDeletedDocument;
 import com.xwiki.admintools.health.WikiRecycleBinResult;
 
 /**
- * TBC.
+ * Retrieve data about wikis recycle bins.
  *
  * @version $Id$
  */
@@ -57,39 +51,35 @@ public class RecycleBinOperations
     @Inject
     private QueryManager queryManager;
 
-    @Inject
-    private Provider<XWikiContext> wikiContextProvider;
-
-    @Inject
-    private DocumentReferenceResolver<String> resolver;
-
-    public List<WikiRecycleBinResult> renderWikisRecycleBinTemplate() throws QueryException, WikiManagerException
+    /**
+     * Generate a {@link List} of {@link WikiRecycleBinResult} that is populated with results for all existing wikis in
+     * instance.
+     *
+     * @return info about all existing wikis in instance.
+     * @throws QueryException when there is an issue regarding the queries that retrieve the number of deleted
+     *     documents and attachments.
+     * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
+     *     {@link WikiDescriptor}.
+     */
+    public List<WikiRecycleBinResult> getAllWikisRecycleBinInfo() throws QueryException, WikiManagerException
     {
         Collection<WikiDescriptor> wikiDescriptors = wikiDescriptorManager.getAll();
         List<WikiRecycleBinResult> results = new ArrayList<>();
         for (WikiDescriptor wikiDescriptor : wikiDescriptors) {
-            WikiReference wikiReference = new WikiReference(wikiDescriptor.getReference());
-            XWiki wiki = wikiContextProvider.get().getWiki();
             String wikiId = wikiDescriptor.getId();
             WikiRecycleBinResult result = new WikiRecycleBinResult();
             result.setWikiName(wikiDescriptor.getPrettyName());
             result.setWikiId(wikiId);
-            result.setAttachmentSize(getNumberOfDeletedAttachments(wikiId));
-            result.setPageSize(getNumberOfDeletedDocuments(wikiId));
+            result.setAttachmentSize(getNumberOfDeletedDocuments(wikiId, "DeletedAttachment"));
+            result.setPageSize(getNumberOfDeletedDocuments(wikiId, "XWikiDeletedDocument"));
             results.add(result);
         }
         return results;
     }
-    // check jira if the admin tools (old) works
-    private Long getNumberOfDeletedDocuments(String wikiId) throws QueryException
-    {
-        return (long) this.queryManager.createQuery("select ddoc from XWikiDeletedDocument as ddoc", Query.XWQL)
-            .setWiki(wikiId).execute().size();
-    }
 
-    private Long getNumberOfDeletedAttachments(String wikiId) throws QueryException
+    private long getNumberOfDeletedDocuments(String wikiId, String database) throws QueryException
     {
-        return (long) this.queryManager.createQuery("select ddoc from DeletedAttachment as ddoc", Query.XWQL)
-            .setWiki(wikiId).execute().size();
+        return (long) this.queryManager.createQuery("select count(ddoc) from " + database + " as ddoc", Query.XWQL)
+            .setWiki(wikiId).execute().get(0);
     }
 }

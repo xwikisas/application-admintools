@@ -32,10 +32,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
-import org.xwiki.query.QueryException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.stability.Unstable;
-import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.WikiRecycleBinResult;
@@ -155,12 +153,22 @@ public class AdminToolsScriptService implements ScriptService
     public List<String> getHealthCheckJobId()
     {
         XWikiContext wikiContext = wikiContextProvider.get();
-        String wikiID = wikiContext.getWikiId();
-        return List.of("adminTools", "healthCheck", wikiID);
+        String wikiId = wikiContext.getWikiId();
+        return List.of("adminTools", "healthCheck", wikiId);
     }
 
-    public List<WikiRecycleBinResult> getWikisRecycleBinSize() throws QueryException, WikiManagerException
+    /**
+     * Get recycle bin info for all wikis in your instance.
+     * @return a {@link List} with wikis recycle bin info or null in case of an error.
+     */
+    public List<WikiRecycleBinResult> getWikisRecycleBinSize()
     {
-        return adminToolsManager.getWikisRecycleBinSize();
+        try {
+            return adminToolsManager.getWikisRecycleBinSize();
+        } catch (Exception e) {
+            logger.error("There has been an error while gathering info about instance recycle bin size. Root cause "
+                + "is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            return null;
+        }
     }
 }

@@ -173,16 +173,16 @@
     &lt;hr/&gt;
     &lt;div class="operationMessage"&gt;&lt;/div&gt;
     &lt;div class="instanceOperations"&gt;
-      #cacheFlushModal()
-      &lt;h3&gt;Instance operations&lt;/h3&gt;
+      &lt;h3&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.operations'))&lt;/h3&gt;
       &lt;ul&gt;
         &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
           $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
         &lt;li&gt;&lt;a href="#viewWikisRecycleBinModal" data-toggle="modal" data-target="#viewWikisRecycleBinModal"&gt;
-              Shrink the recycle bin for pages and attachments&lt;/a&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.wikiBins'))&lt;/a&gt;
         &lt;/li&gt;
         &lt;/li&gt;
       &lt;/ul&gt;
+      #cacheFlushModal()
       #wikisRecycleBinModal()
     &lt;/div&gt;
   &lt;/div&gt;

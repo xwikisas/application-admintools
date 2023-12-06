@@ -31,7 +31,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>WikiRecycleBin</title>
+  <title>Wiki Recycle Bin</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -63,8 +63,10 @@
     #set($discard = $tabs.add($tab))
   #end
 #end
-#addAllDocsTab({'tabName' : 'deletedDocs', 'idSuffix' : 'deletedDocs', 'translationKey' : 'platform.index.documentsTrash', 'document' : 'XWiki.DeletedDocuments'})
-#addAllDocsTab({'tabName' : 'deletedAttachments', 'idSuffix' : 'deletedAttachments', 'translationKey' : 'platform.index.attachmentsTrash', 'document' : 'XWiki.DeletedAttachments'})
+#addAllDocsTab({'tabName' : 'deletedDocs', 'idSuffix' : 'deletedDocs',
+    'translationKey' : 'platform.index.documentsTrash', 'document' : 'XWiki.DeletedDocuments'})
+#addAllDocsTab({'tabName' : 'deletedAttachments', 'idSuffix' : 'deletedAttachments',
+    'translationKey' : 'platform.index.attachmentsTrash', 'document' : 'XWiki.DeletedAttachments'})
 ##===========
 ## Display the Tabs
 ##===========
@@ -72,7 +74,9 @@
   &lt;div class="floatcontainer"&gt;
     &lt;ul class="xwikitabbar"&gt;
       #foreach ($tab in $tabs)
-        &lt;li id="xwiki$tab['idSuffix']"#if($view == $tab['tabName']) class="active"#end&gt;&lt;a href="$doc.getURL('view', "reqwiki=${requestedWiki}&amp;view=$tab['tabName']&amp;amp;$!param")"&gt;$services.localization.render($tab['translationKey'])&lt;/a&gt;&lt;/li&gt;
+        &lt;li id="xwiki$tab['idSuffix']"#if($view == $tab['tabName']) class="active"#end&gt;
+          &lt;a href="$doc.getURL('view', "reqwiki=${requestedWiki}&amp;view=$tab['tabName']&amp;amp;$!param")"&gt;
+          $services.localization.render($tab['translationKey'])&lt;/a&gt;&lt;/li&gt;
       #end
     &lt;/ul&gt;
   &lt;/div&gt;

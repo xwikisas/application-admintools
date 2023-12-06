@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,6 +31,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.query.QueryException;
+import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.DataProvider;
@@ -93,12 +95,8 @@ public class AdminToolsManager
      */
     public String generateData(String hint) throws ComponentLookupException
     {
-        try {
-            DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
-            return dataProvider.getRenderedData();
-        } catch (ComponentLookupException e) {
-            throw e;
-        }
+        DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+        return dataProvider.getRenderedData();
     }
 
     /**
@@ -131,8 +129,18 @@ public class AdminToolsManager
         return this.importantFilesManager.renderTemplate();
     }
 
+    /**
+     * Return a {@link List} of {@link WikiRecycleBinResult} that is populated with results for all existing wikis in
+     * instance.
+     *
+     * @return info about all existing wikis in instance.
+     * @throws QueryException when there is an issue regarding the queries that retrieve the number of deleted
+     *     documents and attachments.
+     * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
+     *     {@link WikiDescriptor}.
+     */
     public List<WikiRecycleBinResult> getWikisRecycleBinSize() throws QueryException, WikiManagerException
     {
-        return recycleBinOperations.renderWikisRecycleBinTemplate();
+        return recycleBinOperations.getAllWikisRecycleBinInfo();
     }
 }

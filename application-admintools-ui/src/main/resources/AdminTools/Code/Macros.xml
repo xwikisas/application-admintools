@@ -161,16 +161,16 @@
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
             &lt;h1 class="modal-title"&gt;
-              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.title'))
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.cache.title'))
             &lt;/h1&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.content'))
+            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.cache.content'))
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
             &lt;button type="button" class="btn btn-primary"
             data-action="$request.getContextPath()/rest/admintools/flushCache"&gt;
-              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.button'))
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.cache.button'))
             &lt;/button&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
@@ -181,40 +181,59 @@
   &lt;/div&gt;
 #end
 #macro (wikisRecycleBinModal)
-  #set($wikisRecycleBin = $services.admintools.getWikisRecycleBinSize())
-  #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
-  &lt;div class="modal fade" id="viewWikisRecycleBinModal" tabindex="-1" role="dialog" aria-labelledby="viewWikisRecycleBinModal"&gt;
-    &lt;div class="modal-dialog modal-lg" role="document"&gt;
-      &lt;div class="modal-content"&gt;
-        &lt;div class="cache-modal-content"&gt;
-          &lt;div class="modal-header"&gt;
-            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
-              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 class="modal-title"&gt;
-              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.title'))
-            &lt;/h1&gt;
-          &lt;/div&gt;
-          &lt;div class="modal-body"&gt;
-            &lt;table id="wikisBins" class="sortable doOddEven adminToolsBins"&gt;
-              &lt;tr class="sortHeader"&gt;&lt;th&gt;Wiki&lt;/th&gt;&lt;th&gt;Page Recycle bin&lt;/th&gt;&lt;th&gt;Attachment Recycle bin&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;/tr&gt;
-              #foreach($wikiBin in $wikisRecycleBin)
-                &lt;tr&gt;
-                  &lt;td&gt;&lt;a href="$doc.getURL('view')/WikiRecycleBin?reqwiki=$wikiBin.getWikiId()"&gt;$wikiBin.getWikiName()&lt;/a&gt;&lt;/td&gt;
-                  &lt;td&gt;$wikiBin.getPageSize()&lt;/td&gt;
-                  &lt;td&gt;$wikiBin.getAttachmentSize()&lt;/td&gt;
-                  &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
-                &lt;/tr&gt;
+    #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
+    &lt;div class="modal fade" id="viewWikisRecycleBinModal" tabindex="-1" role="dialog"
+    aria-labelledby="viewWikisRecycleBinModal"&gt;
+      &lt;div class="modal-dialog modal-lg" role="document"&gt;
+        &lt;div class="modal-content"&gt;
+          &lt;div class="cache-modal-content"&gt;
+            &lt;div class="modal-header"&gt;
+              &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+                &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+              &lt;h1 class="modal-title"&gt;
+                $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.title'))
+              &lt;/h1&gt;
+            &lt;/div&gt;
+            &lt;div class="modal-body"&gt;
+              #set($wikisRecycleBin = $services.admintools.getWikisRecycleBinSize())
+              #if ($wikisRecycleBin != $null)
+                &lt;table id="wikisBins" class="sortable doOddEven adminToolsBins"&gt;
+                  &lt;tr class="sortHeader"&gt;
+                    &lt;th&gt;$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki'))&lt;/th&gt;
+                    &lt;th&gt;$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.healthcheck.modal.wikiBins.header.page'))&lt;/th&gt;
+                    &lt;th&gt;$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.healthcheck.modal.wikiBins.header.attach'))&lt;/th&gt;
+                    &lt;th&gt;$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.healthcheck.modal.wikiBins.header.total'))&lt;/th&gt;
+                  &lt;/tr&gt;
+                  #foreach($wikiBin in $wikisRecycleBin)
+                    &lt;tr&gt;
+                      &lt;td&gt;
+                        &lt;a href="$doc.getURL('view')/WikiRecycleBin?reqwiki=$wikiBin.getWikiId()"&gt;$wikiBin.getWikiName()
+                        &lt;/a&gt;
+                      &lt;/td&gt;
+                      &lt;td&gt;$wikiBin.getPageSize()&lt;/td&gt;
+                      &lt;td&gt;$wikiBin.getAttachmentSize()&lt;/td&gt;
+                      &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
+                    &lt;/tr&gt;
+                  #end
+                &lt;/table&gt;
+              #else
+                #set($warningMessage = $escapetool.xml($services.localization.render(
+                  'adminTools.dashboard.healthcheck.modal.wikiBins.error')))
+                #error($warningMessage)
               #end
-            &lt;/table&gt;
-          &lt;/div&gt;
-          &lt;div class="modal-footer"&gt;
-            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
-              $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;div class="modal-footer"&gt;
+              &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+                $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-  &lt;/div&gt;
 #end
 {{/velocity}}</content>
 </xwikidoc>
