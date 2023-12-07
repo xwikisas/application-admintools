@@ -20,6 +20,7 @@ com.xwiki.admintools.internal.health.checks.security.ConfigurationEncodingHealth
 com.xwiki.admintools.internal.health.checks.security.FileEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.security.LangEncodingHealthCheck
 com.xwiki.admintools.internal.health.checks.performance.CPUHealthCheck
+com.xwiki.admintools.internal.health.checks.performance.LogsSizeCheck
 com.xwiki.admintools.internal.health.checks.performance.PhysicalMemoryHealthCheck
 com.xwiki.admintools.internal.health.checks.performance.PhysicalSpaceHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.CacheMemoryHealthCheck
