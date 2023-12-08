@@ -25,6 +25,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
  * Extension of {@link AbstractSecurityHealthCheck} for checking system file encoding.
@@ -41,21 +42,21 @@ public class FileEncodingHealthCheck extends AbstractSecurityHealthCheck
      */
     public static final String HINT = "fileEncoding";
 
-    private static final String WARN_LEVEL = "warn";
-
     @Override
     public HealthCheckResult check()
     {
         String fileEnc = getSecurityProviderJSON().get(HINT);
         if (fileEnc == null) {
             logger.warn("File encoding could not be detected!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.notFound", WARN_LEVEL);
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.notFound",
+                HealthCheckResultLevel.warn);
         }
         boolean isSafeFileEnc = isSafeEncoding(fileEnc, "System file");
         if (!isSafeFileEnc) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.warn",
-                "adminTools.dashboard.healthcheck.security.system.recommendation", WARN_LEVEL, fileEnc);
+                HealthCheckResultLevel.warn, fileEnc);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.info", "info");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.info",
+            HealthCheckResultLevel.info);
     }
 }

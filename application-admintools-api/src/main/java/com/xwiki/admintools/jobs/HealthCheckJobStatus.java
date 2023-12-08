@@ -21,6 +21,7 @@ package com.xwiki.admintools.jobs;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import org.xwiki.job.DefaultJobStatus;
 import org.xwiki.logging.LoggerManager;
@@ -28,6 +29,7 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
  * The status of the health check job.
@@ -66,18 +68,16 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
     }
 
     /**
-     * Get the list issues list from the job.
-     * @param level the logger manager
+     * Check if any job result has a specific level of severity.
      *
-     * @return boolean with {@link HealthCheckResult} containing errors.
+     * @param level represents the searched level of severity.
+     * @return {@code true} if there is any match for the given level, or {@code false} otherwise.
      */
-    public boolean hasErrorLevel(String level)
+    public boolean hasLevel(String level)
     {
-        for (HealthCheckResult checkResult : healthCheckResults) {
-            if (checkResult.getLevel().equals(level)) {
-                return true;
-            }
-        }
-        return false;
+        // add a catch and return false in case of an error
+        HealthCheckResultLevel searchedLevel = HealthCheckResultLevel.valueOf(level);
+        return this.healthCheckResults.stream()
+            .anyMatch(checkResult -> Objects.equals(searchedLevel, checkResult.getLevel()));
     }
 }

@@ -29,6 +29,7 @@ import org.xwiki.configuration.ConfigurationSource;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking instance document cache performance.
@@ -61,14 +62,15 @@ public class CacheMemoryHealthCheck implements HealthCheck
         if (storeCacheCapacity == null) {
             logger.warn("Store cache capacity not defined. Set by default at 500.");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.null",
-                "adminTools.dashboard.healthcheck.memory.cache.null.recommendation", INFO_LEVEL);
+                HealthCheckResultLevel.info);
         }
-        if (Integer.parseInt(storeCacheCapacity) <= 500) {
+        int cacheCapacity = Integer.parseInt(storeCacheCapacity);
+        if (cacheCapacity < 500) {
             logger.warn("Store cache capacity is set to [{}].", storeCacheCapacity);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.low", null, "warn",
-                storeCacheCapacity);
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.low",
+                HealthCheckResultLevel.warn, cacheCapacity);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.info", null, INFO_LEVEL,
-            storeCacheCapacity);
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.info",
+            HealthCheckResultLevel.info, cacheCapacity);
     }
 }

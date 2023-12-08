@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
  * Extension of {@link AbstractConfigurationHealthCheck} for checking the Java configuration.
@@ -50,19 +51,17 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
             logger.warn("Java version not found!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn",
-                "adminTools.dashboard.healthcheck.java.warn.recommendation", "warn");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn", HealthCheckResultLevel.warn);
         }
         String xwikiVersionString = configurationJson.get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
         if (isNotJavaXWikiCompatible(xwikiVersion, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error",
-                "adminTools.dashboard.healthcheck.java.error.recommendation", "error",
-                String.format("Java %s - XWiki %s", javaVersion, xwikiVersion));
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error", HealthCheckResultLevel.error,
+                javaVersionString, xwikiVersionString);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", "info");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", HealthCheckResultLevel.info);
     }
 
     private static float parseFloat(String javaVersionString)

@@ -26,6 +26,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -43,8 +44,6 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
      */
     public static final String HINT = "configurationDatabase";
 
-    private static final String ERROR_KEY = "error";
-
     @Inject
     private CurrentServer currentServer;
 
@@ -54,15 +53,17 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
         String usedDatabase = getConfigurationProviderJSON().get("databaseName");
         if (usedDatabase == null) {
             logger.warn("Database not found!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn", ERROR_KEY);
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn",
+                HealthCheckResultLevel.error);
         }
         if (currentServer.getSupportedDBs().stream()
             .anyMatch(d -> usedDatabase.toLowerCase().contains(d.toLowerCase())))
         {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info", "info");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info",
+                HealthCheckResultLevel.info);
         }
         logger.error("Used database is not supported!");
         return new HealthCheckResult("adminTools.dashboard.healthcheck.database.notSupported",
-            "adminTools.dashboard.healthcheck.database.recommendation", ERROR_KEY, usedDatabase);
+            HealthCheckResultLevel.error, usedDatabase);
     }
 }

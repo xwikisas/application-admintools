@@ -22,7 +22,7 @@
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #includeMacros("AdminTools.Code.Macros")
   #if ($configuration['serverFound'] == 'true')
-    <div class="adminToolsDashboardItem">
+    <div class="admin-tools-dashboard-item">
       <h2>$services.icon.renderHTML('world')
         $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))</h2>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>

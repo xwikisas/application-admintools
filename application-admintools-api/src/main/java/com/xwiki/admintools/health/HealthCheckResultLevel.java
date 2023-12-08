@@ -19,23 +19,29 @@
  */
 package com.xwiki.admintools.health;
 
-import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
 /**
- * Check for issues in the current wiki.
+ * Represents the severity type of {@link HealthCheckResult}.
  *
- * @since 1.0
  * @version $Id$
+ * @since 1.0
  */
-@Role
 @Unstable
-public interface HealthCheck
+public enum HealthCheckResultLevel
 {
     /**
-     * Execute the health check on the wiki instance.
-     *
-     * @return a {@link HealthCheckResult} with the relevant info regarding the checked issue.
+     * Used to mark a {@link HealthCheckResult} as an error.
      */
-    HealthCheckResult check();
+    error,
+
+    /**
+     * Used to mark a {@link HealthCheckResult} as a warning.
+     */
+    warn,
+
+    /**
+     * Used to mark a {@link HealthCheckResult} as informative.
+     */
+    info
 }

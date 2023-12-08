@@ -33,6 +33,7 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking instance memory performance.
@@ -48,8 +49,6 @@ public class MemoryHealthCheck implements HealthCheck
      * Component identifier.
      */
     public static final String HINT = "MEMORY_HEALTH_CHECK";
-
-    private static final String MEMORY_RECOMMENDATION = "adminTools.dashboard.healthcheck.memory.recommendation";
 
     private static final String MB_UNIT = "MB";
 
@@ -72,18 +71,18 @@ public class MemoryHealthCheck implements HealthCheck
         if (maxMemoryGB < 1) {
             logger.error("JVM memory is less than 1024MB. Currently: [{}]", maxMemoryGB * 1024);
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
-                MEMORY_RECOMMENDATION, ERROR_LEVEL, format.format(maxMemoryGB * 1024) + MB_UNIT);
+                HealthCheckResultLevel.error, (maxMemoryGB * 1024f));
         }
         if (totalFreeMemory < 512) {
             logger.error("JVM instance has only [{}]MB free memory left!", totalFreeMemory);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.error", MEMORY_RECOMMENDATION,
-                ERROR_LEVEL, format.format(totalFreeMemory) + MB_UNIT);
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.error",
+                HealthCheckResultLevel.error, totalFreeMemory);
         } else if (totalFreeMemory < 1024) {
             logger.warn("Instance memory is running low. Currently only [{}]MB free left.", totalFreeMemory);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.warn", MEMORY_RECOMMENDATION,
-                "warn", format.format(totalFreeMemory) + MB_UNIT);
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.warn",
+                HealthCheckResultLevel.warn, totalFreeMemory);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.info", null, "info",
-            String.format(" %s GB", format.format(totalFreeMemory / 1024)));
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.info", HealthCheckResultLevel.info,
+            totalFreeMemory / 1024);
     }
 }

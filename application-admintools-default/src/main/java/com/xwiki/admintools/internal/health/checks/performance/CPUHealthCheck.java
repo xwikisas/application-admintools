@@ -28,6 +28,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -58,14 +59,15 @@ public class CPUHealthCheck implements HealthCheck
         HardwareAbstractionLayer hardware = systemInfo.getHardware();
         CentralProcessor processor = hardware.getProcessor();
         int cpuCores = processor.getPhysicalProcessorCount();
-        long maxFreq = processor.getMaxFreq() / (1024 * 1024);
+        int maxFreq = (int) (processor.getMaxFreq() / (1024 * 1024));
 
         if (cpuCores > 2 && maxFreq > 2048) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.info", "info");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.info",
+                HealthCheckResultLevel.info);
         }
         String cpuSpecifications = String.format("CPU cores %d - frequency %d", cpuCores, maxFreq);
         logger.warn("The CPU does not satisfy the minimum system requirements! [{}]", cpuSpecifications);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.warn",
-            "adminTools.dashboard.healthcheck.performance.cpu.recommendation", "error", cpuSpecifications);
+            HealthCheckResultLevel.warn, cpuCores, maxFreq);
     }
 }

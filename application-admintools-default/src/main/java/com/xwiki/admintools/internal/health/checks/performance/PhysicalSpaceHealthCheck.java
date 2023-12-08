@@ -33,6 +33,7 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -75,14 +76,13 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
         long freePartitionSpace = diskPartition.getFreeSpace();
         float freeSpace = (float) freePartitionSpace / (1024 * 1024 * 1024);
 
-        String systemFreeSpaceSizeMessage = String.format("%s: %f GB", diskPartition.getAbsolutePath(), freeSpace);
-
         if (freeSpace > 16) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.info", "info");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.info",
+                HealthCheckResultLevel.info);
         }
         logger.warn("There is not enough free space for the XWiki installation! Current free space is [{}]",
-            systemFreeSpaceSizeMessage);
+            freeSpace);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.warn",
-            "adminTools.dashboard.healthcheck.performance.space.recommendation", "error", systemFreeSpaceSizeMessage);
+            HealthCheckResultLevel.warn, freeSpace, diskPartition.getAbsolutePath());
     }
 }

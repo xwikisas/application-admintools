@@ -19,12 +19,14 @@
  */
 package com.xwiki.admintools.health;
 
+import java.util.List;
+
 import org.xwiki.stability.Unstable;
 
 /**
  * Result of a health check. May store the error message, severity level, recommendation and the current value of the
- * checked resource. The severity level is used as "info", for informative result, "warn" for warnings and "error"
- * for critical issues.
+ * checked resource. The severity level is used as "info", for informative result, "warn" for warnings and "error" for
+ * critical issues.
  *
  * @version $Id$
  * @since 1.0
@@ -34,49 +36,22 @@ public class HealthCheckResult
 {
     private String message;
 
-    private String recommendation;
+    private HealthCheckResultLevel level;
 
-    private String level;
-
-    private String currentValue;
+    private List<?> parameters;
 
     /**
      * Used for registering a result.
      *
      * @param message error message representing the summary of the found issue.
-     * @param recommendation suggestion in context of the message.
      * @param level severity level of a result.
-     * @param currentValue Current value of the checked resource.
+     * @param parameters current value of the checked resource.
      */
-    public HealthCheckResult(String message, String recommendation, String level, String currentValue)
+    public HealthCheckResult(String message, HealthCheckResultLevel level, Object... parameters)
     {
         this.message = message;
-        this.recommendation = recommendation;
         this.level = level;
-        this.currentValue = currentValue;
-    }
-
-    /**
-     * Partial result definition.
-     *
-     * @param message error message representing the summary of the found issue.
-     * @param recommendation suggestion in context of the message.
-     * @param level severity level of a result.
-     */
-    public HealthCheckResult(String message, String recommendation, String level)
-    {
-        this(message, recommendation, level, null);
-    }
-
-    /**
-     * Simple result definition.
-     *
-     * @param message error message representing the summary of the found issue.
-     * @param level severity level of a result.
-     */
-    public HealthCheckResult(String message, String level)
-    {
-        this(message, null, level);
+        this.parameters = List.of(parameters);
     }
 
     /**
@@ -94,9 +69,9 @@ public class HealthCheckResult
      *
      * @return a suggestion for fixing the error.
      */
-    public String getRecommendation()
+    public List<?> getParameters()
     {
-        return recommendation;
+        return parameters;
     }
 
     /**
@@ -104,18 +79,8 @@ public class HealthCheckResult
      *
      * @return the severity level of an error.
      */
-    public String getLevel()
+    public HealthCheckResultLevel getLevel()
     {
         return level;
-    }
-
-    /**
-     * Get the value of a checked resource.
-     *
-     * @return the value of a checked resource.
-     */
-    public String getCurrentValue()
-    {
-        return currentValue;
     }
 }

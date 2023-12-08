@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 
 import com.xwiki.admintools.DataProvider;
@@ -57,6 +58,8 @@ public abstract class AbstractConfigurationHealthCheck implements HealthCheck
         try {
             return configurationDataProvider.getDataAsJSON();
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return new HashMap<>();
         }
     }
