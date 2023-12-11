@@ -49,14 +49,14 @@ public class ActiveEncodingHealthCheck extends AbstractSecurityHealthCheck
         if (activeEnc == null) {
             logger.warn("Active encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.notFound",
-                HealthCheckResultLevel.warn);
+                HealthCheckResultLevel.WARN);
         }
         boolean isActiveEncSafe = isSafeEncoding(activeEnc, "XWiki active");
         if (!isActiveEncSafe) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.warn",
-                HealthCheckResultLevel.warn, activeEnc);
+                HealthCheckResultLevel.WARN, activeEnc);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.active.info",
-            HealthCheckResultLevel.info);
+            HealthCheckResultLevel.INFO);
     }
 }

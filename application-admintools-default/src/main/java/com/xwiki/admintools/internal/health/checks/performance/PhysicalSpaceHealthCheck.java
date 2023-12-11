@@ -78,11 +78,11 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
 
         if (freeSpace > 16) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.info",
-                HealthCheckResultLevel.info);
+                HealthCheckResultLevel.INFO);
         }
         logger.warn("There is not enough free space for the XWiki installation! Current free space is [{}]",
             freeSpace);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.warn",
-            HealthCheckResultLevel.warn, freeSpace, diskPartition.getAbsolutePath());
+            HealthCheckResultLevel.WARN, freeSpace, diskPartition.getAbsolutePath());
     }
 }

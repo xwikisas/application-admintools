@@ -117,7 +117,7 @@ adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
 adminTools.dashboard.healthcheck.result=Health check results
-adminTools.linkLabel.strong=&lt;a href="{0}"&gt;&lt;strong&gt;help links&lt;/strong&gt;&lt;/a&gt;
+adminTools.dashboard.healthcheck.linkLabel=help links
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding

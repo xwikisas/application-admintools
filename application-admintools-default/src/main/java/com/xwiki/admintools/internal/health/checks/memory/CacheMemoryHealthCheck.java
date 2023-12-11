@@ -62,15 +62,15 @@ public class CacheMemoryHealthCheck implements HealthCheck
         if (storeCacheCapacity == null) {
             logger.warn("Store cache capacity not defined. Set by default at 500.");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.null",
-                HealthCheckResultLevel.info);
+                HealthCheckResultLevel.INFO);
         }
         int cacheCapacity = Integer.parseInt(storeCacheCapacity);
         if (cacheCapacity < 500) {
             logger.warn("Store cache capacity is set to [{}].", storeCacheCapacity);
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.low",
-                HealthCheckResultLevel.warn, cacheCapacity);
+                HealthCheckResultLevel.WARN, cacheCapacity);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.info",
-            HealthCheckResultLevel.info, cacheCapacity);
+            HealthCheckResultLevel.INFO, cacheCapacity);
     }
 }

@@ -239,7 +239,6 @@
       <content>{{template name="job_macros.vm"/}}
 
 {{velocity}}
-  #includeMacros("AdminTools.Code.HealthCheckMacros")
   {{html clean='false'}}
     #includeMacros("AdminTools.Code.HealthCheckMacros")
     #healthCheckUI()
@@ -376,7 +375,7 @@
   padding-left: 5rem;
 }
 
-.date-fields {
+.download-logs-date-fields {
   margin: 2rem 4rem;
 }
 

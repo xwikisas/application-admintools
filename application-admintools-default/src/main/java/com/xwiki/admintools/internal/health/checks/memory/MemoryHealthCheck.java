@@ -71,18 +71,18 @@ public class MemoryHealthCheck implements HealthCheck
         if (maxMemoryGB < 1) {
             logger.error("JVM memory is less than 1024MB. Currently: [{}]", maxMemoryGB * 1024);
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
-                HealthCheckResultLevel.error, (maxMemoryGB * 1024f));
+                HealthCheckResultLevel.ERROR, (maxMemoryGB * 1024f));
         }
         if (totalFreeMemory < 512) {
             logger.error("JVM instance has only [{}]MB free memory left!", totalFreeMemory);
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.error",
-                HealthCheckResultLevel.error, totalFreeMemory);
+                HealthCheckResultLevel.ERROR, totalFreeMemory);
         } else if (totalFreeMemory < 1024) {
             logger.warn("Instance memory is running low. Currently only [{}]MB free left.", totalFreeMemory);
             return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.warn",
-                HealthCheckResultLevel.warn, totalFreeMemory);
+                HealthCheckResultLevel.WARN, totalFreeMemory);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.info", HealthCheckResultLevel.info,
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.info", HealthCheckResultLevel.INFO,
             totalFreeMemory / 1024);
     }
 }

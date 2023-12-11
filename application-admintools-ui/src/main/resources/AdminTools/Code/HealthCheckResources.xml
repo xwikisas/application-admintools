@@ -57,7 +57,7 @@
   #set ($healthJobStatus = $services.job.getJobStatus($jobId))
   {{html clean=false}}
     &lt;div&gt;
-      &lt;span class="admin-tools-health-check-job-url" data-jobJSURL="${jobJSURL}"&gt;&lt;/span&gt;
+      &lt;span class="admin-tools-health-check-job-url" data-job-js-url="${jobJSURL}"&gt;&lt;/span&gt;
       #displayJobProgressBar($healthJobStatus)
     &lt;/div&gt;
   {{/html}}

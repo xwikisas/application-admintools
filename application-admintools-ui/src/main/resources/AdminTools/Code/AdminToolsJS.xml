@@ -165,7 +165,7 @@
   // resource again.
   const initialiseJobJS = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
-      var jobJSURL = $(data).find('span.admin-tools-health-check-job-url').attr('data-jobJSURL');
+      let jobJSURL = $(data).find('span.admin-tools-health-check-job-url').attr('data-job-js-url');
       require.config({
         paths: {
           'health-check-job': jobJSURL
@@ -191,8 +191,7 @@
   $(document).ready(function() {
     if ($('#healthCheck').length) {
       initialiseJobJS();
-      let jobState = $('.health-check-job-state').attr('data-jobState');
-      console.log(jobState)
+      let jobState = $('.health-check-job-state').attr('data-job-state');
       if (jobState == 'RUNNING') {
         runHealthCheckJob();
         $('#healthCheck .job-status').show();
@@ -242,9 +241,9 @@
 
   $(document).on('change', '#downloadFilesModal input[name="files"][value="logs"]', function() {
     if ($(this).is(':checked')) {
-      $('#downloadFilesModal .date-fields').show();
+      $('#downloadFilesModal .download-logs-date-fields').show();
     } else {
-      $('#downloadFilesModal .date-fields').hide();
+      $('#downloadFilesModal .download-logs-date-fields').hide();
     }
   });
 });</code>

@@ -34,10 +34,9 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
-import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
 import com.xpn.xwiki.XWikiContext;
@@ -65,17 +64,14 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     private ImportantFilesManager importantFilesManager;
 
     @Inject
-    private AuthorizationManager authorizationManager;
+    private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @Override
     public Response getFile(String hint)
     {
         // Check to see if the request was made by a user with admin rights.
-        if (!isAdmin()) {
-            logger.warn("Failed to get file from DataResource [{}] due to restricted rights.", hint);
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
         try {
+            isAdmin();
             byte[] fileContent;
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
@@ -84,6 +80,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             fileContent = importantFilesManager.getFile(hint, formParameters);
             InputStream inputStream = new ByteArrayInputStream(fileContent);
             return Response.ok(inputStream).type(MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to get file from DataResource [{}] due to restricted rights.", hint);
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (IOException e) {
             logger.warn("Error while handling file from DataResource [{}]. Root cause: [{}]", hint,
                 ExceptionUtils.getRootCauseMessage(e));
@@ -98,11 +97,8 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     @Override
     public Response getFiles()
     {
-        if (!isAdmin()) {
-            logger.warn("Failed to get files due to restricted rights.");
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
         try {
+            isAdmin();
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
@@ -110,17 +106,17 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             // Set the appropriate response headers to indicate a zip file files.
             return Response.ok(filesArchive).type("application/zip")
                 .header("Content-Disposition", "attachment; filename=AdminToolsFiles.zip").build();
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to get files due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             logger.warn("Failed to get zip archive. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
-    private boolean isAdmin()
+    private void isAdmin() throws AccessDeniedException
     {
-        XWikiContext wikiContext = xcontextProvider.get();
-        DocumentReference user = wikiContext.getUserReference();
-        WikiReference wikiReference = wikiContext.getWikiReference();
-        return this.authorizationManager.hasAccess(Right.ADMIN, user, wikiReference);
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
     }
 }

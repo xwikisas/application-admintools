@@ -54,16 +54,16 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
         if (usedDatabase == null) {
             logger.warn("Database not found!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.database.warn",
-                HealthCheckResultLevel.error);
+                HealthCheckResultLevel.ERROR);
         }
         if (currentServer.getSupportedDBs().stream()
             .anyMatch(d -> usedDatabase.toLowerCase().contains(d.toLowerCase())))
         {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.database.info",
-                HealthCheckResultLevel.info);
+                HealthCheckResultLevel.INFO);
         }
         logger.error("Used database is not supported!");
         return new HealthCheckResult("adminTools.dashboard.healthcheck.database.notSupported",
-            HealthCheckResultLevel.error, usedDatabase);
+            HealthCheckResultLevel.ERROR, usedDatabase);
     }
 }

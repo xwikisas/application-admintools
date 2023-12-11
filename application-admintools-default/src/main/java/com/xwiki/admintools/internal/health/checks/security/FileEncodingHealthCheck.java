@@ -49,14 +49,14 @@ public class FileEncodingHealthCheck extends AbstractSecurityHealthCheck
         if (fileEnc == null) {
             logger.warn("File encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.notFound",
-                HealthCheckResultLevel.warn);
+                HealthCheckResultLevel.WARN);
         }
         boolean isSafeFileEnc = isSafeEncoding(fileEnc, "System file");
         if (!isSafeFileEnc) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.warn",
-                HealthCheckResultLevel.warn, fileEnc);
+                HealthCheckResultLevel.WARN, fileEnc);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.info",
-            HealthCheckResultLevel.info);
+            HealthCheckResultLevel.INFO);
     }
 }

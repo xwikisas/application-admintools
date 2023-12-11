@@ -77,14 +77,14 @@ class HealthCheckJobTest
         healthCheckList.add(secondHealthCheck);
 
         when(listProvider.get()).thenReturn(healthCheckList);
-        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", HealthCheckResultLevel.error, "error"));
-        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", HealthCheckResultLevel.info));
+        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", HealthCheckResultLevel.ERROR, "error"));
+        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", HealthCheckResultLevel.INFO));
 
         healthCheckJob.initialize(new HealthCheckJobRequest());
         healthCheckJob.runInternal();
         HealthCheckJobStatus healthCheckJobStatus = healthCheckJob.getStatus();
         assertEquals(2, healthCheckJobStatus.getHealthCheckResults().size());
-        assertTrue(healthCheckJobStatus.hasLevel("error"));
+        assertTrue(healthCheckJobStatus.hasLevel(HealthCheckResultLevel.ERROR));
     }
 
     @Test

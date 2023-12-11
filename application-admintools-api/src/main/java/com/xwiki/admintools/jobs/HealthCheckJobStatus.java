@@ -73,11 +73,8 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
      * @param level represents the searched level of severity.
      * @return {@code true} if there is any match for the given level, or {@code false} otherwise.
      */
-    public boolean hasLevel(String level)
+    public boolean hasLevel(HealthCheckResultLevel level)
     {
-        // add a catch and return false in case of an error
-        HealthCheckResultLevel searchedLevel = HealthCheckResultLevel.valueOf(level);
-        return this.healthCheckResults.stream()
-            .anyMatch(checkResult -> Objects.equals(searchedLevel, checkResult.getLevel()));
+        return this.healthCheckResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
     }
 }

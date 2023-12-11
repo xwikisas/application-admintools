@@ -63,11 +63,11 @@ public class CPUHealthCheck implements HealthCheck
 
         if (cpuCores > 2 && maxFreq > 2048) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.info",
-                HealthCheckResultLevel.info);
+                HealthCheckResultLevel.INFO);
         }
         String cpuSpecifications = String.format("CPU cores %d - frequency %d", cpuCores, maxFreq);
         logger.warn("The CPU does not satisfy the minimum system requirements! [{}]", cpuSpecifications);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.warn",
-            HealthCheckResultLevel.warn, cpuCores, maxFreq);
+            HealthCheckResultLevel.WARN, cpuCores, maxFreq);
     }
 }

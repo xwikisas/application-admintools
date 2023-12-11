@@ -49,15 +49,15 @@ public class ConfigurationEncodingHealthCheck extends AbstractSecurityHealthChec
         if (configEnc == null) {
             logger.warn("Configuration encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.notFound",
-                HealthCheckResultLevel.warn);
+                HealthCheckResultLevel.WARN);
         }
         boolean isConfigEncSafe = isSafeEncoding(configEnc, "XWiki configuration");
 
         if (!isConfigEncSafe) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn",
-                HealthCheckResultLevel.warn, configEnc);
+                HealthCheckResultLevel.WARN, configEnc);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.info",
-            HealthCheckResultLevel.info);
+            HealthCheckResultLevel.INFO);
     }
 }

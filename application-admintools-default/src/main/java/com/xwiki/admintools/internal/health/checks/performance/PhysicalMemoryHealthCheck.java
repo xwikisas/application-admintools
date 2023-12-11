@@ -61,14 +61,14 @@ public class PhysicalMemoryHealthCheck implements HealthCheck
 
         float totalMemory = (float) hardware.getMemory().getTotal() / (1024 * 1024 * 1024);
         DecimalFormat format = new DecimalFormat("0.#");
-        String systemCapacityMessage = String.format("%s", format.format(totalMemory));
         if (totalMemory > 2) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.memory.info",
-                HealthCheckResultLevel.info);
+                HealthCheckResultLevel.INFO);
         }
+        String systemCapacityMessage = format.format(totalMemory);
         logger.warn("There is not enough memory to safely run the XWiki installation! Physical memory detected: [{}]",
             systemCapacityMessage);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.memory.warn",
-            HealthCheckResultLevel.warn, systemCapacityMessage);
+            HealthCheckResultLevel.WARN, systemCapacityMessage);
     }
 }

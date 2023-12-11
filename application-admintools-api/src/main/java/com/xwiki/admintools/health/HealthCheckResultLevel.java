@@ -22,7 +22,8 @@ package com.xwiki.admintools.health;
 import org.xwiki.stability.Unstable;
 
 /**
- * Represents the severity type of {@link HealthCheckResult}.
+ * Represents the severity type of {@link HealthCheckResult}, where "INFO" is for informative results, "WARN" for
+ * warnings and "ERROR" for critical issues.
  *
  * @version $Id$
  * @since 1.0
@@ -33,15 +34,15 @@ public enum HealthCheckResultLevel
     /**
      * Used to mark a {@link HealthCheckResult} as an error.
      */
-    error,
+    ERROR,
 
     /**
      * Used to mark a {@link HealthCheckResult} as a warning.
      */
-    warn,
+    WARN,
 
     /**
      * Used to mark a {@link HealthCheckResult} as informative.
      */
-    info
+    INFO
 }

@@ -49,14 +49,14 @@ public class LangEncodingHealthCheck extends AbstractSecurityHealthCheck
         if (langEnc == null) {
             logger.warn("Language encoding could not be detected!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.lang.notFound",
-                HealthCheckResultLevel.warn);
+                HealthCheckResultLevel.WARN);
         }
         boolean isSafeLangEnc = isSafeEncoding(langEnc.split("\\.")[1], "System language");
         if (!isSafeLangEnc) {
             return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.lang.warn",
-                HealthCheckResultLevel.warn, langEnc);
+                HealthCheckResultLevel.WARN, langEnc);
         }
         return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.lang.info",
-            HealthCheckResultLevel.info);
+            HealthCheckResultLevel.INFO);
     }
 }

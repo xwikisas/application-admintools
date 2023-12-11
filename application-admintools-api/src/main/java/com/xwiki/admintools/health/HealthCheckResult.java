@@ -24,9 +24,9 @@ import java.util.List;
 import org.xwiki.stability.Unstable;
 
 /**
- * Result of a health check. May store the error message, severity level, recommendation and the current value of the
- * checked resource. The severity level is used as "info", for informative result, "warn" for warnings and "error" for
- * critical issues.
+ * Result of a health check. Stores a custom message for the summary of the result, the severity level represented by
+ * {@link HealthCheckResultLevel}. The result may also contain a {@link List} of additional parameters used if there
+ * is need to store more information about the result.
  *
  * @version $Id$
  * @since 1.0
