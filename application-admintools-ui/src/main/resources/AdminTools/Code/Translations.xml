@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.Code.Translations" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="">
   <web>AdminTools.Code</web>
   <name>Translations</name>
   <language/>
@@ -124,8 +124,8 @@ adminTools.dashboard.section.security.title=Security
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator/>
-        <separators>|,</separators>
+        <separator> </separator>
+        <separators>|, </separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>

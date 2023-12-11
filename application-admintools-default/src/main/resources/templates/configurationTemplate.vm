@@ -23,8 +23,6 @@
   #includeMacros('AdminTools.Code.Macros')
   #if ($configuration['serverFound'] == 'true')
     <div class="adminToolsDashboardItem">
-      <h2 id="HBackend">$services.icon.renderHTML('world')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
       <hr/>
       <ul>

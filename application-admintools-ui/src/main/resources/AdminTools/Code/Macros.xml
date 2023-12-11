@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.Code.Macros" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.Macros" locale="">
   <web>AdminTools.Code</web>
   <name>Macros</name>
   <language/>
@@ -150,18 +150,6 @@
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-  &lt;/div&gt;
-#end
-#macro (tableOfContentsUI)
-  &lt;div class="adminToolsDashboardHeader"&gt;
-    &lt;h1&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.toc.title'))&lt;/h1&gt;
-    &lt;hr/&gt;
-    &lt;ul&gt;
-      &lt;li&gt;&lt;a href="#HBackend"&gt;$services.icon.renderHTML('world')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))&lt;/a&gt;&lt;/li&gt;
-      &lt;li&gt;&lt;a href="#HFiles"&gt;$services.icon.renderHTML('download')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
   &lt;/div&gt;
 #end
 {{/velocity}}</content>
