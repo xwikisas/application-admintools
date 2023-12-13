@@ -21,7 +21,6 @@ package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -97,16 +96,13 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Access a JSON containing the server metadata.
+     * Access a {@link ServletContainerPing} containing the server metadata.
      *
      * @return the server metadata.
      */
-    public Map<String, String> getServerMetadata()
+    public ServletContainerPing getServerMetadata()
     {
-        ServletContainerPing servletPing = pingProvider.getServletPing();
-        String serverName = servletPing.getName();
-        String serverVersion = servletPing.getVersion();
-        return Map.of(SERVER_NAME_KEY, serverName, SERVER_VERSION_KEY, serverVersion);
+        return pingProvider.getServletPing();
     }
 
     /**
@@ -117,7 +113,7 @@ public class CurrentServer implements Initializable
         this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
             boolean matchingHint =
-                getServerMetadata().get(SERVER_NAME_KEY).toLowerCase().contains(serverIdentifier.getComponentHint());
+                getServerMetadata().getName().toLowerCase().contains(serverIdentifier.getComponentHint());
             if (matchingHint && serverIdentifier.foundServerPath()) {
                 this.currentServerIdentifier = serverIdentifier;
                 this.currentServerIdentifier.updatePossiblePaths();

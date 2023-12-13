@@ -19,29 +19,62 @@
  */
 package com.xwiki.admintools.test.po;
 
+import org.openqa.selenium.By;
 import org.xwiki.test.ui.po.ViewPage;
 
+/**
+ * Represents actions that can be done on the AdminTools.WebHome page.
+ *
+ * @version $Id$
+ */
 public class AdminToolsHomePage extends ViewPage
 {
+    private static final String ADMIN_TOOLS_SPACE = "AdminTools";
+
+    private static final String ADMIN_TOOLS_PAGE = "WebHome";
+
+    /**
+     * Opens the home page.
+     */
     public static AdminToolsHomePage gotoPage()
     {
-        getUtil().gotoPage(getSpace(), getPage());
+        getUtil().gotoPage(ADMIN_TOOLS_SPACE, ADMIN_TOOLS_PAGE);
         return new AdminToolsHomePage();
     }
 
-    public static String getPage()
+    /**
+     * Check if the page is the same as Admin Tools WebHome.
+     */
+    public static boolean isCurrentPage(ViewPage vp)
     {
-        return "WebHome";
+        return vp.getMetaDataValue("page").equals(ADMIN_TOOLS_PAGE) && vp.getMetaDataValue("space")
+            .equals(ADMIN_TOOLS_SPACE);
     }
 
-    public static String getSpace()
+    /**
+     * Open the dashboard configuration section.
+     */
+    public static DashboardConfigurationSectionView getConfigurationSection()
     {
-        return "AdminTools";
+        gotoPage();
+        return new DashboardConfigurationSectionView();
     }
 
-    public static String getUrl()
+    /**
+     * Open the dashboard files section.
+     */
+    public static DashboardFilesSectionView getFilesSection()
     {
-        return getUtil().getURL(getSpace(), getPage());
+        gotoPage();
+        return new DashboardFilesSectionView();
+    }
+
+    /**
+     * Count the warning messages on the homepage.
+     */
+    public int countWarningMessages()
+    {
+        return getDriver().findElements(By.className("warningmessage")).size();
     }
 }
 

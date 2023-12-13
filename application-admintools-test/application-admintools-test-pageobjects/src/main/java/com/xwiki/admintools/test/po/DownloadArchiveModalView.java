@@ -22,34 +22,39 @@ package com.xwiki.admintools.test.po;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.xwiki.test.ui.po.ViewPage;
+import org.xwiki.test.ui.po.BaseModal;
 
-public class DownloadArchiveModalView extends ViewPage
+/**
+ * Represents actions that can be done on the download files archive modal.
+ *
+ * @version $Id$
+ */
+public class DownloadArchiveModalView extends BaseModal
 {
-    @FindBy(xpath = "//div[@id = 'downloadFilesModal']")
+    @FindBy(css = "div#downloadFilesModal")
     public WebElement content;
 
-    public String getModalText()
+    public DownloadArchiveModalView(By selector)
     {
-        return content.getText();
+        super(selector);
     }
 
-    public WebElement getXWikiConfigCheck()
+    public WebElement getXWikiConfigCheckbox()
     {
         return content.findElement(By.cssSelector("input[value='xwikiConfig']"));
     }
 
-    public WebElement getXWikiPropertiesCheck()
+    public WebElement getXWikiPropertiesCheckBox()
     {
         return content.findElement(By.cssSelector("input[value='xwikiProperties']"));
     }
 
-    public WebElement getProviderCheck()
+    public WebElement getProviderCheckBox()
     {
         return content.findElement(By.cssSelector("input[value='dataProvider']"));
     }
 
-    public WebElement getLogsCheck()
+    public WebElement getLogsCheckBox()
     {
         return content.findElement(By.cssSelector("input[value='logs']"));
     }
@@ -59,13 +64,13 @@ public class DownloadArchiveModalView extends ViewPage
         return content.findElement(By.className("dateFields"));
     }
 
-    public WebElement getViewButton(String id)
+    public void clickDownloadButton()
     {
-        return content.findElement(By.cssSelector(id + " .btn-primary"));
+        content.findElement(By.cssSelector("#downloadFilesModal .btn-primary")).click();
     }
 
-    public WebElement getCancelButton(String id)
+    public void clickCancelButton()
     {
-        return content.findElement(By.cssSelector(id + " .btn-default"));
+        content.findElement(By.cssSelector("#downloadFilesModal .btn-default")).click();
     }
 }

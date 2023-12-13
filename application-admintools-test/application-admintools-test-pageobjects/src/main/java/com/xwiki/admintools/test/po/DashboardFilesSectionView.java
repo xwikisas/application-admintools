@@ -19,38 +19,42 @@
  */
 package com.xwiki.admintools.test.po;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.xwiki.test.ui.po.BaseModal;
+import org.xwiki.test.ui.po.ViewPage;
 
 /**
- * Represents actions that can be done on the view last n lines of log modal.
+ * Represents actions that can be done on the files section from within the AdminTools.WebHome page dashboard.
  *
  * @version $Id$
  */
-public class LastNLinesModalView extends BaseModal
+public class DashboardFilesSectionView extends ViewPage
 {
-    @FindBy(css = "div.logs-modal-content")
-    public WebElement content;
+    @FindBy(css = ".files-section")
+    private WebElement filesContent;
 
-    private String modalId;
+    @FindBy(css = "a[href='#downloadFilesModal']")
+    private WebElement downloadFilesModalHyperlink;
 
-    public LastNLinesModalView(By selector, String modalId)
+    /**
+     * Open the download modal.
+     */
+    public DownloadArchiveModalView clickDownloadModalHyperlink()
     {
-        super(selector);
-        this.modalId = modalId;
+        downloadFilesModalHyperlink.click();
+        return new DownloadArchiveModalView(By.id("downloadFilesModal"));
     }
 
-    public void clickViewButton()
+    public void clickPropertiesHyperlink()
     {
-        WebElement viewButton = content.findElement(By.cssSelector(modalId + " .btn-primary"));
-        viewButton.click();
-        getDriver().waitUntilPageIsReloaded();
+        filesContent.findElement(By.id("filesProperties")).click();
     }
 
-    public void clickCancelButton()
+    public void clickConfigurationHyperlink()
     {
-        content.findElement(By.cssSelector(modalId + " .btn-default")).click();
+        filesContent.findElement(By.id("filesConfig")).click();
     }
 }

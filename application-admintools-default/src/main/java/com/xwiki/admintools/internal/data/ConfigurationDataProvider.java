@@ -28,13 +28,14 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
@@ -94,9 +95,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.put("serverPath", getCurrentServer().getServerPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            Map<String, String> serverMetadata = this.currentServer.getServerMetadata();
-            systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
-            systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
+            ServletContainerPing currentServerMetadata = this.currentServer.getServerMetadata();
+            systemInfo.put("usedServerName", currentServerMetadata.getName());
+            systemInfo.put("usedServerVersion", currentServerMetadata.getVersion());
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;

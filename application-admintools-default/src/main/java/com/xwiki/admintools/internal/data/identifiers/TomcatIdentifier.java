@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.StringUtils;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerIdentifier;
@@ -86,14 +87,14 @@ public class TomcatIdentifier extends AbstractServerIdentifier
     {
         this.serverPath = null;
         String providedConfigServerPath = this.adminToolsConfig.getServerPath();
-        if (providedConfigServerPath != null && !providedConfigServerPath.isEmpty()) {
+        if (!StringUtils.isEmpty(providedConfigServerPath)) {
             return checkAndSetServerPath(providedConfigServerPath);
         } else {
             String catalinaBase = System.getProperty("catalina.base");
             String catalinaHome = System.getenv("CATALINA_HOME");
-            if (catalinaBase != null && !catalinaBase.isEmpty()) {
+            if (!StringUtils.isEmpty(catalinaBase)) {
                 return checkAndSetServerPath(catalinaBase);
-            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
+            } else if (!StringUtils.isEmpty(catalinaHome)) {
                 return checkAndSetServerPath(catalinaHome);
             }
         }

@@ -37,7 +37,8 @@ import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
-import com.xwiki.admintools.test.po.AdminToolsViewPage;
+import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
+import com.xwiki.admintools.test.po.DashboardFilesSectionView;
 import com.xwiki.admintools.test.po.DownloadArchiveModalView;
 import com.xwiki.admintools.test.po.LastNLinesModalView;
 
@@ -58,10 +59,6 @@ class AdminToolsIT
 
     private static final String ADMINTOOLS_CONFIGURATION_CLASSNAME = "AdminTools.Code.ConfigurationClass";
 
-    private static final String BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID = "#configurationViewLastNLinesModal";
-
-    private static final String DOWNLOAD_FILES_MODAL_ID = "#downloadFilesModal";
-
     private static final String PASSWORD = "pass";
 
     private static boolean isSupportedServer = true;
@@ -80,12 +77,8 @@ class AdminToolsIT
         String serverType = testConfiguration.getServletEngine().name();
         if (!supportedServers.contains(serverType)) {
             isSupportedServer = false;
-            AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-            setup.gotoPage(page.getPageURL());
-            AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-            assertEquals(0, webHomePage.getDashboardElements().size());
-            List<WebElement> warningElements = webHomePage.getWarningElements();
-            assertEquals(2, warningElements.size());
+            AdminToolsHomePage adminToolsHomePage = AdminToolsHomePage.gotoPage();
+            assertEquals(2, adminToolsHomePage.countWarningMessages());
         }
 
         // By default the minimal distribution used for the tests doesn't have any rights setup. Let's create an Admin
@@ -99,10 +92,9 @@ class AdminToolsIT
     }
 
     @BeforeEach
-    void goToPage(TestUtils testUtils)
+    void goToPage()
     {
-        AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-        page.waitUntilPageIsReady();
+        AdminToolsHomePage.gotoPage();
     }
 
     @Test
@@ -110,24 +102,20 @@ class AdminToolsIT
     {
         ApplicationsPanel applicationPanel = ApplicationsPanel.gotoPage();
         ViewPage vp = applicationPanel.clickApplication("Admin Tools");
-        Assertions.assertEquals(AdminToolsHomePage.getSpace(), vp.getMetaDataValue("space"));
-        assertEquals(AdminToolsHomePage.getPage(), vp.getMetaDataValue("page"));
+        Assertions.assertTrue(
+            AdminToolsHomePage.isCurrentPage(vp));
     }
 
     @Test
     @Order(1)
     void adminToolsHomePageBackend(TestConfiguration testConfiguration)
     {
-        if (!isSupportedServer) {
-            return;
-        }
-        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-        assertEquals(2, webHomePage.getDashboardElements().size());
-        String backendText = webHomePage.getBackendText();
+        DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
+        String backendText = configurationSectionView.getText();
         assertTrue(supportedServers.stream().anyMatch(s -> backendText.toLowerCase().contains(s.toLowerCase())));
 
         String configurationDatabase = testConfiguration.getDatabase().name().toLowerCase();
-        List<WebElement> warningMessages = webHomePage.getBackendErrorMessages();
+        List<WebElement> warningMessages = configurationSectionView.getErrorMessages();
         if (supportedDatabases.stream().anyMatch(configurationDatabase::contains)) {
             assertEquals(0, warningMessages.size());
         } else {
@@ -141,43 +129,28 @@ class AdminToolsIT
     @Order(2)
     void adminToolViewLastLogLinesModal(TestUtils testUtils)
     {
-        if (!isSupportedServer) {
-            return;
-        }
-        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-        WebElement viewLastLogsHyperlink = webHomePage.getBackendLogsHyperlink();
-        viewLastLogsHyperlink.click();
-        LastNLinesModalView lastLinesModalView = new LastNLinesModalView();
-        lastLinesModalView.waitUntilPageIsReady();
+        DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
+        LastNLinesModalView lastLogsModal = configurationSectionView.clickViewLastLogsModal();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
-        lastLinesModalView.clickButton(BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID);
+        lastLogsModal.clickViewButton();
         switchToNewTab(testUtils, mainWindowHandle);
         testUtils.getDriver().switchTo().window(mainWindowHandle);
-        WebElement cancelButton = lastLinesModalView.getCancelButton(BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID);
-        cancelButton.click();
-        lastLinesModalView = new LastNLinesModalView();
-        assertTrue(lastLinesModalView.getModalText().isEmpty());
+        lastLogsModal.clickCancelButton();
+        assertFalse(lastLogsModal.isDisplayed());
     }
 
     @Test
     @Order(3)
     void adminToolsHomePageFiles(TestUtils testUtils)
     {
-        if (!isSupportedServer) {
-            return;
-        }
         excludeContent(testUtils, excludedLines);
-        AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-        page.waitUntilPageIsReady();
-        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-        WebElement propertiesHyperlink = webHomePage.getPropertiesHyperlink();
-        WebElement configurationHyperlink = webHomePage.getConfigurationHyperlink();
 
+        DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
+        filesSectionView.clickPropertiesHyperlink();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
-        propertiesHyperlink.click();
         checkXWikiFileOpen(testUtils, mainWindowHandle);
 
-        configurationHyperlink.click();
+        filesSectionView.clickConfigurationHyperlink();
         checkXWikiFileOpen(testUtils, mainWindowHandle);
     }
 
@@ -185,18 +158,13 @@ class AdminToolsIT
     @Order(4)
     void adminToolDownloadArchiveModal()
     {
-        if (!isSupportedServer) {
-            return;
-        }
-        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-        webHomePage.waitUntilPageIsReady();
-        WebElement archiveDownloadHyperlink = webHomePage.getFilesArchiveHyperlink();
-        archiveDownloadHyperlink.click();
-        DownloadArchiveModalView archiveModalView = new DownloadArchiveModalView();
-        WebElement configCheck = archiveModalView.getXWikiConfigCheck();
-        WebElement propertiesCheck = archiveModalView.getXWikiPropertiesCheck();
-        WebElement providerCheck = archiveModalView.getProviderCheck();
-        WebElement logsCheck = archiveModalView.getLogsCheck();
+        DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
+
+        DownloadArchiveModalView archiveModalView = filesSectionView.clickDownloadModalHyperlink();
+        WebElement configCheck = archiveModalView.getXWikiConfigCheckbox();
+        WebElement propertiesCheck = archiveModalView.getXWikiPropertiesCheckBox();
+        WebElement providerCheck = archiveModalView.getProviderCheckBox();
+        WebElement logsCheck = archiveModalView.getLogsCheckBox();
         WebElement dateFilters = archiveModalView.getDateFilters();
 
         assertTrue(configCheck.isSelected());
@@ -210,48 +178,32 @@ class AdminToolsIT
         configCheck.click();
         assertFalse(configCheck.isSelected());
 
-        WebElement downloadButton = archiveModalView.getViewButton(DOWNLOAD_FILES_MODAL_ID);
-        WebElement cancelButton = archiveModalView.getCancelButton(DOWNLOAD_FILES_MODAL_ID);
+        archiveModalView.clickDownloadButton();
+        assertFalse(archiveModalView.isDisplayed());
 
-        downloadButton.click();
-        archiveModalView = new DownloadArchiveModalView();
-        assertTrue(archiveModalView.getModalText().isEmpty());
-
-        archiveDownloadHyperlink.click();
-        assertFalse(archiveModalView.getModalText().isEmpty());
-        cancelButton.click();
-        archiveModalView = new DownloadArchiveModalView();
-        assertTrue(archiveModalView.getModalText().isEmpty());
+        archiveModalView = filesSectionView.clickDownloadModalHyperlink();
+        archiveModalView.clickCancelButton();
+        assertFalse(archiveModalView.isDisplayed());
     }
 
     @Test
     @Order(5)
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
-        if (!isSupportedServer) {
-            return;
-        }
         testUtils.login(USER_NAME, PASSWORD);
-        AdminToolsHomePage page = AdminToolsHomePage.gotoPage();
-        page.waitUntilPageIsReady();
-        AdminToolsViewPage webHomePage = new AdminToolsViewPage();
-        WebElement propertiesHyperlink = webHomePage.getPropertiesHyperlink();
-        WebElement configurationHyperlink = webHomePage.getConfigurationHyperlink();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
 
         // Click the anchor, switch tabs to the new page and check the content. After this, close the new tab and
         // change focus to the main page.
-        propertiesHyperlink.click();
+        DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
+        filesSectionView.clickPropertiesHyperlink();
         checkTabOpenForNonAdmin(testUtils, mainWindowHandle);
 
-        configurationHyperlink.click();
+        filesSectionView.clickConfigurationHyperlink();
         checkTabOpenForNonAdmin(testUtils, mainWindowHandle);
 
-        WebElement archiveDownloadHyperlink = webHomePage.getFilesArchiveHyperlink();
-        archiveDownloadHyperlink.click();
-        DownloadArchiveModalView archiveModalView = new DownloadArchiveModalView();
-        WebElement downloadButton = archiveModalView.getViewButton(DOWNLOAD_FILES_MODAL_ID);
-        downloadButton.click();
+        DownloadArchiveModalView archiveModalView = filesSectionView.clickDownloadModalHyperlink();
+        archiveModalView.clickDownloadButton();
         testUtils.getDriver().waitUntilPageIsReloaded();
         WebElement tabContent = testUtils.getDriver().findElement(By.tagName("body"));
         assertTrue(tabContent.getText().contains("Unauthorized"));

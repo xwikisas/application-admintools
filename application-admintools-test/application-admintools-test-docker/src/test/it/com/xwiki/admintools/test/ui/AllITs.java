@@ -21,15 +21,18 @@ package com.xwiki.admintools.test.ui;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.database.Database;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 
 /**
- * All UI tests for the Poll application.
+ * All UI tests for the Admin Tools application.
  *
  * @version $Id$
- * @since 2.2
  */
 @UITest
+@ExtendWith(AdminToolsExecutionCondition.class)
 class AllITs
 {
     @Nested
