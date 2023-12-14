@@ -20,8 +20,6 @@
 package com.xwiki.admintools.test.ui;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -45,16 +43,11 @@ public class AdminToolsExecutionCondition implements ExecutionCondition
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context)
     {
         if (DockerTestUtils.isInAContainer()) {
-            List<ServletEngine> filteredServletEngines =
-                Stream.of(ServletEngine.values()).filter(engine -> !supportedServers.contains(engine))
-                    .collect(Collectors.toList());
             TestConfiguration configuration = DockerTestUtils.getTestConfiguration(context);
-            for (ServletEngine servletEngine : filteredServletEngines) {
-                if (servletEngine.equals(configuration.getServletEngine())) {
-                    return ConditionEvaluationResult.disabled(String.format("Servlet engine [%s] is forbidden "
-                            + "when the PDF export tests are executed inside a Docker container, skipping.",
-                        configuration.getServletEngine()));
-                }
+            if (!supportedServers.contains(configuration.getServletEngine())) {
+                return ConditionEvaluationResult.disabled(String.format("Servlet engine [%s] is forbidden "
+                        + "when the PDF export tests are executed inside a Docker container, skipping.",
+                    configuration.getServletEngine()));
             }
         }
 

@@ -43,15 +43,6 @@ public class AdminToolsHomePage extends ViewPage
     }
 
     /**
-     * Check if the page is the same as Admin Tools WebHome.
-     */
-    public static boolean isCurrentPage(ViewPage vp)
-    {
-        return vp.getMetaDataValue("page").equals(ADMIN_TOOLS_PAGE) && vp.getMetaDataValue("space")
-            .equals(ADMIN_TOOLS_SPACE);
-    }
-
-    /**
      * Open the dashboard configuration section.
      */
     public static DashboardConfigurationSectionView getConfigurationSection()
@@ -67,14 +58,6 @@ public class AdminToolsHomePage extends ViewPage
     {
         gotoPage();
         return new DashboardFilesSectionView();
-    }
-
-    /**
-     * Count the warning messages on the homepage.
-     */
-    public int countWarningMessages()
-    {
-        return getDriver().findElements(By.className("warningmessage")).size();
     }
 }
 

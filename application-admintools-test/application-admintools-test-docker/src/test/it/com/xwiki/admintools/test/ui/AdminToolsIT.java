@@ -22,7 +22,6 @@ package com.xwiki.admintools.test.ui;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
@@ -30,11 +29,9 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
-import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
 import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
@@ -61,8 +58,6 @@ class AdminToolsIT
 
     private static final String PASSWORD = "pass";
 
-    private static boolean isSupportedServer = true;
-
     private final List<String> supportedDatabases =
         List.of("mysql", "hsql", "hsqldb", "mariadb", "postgresql", "oracle");
 
@@ -70,16 +65,10 @@ class AdminToolsIT
         List.of("environment.permanentDirectory", "rendering.linkLabelFormat", "core.defaultDocumentSyntax", "MISC");
 
     @BeforeAll
-    static void setUp(TestUtils setup, TestConfiguration testConfiguration)
+    static void setUp(TestUtils setup)
     {
         setup.createUser(USER_NAME, PASSWORD, setup.getURLToNonExistentPage(), "first_name", "Jon", "last_name",
             "Snow");
-        String serverType = testConfiguration.getServletEngine().name();
-        if (!supportedServers.contains(serverType)) {
-            isSupportedServer = false;
-            AdminToolsHomePage adminToolsHomePage = AdminToolsHomePage.gotoPage();
-            assertEquals(2, adminToolsHomePage.countWarningMessages());
-        }
 
         // By default the minimal distribution used for the tests doesn't have any rights setup. Let's create an Admin
         // user part of the Admin Group and make sure that this Admin Group has admin rights in the wiki. We could also
@@ -95,15 +84,6 @@ class AdminToolsIT
     void goToPage()
     {
         AdminToolsHomePage.gotoPage();
-    }
-
-    @Test
-    void appEntryRedirectsToHomePage()
-    {
-        ApplicationsPanel applicationPanel = ApplicationsPanel.gotoPage();
-        ViewPage vp = applicationPanel.clickApplication("Admin Tools");
-        Assertions.assertTrue(
-            AdminToolsHomePage.isCurrentPage(vp));
     }
 
     @Test

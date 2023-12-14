@@ -35,14 +35,11 @@ public class DashboardConfigurationSectionView extends ViewPage
 {
     private static final String BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID = "#configurationViewLastNLinesModal";
 
-    @FindBy(xpath = "//a[@data-target = '#configurationViewLastNLinesModal']")
+    @FindBy(css = "a[data-target='#configurationViewLastNLinesModal']")
     public WebElement backendLogsHyperlink;
 
     @FindBy(css = ".backend-section")
     public WebElement backendContent;
-
-    @FindBy(css = ".warningmessage")
-    public List<WebElement> warningElements;
 
     public String getText()
     {

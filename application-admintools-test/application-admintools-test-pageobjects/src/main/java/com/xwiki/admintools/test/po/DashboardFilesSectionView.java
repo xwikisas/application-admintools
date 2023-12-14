@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.test.po;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -40,7 +38,7 @@ public class DashboardFilesSectionView extends ViewPage
     private WebElement downloadFilesModalHyperlink;
 
     /**
-     * Open the download modal.
+     * Open the download files archive modal.
      */
     public DownloadArchiveModalView clickDownloadModalHyperlink()
     {
@@ -48,11 +46,17 @@ public class DashboardFilesSectionView extends ViewPage
         return new DownloadArchiveModalView(By.id("downloadFilesModal"));
     }
 
+    /**
+     * Navigate and click the link for viewing XWiki properties file.
+     */
     public void clickPropertiesHyperlink()
     {
         filesContent.findElement(By.id("filesProperties")).click();
     }
 
+    /**
+     * Navigate and click the link for viewing XWiki configuration file.
+     */
     public void clickConfigurationHyperlink()
     {
         filesContent.findElement(By.id("filesConfig")).click();
