@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.ApplicationsPanelEntry" locale="">
+<xwikidoc version="1.4" reference="AdminTools.Code.ApplicationsPanelEntry" locale="">
   <web>AdminTools.Code</web>
   <name>ApplicationsPanelEntry</name>
   <language/>
