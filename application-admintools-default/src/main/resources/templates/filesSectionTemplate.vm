@@ -23,7 +23,7 @@
   #includeMacros("AdminTools.Code.Macros")
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
-    <div class="adminToolsDashboardItem">
+    <div class="admin-tools-dashboard-item files-section">
       <h2>$services.icon.renderHTML('download')
         $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))</h2>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.download.description'))</p>
@@ -37,13 +37,13 @@
           $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.description'))
           <ul>
             <li>
-              <a href="$adminToolsFilesPath/xwikiConfig"
+              <a id="filesConfig" href="$adminToolsFilesPath/xwikiConfig"
               target="_blank">
                 $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.configuration'))
               </a>
             </li>
             <li>
-              <a href="$adminToolsFilesPath/xwikiProperties"
+              <a id="filesProperties" href="$adminToolsFilesPath/xwikiProperties"
               target="_blank">
                 $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.properties'))
               </a>

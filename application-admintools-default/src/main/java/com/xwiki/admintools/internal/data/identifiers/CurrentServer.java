@@ -20,19 +20,19 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -43,10 +43,17 @@ import com.xwiki.admintools.ServerIdentifier;
 @Singleton
 public class CurrentServer implements Initializable
 {
+    private static final String SERVER_NAME_KEY = "name";
+
+    private static final String SERVER_VERSION_KEY = "version";
+
     @Inject
     private Provider<List<ServerIdentifier>> supportedServers;
 
     private ServerIdentifier currentServerIdentifier;
+
+    @Inject
+    private PingProvider pingProvider;
 
     @Override
     public void initialize() throws InitializationException
@@ -65,19 +72,13 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Get a {@link Map} with the supported databases.
+     * Get a {@link List} with the supported databases.
      *
      * @return the supported databases.
      */
-    public Map<String, String> getSupportedDBs()
+    public List<String> getSupportedDBs()
     {
-        Map<String, String> supportedDBs = new HashMap<>();
-        supportedDBs.put("mysql", "MySQL");
-        supportedDBs.put("hsqldb", "HSQLDB");
-        supportedDBs.put("mariadb", "MariaDB");
-        supportedDBs.put("postgresql", "PostgreSQL");
-        supportedDBs.put("oracle", "Oracle");
-        return supportedDBs;
+        return List.of("MySQL", "HSQL", "MariaDB", "PostgreSQL", "Oracle");
     }
 
     /**
@@ -95,13 +96,25 @@ public class CurrentServer implements Initializable
     }
 
     /**
+     * Access a {@link ServletContainerPing} containing the server metadata.
+     *
+     * @return the server metadata.
+     */
+    public ServletContainerPing getServerMetadata()
+    {
+        return pingProvider.getServletPing();
+    }
+
+    /**
      * Go through all supported servers and return the one that is used.
      */
     public void updateCurrentServer()
     {
         this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed()) {
+            boolean matchingHint =
+                getServerMetadata().getName().toLowerCase().contains(serverIdentifier.getComponentHint());
+            if (matchingHint && serverIdentifier.foundServerPath()) {
                 this.currentServerIdentifier = serverIdentifier;
                 this.currentServerIdentifier.updatePossiblePaths();
                 break;

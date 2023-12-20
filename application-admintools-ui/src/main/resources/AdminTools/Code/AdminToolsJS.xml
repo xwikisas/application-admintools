@@ -134,6 +134,7 @@
     const link = document.createElement('a');
     link.href = downloadForm.attr('action') + '?' + downloadForm.serialize();
     link.click();
+    $(event.currentTarget).closest('.modal').modal('toggle');
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',

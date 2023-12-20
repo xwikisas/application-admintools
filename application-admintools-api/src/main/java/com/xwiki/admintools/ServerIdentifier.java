@@ -19,15 +19,14 @@
  */
 package com.xwiki.admintools;
 
-import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.xwiki.component.annotation.Role;
-
-import java.util.regex.Pattern;
 
 /**
  * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
  * files.
+ *
  * @version $Id$
  */
 @Role
@@ -40,7 +39,7 @@ public interface ServerIdentifier
      *
      * @return {@code true} if the server is used, {@code false} otherwise.
      */
-    boolean isUsed();
+    boolean foundServerPath();
 
     /**
      * Extract the hint of a component.
@@ -67,13 +66,6 @@ public interface ServerIdentifier
      * Update the possible paths to the configuration files.
      */
     void updatePossiblePaths();
-
-    /**
-     * Access a JSON containing the server metadata.
-     *
-     * @return the server metadata.
-     */
-    Map<String, String> getServerMetadata();
 
     /**
      * Get path to server.
