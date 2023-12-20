@@ -44,6 +44,7 @@ AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server locati
 adminTools.home.title=Admin Tools
 admin.admintools.description=Configure Admin Tools Application
 adminTools.extension.name=Admin Tools Application (Pro)
+adminTools.extension.title=Admin Tools
 
 ## Modals
 adminTools.dashboard.download.modal.button=Download
