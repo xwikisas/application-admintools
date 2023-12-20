@@ -172,7 +172,7 @@
       <name>platform.panels.adminToolsApplication</name>
     </property>
     <property>
-      <parameters>label=#if ($hasAdmin) $services.localization.render('adminTools.home.title') #end
+      <parameters>label=#if ($hasAdmin)$services.localization.render('adminTools.extension.title')#end
 target=AdminTools.WebHome
 icon=icon:cog</parameters>
     </property>
