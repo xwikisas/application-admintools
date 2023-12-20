@@ -22,6 +22,7 @@ package com.xwiki.admintools.test.ui;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
@@ -29,9 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
 import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
@@ -88,6 +91,15 @@ class AdminToolsIT
 
     @Test
     @Order(1)
+    void appEntryRedirectsToHomePage()
+    {
+        ApplicationsPanel applicationPanel = ApplicationsPanel.gotoPage();
+        ViewPage vp = applicationPanel.clickApplication("Admin Tools");
+        Assertions.assertTrue(AdminToolsHomePage.isCurrentPage(vp));
+    }
+
+    @Test
+    @Order(2)
     void adminToolsHomePageBackend(TestConfiguration testConfiguration)
     {
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
@@ -106,7 +118,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     void adminToolViewLastLogLinesModal(TestUtils testUtils)
     {
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
@@ -120,7 +132,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void adminToolsHomePageFiles(TestUtils testUtils)
     {
         excludeContent(testUtils, excludedLines);
@@ -135,7 +147,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void adminToolDownloadArchiveModal()
     {
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
@@ -167,7 +179,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
         testUtils.login(USER_NAME, PASSWORD);

@@ -59,5 +59,15 @@ public class AdminToolsHomePage extends ViewPage
         gotoPage();
         return new DashboardFilesSectionView();
     }
+
+    /**
+     * Check if the page is the same as Admin Tools WebHome.
+     */
+    public static boolean isCurrentPage(ViewPage vp)
+    {
+        return vp.getMetaDataValue("page").equals(ADMIN_TOOLS_PAGE) && vp.getMetaDataValue("space")
+            .equals(ADMIN_TOOLS_SPACE);
+    }
+
 }
 
