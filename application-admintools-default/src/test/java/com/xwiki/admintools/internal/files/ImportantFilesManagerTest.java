@@ -20,22 +20,22 @@
 package com.xwiki.admintools.internal.files;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 
-import javax.inject.Provider;
+import javax.inject.Named;
 import javax.script.ScriptContext;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -49,12 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,15 +60,14 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class ImportantFilesManagerTest
+class ImportantFilesManagerTest
 {
     private final String templatePath = "filesSectionTemplate.vm";
 
+    private final Map<String, String[]> params = Map.of("input", new String[] { "good_input" });
+
     @InjectMockComponents
     private ImportantFilesManager importantFilesManager;
-
-    @MockComponent
-    private Provider<List<DataResource>> dataResources;
 
     @MockComponent
     private DataResource archiverDataResource;
@@ -92,33 +87,33 @@ public class ImportantFilesManagerTest
     @MockComponent
     private ServerIdentifier serverIdentifier;
 
+    @MockComponent
+    @Named("context")
+    private ComponentManager contextComponentManager;
+
     @Mock
     private ScriptContext scriptContext;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
-    private final Map<String, String[]> params = Map.of("input", new String[]{"good_input"});
+    @BeforeEach
+    void setUp() throws Exception
+    {
+        when(archiverDataResource.getByteData(params)).thenReturn(new byte[] { 2 });
+        when(contextComponentManager.getInstance(DataResource.class, "data_resource_identifier")).thenReturn(
+            archiverDataResource);
+    }
 
     @Test
     void getFile() throws Exception
     {
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        when(archiverDataResource.getByteData(params)).thenReturn(new byte[] { 2 });
-
         assertArrayEquals(new byte[] { 2 }, importantFilesManager.getFile("data_resource_identifier", params));
     }
 
     @Test
-    void getFileResourceNotFound()
+    void getFileResourceNotFound() throws Exception
     {
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         Exception exception = assertThrows(Exception.class, () -> {
             importantFilesManager.getFile("data_resource_identifier_invalid", params);
         });
@@ -129,10 +124,6 @@ public class ImportantFilesManagerTest
     @Test
     void getFileDataResourceError() throws Exception
     {
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
         when(archiverDataResource.getByteData(params)).thenThrow(new IOException("IO Error"));
         Exception exception = assertThrows(Exception.class, () -> {
             importantFilesManager.getFile("data_resource_identifier", params);
@@ -152,13 +143,8 @@ public class ImportantFilesManagerTest
         filters.put("from", new String[] { "" });
         filters.put("to", new String[] { "" });
 
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        dataResourceList.add(archiverLogsDataResource);
-
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        when(archiverLogsDataResource.getIdentifier()).thenReturn(LogsDataResource.HINT);
+        when(contextComponentManager.getInstance(DataResource.class, LogsDataResource.HINT)).thenReturn(
+            archiverLogsDataResource);
 
         importantFilesManager.getFilesArchive(request);
         verify(archiverDataResource).addZipEntry(any(ZipOutputStream.class), any());
@@ -171,32 +157,22 @@ public class ImportantFilesManagerTest
         String[] files = { "data_resource_identifier_invalid", LogsDataResource.HINT };
         Map<String, String[]> request = new HashMap<>();
         request.put("files", files);
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
 
         importantFilesManager.getFilesArchive(request);
         verify(archiverDataResource, never()).addZipEntry(any(ZipOutputStream.class), any());
     }
 
     @Test
-    void downloadMultipleFilesInvalidRequest()
+    void downloadMultipleFilesInvalidRequest() throws Exception
     {
-        String[] files = { "data_resource_identifier", LogsDataResource.HINT };
+        String[] files = { "invalid_hint1", "invalid_hint2" };
         Map<String, String[]> request = new HashMap<>();
         request.put("files", files);
-        List<DataResource> dataResourceList = new ArrayList<>();
-        dataResourceList.add(archiverDataResource);
-        dataResourceList.add(archiverLogsDataResource);
-
-        when(dataResources.get()).thenReturn(dataResourceList);
-        when(archiverDataResource.getIdentifier()).thenReturn("data_resource_identifier");
-        Exception exception = assertThrows(Exception.class, () -> {
-            importantFilesManager.getFilesArchive(request);
-        });
-
-        assertEquals("Error while generating the files archive.", exception.getMessage());
+        when(contextComponentManager.getInstance(DataResource.class, LogsDataResource.HINT)).thenReturn(
+            archiverLogsDataResource);
+        importantFilesManager.getFilesArchive(request);
+        verify(archiverDataResource, never()).addZipEntry(any(ZipOutputStream.class), any());
+        verify(archiverLogsDataResource, never()).addZipEntry(any(ZipOutputStream.class), any());
     }
 
     @Test
@@ -215,8 +191,6 @@ public class ImportantFilesManagerTest
     @Test
     void renderTemplateWithRenderingError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
@@ -225,7 +199,7 @@ public class ImportantFilesManagerTest
 
         assertNull(importantFilesManager.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn("Failed to render [{}] template. Root cause is: [{}]", "filesSectionTemplate.vm",
-            "Exception: Render failed.");
+        assertEquals("Failed to render [filesSectionTemplate.vm] template. Root cause is: [Exception: Render failed.]",
+            logCapture.getMessage(0));
     }
 }

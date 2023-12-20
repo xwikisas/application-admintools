@@ -19,14 +19,16 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -56,6 +58,10 @@ public class AdminToolsManager
     @Inject
     private ImportantFilesManager importantFilesManager;
 
+    @Inject
+    @Named("context")
+    private ComponentManager contextComponentManager;
+
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
      *
@@ -78,14 +84,10 @@ public class AdminToolsManager
      * @param hint {@link String} represents the data provider identifier.
      * @return a {@link String} representing a template
      */
-    public String generateData(String hint)
+    public String generateData(String hint) throws ComponentLookupException
     {
-        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.getRenderedData();
-            }
-        }
-        return null;
+        DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+        return dataProvider.getRenderedData();
     }
 
     /**
@@ -95,7 +97,7 @@ public class AdminToolsManager
      */
     public List<String> getSupportedDBs()
     {
-        return new ArrayList<>(this.currentServer.getSupportedDBs().values());
+        return this.currentServer.getSupportedDBs();
     }
 
     /**

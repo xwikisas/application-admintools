@@ -29,7 +29,6 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +38,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class DefaultAdminToolsConfigurationTest
+class DefaultAdminToolsConfigurationTest
 {
     @InjectMockComponents
     private DefaultAdminToolsConfiguration defaultAdminToolsConfiguration;

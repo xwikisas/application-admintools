@@ -44,15 +44,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class AdminToolsEventListenerTest
+class AdminToolsEventListenerTest
 {
     private final List<String> SPACE = Arrays.asList("AdminTools", "Code");
 
-    @Mock
-    private XWikiDocument xWikiDocument;
-
     @InjectMockComponents
     private AdminToolsEventListener adminToolsEventListener;
+
+    @Mock
+    private XWikiDocument xWikiDocument;
 
     @MockComponent
     private WikiDescriptorManager wikiDescriptorManager;

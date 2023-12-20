@@ -29,9 +29,10 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -53,22 +54,22 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class DataProvidersDataResourceTest
+class DataProvidersDataResourceTest
 {
-    @Mock
-    ZipOutputStream zipOutputStream;
-
     @InjectMockComponents
     private DataProvidersDataResource dataProviderResource;
+
+    @Mock
+    private ZipOutputStream zipOutputStream;
 
     @MockComponent
     private Provider<List<DataProvider>> dataProviders;
 
-    @Mock
-    private Logger logger;
-
     @MockComponent
     private DataProvider dataProvider;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeEach
     void setUp()
@@ -104,7 +105,8 @@ public class DataProvidersDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);
         });
-        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.", exception.getMessage());
+        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.",
+            exception.getMessage());
     }
 
     @Test
@@ -126,14 +128,12 @@ public class DataProvidersDataResourceTest
     @Test
     void addZipEntryGetByteDataError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(dataProviderResource, "logger", this.logger);
-
-        when(dataProvider.getDataAsJSON()).thenThrow(new Exception("ERROR AT GET DATA AS JASON."));
+        when(dataProvider.getDataAsJSON()).thenThrow(new Exception("ERROR AT GET DATA AS JSON."));
         dataProviderResource.addZipEntry(zipOutputStream, null);
 
         verify(zipOutputStream, never()).write(any(), eq(0), eq(0));
-        verify(logger).warn("Could not add gathered configuration to the archive. Root cause is: [{}]",
-            "Exception: ERROR AT GET DATA AS JASON.");
+        assertEquals(
+            "Could not add gathered configuration to the archive. Root cause is: [Exception: ERROR AT GET DATA AS JSON.]",
+            logCapture.getMessage(0));
     }
 }
