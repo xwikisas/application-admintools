@@ -53,13 +53,13 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class DataProvidersDataResourceTest
+class DataProvidersDataResourceTest
 {
-    @Mock
-    ZipOutputStream zipOutputStream;
-
     @InjectMockComponents
     private DataProvidersDataResource dataProviderResource;
+
+    @Mock
+    private ZipOutputStream zipOutputStream;
 
     @MockComponent
     private Provider<List<DataProvider>> dataProviders;
@@ -104,7 +104,8 @@ public class DataProvidersDataResourceTest
         Exception exception = assertThrows(Exception.class, () -> {
             this.dataProviderResource.getByteData(null);
         });
-        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.", exception.getMessage());
+        assertEquals("Error while getting JSON data for [data_provider_identifier] DataProvider.",
+            exception.getMessage());
     }
 
     @Test
