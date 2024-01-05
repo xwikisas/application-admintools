@@ -42,8 +42,8 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -58,11 +58,14 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class ConfigurationDataProviderTest
+class ConfigurationDataProviderTest
 {
-    static Map<String, String> defaultJson;
+    private static Map<String, String> defaultJson;
 
     private final String templatePath = "configurationTemplate.vm";
+
+    @InjectMockComponents
+    private ConfigurationDataProvider configurationDataProvider;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -72,9 +75,6 @@ public class ConfigurationDataProviderTest
 
     @Mock
     private XWiki wiki;
-
-    @InjectMockComponents
-    private ConfigurationDataProvider configurationDataProvider;
 
     @MockComponent
     private CurrentServer currentServer;

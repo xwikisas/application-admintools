@@ -19,14 +19,18 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.activeinstalls2.internal.PingDataProvider;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
+import org.xwiki.activeinstalls2.internal.data.ExtensionPing;
 import org.xwiki.activeinstalls2.internal.data.Ping;
 import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
+import org.xwiki.activeinstalls2.internal.data.UsersPing;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -48,6 +52,14 @@ public class PingProvider implements Initializable
     @Named("servlet")
     private PingDataProvider servletPingDataProvider;
 
+    @Inject
+    @Named("extensions")
+    private PingDataProvider extensionsPingDataProvider;
+
+    @Inject
+    @Named("users")
+    private PingDataProvider usersPingDataProvider;
+
     private Ping ping;
 
     /**
@@ -58,7 +70,7 @@ public class PingProvider implements Initializable
     @Override
     public void initialize() throws InitializationException
     {
-        ping = new Ping();
+        this.ping = new Ping();
     }
 
     /**
@@ -81,5 +93,27 @@ public class PingProvider implements Initializable
     {
         servletPingDataProvider.provideData(ping);
         return ping.getServletContainer();
+    }
+
+    /**
+     * Initialize and get {@link ExtensionPing}.
+     *
+     * @return {@link Collection<ExtensionPing>} containing info about the existing extensions.
+     */
+    public Collection<ExtensionPing> getExtensionPing()
+    {
+        extensionsPingDataProvider.provideData(ping);
+        return ping.getExtensions();
+    }
+
+    /**
+     * Initialize and get {@link UsersPing}.
+     *
+     * @return {@link UsersPing} containing info about the number of users in the XWiki instance.
+     */
+    public UsersPing getUsersPing()
+    {
+        usersPingDataProvider.provideData(ping);
+        return ping.getUsers();
     }
 }

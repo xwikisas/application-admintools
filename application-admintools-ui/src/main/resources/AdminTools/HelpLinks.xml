@@ -1,0 +1,95 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.HelpLinks" locale="">
+  <web>AdminTools</web>
+  <name>HelpLinks</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Help links</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{box cssClass="floatinginfobox" title="**Contents**"}}
+{{toc/}}
+{{/box}}
+
+{{velocity}}
+= {{translation key="adminTools.helpPage.performance.title" /}} =
+
+* [[{{translation key="adminTools.helpPage.performance.hardware" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HSizing||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.performance.memory" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HMemory||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.performance.cache" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Performances/#HDocumentCache
+||target="_blank"]]
+
+= {{translation key="adminTools.helpPage.server.title" /}} =
+
+* [[{{translation key="adminTools.helpPage.server.security" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Configuration/Encoding/
+||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.server.supported" /}}
+&gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/ServletContainerSupportStrategy/
+||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.server.tomcat" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationTomcat/#HRecommendations
+||target="_blank"]]
+
+= {{translation key="adminTools.helpPage.database.title" /}} =
+
+* [[{{translation key="adminTools.helpPage.database.supported" /}}
+&gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/DatabaseSupportStrategy||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.database.instructions" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/#HSpecificdatabasesinstructions
+||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.database.mysql.install" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HInstallationSteps
+||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.database.mysql.troubleshoot" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HTroubleshooting
+||target="_blank"]]
+
+= {{translation key="adminTools.helpPage.other.title" /}} =
+== {{translation key="adminTools.helpPage.java.title" /}} ==
+
+* [[{{translation key="adminTools.helpPage.java.memory" /}}
+&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationTomcat/#HGeneralMemorySettings
+||target="_blank"]]
+* [[{{translation key="adminTools.helpPage.java.support" /}}
+&gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/JavaSupportStrategy/||target="_blank"]]
+
+== {{translation key="adminTools.helpPage.browser.title" /}} ==
+
+* [[{{translation key="adminTools.helpPage.browser.support" /}}
+&gt;&gt;https://dev.xwiki.org/xwiki/bin/view/Community/SupportStrategy/BrowserSupportStrategy||target="_blank"]]
+{{/velocity}}
+</content>
+</xwikidoc>

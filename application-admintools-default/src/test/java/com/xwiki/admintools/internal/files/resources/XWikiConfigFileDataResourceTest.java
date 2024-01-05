@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class XWikiConfigFileDataResourceTest
+class XWikiConfigFileDataResourceTest
 {
     @InjectMockComponents
     private XWikiConfigFileDataResource configFileDataResource;
@@ -194,8 +194,7 @@ public class XWikiConfigFileDataResourceTest
         configFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
         verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.cfg",
-            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or "
-                + "directory)");
+            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or " + "directory)");
     }
 
     private byte[] readLines() throws IOException
