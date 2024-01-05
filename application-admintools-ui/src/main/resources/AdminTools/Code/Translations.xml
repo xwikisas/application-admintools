@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.Code.Translations" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="">
   <web>AdminTools.Code</web>
   <name>Translations</name>
   <language/>
@@ -45,59 +45,137 @@ admin.admintools.description=Configure Admin Tools Application
 adminTools.extension.name=Admin Tools Application (Pro)
 adminTools.extension.title=Admin Tools
 
+## Dashboard sections
+## Config
+adminTools.dashboard.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
+adminTools.dashboard.backend.description=Get info about your backend
+adminTools.dashboard.backend.java=Detected java version
+adminTools.dashboard.backend.os.architecture=OS architecture
+adminTools.dashboard.backend.os.legend=OS info
+adminTools.dashboard.backend.os.name=OS name
+adminTools.dashboard.backend.os.version=OS version
+adminTools.dashboard.backend.supportedDB.error=Database not found. Currently supported databases
+adminTools.dashboard.backend.supportedServers.error=Currently supported servers
+adminTools.dashboard.backend.title=Backend
+adminTools.dashboard.backend.usedDB=Used database
+adminTools.dashboard.backend.usedServer=Used server
+adminTools.dashboard.backend.xwiki.version=XWiki installation version
+
+## Files
+adminTools.dashboard.download.description=Get the files you need. View them directly in the browser or download them as an archive.
+adminTools.dashboard.download.label=Export files needed for getting support
+adminTools.dashboard.download.title=Files
+adminTools.dashboard.download.view.configuration=XWiki configuration file
+adminTools.dashboard.download.view.description=View files content
+adminTools.dashboard.download.view.properties=XWiki properties file
+adminTools.dashboard.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
+
+## Health check
+adminTools.dashboard.healthcheck.database.info=Database status OK.
+adminTools.dashboard.healthcheck.database.warn=Database not found!
+adminTools.dashboard.healthcheck.database.notSupported=Used database is not supported!
+adminTools.dashboard.healthcheck.database.recommendation=The used database is currently not supported by XWiki. Check the help links to find the database compatibility requirements.
+adminTools.dashboard.healthcheck.description=Check if your instance is configured correctly and is properly running. For any issues, check out this {0}help links{1}.
+adminTools.dashboard.healthcheck.java.info=Java status OK.
+adminTools.dashboard.healthcheck.java.warn=Java version not found!
+adminTools.dashboard.healthcheck.java.warn.recommendation=Java version could not be found! Please make sure you correctly installed and configured the paths for your Java installation. For further help, consult the help links.
+adminTools.dashboard.healthcheck.java.error=Java version is not compatible with the current XWiki installation!
+adminTools.dashboard.healthcheck.java.error.recommendation=The current version of Java that you are using it is not compatible with the XWiki installation version. Please check the help links to view the compatibility.
+adminTools.dashboard.healthcheck.memory.cache.info=Document cache status OK.
+adminTools.dashboard.healthcheck.memory.cache.null=Document cache capacity currently set at 500.
+adminTools.dashboard.healthcheck.memory.cache.null.recommendation=Document store cache capacity was not confiugred and is set by default to 500. See cache recommendations in help links above.
+adminTools.dashboard.healthcheck.memory.cache.low=Document cache capacity is set to a low value. See cache recommendations in the help links page.
+adminTools.dashboard.healthcheck.memory.free.error=Your JVM instance has less than 512MB of free memory left.
+adminTools.dashboard.healthcheck.memory.free.warn=Your instance memory is running low.
+adminTools.dashboard.healthcheck.memory.info=Memory status OK.
+adminTools.dashboard.healthcheck.memory.maxcapacity.error=JVM memory is less than 1024MB.
+adminTools.dashboard.healthcheck.memory.recommendation=Allocate more resources to you JVM! Check the help links for further help.
+adminTools.dashboard.healthcheck.os.info=OS info retrieval OK.
+adminTools.dashboard.healthcheck.os.warn=There has been an error while gathering OS info!
+adminTools.dashboard.healthcheck.performance.cpu.warn=The CPU does not satisfy the minimum system requirements!
+adminTools.dashboard.healthcheck.performance.cpu.recommendation=The CPU should have a minimum of 2 Cores, 2800MHz frequency and 2048KB cache size. View the help page for more details.
+adminTools.dashboard.healthcheck.performance.cpu.info=CPU performance OK.
+adminTools.dashboard.healthcheck.performance.info=System performance OK.
+adminTools.dashboard.healthcheck.performance.memory.warn=There is not enough memory to safely run the XWiki installation!
+adminTools.dashboard.healthcheck.performance.memory.info=System memory capacity OK.
+adminTools.dashboard.healthcheck.performance.memory.recommendation=It is recommended to have at least 2GB of RAM to run XWiki.
+adminTools.dashboard.healthcheck.performance.space.warn=There is not enough free space for the XWiki installation!
+adminTools.dashboard.healthcheck.performance.space.recommendation=There should be at least 16GB of free system space.
+adminTools.dashboard.healthcheck.performance.space.info=The system has enough free space for the XWiki installation.
+adminTools.dashboard.healthcheck.security.system.info=System encoding OK.
+adminTools.dashboard.healthcheck.security.system.file.warn=System file encoding is NOT UTF-8!
+adminTools.dashboard.healthcheck.security.system.file.info=System file encoding is set to UTF-8.
+adminTools.dashboard.healthcheck.security.system.file.notFound=File encoding could not be detected!
+adminTools.dashboard.healthcheck.security.system.lang.warn=System language encoding is NOT UTF-8!
+adminTools.dashboard.healthcheck.security.system.lang.info=System language encoding is set to UTF-8.
+adminTools.dashboard.healthcheck.security.system.lang.notFound=Language encoding could not be detected!
+adminTools.dashboard.healthcheck.security.system.recommendation=System encoding should be set to UTF-8! Please consult the help links page to get further instructions of how to configure the system encoding.
+adminTools.dashboard.healthcheck.security.xwiki.info=XWiki encoding OK.
+adminTools.dashboard.healthcheck.security.xwiki.active.warn=XWiki active encoding is NOT UTF-8!
+adminTools.dashboard.healthcheck.security.xwiki.active.info=XWiki active encoding is set to UTF-8.
+adminTools.dashboard.healthcheck.security.xwiki.active.notFound=Active encoding could not be detected!
+adminTools.dashboard.healthcheck.security.xwiki.config.warn=XWiki configuration encoding is NOT UTF-8!
+adminTools.dashboard.healthcheck.security.xwiki.config.info=XWiki configuration encoding is set to UTF-8.
+adminTools.dashboard.healthcheck.security.xwiki.config.notFound=Configuration encoding could not be detected!
+adminTools.dashboard.healthcheck.title=Health check
+adminTools.dashboard.healthcheck.time=Time since the last health check
+adminTools.dashboard.healthcheck.start=Start health check
+adminTools.dashboard.healthcheck.currentValue=Current value:
+adminTools.job.notFound=Health check job status not found
+adminTools.dashboard.healthcheck.message.success=No issue found!
+adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
+adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
+adminTools.dashboard.healthcheck.result=Health check results
+
+## Security
+adminTools.dashboard.security.activeEncoding=Active encoding
+adminTools.dashboard.security.configurationEncoding=Configuration encoding
+adminTools.dashboard.security.description=See an overview of your security information.
+adminTools.dashboard.security.error=Error while gathering security information.
+adminTools.dashboard.security.fileEncoding=File encoding
+adminTools.dashboard.security.lang=Used language
+adminTools.dashboard.security.pwd=Working directory
+adminTools.dashboard.security.title=Security
+
+
+##Help links
+adminTools.helpPage.browser.support=Browser support
+adminTools.helpPage.browser.title=Browser
+adminTools.helpPage.database.instructions=Specific databases instructions
+adminTools.helpPage.database.mysql.install=MySQL installation guide
+adminTools.helpPage.database.mysql.troubleshoot=MySQL troubleshoot
+adminTools.helpPage.database.supported=Supported databases
+adminTools.helpPage.database.title=Database issues
+adminTools.helpPage.java.memory=Java memory
+adminTools.helpPage.java.support=Java support
+adminTools.helpPage.java.title=Java
+adminTools.helpPage.other.title=Other issues
+adminTools.helpPage.performance.cache=Cache recommendations
+adminTools.helpPage.performance.hardware=Hardware requirements
+adminTools.helpPage.performance.memory=Memory recommendations
+adminTools.helpPage.performance.title=Performance issues
+adminTools.helpPage.server.security=Security configuration
+adminTools.helpPage.server.supported=Supported servers
+adminTools.helpPage.server.title=Server issues
+adminTools.helpPage.server.tomcat=Tomcat recommendations
+
+
 ## Modals
 adminTools.dashboard.download.modal.button=Download
 adminTools.dashboard.download.modal.date.from=From
 adminTools.dashboard.download.modal.date.to=To
+adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
+adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
+adminTools.dashboard.download.modal.logs.title=Logs
 adminTools.dashboard.download.modal.provided=Configuration info
 adminTools.dashboard.download.modal.title=Get support files
 adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
 adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
-adminTools.dashboard.download.modal.logs.title=Logs
-adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
-adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
-adminTools.dashboard.logs.modal.submit=View
-adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
-adminTools.dashboard.logs.modal.title=Show last n lines of log
 adminTools.dashboard.logs.modal.nLines.hint=The maximum number of lines is 50000, since the complete logs can also be downloaded. If no value is defined, 1000 will be used as a default value.
-adminTools.dashboard.showLogs=View last n lines of log...
-
-## Dashboard sections
-## Config
-adminTools.dashboard.section.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
-adminTools.dashboard.section.backend.description=Get info about your backend
-adminTools.dashboard.section.backend.java=Detected java version
-adminTools.dashboard.section.backend.os.architecture=OS architecture
-adminTools.dashboard.section.backend.os.legend=OS info
-adminTools.dashboard.section.backend.os.name=OS name
-adminTools.dashboard.section.backend.os.version=OS version
-adminTools.dashboard.section.backend.supportedDB.error=Database not found. Currently supported databases
-adminTools.dashboard.section.backend.supportedServers.error=Currently supported servers
-adminTools.dashboard.section.backend.title=Backend
-adminTools.dashboard.section.backend.usedDB=Used database
-adminTools.dashboard.section.backend.usedServer=Used server
-adminTools.dashboard.section.backend.xwiki.version=XWiki installation version
-
-## Files
-adminTools.dashboard.section.download.description=Get the files you need. View them directly in the browser or download them as an archive.
-adminTools.dashboard.section.download.label=Export files needed for getting support
-adminTools.dashboard.section.download.title=Files
-adminTools.dashboard.section.download.view.configuration=XWiki configuration file
-adminTools.dashboard.section.download.view.description=View files content
-adminTools.dashboard.section.download.view.properties=XWiki properties file
-adminTools.dashboard.section.download.warning=Before downloading and sending the files, please make sure you introduced the lines that may contain sensitive info in Admin Tools configuration page!
-
-## Security
-adminTools.dashboard.section.security.activeEncoding=Active encoding
-adminTools.dashboard.section.security.configurationEncoding=Configuration encoding
-adminTools.dashboard.section.security.description=See an overview of your security information.
-adminTools.dashboard.section.security.error=Error while gathering security information.
-adminTools.dashboard.section.security.fileEncoding=File encoding
-adminTools.dashboard.section.security.lang=Used language
-adminTools.dashboard.section.security.pwd=Working directory
-adminTools.dashboard.section.security.title=Security
-
-  </content>
+adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
+adminTools.dashboard.logs.modal.submit=View
+adminTools.dashboard.logs.modal.title=Show last n lines of log
+adminTools.dashboard.showLogs=View last n lines of log...</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
@@ -123,8 +201,8 @@ adminTools.dashboard.section.security.title=Security
         <number>1</number>
         <prettyName>Scope</prettyName>
         <relationalStorage>0</relationalStorage>
-        <separator/>
-        <separators>|,</separators>
+        <separator> </separator>
+        <separators>|, </separators>
         <size>1</size>
         <unmodifiable>0</unmodifiable>
         <values>GLOBAL|WIKI|USER|ON_DEMAND</values>

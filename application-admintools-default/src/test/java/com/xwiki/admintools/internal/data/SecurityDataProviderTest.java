@@ -54,17 +54,17 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class SecurityDataProviderTest
+class SecurityDataProviderTest
 {
-    static Map<String, String> defaultJson;
+    private static Map<String, String> defaultJson;
 
     private final String templatePath = "securityTemplate.vm";
 
-    @MockComponent
-    private Provider<XWikiContext> xcontextProvider;
-
     @InjectMockComponents
     private SecurityDataProvider securityDataProvider;
+
+    @MockComponent
+    private Provider<XWikiContext> xcontextProvider;
 
     @MockComponent
     @Named("xwikicfg")

@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.WebHome" locale="">
+<xwikidoc version="1.5" reference="AdminTools.WebHome" locale="">
   <web>AdminTools</web>
   <name>WebHome</name>
   <language/>
@@ -184,6 +184,76 @@
   </object>
   <object>
     <name>AdminTools.WebHome</name>
+    <number>3</number>
+    <className>XWiki.GadgetClass</className>
+    <guid>7ac72ccf-e4d2-474f-b279-ae650ac57a58</guid>
+    <class>
+      <name>XWiki.GadgetClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <content>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>content</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>content</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <position>
+        <disabled>0</disabled>
+        <name>position</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>position</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </position>
+      <title>
+        <disabled>0</disabled>
+        <name>title</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>title</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </title>
+    </class>
+    <property>
+      <content>{{template name="job_macros.vm"/}}
+
+{{velocity}}
+  #includeMacros("AdminTools.Code.HealthCheckMacros")
+  {{html clean='false'}}
+    #healthCheckUI()
+  {{/html}}
+{{/velocity}}</content>
+    </property>
+    <property>
+      <position>1, 2</position>
+    </property>
+    <property>
+      <title/>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.WebHome</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>52539531-ed11-4f41-b6a4-f6125adc2287</guid>
@@ -309,8 +379,19 @@
   margin: 2rem 4rem;
 }
 
+/* Make sure the date picker is always on top */
 .bootstrap-datetimepicker-widget {
   z-index: 99999 !important;
+}
+
+.healthCheckWrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.healthCheckWrapper button {
+  margin-top: 2rem;
 }</code>
     </property>
     <property>
