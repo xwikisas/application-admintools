@@ -1,0 +1,175 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.HealthCheckMacros" locale="">
+  <web>AdminTools.Code</web>
+  <name>HealthCheckMacros</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>HealthCheckMacros</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output='false'}}
+#macro (getHealthCheckJobStatusJSON $status $json)
+  #set ($results = [])
+  #foreach ($result in $status.getHealthCheckResults())
+    #set ($discard = $results.add({
+      'level': $result.getLevel(),
+      'renderedMessage': "#printResult($result)"
+    }))
+  #end
+  #set ($json = $NULL)
+  #setVariable("$json" {
+    'id': $status.request.id,
+    'state': $status.state,
+    'progress': {
+      'offset': $status.progress.offset
+    },
+    'log': {
+      'offset': 0,
+      'items': $results
+    }
+  })
+#end
+
+#macro (healthCheckOutputJobStatus $jobStatus)
+  #getHealthCheckJobStatusJSON($jobStatus, $json, $translationPrefix)
+  #set ($json.message = "#healthCheckJobFinishedMessage($jobStatus)")
+  $response.setContentType('application/json')
+  $jsontool.serialize($json)
+#end
+
+#macro (healthCheckJobFinishedMessage $status)
+  #if ($status.error)
+    #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
+    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
+    #set($messageClass = 'errormessage')
+  #elseif ($status.hasErrorLevel('error'))
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.error')))
+    #set($messageClass = 'errormessage')
+  #elseif ($status.hasErrorLevel('warn'))
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.warning')))
+    #set($messageClass = 'warningmessage')
+  #else
+    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.success')))
+    #set($messageClass = 'successmessage')
+  #end
+  &lt;div class="box $messageClass"&gt;
+    $healthCheckReportMessage
+  &lt;/div&gt;
+#end
+
+#macro (printResult $healthCheckResult)
+  &lt;div style="cursor: pointer;"&gt;$escapetool.xml($services.localization.render($healthCheckResult.getMessage()))
+  #if ($healthCheckResult.getCurrentValue()) $escapetool.xml($services.localization.render(
+    'adminTools.dashboard.healthcheck.currentValue')) $healthCheckResult.getCurrentValue()#end&lt;/div&gt;
+  #if($healthCheckResult.getRecommendation())
+      &lt;div class="recommendation" style="cursor: pointer;"&gt;
+    $escapetool.xml($services.localization.render($healthCheckResult.getRecommendation()))&lt;/div&gt;
+  #end
+#end
+
+#macro (printHealthCheckResults $status)
+  #if ($status.state != 'FINISHED')
+    #set($loading = true)
+  #end
+  #set($healthCheckResults = $status.getHealthCheckResults())
+  &lt;ul class="log"&gt;
+  #foreach ($healthCheckResult in $healthCheckResults)
+    #set ($resultLevel = $healthCheckResult.getLevel())
+    ## Display the last result item as loading if the associated task is not finished.
+    &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
+      #printResult($healthCheckResult)
+    &lt;/li&gt;
+  #end
+  &lt;/ul&gt;
+#end
+
+#macro (displayHealthCheckResults $status $collapsed)
+  &lt;dl class="xform"&gt;
+    &lt;dt&gt;
+      &lt;label class="collapse-toggle#if ($collapsed || $status.state == 'WAITING') collapsed#end"
+          data-target-xpath="parent::*/following-sibling::*"&gt;
+        &lt;span class="icon-closed"&gt;$services.icon.renderHTML('caret-right')&lt;/span&gt;
+        &lt;span class="icon-opened"&gt;$services.icon.renderHTML('caret-down')&lt;/span&gt;
+        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.result'))
+      &lt;/label&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;#printHealthCheckResults($status)&lt;/dd&gt;
+  &lt;/dl&gt;
+#end
+
+#macro (healthCheckUI)
+  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  #set ($jobId = $services.admintools.getHealthCheckJobId())
+  #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
+    'jobId': $jobId,
+    'outputSyntax': 'plain'
+  })))
+  #set ($healthJobStatus = $services.job.getJobStatus($jobId))
+  #set ($solutionLink = $xwiki.getURL('AdminTools.HelpLinks'))
+  #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
+    '__STARTLINK__',
+    '__ENDLINK__'
+  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
+    &lt;/strong&gt;&lt;/a&gt;'))
+  &lt;span class="healthCheckJobState"
+    data-jobState="${healthJobStatus.state}"&gt;
+  &lt;/span&gt;
+  &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
+    &lt;h2&gt;$services.icon.renderHTML('bug')
+      $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
+    &lt;p&gt;$description&lt;/p&gt;
+    &lt;hr/&gt;
+    &lt;div class="healthCheckWrapper"&gt;
+      &lt;div class="healthCheckLastCheck"&gt;
+        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time')):
+          $services.date.displayTimeAgo($healthJobStatus.getEndDate())
+      &lt;/div&gt;
+      &lt;div class="buttonwrapper"&gt;
+        &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
+          value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
+            'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
+      #if ($healthJobStatus.state != 'FINISHED')
+        #displayJobProgressBar($healthJobStatus)
+      #else
+        #healthCheckJobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+      #end
+      #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $isAdmin)
+        #displayHealthCheckResults($healthJobStatus true)
+      #end
+    &lt;/div&gt;
+  &lt;/div&gt;
+#end
+{{/velocity}}</content>
+</xwikidoc>

@@ -19,21 +19,23 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 
 /**
- * Manages the data providers.
+ * Manages the data that needs to be used by the Admin Tools application.
  *
  * @version $Id$
  */
@@ -55,6 +57,13 @@ public class AdminToolsManager
 
     @Inject
     private ImportantFilesManager importantFilesManager;
+
+    @Inject
+    private InstanceUsage instanceUsage;
+
+    @Inject
+    @Named("context")
+    private ComponentManager contextComponentManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -78,14 +87,14 @@ public class AdminToolsManager
      * @param hint {@link String} represents the data provider identifier.
      * @return a {@link String} representing a template
      */
-    public String generateData(String hint)
+    public String generateData(String hint) throws ComponentLookupException
     {
-        for (DataProvider dataProvider : this.dataProviderProvider.get()) {
-            if (dataProvider.getIdentifier().equals(hint)) {
-                return dataProvider.getRenderedData();
-            }
+        try {
+            DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+            return dataProvider.getRenderedData();
+        } catch (ComponentLookupException e) {
+            throw e;
         }
-        return null;
     }
 
     /**
@@ -95,7 +104,7 @@ public class AdminToolsManager
      */
     public List<String> getSupportedDBs()
     {
-        return new ArrayList<>(this.currentServer.getSupportedDBs().values());
+        return this.currentServer.getSupportedDBs();
     }
 
     /**
@@ -116,5 +125,15 @@ public class AdminToolsManager
     public String getFilesSection()
     {
         return this.importantFilesManager.renderTemplate();
+    }
+
+    /**
+     * Get the rendered template for viewing info about the size of the XWiki instance.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getInstanceSizeTemplate()
+    {
+        return instanceUsage.renderTemplate();
     }
 }

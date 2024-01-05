@@ -21,19 +21,20 @@ package com.xwiki.admintools.internal.files;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 
@@ -54,7 +55,8 @@ public class ImportantFilesManager
     private static final String REQUESTED_FILES_KEY = "files";
 
     @Inject
-    private Provider<List<DataResource>> dataResources;
+    @Named("context")
+    private ComponentManager contextComponentManager;
 
     @Inject
     private TemplateManager templateManager;
@@ -141,13 +143,8 @@ public class ImportantFilesManager
         }
     }
 
-    private DataResource findDataResource(String hint)
+    private DataResource findDataResource(String hint) throws ComponentLookupException
     {
-        for (DataResource archiverDataResource : dataResources.get()) {
-            if (archiverDataResource.getIdentifier().equals(hint)) {
-                return archiverDataResource;
-            }
-        }
-        return null;
+        return contextComponentManager.getInstance(DataResource.class, hint);
     }
 }

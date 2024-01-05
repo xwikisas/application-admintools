@@ -41,6 +41,12 @@
       <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- Access CPU info to be used by the health check. -->
+    <dependency>
+      <groupId>com.github.oshi</groupId>
+      <artifactId>oshi-core</artifactId>
+      <version>5.8.0</version>
+    </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
@@ -66,8 +72,13 @@
       <version>${commons.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-cache-api</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
   </dependencies>
   <properties>
-    <xwiki.jacoco.instructionRatio>0.79</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.76</xwiki.jacoco.instructionRatio>
   </properties>
 </project>

@@ -1,0 +1,67 @@
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  #if($found == 'true')
+    <div class="adminToolsDashboardItem">
+      <h2>$services.icon.renderHTML('drive')
+        $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))</h2>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
+      <hr/>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
+        [$numberOfExtensions]))</p>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
+        [$totalNumberOfUsers]))</p>
+      <div class="wikisSizeInfoList">
+        #if ($wikisInfo.size() != 0)
+          <ul>
+            #foreach($wiki in $wikisInfo)
+              #set($attachmentsSize = $wiki.getAttachmentSize())
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name'))
+                  <strong>$wiki.getWikiName()</strong></li>
+                <ul>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users'))
+                    $wiki.getNumberOfUsers()</li>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents'))
+                    $wiki.getNumberOfDocuments()</li>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments'))
+                    $wiki.getNumberOfAttachments() ($attachmentsSize)</li>
+                </ul>
+            #end
+          </ul>
+        #else
+          #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
+        #end
+      </div>
+    </div>
+  #else
+    #set($warningMessage =
+        $escapetool.xml($services.localization.render('adminTools.dashboard.backend.configuration.error'))+ '<br>')
+    #set($warningMessage = $warningMessage +
+      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.supportedServers.error')) + ': '
+      + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+    #warning($warningMessage)
+  #end
+#else
+  #includeMacros('Licenses.Code.VelocityMacros')
+  {{error}}
+    #getMissingLicenseMessage('adminTools.extension.name')
+  {{/error}}
+#end
