@@ -34,12 +34,14 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
 import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -55,6 +57,9 @@ import com.xwiki.admintools.rest.AdminToolsResource;
 @Singleton
 public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
+    @Inject
+    private ContextualLocalizationManager localization;
+
     @Inject
     private Logger logger;
 
@@ -112,6 +117,25 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
                 .header("Content-Disposition", "attachment; filename=AdminToolsFiles.zip").build();
         } catch (Exception e) {
             logger.warn("Failed to get zip archive. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response flushCache()
+    {
+        if (!isAdmin()) {
+            logger.warn("Failed to execute flush action due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
+        try {
+            XWikiContext wikiContext = xcontextProvider.get();
+            XWiki wiki = wikiContext.getWiki();
+            wiki.flushCache(wikiContext);
+            return Response.ok(localization.getTranslationPlain("adminTools.dashboard.healthcheck.flushCache.success"))
+                .type(MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (Exception e) {
+            logger.warn("Failed to flush wiki cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
