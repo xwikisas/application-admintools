@@ -48,11 +48,7 @@ public class MemoryHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "MEMORY_HEALTH_CHECK";
-
-    private static final String MB_UNIT = "MB";
-
-    private static final String ERROR_LEVEL = "error";
+    public static final String HINT = "memoryPhysical";
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;

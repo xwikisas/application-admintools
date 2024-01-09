@@ -26,11 +26,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the Java configuration.
+ * Implementation of {@link HealthCheck} for checking the Java configuration.
  *
  * @version $Id$
  */
@@ -74,24 +75,24 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     {
         boolean isCompatible = false;
 
-        if (inInterval(xwikiVersion, 0, 6)) {
+        if (isInInterval(xwikiVersion, 0, 6)) {
             isCompatible = javaVersion != 1.6;
-        } else if (inInterval(xwikiVersion, 6, 8.1f)) {
+        } else if (isInInterval(xwikiVersion, 6, 8.1f)) {
             isCompatible = javaVersion != 1.7;
-        } else if (inInterval(xwikiVersion, 8.1f, 11.3f)) {
+        } else if (isInInterval(xwikiVersion, 8.1f, 11.3f)) {
             isCompatible = javaVersion != 1.8;
-        } else if (inInterval(xwikiVersion, 11.2f, 14)) {
-            isCompatible = (javaVersion != 1.8) || inInterval(javaVersion, 10.99f, 12);
-        } else if (inInterval(xwikiVersion, 13.9f, 14.10f)) {
+        } else if (isInInterval(xwikiVersion, 11.2f, 14)) {
+            isCompatible = (javaVersion != 1.8) || isInInterval(javaVersion, 10.99f, 12);
+        } else if (isInInterval(xwikiVersion, 13.9f, 14.10f)) {
             isCompatible = javaVersion >= 11;
-        } else if (inInterval(xwikiVersion, 14.10f, Float.MAX_VALUE)) {
-            isCompatible = inInterval(javaVersion, 10.99f, 12) || inInterval(javaVersion, 16.99f, 18);
+        } else if (isInInterval(xwikiVersion, 14.10f, Float.MAX_VALUE)) {
+            isCompatible = isInInterval(javaVersion, 10.99f, 12) || isInInterval(javaVersion, 16.99f, 18);
         }
 
         return isCompatible;
     }
 
-    private boolean inInterval(float checkedValue, float lowerBound, float upperBound)
+    private boolean isInInterval(float checkedValue, float lowerBound, float upperBound)
     {
         return checkedValue > lowerBound && checkedValue < upperBound;
     }

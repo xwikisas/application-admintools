@@ -25,12 +25,13 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the database configuration.
+ * Implementation of {@link HealthCheck} for checking the database configuration.
  *
  * @version $Id$
  */

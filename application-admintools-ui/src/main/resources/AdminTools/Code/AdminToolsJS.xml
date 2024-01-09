@@ -221,7 +221,7 @@
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
-                 function(event) {
+    function(event) {
     event.preventDefault();
     const modal = $(event.currentTarget).closest('.modal');
     const downloadForm = modal.find('form');

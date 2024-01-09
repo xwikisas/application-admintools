@@ -33,7 +33,7 @@ import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 /**
- * {@link HealthCheck} implementations to simplify the code for configuration related health checks.
+ * Base class for configuration related health checks.
  *
  * @version $Id$
  */

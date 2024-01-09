@@ -35,7 +35,7 @@ import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 /**
- * {@link HealthCheck} implementations to simplify the code for security related health checks.
+ * Base class for security related health checks.
  *
  * @version $Id$
  */

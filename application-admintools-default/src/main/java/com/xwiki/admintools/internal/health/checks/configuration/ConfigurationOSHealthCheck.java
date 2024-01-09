@@ -26,11 +26,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the OS configuration.
+ * Implementation of {@link HealthCheck} for checking the OS configuration.
  *
  * @version $Id$
  */

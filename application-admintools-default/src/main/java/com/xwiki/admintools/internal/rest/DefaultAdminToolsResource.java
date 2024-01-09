@@ -71,7 +71,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     {
         // Check to see if the request was made by a user with admin rights.
         try {
-            isAdmin();
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
             byte[] fileContent;
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
@@ -98,7 +98,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     public Response getFiles()
     {
         try {
-            isAdmin();
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
             XWikiContext wikiContext = xcontextProvider.get();
             XWikiRequest xWikiRequest = wikiContext.getRequest();
             Map<String, String[]> formParameters = xWikiRequest.getParameterMap();
@@ -113,10 +113,5 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             logger.warn("Failed to get zip archive. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    private void isAdmin() throws AccessDeniedException
-    {
-        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
     }
 }

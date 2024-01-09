@@ -73,7 +73,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public String getConfigurationData() throws AccessDeniedException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.generateData();
     }
 
@@ -85,7 +85,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public String getConfigurationData(String hint) throws AccessDeniedException, ComponentLookupException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.generateData(hint);
     }
 
@@ -96,7 +96,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public List<String> getSupportedDatabases() throws AccessDeniedException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.getSupportedDBs();
     }
 
@@ -107,7 +107,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public List<String> getSupportedServers() throws AccessDeniedException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.getSupportedServers();
     }
 
@@ -118,7 +118,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public String getFilesSection() throws AccessDeniedException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.getFilesSection();
     }
 
@@ -130,7 +130,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     public Job runHealthChecks() throws Exception
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         List<String> requestId = this.getHealthCheckJobId();
         Job job = this.jobExecutor.getJob(requestId);
         if (job == null) {
@@ -148,13 +148,8 @@ public class AdminToolsScriptService implements ScriptService
      */
     public List<String> getHealthCheckJobId() throws AccessDeniedException
     {
-        isAdmin();
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         String currentWiki = modelContext.getCurrentEntityReference().extractReference(EntityType.WIKI).getName();
         return List.of("adminTools", "healthCheck", currentWiki);
-    }
-
-    private void isAdmin() throws AccessDeniedException
-    {
-        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
     }
 }

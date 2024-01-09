@@ -24,11 +24,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
- * Extension of {@link AbstractSecurityHealthCheck} for checking XWiki active encoding.
+ * Implementation of {@link HealthCheck} for checking XWiki active encoding.
  *
  * @version $Id$
  */

@@ -44,9 +44,7 @@ public class CacheMemoryHealthCheck implements HealthCheck
     /**
      * Component identifier.
      */
-    public static final String HINT = "CACHE_MEMORY_HEALTH_CHECK";
-
-    private static final String INFO_LEVEL = "info";
+    public static final String HINT = "memoryCache";
 
     @Inject
     @Named("xwikicfg")
