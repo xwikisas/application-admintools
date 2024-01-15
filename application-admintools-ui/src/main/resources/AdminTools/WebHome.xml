@@ -238,9 +238,10 @@
     <property>
       <content>{{template name="job_macros.vm"/}}
 
+{{include reference="AdminTools.Code.HealthCheckMacros" /}}
+
 {{velocity}}
   {{html clean='false'}}
-    #includeMacros("AdminTools.Code.HealthCheckMacros")
     #healthCheckUI()
   {{/html}}
 {{/velocity}}</content>

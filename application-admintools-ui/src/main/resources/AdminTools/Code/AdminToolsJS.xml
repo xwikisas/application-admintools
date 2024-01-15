@@ -165,7 +165,7 @@
   // resource again.
   const initialiseJobJS = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
-      let jobJSURL = $(data).find('span.admin-tools-health-check-job-url').attr('data-job-js-url');
+      let jobJSURL = $(data).closest('div.admin-tools-health-check-progress').attr('data-job-js-url');
       require.config({
         paths: {
           'health-check-job': jobJSURL
