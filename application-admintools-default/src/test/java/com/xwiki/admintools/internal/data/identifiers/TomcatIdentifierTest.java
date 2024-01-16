@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class TomcatIdentifierTest
+class TomcatIdentifierTest
 {
     @InjectMockComponents
     private TomcatIdentifier tomcatIdentifier;

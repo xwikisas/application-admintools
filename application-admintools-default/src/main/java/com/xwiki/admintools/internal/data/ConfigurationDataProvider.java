@@ -78,6 +78,8 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo = getDataAsJSON();
             systemInfo.put(SERVER_FOUND, "true");
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             systemInfo.put(SERVER_FOUND, "false");
         }
         return renderTemplate(TEMPLATE_NAME, systemInfo, HINT);
@@ -102,8 +104,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
         } catch (Exception e) {
-            logger.warn("Failed to generate the instance configuration data. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance configuration data.", e);
         }
     }

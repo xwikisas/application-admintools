@@ -21,12 +21,11 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #includeMacros("AdminTools.Code.Macros")
-  #viewLastNLinesMoldal("configuration")
   #if ($configuration['serverFound'] == 'true')
     <div class="admin-tools-dashboard-item backend-section">
       <h2>$services.icon.renderHTML('world')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))</h2>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))</h2>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>
       <hr/>
       <ul>
         <li>
@@ -47,7 +46,7 @@
           $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.usedServer',
             [$configuration.usedServerName, $configuration.usedServerVersion]))
         </li>
-        <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.legend'))
+        <li>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.os.legend'))
           <ul>
             <li>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.os.name',
               $configuration.osName))</li>
@@ -76,6 +75,7 @@
         #end
       </ul>
     </div>
+    #viewLastNLinesMoldal("configuration")
   #else
     #set($warningMessage =
       $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error',

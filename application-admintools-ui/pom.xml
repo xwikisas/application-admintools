@@ -103,6 +103,7 @@
         <configuration>
           <contentPages>
             <contentPage>.*/AdminTools/WebHome\.xml</contentPage>
+            <contentPage>.*/AdminTools/HelpLinks\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>

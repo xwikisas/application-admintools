@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.Code.Macros" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.Macros" locale="">
   <web>AdminTools.Code</web>
   <name>Macros</name>
   <language/>
@@ -122,7 +122,7 @@
                   &lt;/label&gt;
                 &lt;/dt&gt;
                 &lt;dt&gt;
-                  &lt;div class="dateFields"&gt;
+                  &lt;div class="download-logs-date-fields"&gt;
                     #set ($defaultDateFormat = 'dd-MM-yyyy')
                     #set ($dateFormat = $xwiki.getXWikiPreference('dateformat', $defaultDateFormat))
                     &lt;label for="downloadFilesModalFromDate"&gt;$escapetool.xml($services.localization.render(

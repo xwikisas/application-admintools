@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="AdminTools.Code.AdminToolsJS" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.AdminToolsJS" locale="">
   <web>AdminTools.Code</web>
   <name>AdminToolsJS</name>
   <language/>
@@ -125,7 +125,90 @@
       <cache>default</cache>
     </property>
     <property>
-      <code>require(['jquery'], function($) {
+      <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
+  const getHealthCheckActionPageURL = function() {
+    let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
+    return new XWiki.Document(documentReference).getURL('get');
+  };
+
+  const runHealthCheckJob = function() {
+    $('#healthCheckJobStart').prop('disabled', true);
+    var data = [];
+    data.push(
+      {name: 'outputSyntax', value: 'plain'},
+      {name: 'sheet', value: 'wiki:AdminTools.Code.HealthCheckResources'},
+      {name: 'action', value: 'healthCheck'},
+      {name: 'form_token', value: xwikiMeta.form_token}
+    );
+    return Promise.resolve(new JobRunner({
+      createStatusRequest: function(jobId) {
+        return {
+          url: getHealthCheckActionPageURL(),
+          data: {
+            outputSyntax: 'plain',
+            sheet: 'AdminTools.Code.HealthCheckResources',
+            data: 'jobStatus',
+            jobId: jobId.join('/')
+          }
+        };
+      }
+    }).run(getHealthCheckActionPageURL(), data)).catch((reason) =&gt; {
+      return Promise.reject(reason);
+    }).finally(() =&gt; {
+      $('#healthCheckJobStart').prop('disabled', false);
+    });
+  };
+
+  // Need to call job.js only after the job has started its execution and the result message has been changed for
+  // the progress bar. Otherwise, job.js won't see .ui-progress and will not initialize and run a new JobRunner
+  // with the requested configuration. To make sure the job .ui-progress is seen, we need to undefine and request the
+  // resource again.
+  const initialiseJobJS = function() {
+    $.get(getHealthCheckActionPageURL(), function(data) {
+      let jobJSURL = $(data).closest('div.admin-tools-health-check-progress').attr('data-job-js-url');
+      require.config({
+        paths: {
+          'health-check-job': jobJSURL
+        }
+      });
+      require(['health-check-job'], function(){});
+    });
+  };
+
+  const reinitializeJobJS = function() {
+    require.undef('health-check-job');
+    require(['health-check-job'], function(){});
+  }
+
+  const reinitialiseHealthCheckResources = function() {
+    $.get(getHealthCheckActionPageURL(), function(data) {
+      let progressBar = $(data).find('div.ui-progress');
+      $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
+      reinitializeJobJS()
+    });
+  };
+
+  $(document).ready(function() {
+    if ($('#healthCheck').length) {
+      initialiseJobJS();
+      let jobState = $('.health-check-job-state').attr('data-job-state');
+      if (jobState == 'RUNNING') {
+        runHealthCheckJob();
+        $('#healthCheck .job-status').show();
+      } else if (jobState == 'FINISHED') {
+        $('#healthCheck .job-status').show();
+      }
+    }
+  });
+
+  $(document).on('click', '#healthCheckJobStart', function(event) {
+    event.preventDefault();
+    $('#healthCheck .log').empty();
+    runHealthCheckJob();
+    reinitialiseHealthCheckResources();
+    $('#healthCheck .job-status').show();
+  });
+
   $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {
     event.preventDefault();
     const downloadForm = $('#downloadFilesModal form');
@@ -138,7 +221,7 @@
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
-  function(event) {
+    function(event) {
     event.preventDefault();
     const modal = $(event.currentTarget).closest('.modal');
     const downloadForm = modal.find('form');
@@ -158,9 +241,9 @@
 
   $(document).on('change', '#downloadFilesModal input[name="files"][value="logs"]', function() {
     if ($(this).is(':checked')) {
-      $('#downloadFilesModal .dateFields').show();
+      $('#downloadFilesModal .download-logs-date-fields').show();
     } else {
-      $('#downloadFilesModal .dateFields').hide();
+      $('#downloadFilesModal .download-logs-date-fields').hide();
     }
   });
 });</code>
