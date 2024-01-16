@@ -26,10 +26,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the OS configuration.
+ * Implementation of {@link HealthCheck} for checking the OS configuration.
  *
  * @version $Id$
  */
@@ -49,8 +51,8 @@ public class ConfigurationOSHealthCheck extends AbstractConfigurationHealthCheck
         Map<String, String> dataJSON = getConfigurationProviderJSON();
         if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
             logger.warn("There has been an error while gathering OS info!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", "warn");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", HealthCheckResultLevel.WARN);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.os.info", "info");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.os.info", HealthCheckResultLevel.INFO);
     }
 }

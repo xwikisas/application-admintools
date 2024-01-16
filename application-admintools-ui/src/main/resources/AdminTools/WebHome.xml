@@ -238,8 +238,9 @@
     <property>
       <content>{{template name="job_macros.vm"/}}
 
+{{include reference="AdminTools.Code.HealthCheckMacros" /}}
+
 {{velocity}}
-  #includeMacros("AdminTools.Code.HealthCheckMacros")
   {{html clean='false'}}
     #healthCheckUI()
   {{/html}}
@@ -360,7 +361,7 @@
     <property>
       <code>#template('colorThemeInit.vm')
 
-.adminToolsDashboardItem {
+.admin-tools-dashboard-item {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   min-height: 35rem;
@@ -375,7 +376,7 @@
   padding-left: 5rem;
 }
 
-.dateFields {
+.download-logs-date-fields {
   margin: 2rem 4rem;
 }
 
@@ -384,7 +385,7 @@
   z-index: 99999 !important;
 }
 
-.healthCheckWrapper {
+.health-check-wrapper {
   display: flex;
   flex-direction: column;
   margin-bottom: 2rem;
@@ -394,7 +395,7 @@
   text-align: center;
 }
 
-.healthCheckWrapper button {
+.health-check-wrapper button {
   margin-top: 2rem;
 }</code>
     </property>

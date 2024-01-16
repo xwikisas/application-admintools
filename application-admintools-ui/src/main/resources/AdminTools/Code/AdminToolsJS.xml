@@ -159,13 +159,13 @@
     });
   };
 
-  // Need to call job.min.js only after the job has started its execution and the result message has been changed for
+  // Need to call job.js only after the job has started its execution and the result message has been changed for
   // the progress bar. Otherwise, job.js won't see .ui-progress and will not initialize and run a new JobRunner
   // with the requested configuration. To make sure the job .ui-progress is seen, we need to undefine and request the
   // resource again.
   const initialiseJobJS = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
-      let jobJSURL = $(data).find('.jobJSURL').attr('data-jobJSURL');
+      let jobJSURL = $(data).closest('div.admin-tools-health-check-progress').attr('data-job-js-url');
       require.config({
         paths: {
           'health-check-job': jobJSURL
@@ -183,7 +183,7 @@
   const reinitialiseHealthCheckResources = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
       let progressBar = $(data).find('div.ui-progress');
-      $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
+      $('#healthCheck').find('.health-check-result-message').replaceWith(progressBar);
       reinitializeJobJS()
     });
   };
@@ -191,7 +191,7 @@
   $(document).ready(function() {
     if ($('#healthCheck').length) {
       initialiseJobJS();
-      let jobState = $('.healthCheckJobState').attr('data-jobState');
+      let jobState = $('.health-check-job-state').attr('data-job-state');
       if (jobState == 'RUNNING') {
         runHealthCheckJob();
         $('#healthCheck .job-status').show();
@@ -199,10 +199,6 @@
         $('#healthCheck .job-status').show();
       }
     }
-  });
-
-  $(document).on('click', '#healthCheck .log-item-warn, #healthCheck .log-item-error', function(event) {
-    $(this).children('.recommendation').toggle();
   });
 
   $(document).on('click', '#healthCheckJobStart', function(event) {
@@ -225,7 +221,7 @@
   });
 
   $(document).on('click', '#filesViewLastNLinesModal .btn-primary, #configurationViewLastNLinesModal .btn-primary',
-                 function(event) {
+    function(event) {
     event.preventDefault();
     const modal = $(event.currentTarget).closest('.modal');
     const downloadForm = modal.find('form');
@@ -245,9 +241,9 @@
 
   $(document).on('change', '#downloadFilesModal input[name="files"][value="logs"]', function() {
     if ($(this).is(':checked')) {
-      $('#downloadFilesModal .dateFields').show();
+      $('#downloadFilesModal .download-logs-date-fields').show();
     } else {
-      $('#downloadFilesModal .dateFields').hide();
+      $('#downloadFilesModal .download-logs-date-fields').hide();
     }
   });
 

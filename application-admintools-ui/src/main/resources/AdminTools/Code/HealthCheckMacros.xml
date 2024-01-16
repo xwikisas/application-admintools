@@ -41,7 +41,7 @@
   #set ($results = [])
   #foreach ($result in $status.getHealthCheckResults())
     #set ($discard = $results.add({
-      'level': $result.getLevel(),
+      'level': $result.getLevel().name().toLowerCase(),
       'renderedMessage': "#printResult($result)"
     }))
   #end
@@ -58,44 +58,36 @@
     }
   })
 #end
-
 #macro (healthCheckOutputJobStatus $jobStatus)
   #getHealthCheckJobStatusJSON($jobStatus, $json, $translationPrefix)
   #set ($json.message = "#healthCheckJobFinishedMessage($jobStatus)")
   $response.setContentType('application/json')
   $jsontool.serialize($json)
 #end
-
 #macro (healthCheckJobFinishedMessage $status)
   #if ($status.error)
     #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage')
-  #elseif ($status.hasErrorLevel('error'))
-    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.error')))
-    #set($messageClass = 'errormessage')
-  #elseif ($status.hasErrorLevel('warn'))
-    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.warning')))
-    #set($messageClass = 'warningmessage')
+    #set($messageClass = 'errormessage health-check-result-message')
+  #elseif ($status.hasLevel('ERROR'))
+    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.error'))
+    #set($messageClass = 'errormessage health-check-result-message')
+  #elseif ($status.hasLevel('WARN'))
+    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.warning'))
+    #set($messageClass = 'warningmessage health-check-result-message')
   #else
-    #set($healthCheckReportMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.message.success')))
-    #set($messageClass = 'successmessage')
+    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.success'))
+    #set($messageClass = 'successmessage health-check-result-message')
   #end
   &lt;div class="box $messageClass"&gt;
-    $healthCheckReportMessage
+    $escapetool.xml($healthCheckReportMessage)
   &lt;/div&gt;
 #end
-
 #macro (printResult $healthCheckResult)
-  &lt;div style="cursor: pointer;"&gt;$escapetool.xml($services.localization.render($healthCheckResult.getMessage()))
-  #if ($healthCheckResult.getCurrentValue()) $escapetool.xml($services.localization.render(
-    'adminTools.dashboard.healthcheck.currentValue')) $healthCheckResult.getCurrentValue()#end&lt;/div&gt;
-  #if($healthCheckResult.getRecommendation())
-      &lt;div class="recommendation" style="cursor: pointer;"&gt;
-    $escapetool.xml($services.localization.render($healthCheckResult.getRecommendation()))&lt;/div&gt;
-  #end
+  &lt;div&gt;
+    $escapetool.xml($services.localization.render($healthCheckResult.getMessage(), $healthCheckResult.getParameters()))
+  &lt;/div&gt;
 #end
-
 #macro (printHealthCheckResults $status)
   #if ($status.state != 'FINISHED')
     #set($loading = true)
@@ -103,7 +95,7 @@
   #set($healthCheckResults = $status.getHealthCheckResults())
   &lt;ul class="log"&gt;
   #foreach ($healthCheckResult in $healthCheckResults)
-    #set ($resultLevel = $healthCheckResult.getLevel())
+    #set ($resultLevel = $healthCheckResult.getLevel().name().toLowerCase())
     ## Display the last result item as loading if the associated task is not finished.
     &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
       #printResult($healthCheckResult)
@@ -111,7 +103,6 @@
   #end
   &lt;/ul&gt;
 #end
-
 #macro (displayHealthCheckResults $status $collapsed)
   &lt;dl class="xform"&gt;
     &lt;dt&gt;
@@ -125,7 +116,6 @@
     &lt;dd&gt;#printHealthCheckResults($status)&lt;/dd&gt;
   &lt;/dl&gt;
 #end
-
 #macro (healthCheckUI)
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #includeMacros("AdminTools.Code.Macros")
@@ -135,25 +125,23 @@
     'outputSyntax': 'plain'
   })))
   #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-  #set ($solutionLink = $xwiki.getURL('AdminTools.HelpLinks'))
+  #set ($solutionURL = $xwiki.getURL('AdminTools.HelpLinks'))
+  #set ($solutionLink = "&lt;a href='$escapetool.xml($solutionURL)'&gt;&lt;strong&gt;$escapetool.xml(
+    $services.localization.render('adminTools.dashboard.healthcheck.linkLabel'))&lt;/strong&gt;&lt;/a&gt;")
   #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
-    '__STARTLINK__',
-    '__ENDLINK__'
-  ])).replace('__STARTLINK__', "&lt;a href='$solutionLink'&gt;&lt;strong&gt;").replace('__ENDLINK__', '
-    &lt;/strong&gt;&lt;/a&gt;'))
-  &lt;span class="healthCheckJobState"
-    data-jobState="${healthJobStatus.state}"&gt;
+     '__INSERTEDLINK__'
+  ])).replace('__INSERTEDLINK__', $solutionLink))
+  &lt;span class="health-check-job-state"
+    data-job-state="${healthJobStatus.state}"&gt;
   &lt;/span&gt;
-  &lt;div class="adminToolsDashboardItem" id="healthCheck"&gt;
+  &lt;div class="admin-tools-dashboard-item" id="healthCheck"&gt;
     &lt;h2&gt;$services.icon.renderHTML('bug')
       $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
     &lt;p&gt;$description&lt;/p&gt;
     &lt;hr/&gt;
-    &lt;div class="healthCheckWrapper"&gt;
-      &lt;div class="healthCheckLastCheck"&gt;
-        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time')):
-          $services.date.displayTimeAgo($healthJobStatus.getEndDate())
-      &lt;/div&gt;
+    &lt;div class="health-check-wrapper"&gt;
+      #set($timeSinceLastRun = $services.date.displayTimeAgo($healthJobStatus.getEndDate()))
+      $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time', [$timeSinceLastRun]))
       &lt;div class="buttonwrapper"&gt;
         &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
           value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
