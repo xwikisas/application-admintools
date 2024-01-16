@@ -68,16 +68,16 @@
   #if ($status.error)
     #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('ERROR'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.error'))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('WARN'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.warning'))
-    #set($messageClass = 'warningmessage')
+    #set($messageClass = 'warningmessage health-check-result-message')
   #else
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.success'))
-    #set($messageClass = 'successmessage')
+    #set($messageClass = 'successmessage health-check-result-message')
   #end
   &lt;div class="box $messageClass"&gt;
     $escapetool.xml($healthCheckReportMessage)

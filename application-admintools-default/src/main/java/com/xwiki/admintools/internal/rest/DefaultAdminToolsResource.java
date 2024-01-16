@@ -131,7 +131,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             return Response.ok(localization.getTranslationPlain("adminTools.dashboard.healthcheck.flushCache.success"))
                 .type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (AccessDeniedException deniedException) {
-            logger.warn("Failed to get files due to restricted rights.");
+            logger.warn("Failed to flush the cache due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             logger.warn("Failed to flush wiki cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));

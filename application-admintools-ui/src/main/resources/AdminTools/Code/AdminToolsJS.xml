@@ -183,7 +183,7 @@
   const reinitialiseHealthCheckResources = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
       let progressBar = $(data).find('div.ui-progress');
-      $('#healthCheck').find('.successmessage, .warningmessage, .errormessage').replaceWith(progressBar);
+      $('#healthCheck').find('.health-check-result-message').replaceWith(progressBar);
       reinitializeJobJS()
     });
   };
