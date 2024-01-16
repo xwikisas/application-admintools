@@ -32,9 +32,18 @@
   <description>Provides the Java APIs needed by the Admin tools Application.</description>
   <dependencies>
     <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>jsr311-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-component-api</artifactId>
       <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-job-api</artifactId>
+      <version>${platform.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>

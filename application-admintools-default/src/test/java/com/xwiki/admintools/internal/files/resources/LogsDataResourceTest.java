@@ -38,11 +38,12 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -70,18 +71,18 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class LogsDataResourceTest
+class LogsDataResourceTest
 {
     private final Map<String, String[]> params = Map.of("noLines", new String[] { "44" });
-
-    @Mock
-    ZipOutputStream zipOutputStream;
 
     @InjectMockComponents
     private LogsDataResource logsDataResource;
 
     @Mock
-    private Logger logger;
+    private ZipOutputStream zipOutputStream;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @XWikiTempDir
     private File tmpDir;
@@ -203,8 +204,7 @@ public class LogsDataResourceTest
 
         readLines(1000);
 
-        assertArrayEquals(String.join("\n", logLines).getBytes(),
-            logsDataResource.getByteData(null));
+        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(null));
     }
 
     @Test
@@ -215,8 +215,7 @@ public class LogsDataResourceTest
         Map<String, String[]> params = Map.of("noLines", new String[] { null });
         readLines(1000);
 
-        assertArrayEquals(String.join("\n", logLines).getBytes(),
-            logsDataResource.getByteData(params));
+        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
     }
 
     @Test
@@ -237,8 +236,8 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
         Map<String, String[]> filters = new HashMap<>();
-        filters.put("from", new String[]{"06-10-2023"});
-        filters.put("to", new String[]{"07-10-2023"});
+        filters.put("from", new String[] { "06-10-2023" });
+        filters.put("to", new String[] { "07-10-2023" });
         readLines(400);
         logsDataResource.addZipEntry(zipOutputStream, filters);
         byte[] buff = new byte[2048];
@@ -259,8 +258,8 @@ public class LogsDataResourceTest
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd yy MM");
 
         Map<String, String[]> filters = new HashMap<>();
-        filters.put("from", new String[]{"10 23 10"});
-        filters.put("to", new String[]{ null });
+        filters.put("from", new String[] { "10 23 10" });
+        filters.put("to", new String[] { null });
 
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(zipOutputStream, never()).closeEntry();
@@ -269,18 +268,15 @@ public class LogsDataResourceTest
     @Test
     void addZipEntryDateParseError()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
         Map<String, String[]> filters = new HashMap<>();
-        filters.put("from", new String[]{"2023-10-03"});
-        filters.put("to", new String[]{"2023-10-05"});
+        filters.put("from", new String[] { "2023-10-03" });
+        filters.put("to", new String[] { "2023-10-05" });
         logsDataResource.addZipEntry(zipOutputStream, filters);
-        verify(logger).warn("Failed to get logs. Root cause is: [{}]",
-            "DateTimeParseException: Text 'server' could not be parsed at index 0");
+        assertEquals("Failed to get logs. Root cause is: "
+            + "[DateTimeParseException: Text 'server' could not be parsed at index 0]", logCapture.getMessage(0));
     }
 
     @Test
@@ -290,8 +286,8 @@ public class LogsDataResourceTest
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}_\\d{2}_\\d{2}"));
         Map<String, String[]> filters = new HashMap<>();
-        filters.put("from", new String[]{"2023-10-03"});
-        filters.put("to", new String[]{"2023-10-05"});
+        filters.put("from", new String[] { "2023-10-03" });
+        filters.put("to", new String[] { "2023-10-05" });
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(zipOutputStream, never()).closeEntry();
     }
