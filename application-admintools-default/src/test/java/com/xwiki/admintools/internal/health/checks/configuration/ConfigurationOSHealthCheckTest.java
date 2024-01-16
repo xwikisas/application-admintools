@@ -23,13 +23,11 @@ import java.util.Map;
 
 import javax.inject.Named;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.util.ReflectionUtils;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -38,8 +36,6 @@ import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -52,8 +48,8 @@ class ConfigurationOSHealthCheckTest
     @InjectMockComponents
     private ConfigurationOSHealthCheck osHealthCheck;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeComponent
     static void setUp() throws Exception
@@ -61,13 +57,6 @@ class ConfigurationOSHealthCheckTest
         Map<String, String> jsonResponse =
             Map.of("osName", "testDBName", "osVersion", "os_version", "osArch", "os_arch");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-    }
-
-    @BeforeEach
-    void beforeEach() throws ComponentLookupException
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(osHealthCheck, "logger", this.logger);
     }
 
     @Test
@@ -82,6 +71,9 @@ class ConfigurationOSHealthCheckTest
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
         assertEquals("adminTools.dashboard.healthcheck.os.warn", osHealthCheck.check().getMessage());
-        verify(logger).warn("There has been an error while gathering OS info!");
+        assertEquals(
+            "Failed to generate the instance configuration data. Root cause is: [Exception: error while generating the json]",
+            logCapture.getMessage(0));
+        assertEquals("There has been an error while gathering OS info!", logCapture.getMessage(1));
     }
 }

@@ -30,6 +30,9 @@
   <packaging>jar</packaging>
   <name>Admin Tools Application (Pro) - Default</name>
   <description>Admin Tools Application (Pro) - Default</description>
+  <properties>
+    <xwiki.jacoco.instructionRatio>0.76</xwiki.jacoco.instructionRatio>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.xwiki.admintools</groupId>
@@ -78,7 +81,4 @@
       <version>${commons.version}</version>
     </dependency>
   </dependencies>
-  <properties>
-    <xwiki.jacoco.instructionRatio>0.76</xwiki.jacoco.instructionRatio>
-  </properties>
 </project>

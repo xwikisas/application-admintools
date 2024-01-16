@@ -29,12 +29,13 @@ import javax.script.ScriptContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -77,9 +78,6 @@ class SecurityDataProviderTest
     private ScriptContextManager scriptContextManager;
 
     @Mock
-    private Logger logger;
-
-    @Mock
     private XWikiContext xWikiContext;
 
     @Mock
@@ -87,6 +85,9 @@ class SecurityDataProviderTest
 
     @Mock
     private ScriptContext scriptContext;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeAll
     static void beforeAll()
@@ -158,8 +159,6 @@ class SecurityDataProviderTest
     @Test
     void getRenderedDataWithCaughtError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
@@ -175,14 +174,14 @@ class SecurityDataProviderTest
 
         // Verify the result and method invocations.
         assertEquals("success", securityDataProvider.getRenderedData());
+        assertEquals("Failed to generate the instance security data. Root cause is: "
+            + "[NullPointerException: ConfigurationSourceNotFound]", logCapture.getMessage(0));
         verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
     void getRenderedDataWithRenderingError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(securityDataProvider, "logger", this.logger);
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getEncoding()).thenReturn("wiki_encoding");
@@ -198,9 +197,10 @@ class SecurityDataProviderTest
 
         // Verify the result and method invocations.
         assertEquals(null, securityDataProvider.getRenderedData());
-        verify(this.logger).warn("Failed to generate the instance security data. Root cause is: [{}]",
-            "NullPointerException: ConfigurationSourceNotFound");
-        verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
+        assertEquals("Failed to generate the instance security data. Root cause is: "
+            + "[NullPointerException: ConfigurationSourceNotFound]", logCapture.getMessage(0));
+        assertEquals("Failed to render custom template. Root cause is: [Exception: Render failed.]",
+            logCapture.getMessage(1));
         verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

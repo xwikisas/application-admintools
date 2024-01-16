@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 
 import com.xwiki.admintools.DataProvider;
@@ -34,7 +35,7 @@ import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 /**
- * {@link HealthCheck} implementations to simplify the code for security related health checks.
+ * Base class for security related health checks.
  *
  * @version $Id$
  */
@@ -63,6 +64,8 @@ public abstract class AbstractSecurityHealthCheck implements HealthCheck
         try {
             return securityDataProvider.getDataAsJSON();
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance security data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return new HashMap<>();
         }
     }

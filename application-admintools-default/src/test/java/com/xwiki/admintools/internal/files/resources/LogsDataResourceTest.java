@@ -38,11 +38,12 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -80,8 +81,8 @@ class LogsDataResourceTest
     @Mock
     private ZipOutputStream zipOutputStream;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @XWikiTempDir
     private File tmpDir;
@@ -267,9 +268,6 @@ class LogsDataResourceTest
     @Test
     void addZipEntryDateParseError()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(logsDataResource, "logger", this.logger);
-
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
@@ -277,8 +275,8 @@ class LogsDataResourceTest
         filters.put("from", new String[] { "2023-10-03" });
         filters.put("to", new String[] { "2023-10-05" });
         logsDataResource.addZipEntry(zipOutputStream, filters);
-        verify(logger).warn("Failed to get logs. Root cause is: [{}]",
-            "DateTimeParseException: Text 'server' could not be parsed at index 0");
+        assertEquals("Failed to get logs. Root cause is: "
+            + "[DateTimeParseException: Text 'server' could not be parsed at index 0]", logCapture.getMessage(0));
     }
 
     @Test

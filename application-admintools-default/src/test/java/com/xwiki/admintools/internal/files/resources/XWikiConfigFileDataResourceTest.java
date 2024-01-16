@@ -32,11 +32,12 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -80,8 +81,8 @@ class XWikiConfigFileDataResourceTest
     @Mock
     private ZipOutputStream zipOutputStream;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @XWikiTempDir
     private File tmpDir;
@@ -180,9 +181,6 @@ class XWikiConfigFileDataResourceTest
     @Test
     void addZipEntryGetByteFail() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configFileDataResource, "logger", this.logger);
-
         File cfgDir2 = new File(tmpDir, "xwiki_cfg_folder_fail");
         cfgDir2.mkdir();
         cfgDir2.deleteOnExit();
@@ -193,8 +191,8 @@ class XWikiConfigFileDataResourceTest
 
         configFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).warn("Could not add {} to the archive. Root cause is: [{}]", "xwiki.cfg",
-            "FileNotFoundException: " + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or " + "directory)");
+        assertEquals("Could not add xwiki.cfg to the archive. Root cause is: [FileNotFoundException: "
+            + cfgDir2.getAbsolutePath() + "/xwiki.cfg (No such file or directory)]",logCapture.getMessage(0));
     }
 
     private byte[] readLines() throws IOException

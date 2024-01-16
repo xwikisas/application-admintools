@@ -23,10 +23,13 @@ import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -45,16 +48,8 @@ class CacheMemoryHealthCheckTest
     @Named("xwikicfg")
     private ConfigurationSource configurationSource;
 
-    @Mock
-    private Logger logger;
-
-    @BeforeEach
-    void beforeEach()
-    {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(cacheMemoryHealthCheck, "logger", this.logger);
-
-    }
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @Test
     void check()
@@ -68,7 +63,7 @@ class CacheMemoryHealthCheckTest
     {
         when(configurationSource.getProperty("xwiki.store.cache.capacity")).thenReturn("400");
         assertEquals("adminTools.dashboard.healthcheck.memory.cache.low", cacheMemoryHealthCheck.check().getMessage());
-        verify(logger).warn("Store cache capacity is set to [{}].", "400");
+        assertEquals("Store cache capacity is set to [400].", logCapture.getMessage(0));
     }
 
 
@@ -77,6 +72,6 @@ class CacheMemoryHealthCheckTest
     {
         when(configurationSource.getProperty("xwiki.store.cache.capacity")).thenReturn(null);
         assertEquals("adminTools.dashboard.healthcheck.memory.cache.null", cacheMemoryHealthCheck.check().getMessage());
-        verify(logger).warn("Store cache capacity not defined. Set by default at 500.");
+        assertEquals("Store cache capacity not defined. Set by default at 500.", logCapture.getMessage(0));
     }
 }

@@ -45,7 +45,7 @@
   #healthCheckOutputJobStatus($jobStatus)
 #else
   $response.setStatus(404)
-  #error($escapetool.xml($services.localization.render("admintools.job.notFound")))
+  {{error}}{{translation key="admintools.job.notFound"/}}{{/error}}
 #end
 {{/velocity}}</content>
 </xwikidoc>
