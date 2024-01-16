@@ -23,11 +23,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
@@ -40,7 +37,6 @@ import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -57,9 +53,6 @@ import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 @Unstable
 public class AdminToolsScriptService implements ScriptService
 {
-    @Inject
-    private Logger logger;
-
     @Inject
     private AdminToolsManager adminToolsManager;
 
@@ -128,7 +121,6 @@ public class AdminToolsScriptService implements ScriptService
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.getFilesSection();
     }
-
 
     /**
      * Get the rendered template for viewing info about the size of the XWiki instance.
