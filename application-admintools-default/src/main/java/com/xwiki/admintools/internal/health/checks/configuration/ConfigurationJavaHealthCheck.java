@@ -57,7 +57,7 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         String xwikiVersionString = configurationJson.get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
-        if (isNotJavaXWikiCompatible(xwikiVersion, javaVersion)) {
+        if (!isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error", HealthCheckResultLevel.ERROR,
                 javaVersionString, xwikiVersionString);
@@ -71,21 +71,21 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         return Float.parseFloat(parts[0] + "." + parts[1]);
     }
 
-    private boolean isNotJavaXWikiCompatible(float xwikiVersion, float javaVersion)
+    private boolean isJavaXWikiCompatible(float xwikiVersion, float javaVersion)
     {
         boolean isCompatible = false;
 
         if (isInInterval(xwikiVersion, 0, 6)) {
-            isCompatible = javaVersion != 1.6;
+            isCompatible = javaVersion == 1.6;
         } else if (isInInterval(xwikiVersion, 6, 8.1f)) {
-            isCompatible = javaVersion != 1.7;
+            isCompatible = javaVersion == 1.7;
         } else if (isInInterval(xwikiVersion, 8.1f, 11.3f)) {
-            isCompatible = javaVersion != 1.8;
+            isCompatible = javaVersion == 1.8;
         } else if (isInInterval(xwikiVersion, 11.2f, 14)) {
-            isCompatible = (javaVersion != 1.8) || isInInterval(javaVersion, 10.99f, 12);
-        } else if (isInInterval(xwikiVersion, 13.9f, 14.10f)) {
-            isCompatible = javaVersion >= 11;
-        } else if (isInInterval(xwikiVersion, 14.10f, Float.MAX_VALUE)) {
+            isCompatible = (javaVersion == 1.8) || isInInterval(javaVersion, 10.99f, 12);
+        } else if (isInInterval(xwikiVersion, 13.9f, 15.3f)) {
+            isCompatible = isInInterval(javaVersion, 10.99f, 12);
+        } else if (isInInterval(xwikiVersion, 15.2f, Float.MAX_VALUE)) {
             isCompatible = isInInterval(javaVersion, 10.99f, 12) || isInInterval(javaVersion, 16.99f, 18);
         }
 
