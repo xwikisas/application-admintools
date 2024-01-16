@@ -505,11 +505,11 @@
   padding: 1rem 1.1rem;
 }
 
-.adminToolsDashboardItem.firstRow {
+.admin-tools-dashboard-item.first-row {
   min-height: 35rem;
 }
 
-.adminToolsDashboardItem.secondRow {
+.admin-tools-dashboard-item.second-row {
   min-height: 51rem;
 }
 .logs-modal-content {
@@ -539,7 +539,7 @@
   margin-top: 2rem;
 }
 
-.wikisSizeInfoList {
+.wikis-size-info-list {
   max-height: 20rem;
   overflow-y: auto;
 }</code>

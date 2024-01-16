@@ -133,7 +133,7 @@
   &lt;span class="health-check-job-state"
     data-job-state="${healthJobStatus.state}"&gt;
   &lt;/span&gt;
-  &lt;div class="admin-tools-dashboard-item" id="healthCheck"&gt;
+  &lt;div class="admin-tools-dashboard-item second-row" id="healthCheck"&gt;
     &lt;h2&gt;$services.icon.renderHTML('bug')
       $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))&lt;/h2&gt;
     &lt;p&gt;$description&lt;/p&gt;
