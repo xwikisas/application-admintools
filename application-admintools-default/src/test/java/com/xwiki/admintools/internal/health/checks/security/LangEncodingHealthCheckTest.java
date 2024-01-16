@@ -25,9 +25,9 @@ import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -36,7 +36,6 @@ import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.SecurityDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -49,15 +48,12 @@ class LangEncodingHealthCheckTest
     @Named(SecurityDataProvider.HINT)
     private DataProvider dataProvider;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeEach
     void beforeEach() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(langEncodingHealthCheck, "logger", this.logger);
-
         when(dataProvider.getIdentifier()).thenReturn(SecurityDataProvider.HINT);
         Map<String, String> jsonResponse = Map.of("LANG", "en.UTF8");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
@@ -77,7 +73,9 @@ class LangEncodingHealthCheckTest
 
         assertEquals("adminTools.dashboard.healthcheck.security.system.lang.notFound",
             langEncodingHealthCheck.check().getMessage());
-        logger.warn("Language encoding could not be detected!");
+        assertEquals("Failed to generate the instance security data. Root cause is: [Exception: error while "
+            + "generating the json]", logCapture.getMessage(0));
+        assertEquals("Language encoding could not be detected!", logCapture.getMessage(1));
     }
 
     @Test
@@ -87,6 +85,6 @@ class LangEncodingHealthCheckTest
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         assertEquals("adminTools.dashboard.healthcheck.security.system.lang.warn",
             langEncodingHealthCheck.check().getMessage());
-        verify(logger).warn("[{}] encoding is [{}], but should be UTF-8!", "System language", "ISO-8859-1");
+        assertEquals("[System language] encoding is [ISO-8859-1], but should be UTF-8!", logCapture.getMessage(0));
     }
 }

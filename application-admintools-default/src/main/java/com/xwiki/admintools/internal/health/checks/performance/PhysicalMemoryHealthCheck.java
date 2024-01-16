@@ -30,6 +30,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -60,13 +61,14 @@ public class PhysicalMemoryHealthCheck implements HealthCheck
 
         float totalMemory = (float) hardware.getMemory().getTotal() / (1024 * 1024 * 1024);
         DecimalFormat format = new DecimalFormat("0.#");
-        String systemCapacityMessage = String.format("%s GB", format.format(totalMemory));
         if (totalMemory > 2) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.memory.info", "info");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.memory.info",
+                HealthCheckResultLevel.INFO);
         }
+        String systemCapacityMessage = format.format(totalMemory);
         logger.warn("There is not enough memory to safely run the XWiki installation! Physical memory detected: [{}]",
             systemCapacityMessage);
         return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.memory.warn",
-            "adminTools.dashboard.healthcheck.performance.memory.recommendation", "error", systemCapacityMessage);
+            HealthCheckResultLevel.WARN, systemCapacityMessage);
     }
 }

@@ -67,6 +67,8 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails = getDataAsJSON();
             securityDetails.put(SERVER_FOUND, "true");
         } catch (Exception e) {
+            logger.warn("Failed to generate the instance security data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             securityDetails.put(SERVER_FOUND, "false");
         }
         return renderTemplate("securityTemplate.vm", securityDetails, HINT);
@@ -87,8 +89,6 @@ public class SecurityDataProvider extends AbstractDataProvider
             securityDetails.put("fileEncoding", System.getProperty("file.encoding"));
             return securityDetails;
         } catch (Exception e) {
-            logger.warn("Failed to generate the instance security data. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
             throw new Exception("Failed to generate the instance security data.", e);
         }
     }

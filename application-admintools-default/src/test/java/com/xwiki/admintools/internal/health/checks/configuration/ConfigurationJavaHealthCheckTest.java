@@ -25,10 +25,9 @@ import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.util.ReflectionUtils;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -37,7 +36,6 @@ import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -50,15 +48,12 @@ class ConfigurationJavaHealthCheckTest
     @InjectMockComponents
     private ConfigurationJavaHealthCheck javaHealthCheck;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeEach
     void beforeEach() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(javaHealthCheck, "logger", this.logger);
-
         Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "14.10.2");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
     }
@@ -75,7 +70,10 @@ class ConfigurationJavaHealthCheckTest
         when(dataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
         assertEquals("adminTools.dashboard.healthcheck.java.warn", javaHealthCheck.check().getMessage());
-        verify(logger).warn("Java version not found!");
+        assertEquals(
+            "Failed to generate the instance configuration data. Root cause is: [Exception: error while generating the json]",
+            logCapture.getMessage(0));
+        assertEquals("Java version not found!", logCapture.getMessage(1));
     }
 
     @Test
@@ -84,6 +82,6 @@ class ConfigurationJavaHealthCheckTest
         Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "6.10.2");
         when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         assertEquals("adminTools.dashboard.healthcheck.java.error", javaHealthCheck.check().getMessage());
-        verify(logger).error("Java version is not compatible with the current XWiki installation!");
+        assertEquals("Java version is not compatible with the current XWiki installation!", logCapture.getMessage(0));
     }
 }

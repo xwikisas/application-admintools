@@ -29,12 +29,13 @@ import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -93,8 +94,8 @@ class ImportantFilesManagerTest
     @Mock
     private ScriptContext scriptContext;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeEach
     void setUp() throws Exception
@@ -190,8 +191,6 @@ class ImportantFilesManagerTest
     @Test
     void renderTemplateWithRenderingError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(importantFilesManager, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
@@ -200,7 +199,7 @@ class ImportantFilesManagerTest
 
         assertNull(importantFilesManager.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn("Failed to render [{}] template. Root cause is: [{}]", "filesSectionTemplate.vm",
-            "Exception: Render failed.");
+        assertEquals("Failed to render [filesSectionTemplate.vm] template. Root cause is: [Exception: Render failed.]",
+            logCapture.getMessage(0));
     }
 }

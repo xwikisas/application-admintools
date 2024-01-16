@@ -33,10 +33,12 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -75,13 +77,14 @@ class HealthCheckJobTest
         healthCheckList.add(secondHealthCheck);
 
         when(listProvider.get()).thenReturn(healthCheckList);
-        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", "err_rec", "error"));
-        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", "info"));
+        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", HealthCheckResultLevel.ERROR, "error"));
+        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", HealthCheckResultLevel.INFO));
 
         healthCheckJob.initialize(new HealthCheckJobRequest());
         healthCheckJob.runInternal();
         HealthCheckJobStatus healthCheckJobStatus = healthCheckJob.getStatus();
         assertEquals(2, healthCheckJobStatus.getHealthCheckResults().size());
+        assertTrue(healthCheckJobStatus.hasLevel(HealthCheckResultLevel.ERROR));
     }
 
     @Test
