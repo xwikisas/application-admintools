@@ -21,9 +21,7 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($security['serverFound'] == 'true')
     <div class="admin-tools-dashboard-item">
-      <h2>$services.icon.renderHTML('lock')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.title'))</h2>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.security.description'))</p>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
       <hr/>
       <ul>
         <li>

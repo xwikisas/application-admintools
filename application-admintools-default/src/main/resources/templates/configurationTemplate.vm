@@ -23,7 +23,7 @@
   #includeMacros('AdminTools.Code.Macros')
   #if ($configuration['serverFound'] == 'true')
     <div class="admin-tools-dashboard-item">
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.description'))</p>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>
       <hr/>
       <ul>
         <li>

@@ -43,11 +43,6 @@
 (((
 {{toc start=2 scope=page /}}
 )))
-(((
-{{velocity}}
-  Some text
-{{/velocity}}
-)))
 {{/container}}
 {{/box}}
 
@@ -116,14 +111,14 @@
     </class>
     <property>
       <content>{{velocity}}
-=={{html clean='false'}}$services.icon.renderHTML('world'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.title'))==
+=={{html clean='false'}}$services.icon.renderHTML('world'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))==
 {{html clean='false'}}
   $services.admintools.getConfigurationData('configuration')
 {{/html}}
 {{/velocity}}</content>
     </property>
     <property>
-      <position>1, 2</position>
+      <position>1, 1</position>
     </property>
     <property>
       <title/>
@@ -184,14 +179,14 @@
     </class>
     <property>
       <content>{{velocity}}
-=={{html clean='false'}}$services.icon.renderHTML('download'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.title'))==
+=={{html clean='false'}}$services.icon.renderHTML('download'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.download.title'))==
 {{html clean='false'}}
   $services.admintools.getFilesSection()
 {{/html}}
 {{/velocity}}</content>
     </property>
     <property>
-      <position>2, 2</position>
+      <position>2, 1</position>
     </property>
     <property>
       <title/>
@@ -256,6 +251,7 @@
 {{include reference="AdminTools.Code.HealthCheckMacros" /}}
 
 {{velocity}}
+=={{html clean='false'}}$services.icon.renderHTML('bug'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))==
   {{html clean='false'}}
     #healthCheckUI()
   {{/html}}

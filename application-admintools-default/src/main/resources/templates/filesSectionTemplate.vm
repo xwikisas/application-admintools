@@ -24,7 +24,7 @@
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
     <div class="admin-tools-dashboard-item">
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.download.description'))</p>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.download.description'))</p>
       <hr/>
       <ul>
         <li>
