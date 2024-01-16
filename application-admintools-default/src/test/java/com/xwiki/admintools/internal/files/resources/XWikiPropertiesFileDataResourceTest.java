@@ -32,11 +32,12 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.AdditionalMatchers;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.XWikiTempDir;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -62,7 +63,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class XWikiPropertiesFileDataResourceTest
+class XWikiPropertiesFileDataResourceTest
 {
     @InjectMockComponents
     private XWikiPropertiesFileDataResource propertiesFileDataResource;
@@ -80,8 +81,8 @@ public class XWikiPropertiesFileDataResourceTest
     @Mock
     private ZipOutputStream zipOutputStream;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @XWikiTempDir
     private File tmpDir;
@@ -180,9 +181,6 @@ public class XWikiPropertiesFileDataResourceTest
     @Test
     void addZipEntryGetByteFail() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(propertiesFileDataResource, "logger", this.logger);
-
         File propertiesDir2 = new File(tmpDir, "xwiki_properties_folder_fail");
         propertiesDir2.mkdir();
         propertiesDir2.deleteOnExit();
@@ -193,9 +191,9 @@ public class XWikiPropertiesFileDataResourceTest
 
         propertiesFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());
-        verify(logger).error("Could not add [{}] to the archive. Root cause is: [{}]", "xwiki.properties",
-            "FileNotFoundException: " + propertiesDir2.getAbsolutePath()
-                + "/xwiki.properties (No such file or directory)");
+        assertEquals("Could not add [xwiki.properties] to the archive. Root cause is: [FileNotFoundException: "
+                + propertiesDir2.getAbsolutePath() + "/xwiki.properties (No such file or directory)]",
+            logCapture.getMessage(0));
     }
 
     private byte[] readLines() throws IOException

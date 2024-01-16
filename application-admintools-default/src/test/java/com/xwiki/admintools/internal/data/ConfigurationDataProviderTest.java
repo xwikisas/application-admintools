@@ -29,12 +29,14 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
-import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -42,13 +44,12 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,11 +59,14 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-public class ConfigurationDataProviderTest
+class ConfigurationDataProviderTest
 {
-    static Map<String, String> defaultJson;
+    private static Map<String, String> defaultJson;
 
     private final String templatePath = "configurationTemplate.vm";
+
+    @InjectMockComponents
+    private ConfigurationDataProvider configurationDataProvider;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -73,14 +77,8 @@ public class ConfigurationDataProviderTest
     @Mock
     private XWiki wiki;
 
-    @InjectMockComponents
-    private ConfigurationDataProvider configurationDataProvider;
-
     @MockComponent
     private CurrentServer currentServer;
-
-    @Mock
-    private Logger logger;
 
     @MockComponent
     private TemplateManager templateManager;
@@ -99,6 +97,9 @@ public class ConfigurationDataProviderTest
 
     @Mock
     private DatabasePing databasePing;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeAll
     static void setUp()
@@ -158,8 +159,6 @@ public class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonDatabaseFail() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
         when(pingProvider.getDatabasePing()).thenReturn(null);
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);
@@ -181,17 +180,12 @@ public class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonWithErrorExecution()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
-
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         Exception exception = assertThrows(Exception.class, () -> {
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
-        verify(this.logger).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
-            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
     }
 
     @Test
@@ -213,8 +207,6 @@ public class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
         when(pingProvider.getDatabasePing()).thenReturn(null);
 
         Map<String, String> json = new HashMap<>(defaultJson);
@@ -234,8 +226,6 @@ public class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithFailedJsonGenerate() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
@@ -246,16 +236,14 @@ public class ConfigurationDataProviderTest
 
         assertEquals("success", configurationDataProvider.getRenderedData());
         assertThrows(Exception.class, () -> configurationDataProvider.getDataAsJSON());
-        verify(this.logger, times(2)).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
-            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
+        assertEquals("Failed to generate the instance configuration data. Root cause is: [NullPointerException: "
+            + "Failed to retrieve the current used server, check your configurations.]", logCapture.getMessage(0));
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 
     @Test
     void getRenderedDataExecutionFail() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(configurationDataProvider, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
 
         // Mock the renderer.
@@ -270,10 +258,10 @@ public class ConfigurationDataProviderTest
             this.configurationDataProvider.getDataAsJSON();
         });
         assertEquals("Failed to generate the instance configuration data.", exception.getMessage());
-
-        verify(this.logger, times(2)).warn("Failed to generate the instance configuration data. Root cause is: [{}]",
-            "NullPointerException: Failed to retrieve the current used server, check your configurations.");
-        verify(this.logger).warn("Failed to render custom template. Root cause is: [{}]", "Exception: Render failed.");
+        assertEquals("Failed to generate the instance configuration data. Root cause is: [NullPointerException: "
+            + "Failed to retrieve the current used server, check your configurations.]", logCapture.getMessage(0));
+        assertEquals("Failed to render custom template. Root cause is: [Exception: Render failed.]",
+            logCapture.getMessage(1));
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
     }
 }

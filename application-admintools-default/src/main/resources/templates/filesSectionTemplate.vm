@@ -23,27 +23,27 @@
   #includeMacros('AdminTools.Code.Macros')
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
-    <div class="adminToolsDashboardItem">
+    <div class="admin-tools-dashboard-item">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.section.download.description'))</p>
       <hr/>
       <ul>
         <li>
           <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.label'))</a>
+            $escapetool.xml($services.localization.render('adminTools.dashboard.download.label'))</a>
         </li>
         <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.description'))
+          $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.description'))
           <ul>
             <li>
               <a href="$adminToolsFilesPath/xwikiConfig"
               target="_blank">
-                $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.configuration'))
+                $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.configuration'))
               </a>
             </li>
             <li>
               <a href="$adminToolsFilesPath/xwikiProperties"
               target="_blank">
-                $escapetool.xml($services.localization.render('adminTools.dashboard.section.download.view.properties'))
+                $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.properties'))
               </a>
             </li>
             <li>
@@ -53,15 +53,15 @@
           </ul>
         </li>
       </ul>
-      #warning($escapetool.xml($services.localization.render('adminTools.dashboard.section.download.warning')))
+      #warning($escapetool.xml($services.localization.render('adminTools.dashboard.download.warning')))
     </div>
     #viewLastNLinesMoldal("files")
     #downloadArchiveModal()
   #else
     #set($warningMessage =
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.configuration.error'))+ '<br>')
+      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.configuration.error'))+ '<br>')
     #set($warningMessage = $warningMessage +
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.backend.supportedServers.error')) + ':'
+      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.supportedServers.error')) + ': '
       + $stringtool.join($services.admintools.getSupportedServers(), ', '))
     #warning($warningMessage)
   #end
