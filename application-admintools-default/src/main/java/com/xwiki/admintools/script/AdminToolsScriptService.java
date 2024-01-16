@@ -25,7 +25,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
@@ -159,6 +158,7 @@ public class AdminToolsScriptService implements ScriptService
 
     /**
      * Get recycle bin info for all wikis in your instance.
+     *
      * @return a {@link List} with wikis recycle bin info or null in case of an error.
      */
     public List<WikiRecycleBinResult> getWikisRecycleBinSize()
