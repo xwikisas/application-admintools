@@ -33,7 +33,8 @@ import org.slf4j.Logger;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
-import org.xwiki.security.authorization.AuthorizationManager;
+import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -47,6 +48,7 @@ import com.xwiki.admintools.internal.files.resources.LogsDataResource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,7 +75,7 @@ class DefaultAdminToolsResourceTest
     private ImportantFilesManager importantFilesManager;
 
     @MockComponent
-    private AuthorizationManager authorizationManager;
+    private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @MockComponent
     private Provider<XWikiContext> contextProvider;
@@ -96,12 +98,11 @@ class DefaultAdminToolsResourceTest
     }
 
     @BeforeEach
-    void setUp()
+    void setUp() throws AccessDeniedException
     {
         when(contextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getUserReference()).thenReturn(user);
         when(xWikiContext.getWikiReference()).thenReturn(wikiReference);
-        when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(true);
         when(xWikiContext.getRequest()).thenReturn(xWikiRequest);
         when(xWikiRequest.getParameterMap()).thenReturn(params);
     }
@@ -141,12 +142,12 @@ class DefaultAdminToolsResourceTest
     }
 
     @Test
-    void getFileNotAdmin()
+    void getFileNotAdmin() throws AccessDeniedException
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
-        when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFile("resource_hint");
         });
@@ -182,12 +183,12 @@ class DefaultAdminToolsResourceTest
     }
 
     @Test
-    void getFilesNotAdmin()
+    void getFilesNotAdmin() throws AccessDeniedException
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
-        when(authorizationManager.hasAccess(Right.ADMIN, user, wikiReference)).thenReturn(false);
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFiles();
         });

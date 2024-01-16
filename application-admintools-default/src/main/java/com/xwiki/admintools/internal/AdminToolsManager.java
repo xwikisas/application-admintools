@@ -92,12 +92,8 @@ public class AdminToolsManager
      */
     public String generateData(String hint) throws ComponentLookupException
     {
-        try {
-            DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
-            return dataProvider.getRenderedData();
-        } catch (ComponentLookupException e) {
-            throw e;
-        }
+        DataProvider dataProvider = contextComponentManager.getInstance(DataProvider.class, hint);
+        return dataProvider.getRenderedData();
     }
 
     /**

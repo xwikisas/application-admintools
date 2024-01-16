@@ -26,10 +26,12 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
+import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
+import com.xwiki.admintools.health.HealthCheckResultLevel;
 
 /**
- * Extension of {@link AbstractConfigurationHealthCheck} for checking the Java configuration.
+ * Implementation of {@link HealthCheck} for checking the Java configuration.
  *
  * @version $Id$
  */
@@ -50,19 +52,17 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
             logger.warn("Java version not found!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn",
-                "adminTools.dashboard.healthcheck.java.warn.recommendation", "warn");
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn", HealthCheckResultLevel.WARN);
         }
         String xwikiVersionString = configurationJson.get("xwikiVersion");
         float xwikiVersion = parseFloat(xwikiVersionString);
         float javaVersion = parseFloat(javaVersionString);
-        if (isNotJavaXWikiCompatible(xwikiVersion, javaVersion)) {
+        if (!isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error",
-                "adminTools.dashboard.healthcheck.java.error.recommendation", "error",
-                String.format("Java %s - XWiki %s", javaVersion, xwikiVersion));
+            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error", HealthCheckResultLevel.ERROR,
+                javaVersionString, xwikiVersionString);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", "info");
+        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", HealthCheckResultLevel.INFO);
     }
 
     private static float parseFloat(String javaVersionString)
@@ -71,28 +71,28 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         return Float.parseFloat(parts[0] + "." + parts[1]);
     }
 
-    private boolean isNotJavaXWikiCompatible(float xwikiVersion, float javaVersion)
+    private boolean isJavaXWikiCompatible(float xwikiVersion, float javaVersion)
     {
         boolean isCompatible = false;
 
-        if (inInterval(xwikiVersion, 0, 6)) {
-            isCompatible = javaVersion != 1.6;
-        } else if (inInterval(xwikiVersion, 6, 8.1f)) {
-            isCompatible = javaVersion != 1.7;
-        } else if (inInterval(xwikiVersion, 8.1f, 11.3f)) {
-            isCompatible = javaVersion != 1.8;
-        } else if (inInterval(xwikiVersion, 11.2f, 14)) {
-            isCompatible = (javaVersion != 1.8) || inInterval(javaVersion, 10.99f, 12);
-        } else if (inInterval(xwikiVersion, 13.9f, 14.10f)) {
-            isCompatible = javaVersion >= 11;
-        } else if (inInterval(xwikiVersion, 14.10f, Float.MAX_VALUE)) {
-            isCompatible = inInterval(javaVersion, 10.99f, 12) || inInterval(javaVersion, 16.99f, 18);
+        if (isInInterval(xwikiVersion, 0, 6)) {
+            isCompatible = javaVersion == 1.6;
+        } else if (isInInterval(xwikiVersion, 6, 8.1f)) {
+            isCompatible = javaVersion == 1.7;
+        } else if (isInInterval(xwikiVersion, 8.1f, 11.3f)) {
+            isCompatible = javaVersion == 1.8;
+        } else if (isInInterval(xwikiVersion, 11.2f, 14)) {
+            isCompatible = (javaVersion == 1.8) || isInInterval(javaVersion, 10.99f, 12);
+        } else if (isInInterval(xwikiVersion, 13.9f, 15.3f)) {
+            isCompatible = isInInterval(javaVersion, 10.99f, 12);
+        } else if (isInInterval(xwikiVersion, 15.2f, Float.MAX_VALUE)) {
+            isCompatible = isInInterval(javaVersion, 10.99f, 12) || isInInterval(javaVersion, 16.99f, 18);
         }
 
         return isCompatible;
     }
 
-    private boolean inInterval(float checkedValue, float lowerBound, float upperBound)
+    private boolean isInInterval(float checkedValue, float lowerBound, float upperBound)
     {
         return checkedValue > lowerBound && checkedValue < upperBound;
     }

@@ -23,9 +23,10 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -34,7 +35,6 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -52,15 +52,12 @@ class MemoryHealthCheckTest
     @Mock
     private XWiki xwiki;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeEach
     void beforeEach()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(memoryHealthCheck, "logger", this.logger);
-
         when(xcontextProvider.get()).thenReturn(context);
         when(context.getWiki()).thenReturn(xwiki);
     }
@@ -84,6 +81,7 @@ class MemoryHealthCheckTest
 
         assertEquals("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
             memoryHealthCheck.check().getMessage());
+        assertEquals("JVM memory is less than 1024MB. Currently: [819.2]", logCapture.getMessage(0));
     }
 
     @Test
@@ -94,7 +92,7 @@ class MemoryHealthCheckTest
         when(xwiki.freeMemory()).thenReturn((long) (0.2 * Math.pow(1024, 3)));
 
         assertEquals("adminTools.dashboard.healthcheck.memory.free.error", memoryHealthCheck.check().getMessage());
-        logger.error("JVM instance has only [{}]MB free memory left!", 409.6001f);
+        assertEquals("JVM instance has only [409.6001]MB free memory left!", logCapture.getMessage(0));
     }
 
     @Test
@@ -105,6 +103,7 @@ class MemoryHealthCheckTest
         when(xwiki.freeMemory()).thenReturn((long) (0.2 * Math.pow(1024, 3)));
 
         assertEquals("adminTools.dashboard.healthcheck.memory.free.warn", memoryHealthCheck.check().getMessage());
-        verify(logger).warn("Instance memory is running low. Currently only [{}]MB free left.", 716.80005f);
+        assertEquals("Instance memory is running low. Currently only [716.80005]MB free left.",
+            logCapture.getMessage(0));
     }
 }

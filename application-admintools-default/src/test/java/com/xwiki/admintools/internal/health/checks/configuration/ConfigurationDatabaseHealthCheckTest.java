@@ -26,11 +26,10 @@ import javax.inject.Named;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.util.ReflectionUtils;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -40,7 +39,6 @@ import com.xwiki.admintools.internal.data.ConfigurationDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -56,8 +54,8 @@ class ConfigurationDatabaseHealthCheckTest
     @MockComponent
     private CurrentServer currentServer;
 
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @BeforeComponent
     static void setUp() throws Exception
@@ -67,12 +65,10 @@ class ConfigurationDatabaseHealthCheckTest
     }
 
     @BeforeEach
-    void beforeEach() throws ComponentLookupException
+    void beforeEach()
     {
         List<String> supportedDatabases = List.of("MySQL", "HSQL");
         when(currentServer.getSupportedDBs()).thenReturn(supportedDatabases);
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(databaseHealthCheck, "logger", this.logger);
     }
 
     @Test
@@ -87,7 +83,10 @@ class ConfigurationDatabaseHealthCheckTest
         when(configurationDataProvider.getDataAsJSON()).thenThrow(new Exception("error while generating the json"));
 
         assertEquals("adminTools.dashboard.healthcheck.database.warn", databaseHealthCheck.check().getMessage());
-        verify(logger).warn("Database not found!");
+        assertEquals(
+            "Failed to generate the instance configuration data. Root cause is: [Exception: error while generating the json]",
+            logCapture.getMessage(0));
+        assertEquals("Database not found!", logCapture.getMessage(1));
     }
 
     @Test
@@ -98,6 +97,6 @@ class ConfigurationDatabaseHealthCheckTest
 
         assertEquals("adminTools.dashboard.healthcheck.database.notSupported",
             databaseHealthCheck.check().getMessage());
-        verify(logger).error("Used database is not supported!");
+        assertEquals("Used database is not supported!", logCapture.getMessage(0));
     }
 }
