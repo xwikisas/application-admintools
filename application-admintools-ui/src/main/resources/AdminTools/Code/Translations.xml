@@ -185,7 +185,7 @@ adminTools.dashboard.showLogs=View last n lines of log...
 
 ## Spam Pages
 adminTools.spamPage.description=Below there is a list with all the pages that have more than {0} comments.
-adminTools.spamPage.line=has {0} comments.
+adminTools.spamPage.line={0} has {1} comments.
 adminTools.spamPage.notFound=There are no pages that have over {0} comments.
 adminTools.spamPage.error=There was an error when trying to retrieve the pages!</content>
   <object>

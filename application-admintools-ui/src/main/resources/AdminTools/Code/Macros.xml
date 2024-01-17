@@ -159,9 +159,10 @@
       &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.description', [$maxComments]))&lt;/p&gt;
       &lt;hr/&gt;
       #foreach ($page in $pages)
-        #set ($pageLink = $xwiki.getURL($page.getDocumentReference()))
-        &lt;p&gt;&lt;a href='${pageLink}'&gt;${page.getTitle()}&lt;/a&gt;
-          $escapetool.xml($services.localization.render('adminTools.spamPage.line', [$page.getComments().size()]))&lt;/p&gt;
+        #set ($pageLink = "&lt;a href='$xwiki.getURL($page.getDocumentReference())'&gt;$page.getTitle()&lt;/a&gt;")
+        &lt;p&gt;
+          $escapetool.xml($services.localization.render('adminTools.spamPage.line', [
+          '__INSERTEDLINK__', $page.getComments().size()])).replace('__INSERTEDLINK__', $pageLink)&lt;/p&gt;
       #end
     #else
       &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.notFound', [$maxComments]))&lt;/p&gt;
