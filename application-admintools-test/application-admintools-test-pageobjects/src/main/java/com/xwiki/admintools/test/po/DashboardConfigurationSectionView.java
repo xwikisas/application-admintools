@@ -60,4 +60,9 @@ public class DashboardConfigurationSectionView extends ViewPage
         return new LastNLinesModalView(By.id("configurationViewLastNLinesModal"),
             BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID);
     }
+
+    public WebElement getNonAdminUserView()
+    {
+        return this.getDriver().findElement(By.cssSelector(".xwikirenderingerror"));
+    }
 }

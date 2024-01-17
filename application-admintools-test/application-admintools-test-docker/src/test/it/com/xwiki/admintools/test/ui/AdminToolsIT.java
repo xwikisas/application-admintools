@@ -183,22 +183,18 @@ class AdminToolsIT
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
         testUtils.login(USER_NAME, PASSWORD);
-        String mainWindowHandle = testUtils.getDriver().getWindowHandle();
 
-        // Click the anchor, switch tabs to the new page and check the content. After this, close the new tab and
-        // change focus to the main page.
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
-        filesSectionView.clickPropertiesHyperlink();
-        checkTabOpenForNonAdmin(testUtils, mainWindowHandle);
+        WebElement filesSectionNonAdminView = filesSectionView.getNonAdminUserView();
+        assertTrue(filesSectionNonAdminView.getText().contains(
+            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
+                + USER_NAME + "]]"));
 
-        filesSectionView.clickConfigurationHyperlink();
-        checkTabOpenForNonAdmin(testUtils, mainWindowHandle);
-
-        DownloadArchiveModalView archiveModalView = filesSectionView.clickDownloadModalHyperlink();
-        archiveModalView.clickDownloadButton();
-        testUtils.getDriver().waitUntilPageIsReloaded();
-        WebElement tabContent = testUtils.getDriver().findElement(By.tagName("body"));
-        assertTrue(tabContent.getText().contains("Unauthorized"));
+        DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
+        WebElement configurationSectionNonAdminView = configurationSectionView.getNonAdminUserView();
+        assertTrue(configurationSectionNonAdminView.getText().contains(
+            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
+                + USER_NAME + "]]"));
     }
 
     /**
@@ -215,20 +211,10 @@ class AdminToolsIT
         assertNotEquals(mainWindowHandle, testUtils.getDriver().getWindowHandle());
     }
 
-    private void checkTabOpenForNonAdmin(TestUtils testUtils, String mainWindowHandle)
-    {
-        switchToNewTab(testUtils, mainWindowHandle);
-        WebElement tabContent = testUtils.getDriver().findElement(By.tagName("body"));
-        assertTrue(tabContent.getText().contains("Unauthorized"));
-        testUtils.getDriver().close();
-        testUtils.getDriver().switchTo().window(mainWindowHandle);
-    }
-
     private void checkXWikiFileOpen(TestUtils testUtils, String mainWindowHandle)
     {
         switchToNewTab(testUtils, mainWindowHandle);
         String fileContent = testUtils.getDriver().findElement(By.tagName("pre")).getText();
-        System.out.println(fileContent);
         for (String excludedLine : excludedLines) {
             assertFalse(fileContent.contains(excludedLine));
         }

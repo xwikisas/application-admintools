@@ -61,7 +61,7 @@ public class DownloadArchiveModalView extends BaseModal
 
     public WebElement getDateFilters()
     {
-        return content.findElement(By.className("dateFields"));
+        return content.findElement(By.className("download-logs-date-fields"));
     }
 
     public void clickDownloadButton()
