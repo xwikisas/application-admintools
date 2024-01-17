@@ -29,7 +29,7 @@
         [$numberOfExtensions]))</p>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
         [$totalNumberOfUsers]))</p>
-      <div class="wikisSizeInfoList">
+      <div class="wikis-size-info-list">
         #if ($wikisInfo.size() != 0)
           <ul>
             #foreach($wiki in $wikisInfo)

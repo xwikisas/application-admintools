@@ -127,8 +127,9 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@link String} representation of the template.
      */
-    public String getInstanceSizeSection() throws Exception
+    public String getInstanceSizeSection() throws AccessDeniedException
     {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return adminToolsManager.getInstanceSizeTemplate();
     }
 
