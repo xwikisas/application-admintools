@@ -51,7 +51,7 @@ import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Access info about the size of the Wikis inside the XWiki instance.
+ * Access info about the size of the existing Wikis.
  *
  * @version $Id$
  */
