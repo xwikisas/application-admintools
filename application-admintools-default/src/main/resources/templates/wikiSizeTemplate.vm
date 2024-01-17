@@ -51,7 +51,7 @@
         #end
       </div>
       <hr/>
-      <div class="otherStats">
+      <div class="other-stats">
         #set ($solutionLink = $xwiki.getURL('AdminTools.SpamPages'))
         <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.other'))</h2>
         <ul>
