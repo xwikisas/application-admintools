@@ -385,9 +385,6 @@
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   padding: 1rem 1.1rem;
-}
-
-.admin-tools-dashboard-item  {
   min-height: 35rem;
 }
 

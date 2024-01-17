@@ -20,30 +20,28 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($security['serverFound'] == 'true')
-    <div class="admin-tools-dashboard-item">
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
-      <hr/>
-      <ul>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
-          $security['activeEncoding']
-        </li>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
-          $security['configurationEncoding']
-        </li>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
-        </li>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
-        </li>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
-          $security['fileEncoding']
-        </li>
-      </ul>
-    </div>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
+    <hr/>
+    <ul>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
+        $security['activeEncoding']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
+        $security['configurationEncoding']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
+        $security['fileEncoding']
+      </li>
+    </ul>
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
     #warning($warningMessage)
