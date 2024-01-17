@@ -34,7 +34,7 @@ public class AdminToolsHomePage extends ViewPage
     private static final String ADMIN_TOOLS_PAGE = "WebHome";
 
     /**
-     * Opens the home page.
+     * Access the home page.
      */
     public static AdminToolsHomePage gotoPage()
     {
@@ -43,7 +43,7 @@ public class AdminToolsHomePage extends ViewPage
     }
 
     /**
-     * Open the dashboard configuration section.
+     * Access the dashboard configuration section.
      */
     public static DashboardConfigurationSectionView getConfigurationSection()
     {
@@ -52,12 +52,21 @@ public class AdminToolsHomePage extends ViewPage
     }
 
     /**
-     * Open the dashboard files section.
+     * Access the dashboard files section.
      */
     public static DashboardFilesSectionView getFilesSection()
     {
         gotoPage();
         return new DashboardFilesSectionView();
+    }
+
+    /**
+     * Access the dashboard health check section.
+     */
+    public static DashboardHealthCheckSectionView getHealthCheckSection()
+    {
+        gotoPage();
+        return new DashboardHealthCheckSectionView();
     }
 
     /**

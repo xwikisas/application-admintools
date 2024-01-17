@@ -33,12 +33,15 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.database.Database;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
 import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
 import com.xwiki.admintools.test.po.DashboardFilesSectionView;
+import com.xwiki.admintools.test.po.DashboardHealthCheckSectionView;
 import com.xwiki.admintools.test.po.DownloadArchiveModalView;
 import com.xwiki.admintools.test.po.LastNLinesModalView;
 
@@ -180,21 +183,47 @@ class AdminToolsIT
 
     @Test
     @Order(6)
+    void adminToolsHomePageHealthCheck(TestUtils testUtils)
+    {
+        DashboardHealthCheckSectionView healthCheckSectionView = AdminToolsHomePage.getHealthCheckSection();
+        WebElement timeSinceLastCheck = healthCheckSectionView.getHealthCheckTimeElapsed();
+        assertEquals("Time since the last health check: null", timeSinceLastCheck.getText());
+
+        healthCheckSectionView.clickHealthCheckJobStartButton();
+        WebElement jobProgress = healthCheckSectionView.getJobProgress();
+        assertTrue(jobProgress.isDisplayed());
+        healthCheckSectionView.waitUntilJobIsDone();
+        WebElement resultMessage = healthCheckSectionView.getHealthCheckResult();
+        assertTrue(resultMessage.isDisplayed());
+
+        AdminToolsHomePage.gotoPage();
+        WebElement resultLog = healthCheckSectionView.getResultLog();
+        assertFalse(resultLog.isDisplayed());
+        healthCheckSectionView.toggleLog();
+        assertTrue(resultLog.isDisplayed());
+        assertEquals(12, resultLog.findElements(By.cssSelector("log-item")).size());
+    }
+
+    @Test
+    @Order(7)
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
         testUtils.login(USER_NAME, PASSWORD);
+        String dashboardSectionNonAdminUserError =
+            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
+                + USER_NAME + "]]";
 
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
         WebElement filesSectionNonAdminView = filesSectionView.getNonAdminUserView();
-        assertTrue(filesSectionNonAdminView.getText().contains(
-            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
-                + USER_NAME + "]]"));
+        assertTrue(filesSectionNonAdminView.getText().contains(dashboardSectionNonAdminUserError));
 
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
         WebElement configurationSectionNonAdminView = configurationSectionView.getNonAdminUserView();
-        assertTrue(configurationSectionNonAdminView.getText().contains(
-            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
-                + USER_NAME + "]]"));
+        assertTrue(configurationSectionNonAdminView.getText().contains(dashboardSectionNonAdminUserError));
+
+        DashboardHealthCheckSectionView healthCheckSectionView = AdminToolsHomePage.getHealthCheckSection();
+        WebElement healthCheckSectionViewNonAdminUserView = healthCheckSectionView.getNonAdminUserView();
+        assertTrue(healthCheckSectionViewNonAdminUserView.getText().contains(dashboardSectionNonAdminUserError));
     }
 
     /**

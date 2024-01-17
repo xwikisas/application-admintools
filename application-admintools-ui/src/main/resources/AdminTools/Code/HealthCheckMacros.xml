@@ -68,16 +68,16 @@
   #if ($status.error)
     #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('ERROR'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.error'))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('WARN'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.warning'))
-    #set($messageClass = 'warningmessage')
+    #set($messageClass = 'warningmessage health-check-result-message')
   #else
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.success'))
-    #set($messageClass = 'successmessage')
+    #set($messageClass = 'successmessage health-check-result-message')
   #end
   &lt;div class="box $messageClass"&gt;
     $escapetool.xml($healthCheckReportMessage)
@@ -140,7 +140,7 @@
     &lt;hr/&gt;
     &lt;div class="health-check-wrapper"&gt;
       #set($timeSinceLastRun = $services.date.displayTimeAgo($healthJobStatus.getEndDate()))
-      $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time', [$timeSinceLastRun]))
+      &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time', [$timeSinceLastRun]))&lt;/p&gt;
       &lt;div class="buttonwrapper"&gt;
         &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
           value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
