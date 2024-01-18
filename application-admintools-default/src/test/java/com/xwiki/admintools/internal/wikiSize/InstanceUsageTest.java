@@ -17,30 +17,23 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal;
+package com.xwiki.admintools.internal.wikiSize;
 
 import java.util.List;
 import java.util.Vector;
 
-import javax.inject.Named;
-import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
 import org.xwiki.activeinstalls2.internal.data.ExtensionPing;
 import org.xwiki.activeinstalls2.internal.data.UsersPing;
-import org.xwiki.component.util.ReflectionUtils;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
-import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -54,15 +47,14 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.WikiSizeResult;
+import com.xwiki.admintools.internal.PingProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,8 +62,6 @@ import static org.mockito.Mockito.when;
 class InstanceUsageTest
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
-
-    private static final String WIKI_ID = "wikiId";
 
     @InjectMockComponents
     private InstanceUsage instanceUsage;
@@ -85,15 +75,8 @@ class InstanceUsageTest
     @MockComponent
     private CurrentServer currentServer;
 
-    @MockComponent
-    private QueryManager queryManager;
-
-    @MockComponent
-    @Named("count")
-    private QueryFilter queryFilter;
-
-    @Mock
-    private Logger logger;
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @MockComponent
     private TemplateManager templateManager;
@@ -111,37 +94,13 @@ class InstanceUsageTest
     private ScriptContext scriptContext;
 
     @Mock
-    private Query usersQueryRes;
-
-    @Mock
-    private Query usersQuery;
-
-    @Mock
-    private Query docQueryRes;
-
-    @Mock
-    private Query docQuery;
-
-    @Mock
-    private Query docQueryFilter;
-
-    @Mock
-    private Query attSizeQueryRes;
-
-    @Mock
-    private Query attSizeQuery;
-
-    @Mock
-    private Query attCountQueryFilter;
-
-    @Mock
-    private Query attCountQueryRes;
-
-    @Mock
-    private Query attCountQuery;
+    private WikiSizeProvider wikiSizeProvider;
 
     @Mock
     private UsersPing usersPing;
+
+    @Mock
+    private WikiSizeResult wikiSizeResult;
 
     @MockComponent
     private Provider<XWikiContext> wikiContextProvider;
@@ -181,38 +140,8 @@ class InstanceUsageTest
     @Test
     void renderTemplate() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(instanceUsage, "logger", this.logger);
-
         when(wikiDescriptorManager.getAll()).thenReturn(List.of(wikiDescriptor));
-        when(wikiDescriptor.getId()).thenReturn(WIKI_ID);
-        when(wikiDescriptor.getPrettyName()).thenReturn("XWiki Wiki Name");
-
-        when(queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
-            + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
-            + "SELECT doc.fullName FROM XWikiDocument doc, BaseObject objLimit, IntegerProperty propActive "
-            + "WHERE objLimit.name = doc.fullName AND propActive.id.id = objLimit.id AND propActive.id.name = 'active' "
-            + "AND propActive.value = 0)", "xwql")).thenReturn(usersQuery);
-        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQueryRes);
-        when(usersQueryRes.execute()).thenReturn(List.of(1234L));
-
-        when(queryManager.createQuery("", "xwql")).thenReturn(docQuery);
-        when(docQuery.setWiki(WIKI_ID)).thenReturn(docQueryRes);
-        when(docQueryRes.addFilter(queryFilter)).thenReturn(docQueryFilter);
-        when(docQueryFilter.execute()).thenReturn(List.of(12345L));
-
-        when(queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-            "xwql")).thenReturn(attSizeQuery);
-        when(attSizeQuery.setWiki(WIKI_ID)).thenReturn(attSizeQueryRes);
-        when(attSizeQueryRes.execute()).thenReturn(List.of(123456789L));
-
-        when(queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-            "xwql")).thenReturn(attCountQuery);
-        when(attCountQuery.setWiki(WIKI_ID)).thenReturn(attCountQueryRes);
-        when(attCountQueryRes.addFilter(queryFilter)).thenReturn(attCountQueryFilter);
-        when(attCountQueryFilter.execute()).thenReturn(List.of(123456L));
+        when(wikiSizeProvider.getWikiSizeInfo(wikiDescriptor)).thenReturn(wikiSizeResult);
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
@@ -221,27 +150,22 @@ class InstanceUsageTest
         verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
         verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        verify(logger, never()).warn(any());
+        assertEquals(0, logCapture.size());
     }
 
     @Test
     void renderTemplateCurrentServerNotFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(instanceUsage, "logger", this.logger);
         when(currentServer.getCurrentServer()).thenReturn(null);
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
         assertEquals("fail", instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
-        verify(logger).error("Used server not found!");
+        assertEquals("Used server not found!", logCapture.getMessage(0));
     }
 
     @Test
     void renderTemplateGetWikisSizeInfoError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(instanceUsage, "logger", this.logger);
-
         when(wikiDescriptorManager.getAll()).thenThrow(new WikiManagerException("Failed to get wiki descriptors."));
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
         assertEquals("fail", instanceUsage.renderTemplate());
@@ -249,46 +173,14 @@ class InstanceUsageTest
         verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
         verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn(
-            "There have been issues while gathering info about the size of the Wikis. Root cause is: " + "[{}]",
-            "WikiManagerException: Failed to get wiki descriptors.");
+        assertEquals("There have been issues while gathering info about the size of the Wikis. Root cause is: "
+            + "[WikiManagerException: Failed to get wiki descriptors.]", logCapture.getMessage(0));
     }
 
     @Test
     void renderTemplateError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(instanceUsage, "logger", this.logger);
-
         when(wikiDescriptorManager.getAll()).thenReturn(List.of(wikiDescriptor));
-        when(wikiDescriptor.getId()).thenReturn(WIKI_ID);
-        when(wikiDescriptor.getPrettyName()).thenReturn("XWiki Wiki Name");
-
-        when(queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
-            + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
-            + "SELECT doc.fullName FROM XWikiDocument doc, BaseObject objLimit, IntegerProperty propActive "
-            + "WHERE objLimit.name = doc.fullName AND propActive.id.id = objLimit.id AND propActive.id.name = 'active' "
-            + "AND propActive.value = 0)", "xwql")).thenReturn(usersQuery);
-        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQueryRes);
-        when(usersQueryRes.execute()).thenReturn(List.of(1234L));
-
-        when(queryManager.createQuery("", "xwql")).thenReturn(docQuery);
-        when(docQuery.setWiki(WIKI_ID)).thenReturn(docQueryRes);
-        when(docQueryRes.addFilter(queryFilter)).thenReturn(docQueryFilter);
-        when(docQueryFilter.execute()).thenReturn(List.of(12345L));
-
-        when(queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-            "xwql")).thenReturn(attSizeQuery);
-        when(attSizeQuery.setWiki(WIKI_ID)).thenReturn(attSizeQueryRes);
-        when(attSizeQueryRes.execute()).thenReturn(List.of(-5L));
-
-        when(queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-            "xwql")).thenReturn(attCountQuery);
-        when(attCountQuery.setWiki(WIKI_ID)).thenReturn(attCountQueryRes);
-        when(attCountQueryRes.addFilter(queryFilter)).thenReturn(attCountQueryFilter);
-        when(attCountQueryFilter.execute()).thenReturn(List.of(123456L));
 
         when(templateManager.render(TEMPLATE_NAME)).thenThrow(new Exception("Failed to render template."));
 
@@ -297,8 +189,9 @@ class InstanceUsageTest
         verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
         verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        verify(logger).warn("Failed to render [{}] template. Root cause is: [{}]", TEMPLATE_NAME,
-            "Exception: Failed to render template.");
+        assertEquals(
+            "Failed to render [" + TEMPLATE_NAME + "] template. Root cause is: [Exception: Failed to render template.]",
+            logCapture.getMessage(0));
     }
 
     @Test

@@ -60,11 +60,8 @@
     #viewLastNLinesMoldal("files")
     #downloadArchiveModal()
   #else
-    #set($warningMessage =
-      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.configuration.error'))+ '<br>')
-    #set($warningMessage = $warningMessage +
-      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.supportedServers.error')) + ': '
-      + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+      [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
     #warning($warningMessage)
   #end
 #else
