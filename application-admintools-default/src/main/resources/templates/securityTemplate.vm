@@ -43,7 +43,9 @@
       </li>
     </ul>
   #else
-    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.error')))
+    #set($warningMessage =
+      $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+      [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
     #warning($warningMessage)
   #end
 #else
