@@ -126,10 +126,10 @@ adminTools.dashboard.instanceUsage.error=There have been issues while gathering 
 adminTools.dashboard.instanceUsage.title=Instance usage
 adminTools.dashboard.instanceUsage.total.extensions=There are {0} extensions installed.
 adminTools.dashboard.instanceUsage.total.users=There are a total of {0} users registered in this XWiki instance.
-adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments:
-adminTools.dashboard.instanceUsage.wiki.documents=Number of documents:
-adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki
-adminTools.dashboard.instanceUsage.wiki.users=Number of users:
+adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} ({1})
+adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
+adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
+adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding

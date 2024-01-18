@@ -33,6 +33,7 @@ import org.xwiki.component.manager.ComponentManager;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.wikiSize.InstanceUsage;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.

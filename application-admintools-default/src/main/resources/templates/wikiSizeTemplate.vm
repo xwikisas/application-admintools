@@ -34,15 +34,16 @@
           <ul>
             #foreach($wiki in $wikisInfo)
               #set($attachmentsSize = $wiki.getAttachmentSize())
-                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name'))
-                  <strong>$wiki.getWikiName()</strong></li>
+              #set($wikiName = "<strong>$wiki.getWikiName()</strong>")
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
+                  '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
                 <ul>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users'))
-                    $wiki.getNumberOfUsers()</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents'))
-                    $wiki.getNumberOfDocuments()</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments'))
-                    $wiki.getNumberOfAttachments() ($attachmentsSize)</li>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
+                    $wiki.getNumberOfUsers()]))</li>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
+                    [$wiki.getNumberOfDocuments()]))</li>
+                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
+                    [$wiki.getNumberOfAttachments(), $attachmentsSize]))</li>
                 </ul>
             #end
           </ul>
@@ -52,11 +53,8 @@
       </div>
     </div>
   #else
-    #set($warningMessage =
-        $escapetool.xml($services.localization.render('adminTools.dashboard.backend.configuration.error'))+ '<br>')
-    #set($warningMessage = $warningMessage +
-      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.supportedServers.error')) + ': '
-      + $stringtool.join($services.admintools.getSupportedServers(), ', '))
+    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+      [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
     #warning($warningMessage)
   #end
 #else
