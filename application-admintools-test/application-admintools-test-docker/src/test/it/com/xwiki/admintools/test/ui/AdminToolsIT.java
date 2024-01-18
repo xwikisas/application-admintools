@@ -187,7 +187,7 @@ class AdminToolsIT
     {
         DashboardHealthCheckSectionView healthCheckSectionView = AdminToolsHomePage.getHealthCheckSection();
         WebElement timeSinceLastCheck = healthCheckSectionView.getHealthCheckTimeElapsed();
-        assertEquals("Time since the last health check: null", timeSinceLastCheck.getText());
+        assertEquals("Time since the last health check: moments from now", timeSinceLastCheck.getText());
 
         healthCheckSectionView.clickHealthCheckJobStartButton();
         WebElement jobProgress = healthCheckSectionView.getJobProgress();
@@ -196,12 +196,18 @@ class AdminToolsIT
         WebElement resultMessage = healthCheckSectionView.getHealthCheckResult();
         assertTrue(resultMessage.isDisplayed());
 
-        AdminToolsHomePage.gotoPage();
         WebElement resultLog = healthCheckSectionView.getResultLog();
         assertFalse(resultLog.isDisplayed());
         healthCheckSectionView.toggleLog();
         assertTrue(resultLog.isDisplayed());
-        assertEquals(12, resultLog.findElements(By.cssSelector("log-item")).size());
+        assertEquals(12, healthCheckSectionView.getNumberOfLogs());
+
+        AdminToolsHomePage.gotoPage();
+        timeSinceLastCheck = healthCheckSectionView.getHealthCheckTimeElapsed();
+        assertEquals("Time since the last health check: moments ago", timeSinceLastCheck.getText());
+
+        healthCheckSectionView.clickHelpLinksHyperlink();
+        assertTrue(testUtils.getDriver().getCurrentUrl().contains("HelpLinks"));
     }
 
     @Test

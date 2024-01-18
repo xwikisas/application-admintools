@@ -153,7 +153,7 @@
       #else
         #healthCheckJobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
       #end
-      #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $isAdmin)
+      #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
         #displayHealthCheckResults($healthJobStatus true)
       #end
     &lt;/div&gt;

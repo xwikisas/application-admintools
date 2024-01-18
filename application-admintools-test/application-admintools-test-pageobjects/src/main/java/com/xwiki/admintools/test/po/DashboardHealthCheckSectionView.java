@@ -37,10 +37,9 @@ public class DashboardHealthCheckSectionView extends ViewPage
     @FindBy(css = "#healthCheck > p > a")
     private WebElement helpLinksPageHyperlink;
 
-    public HelpLinksPage clickHelpLinksHyperlink()
+    public void clickHelpLinksHyperlink()
     {
         helpLinksPageHyperlink.click();
-        return new HelpLinksPage();
     }
 
     public void clickHealthCheckJobStartButton()
@@ -81,5 +80,10 @@ public class DashboardHealthCheckSectionView extends ViewPage
     public WebElement getResultLog()
     {
         return healthCheckContent.findElement(By.cssSelector(".log"));
+    }
+
+    public int getNumberOfLogs()
+    {
+        return healthCheckContent.findElements(By.cssSelector(".log-item")).size();
     }
 }
