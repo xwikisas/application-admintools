@@ -22,6 +22,7 @@ package com.xwiki.admintools.internal.wikiSize;
 import java.util.List;
 import java.util.Vector;
 
+import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,11 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.activeinstalls2.internal.data.ExtensionPing;
 import org.xwiki.activeinstalls2.internal.data.UsersPing;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -53,6 +59,7 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -125,6 +132,15 @@ class InstanceUsageTest
 
     @Mock
     private DocumentReference secondDocumentReference;
+
+    @MockComponent
+    private QueryManager queryManager;
+
+    @Mock
+    private Query docQuery;
+
+    @Mock
+    private Query docQueryRes;
 
     @BeforeEach
     void setUp()

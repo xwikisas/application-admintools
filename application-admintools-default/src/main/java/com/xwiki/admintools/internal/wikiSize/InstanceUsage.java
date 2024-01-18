@@ -24,12 +24,17 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
@@ -59,6 +64,9 @@ public class InstanceUsage
 
     @Inject
     private DocumentReferenceResolver<String> resolver;
+
+    @Inject
+    private QueryManager queryManager;
 
     @Inject
     private PingProvider pingProvider;
