@@ -33,6 +33,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
+import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -98,6 +100,9 @@ class ConfigurationDataProviderTest
     @Mock
     private DatabasePing databasePing;
 
+    @Mock
+    private ServletContainerPing servletContainerPing;
+
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -117,6 +122,7 @@ class ConfigurationDataProviderTest
         defaultJson.put("usedServerVersion", "test_server_version");
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
+        defaultJson.put("serverPath", null);
 
         // Set system properties that will be used.
         System.setProperty("java.version", "used_java_version");
@@ -143,8 +149,9 @@ class ConfigurationDataProviderTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getServerMetadata()).thenReturn(
-            Map.of("name", "test_server_name", "version", "test_server_version"));
+        when(currentServer.getServerMetadata()).thenReturn(servletContainerPing);
+        when(servletContainerPing.getName()).thenReturn("test_server_name");
+        when(servletContainerPing.getVersion()).thenReturn("test_server_version");
         when(pingProvider.getDatabasePing()).thenReturn(databasePing);
         when(databasePing.getName()).thenReturn("MySQL");
         when(databasePing.getVersion()).thenReturn("x.y.z");

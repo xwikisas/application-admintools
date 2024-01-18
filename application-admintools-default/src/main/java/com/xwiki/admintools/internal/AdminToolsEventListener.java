@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.xwiki.bridge.event.DocumentDeletedEvent;
@@ -63,7 +64,7 @@ public class AdminToolsEventListener extends AbstractEventListener
     private WikiDescriptorManager wikiManager;
 
     @Inject
-    private CurrentServer currentServer;
+    private Provider<CurrentServer> currentServerProvider;
 
     /**
      * Creates an event-listener filtering for DocumentUpdatedEvent and DocumentDeletedEvent.
@@ -79,7 +80,7 @@ public class AdminToolsEventListener extends AbstractEventListener
         if (event instanceof DocumentUpdatedEvent || event instanceof DocumentDeletedEvent) {
             XWikiDocument document = (XWikiDocument) source;
             if (document != null && isAdminToolsConfigObject(document)) {
-                this.currentServer.updateCurrentServer();
+                this.currentServerProvider.get().updateCurrentServer();
             }
         }
     }

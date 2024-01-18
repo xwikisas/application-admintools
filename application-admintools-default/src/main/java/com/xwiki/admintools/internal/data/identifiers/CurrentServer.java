@@ -26,11 +26,13 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -41,10 +43,17 @@ import com.xwiki.admintools.ServerIdentifier;
 @Singleton
 public class CurrentServer implements Initializable
 {
+    private static final String SERVER_NAME_KEY = "name";
+
+    private static final String SERVER_VERSION_KEY = "version";
+
     @Inject
     private Provider<List<ServerIdentifier>> supportedServers;
 
     private ServerIdentifier currentServerIdentifier;
+
+    @Inject
+    private PingProvider pingProvider;
 
     @Override
     public void initialize() throws InitializationException
@@ -87,13 +96,25 @@ public class CurrentServer implements Initializable
     }
 
     /**
+     * Access a {@link ServletContainerPing} containing the server metadata.
+     *
+     * @return the server metadata.
+     */
+    public ServletContainerPing getServerMetadata()
+    {
+        return pingProvider.getServletPing();
+    }
+
+    /**
      * Go through all supported servers and return the one that is used.
      */
     public void updateCurrentServer()
     {
         this.currentServerIdentifier = null;
         for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed()) {
+            boolean matchingHint =
+                getServerMetadata().getName().toLowerCase().contains(serverIdentifier.getComponentHint());
+            if (matchingHint && serverIdentifier.foundServerPath()) {
                 this.currentServerIdentifier = serverIdentifier;
                 this.currentServerIdentifier.updatePossiblePaths();
                 break;

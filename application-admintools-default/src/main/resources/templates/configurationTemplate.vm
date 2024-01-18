@@ -23,7 +23,7 @@
   #includeMacros("AdminTools.Code.Macros")
   #if ($configuration.serverFound == 'true')
     #viewLastNLinesMoldal("configuration")
-    <div class="admin-tools-dashboard-item">
+    <div class="admin-tools-dashboard-item backend-section">
       <h2>$services.icon.renderHTML('world')
         $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))</h2>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>
@@ -61,6 +61,14 @@
         #if ("$databaseName" != '')
           <li>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.usedDB',
             [$databaseName, $configuration.databaseVersion]))</li>
+            #set ($isSupported = false)
+            #databaseIsSupported($databaseName $isSupported)
+            #if (!$isSupported)
+              #set($warningDatabaseMessage = $escapetool.xml($services.localization.render(
+                'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join(
+                $services.admintools.getSupportedDatabases(), ', ')])))
+              #warning($warningDatabaseMessage)
+            #end
         #else
           #set($warningDatabaseMessage = $escapetool.xml($services.localization.render(
             'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join(
