@@ -61,6 +61,9 @@ public class DashboardConfigurationSectionView extends ViewPage
             BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID);
     }
 
+    /**
+     * Get the {@link WebElement} representing the error that a non admin user should see.
+     */
     public WebElement getNonAdminUserView()
     {
         return this.getDriver().findElement(By.cssSelector(".xwikirenderingerror"));

@@ -62,6 +62,9 @@ public class DashboardFilesSectionView extends ViewPage
         filesContent.findElement(By.id("filesConfig")).click();
     }
 
+    /**
+     * Get the {@link WebElement} representing the error that a non admin user should see.
+     */
     public WebElement getNonAdminUserView()
     {
         return this.getDriver().findElement(By.cssSelector(".xwikirenderingerror"));
