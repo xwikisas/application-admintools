@@ -46,20 +46,20 @@ adminTools.extension.name=Admin Tools Application (Pro)
 adminTools.extension.title=Admin Tools
 
 ## Dashboard sections
+adminTools.dashboard.serverNotFound.error=Server path was not found or is currently not supported by this version of Admin Tools Pro. Please manually add the path to the server on the Admin Tools configuration page. Currently supported servers: {0}
+
 ## Config
-adminTools.dashboard.backend.configuration.error=Server path was not found. Please manually add the path to the server on the Admin Tools configuration page.
-adminTools.dashboard.backend.description=Get info about your backend
-adminTools.dashboard.backend.java=Detected java version
-adminTools.dashboard.backend.os.architecture=OS architecture
+adminTools.dashboard.backend.description=Get info about your backend.
+adminTools.dashboard.backend.java=Detected java version: {0}
+adminTools.dashboard.backend.os.architecture=OS architecture: {0}
 adminTools.dashboard.backend.os.legend=OS info
-adminTools.dashboard.backend.os.name=OS name
-adminTools.dashboard.backend.os.version=OS version
-adminTools.dashboard.backend.supportedDB.error=Database not found. Currently supported databases
-adminTools.dashboard.backend.supportedServers.error=Currently supported servers
+adminTools.dashboard.backend.os.name=OS name: {0}
+adminTools.dashboard.backend.os.version=OS version: {0}
+adminTools.dashboard.backend.supportedDB.error=Database not found. Currently supported databases: {0}
 adminTools.dashboard.backend.title=Backend
-adminTools.dashboard.backend.usedDB=Used database
-adminTools.dashboard.backend.usedServer=Used server
-adminTools.dashboard.backend.xwiki.version=XWiki installation version
+adminTools.dashboard.backend.usedDB=Used database: {0}, version {1}
+adminTools.dashboard.backend.usedServer=Used server: {0}, version {1}
+adminTools.dashboard.backend.xwiki.version=XWiki installation version: {0}
 
 ## Files
 adminTools.dashboard.download.description=Get the files you need. View them directly in the browser or download them as an archive.
