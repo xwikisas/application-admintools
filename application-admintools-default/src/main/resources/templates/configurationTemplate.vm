@@ -21,7 +21,8 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
   #includeMacros("AdminTools.Code.Macros")
-  #if ($configuration['serverFound'] == 'true')
+  #if ($configuration.serverFound == 'true')
+    #viewLastNLinesMoldal("configuration")
     <div class="admin-tools-dashboard-item backend-section">
       <h2>$services.icon.renderHTML('world')
         $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))</h2>
@@ -30,7 +31,7 @@
       <ul>
         <li>
           $escapetool.xml($services.localization.render('adminTools.dashboard.backend.xwiki.version',
-            [$configuration.xwikiVersion]))
+          [$configuration.xwikiVersion]))
         </li>
         <ul>
           <li>
@@ -40,11 +41,11 @@
         </ul>
         <li>
           $escapetool.xml($services.localization.render('adminTools.dashboard.backend.java',
-            [$configuration.javaVersion]))
+          [$configuration.javaVersion]))
         </li>
         <li>
           $escapetool.xml($services.localization.render('adminTools.dashboard.backend.usedServer',
-            [$configuration.usedServerName, $configuration.usedServerVersion]))
+          [$configuration.usedServerName, $configuration.usedServerVersion]))
         </li>
         <li>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.os.legend'))
           <ul>
@@ -64,21 +65,21 @@
             #databaseIsSupported($databaseName $isSupported)
             #if (!$isSupported)
               #set($warningDatabaseMessage = $escapetool.xml($services.localization.render(
-                'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join($supportedDatabases, ', ')]
-                )))
+                'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join(
+                $services.admintools.getSupportedDatabases(), ', ')])))
               #warning($warningDatabaseMessage)
             #end
         #else
           #set($warningDatabaseMessage = $escapetool.xml($services.localization.render(
-            'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join($supportedDatabases, ', ')])))
+            'adminTools.dashboard.backend.supportedDB.error', [$stringtool.join(
+            $services.admintools.getSupportedDatabases(), ', ')])))
           #warning($warningDatabaseMessage)
         #end
       </ul>
     </div>
-    #viewLastNLinesMoldal("configuration")
   #else
     #set($warningMessage =
-      $escapetool.xml($services.localization.render('adminTools.dashboard.backend.configuration.error',
+      $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
       [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
     #warning($warningMessage)
   #end
