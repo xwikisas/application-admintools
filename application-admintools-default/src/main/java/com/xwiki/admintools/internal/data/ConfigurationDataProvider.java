@@ -27,14 +27,13 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.PingProvider;
 
 /**
  * Extension of {@link AbstractDataProvider} for retrieving configuration data.
@@ -61,7 +60,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     private CurrentServer currentServer;
 
     @Inject
-    private PingProvider pingProvider;
+    private UsageDataProvider usageDataProvider;
 
     @Override
     public String getIdentifier()
@@ -89,13 +88,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
-            Map<String, String> dbMetadata = this.identifyDB();
+            Map<String, String> dbMetadata = this.usageDataProvider.getDatabaseNetadata();
             systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
             systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            Map<String, String> serverMetadata = this.getCurrentServer().getServerMetadata();
+            Map<String, String> serverMetadata = this.usageDataProvider.getServerMetadata();
             systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
             systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiVersion", getXWikiVersion());
@@ -114,20 +113,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     private String getJavaVersion()
     {
         return System.getProperty("java.version");
-    }
-
-    /**
-     * Identify the used database for XWiki by accessing the {@link DatabasePing}.
-     *
-     * @return database metadata or {@code null} in case of an error or if the used DB is not supported.
-     */
-    private Map<String, String> identifyDB()
-    {
-        DatabasePing databasePing = pingProvider.getDatabasePing();
-        if (databasePing == null) {
-            return new HashMap<>();
-        }
-        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION, databasePing.getVersion());
     }
 
     /**

@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
@@ -44,7 +43,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,7 +92,7 @@ class ConfigurationDataProviderTest
     private ScriptContext scriptContext;
 
     @MockComponent
-    private PingProvider pingProvider;
+    private UsageDataProvider usageDataProvider;
 
     @Mock
     private DatabasePing databasePing;
@@ -143,11 +142,9 @@ class ConfigurationDataProviderTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getServerMetadata()).thenReturn(
+        when(usageDataProvider.getServerMetadata()).thenReturn(
             Map.of("name", "test_server_name", "version", "test_server_version"));
-        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
-        when(databasePing.getName()).thenReturn("MySQL");
-        when(databasePing.getVersion()).thenReturn("x.y.z");
+        when(usageDataProvider.getDatabaseNetadata()).thenReturn(Map.of("name", "MySQL", "version", "x.y.z"));
     }
 
     @Test
@@ -159,7 +156,7 @@ class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonDatabaseFail() throws Exception
     {
-        when(pingProvider.getDatabasePing()).thenReturn(null);
+        when(usageDataProvider.getDatabaseNetadata()).thenReturn(new HashMap<>());
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);
         json.put("databaseVersion", null);
@@ -171,9 +168,6 @@ class ConfigurationDataProviderTest
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
         Map<String, String> json = new HashMap<>(defaultJson);
-        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
-        when(databasePing.getName()).thenReturn("MySQL");
-        when(databasePing.getVersion()).thenReturn("x.y.z");
         assertEquals(json, configurationDataProvider.getDataAsJSON());
     }
 
@@ -207,7 +201,7 @@ class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
     {
-        when(pingProvider.getDatabasePing()).thenReturn(null);
+        when(usageDataProvider.getDatabaseNetadata()).thenReturn(new HashMap<>());
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);

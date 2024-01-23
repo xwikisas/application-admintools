@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiSize;
+package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,11 +36,10 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.admintools.WikiSizeResult;
-import com.xwiki.admintools.internal.PingProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
- * Access info about the size of the existing Wikis.
+ * Access info about the size of the existing wikis.
  *
  * @version $Id$
  */
@@ -51,7 +50,7 @@ public class InstanceUsage
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
     @Inject
-    private PingProvider pingProvider;
+    private UsageDataProvider usageDataProvider;
 
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
@@ -68,9 +67,6 @@ public class InstanceUsage
     @Inject
     private ScriptContextManager scriptContextManager;
 
-    @Inject
-    private WikiSizeProvider wikiSizeProvider;
-
     /**
      * Get the data in a format given by the associated template.
      *
@@ -86,12 +82,12 @@ public class InstanceUsage
                 this.logger.error("Used server not found!");
                 return this.templateManager.render(TEMPLATE_NAME);
             }
-            List<WikiSizeResult> wikisInfo = getWikisSizeInfo();
-            scriptContext.setAttribute("wikisInfo", wikisInfo, ScriptContext.ENGINE_SCOPE);
-            int numberOfExtensions = pingProvider.getExtensionPing().size();
-            scriptContext.setAttribute("numberOfExtensions", numberOfExtensions, ScriptContext.ENGINE_SCOPE);
-            long totalNumberOfUsers = pingProvider.getUsersPing().getTotal();
-            scriptContext.setAttribute("totalNumberOfUsers", totalNumberOfUsers, ScriptContext.ENGINE_SCOPE);
+            List<WikiSizeResult> instanceUsage = getWikisSize();
+            scriptContext.setAttribute("instanceUsage", instanceUsage, ScriptContext.ENGINE_SCOPE);
+            int extensionCount = usageDataProvider.getExtensionCount();
+            scriptContext.setAttribute("extensionCount", extensionCount, ScriptContext.ENGINE_SCOPE);
+            long totalUsers = usageDataProvider.getInstanceUsersCount();
+            scriptContext.setAttribute("totalUsers", totalUsers, ScriptContext.ENGINE_SCOPE);
             return this.templateManager.render(TEMPLATE_NAME);
         } catch (Exception e) {
             this.logger.warn("Failed to render [{}] template. Root cause is: [{}]", TEMPLATE_NAME,
@@ -100,18 +96,18 @@ public class InstanceUsage
         }
     }
 
-    private List<WikiSizeResult> getWikisSizeInfo()
+    private List<WikiSizeResult> getWikisSize()
     {
         List<WikiSizeResult> result = new ArrayList<>();
         try {
             Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManager.getAll();
             for (WikiDescriptor wikiDescriptor : wikisDescriptors) {
-                result.add(wikiSizeProvider.getWikiSizeInfo(wikiDescriptor));
+                result.add(usageDataProvider.getWikiSize(wikiDescriptor));
             }
             return result;
         } catch (Exception e) {
-            logger.warn("There have been issues while gathering info about the size of the Wikis. Root cause is: [{}]",
-                org.apache.commons.lang.exception.ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("There have been issues while gathering instance usage data. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
             return new ArrayList<>();
         }
     }

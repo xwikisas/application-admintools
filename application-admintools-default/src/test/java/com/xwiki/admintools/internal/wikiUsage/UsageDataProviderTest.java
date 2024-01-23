@@ -17,12 +17,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiSize;
+package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.List;
 
 import javax.inject.Named;
-import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -38,27 +37,24 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.admintools.WikiSizeResult;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class WikiSizeProviderTest
+public class UsageDataProviderTest
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
     private static final String WIKI_ID = "wikiId";
 
     @InjectMockComponents
-    private WikiSizeProvider wikiSizeProvider;
+    private UsageDataProvider usageDataProvider;
 
     @MockComponent
     private WikiDescriptorManager wikiDescriptorManager;
-
-    @MockComponent
-    private CurrentServer currentServer;
 
     @MockComponent
     private QueryManager queryManager;
@@ -72,9 +68,6 @@ class WikiSizeProviderTest
 
     @Mock
     private WikiDescriptor wikiDescriptor;
-
-    @Mock
-    private ScriptContext scriptContext;
 
     @Mock
     private Query usersQueryRes;
@@ -140,12 +133,12 @@ class WikiSizeProviderTest
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
-        WikiSizeResult wiki = wikiSizeProvider.getWikiSizeInfo(wikiDescriptor);
+        WikiSizeResult wiki = usageDataProvider.getWikiSize(wikiDescriptor);
 
-        assertEquals(1234L, wiki.getNumberOfUsers());
-        assertEquals(12345L, wiki.getNumberOfDocuments());
-        assertEquals(123456L, wiki.getNumberOfAttachments());
-        assertEquals("117.7 MB", wiki.getAttachmentSize());
+        assertEquals(1234L, wiki.getUserCount());
+        assertEquals(12345L, wiki.getDocumentsCount());
+        assertEquals(123456L, wiki.getAttachmentsCount());
+        assertEquals("117.7 MB", wiki.getAttachmentsSize());
     }
 
     @Test
@@ -162,6 +155,6 @@ class WikiSizeProviderTest
             + "AND propActive.value = 0)", "xwql")).thenReturn(usersQuery);
         when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQueryRes);
         when(usersQueryRes.execute()).thenThrow(new QueryException("user query error", usersQueryRes, new Exception()));
-        assertThrows(QueryException.class, () -> wikiSizeProvider.getWikiSizeInfo(wikiDescriptor));
+        assertThrows(QueryException.class, () -> usageDataProvider.getWikiSize(wikiDescriptor));
     }
 }

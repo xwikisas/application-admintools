@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiSize;
+package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.List;
 
@@ -27,8 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.xwiki.activeinstalls2.internal.data.ExtensionPing;
-import org.xwiki.activeinstalls2.internal.data.UsersPing;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -42,7 +40,6 @@ import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.ServerIdentifier;
 import com.xwiki.admintools.WikiSizeResult;
-import com.xwiki.admintools.internal.PingProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,7 +58,7 @@ class InstanceUsageTest
     private InstanceUsage instanceUsage;
 
     @MockComponent
-    private PingProvider pingProvider;
+    private UsageDataProvider usageDataProvider;
 
     @MockComponent
     private WikiDescriptorManager wikiDescriptorManager;
@@ -88,12 +85,6 @@ class InstanceUsageTest
     private ScriptContext scriptContext;
 
     @Mock
-    private WikiSizeProvider wikiSizeProvider;
-
-    @Mock
-    private UsersPing usersPing;
-
-    @Mock
     private WikiSizeResult wikiSizeResult;
 
     @BeforeEach
@@ -102,24 +93,23 @@ class InstanceUsageTest
         when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
 
-        when(pingProvider.getExtensionPing()).thenReturn(List.of(new ExtensionPing(), new ExtensionPing()));
-        when(pingProvider.getUsersPing()).thenReturn(usersPing);
-        when(usersPing.getTotal()).thenReturn(400L);
+        when(usageDataProvider.getExtensionCount()).thenReturn(2);
+        when(usageDataProvider.getInstanceUsersCount()).thenReturn(400L);
     }
 
     @Test
     void renderTemplate() throws Exception
     {
         when(wikiDescriptorManager.getAll()).thenReturn(List.of(wikiDescriptor));
-        when(wikiSizeProvider.getWikiSizeInfo(wikiDescriptor)).thenReturn(wikiSizeResult);
+        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
         assertEquals("success", instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
-        verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
+        verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
         assertEquals(0, logCapture.size());
     }
 
@@ -140,10 +130,10 @@ class InstanceUsageTest
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
         assertEquals("fail", instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
-        verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        assertEquals("There have been issues while gathering info about the size of the Wikis. Root cause is: "
+        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
+        verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
+        assertEquals("There have been issues while gathering instance usage data. Root cause is: "
             + "[WikiManagerException: Failed to get wiki descriptors.]", logCapture.getMessage(0));
     }
 
@@ -156,9 +146,9 @@ class InstanceUsageTest
 
         assertNull(instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("wikisInfo"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
-        verify(scriptContext).setAttribute("numberOfExtensions", 2, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("totalNumberOfUsers", 400L, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
+        verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
         assertEquals(
             "Failed to render [" + TEMPLATE_NAME + "] template. Root cause is: [Exception: Failed to render template.]",
             logCapture.getMessage(0));
