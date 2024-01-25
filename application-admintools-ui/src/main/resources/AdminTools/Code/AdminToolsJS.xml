@@ -189,6 +189,8 @@
   };
 
   $(document).ready(function() {
+    removeEmptyHeaders($('.wikitoc'));
+
     if ($('#healthCheck').length) {
       initialiseJobJS();
       let jobState = $('.health-check-job-state').attr('data-job-state');
@@ -246,6 +248,37 @@
       $('#downloadFilesModal .download-logs-date-fields').hide();
     }
   });
+
+  // Currently, the Dashboard gadgets title doesn't have an ID set (https://jira.xwiki.org/browse/XWIKI-20600). Solution
+  // is to check for an empty ID and remove the said title as it does not point anywhere in the page. Also, this
+  // function will check for an empty name (TOC macro will generate a title with the name of the page if the
+  // header is empty; this behaviour is modified by https://github.com/xwiki/xwiki-rendering/pull/253/).
+  const removeEmptyHeaders = function(element) {
+    element.children('li').each(function() {
+      var itemContent = $(this).children('span.wikilink');
+      var hrefValue = itemContent.find('a').attr("href");
+      // Check for an empty ID or empty header title.
+      if (hrefValue === '#' || itemContent.find("span.wikigeneratedlinkcontent").length) {
+        var itemChild = $(this).children('ul');
+        if (itemChild.length) {
+          removeEmptyHeaders(itemChild);
+          $(this).replaceWith(itemChild.children('li'));
+        } else {
+          // Remove empty link
+          $(this).remove();
+        }
+      } else {
+        $(this).children('ul').each(function() {
+          removeEmptyHeaders($(this));
+        });
+      }
+    });
+
+    // Recursively call for each child element
+    element.children('ul').each(function() {
+      removeEmptyHeaders($(this));
+    });
+  }
 });</code>
     </property>
     <property>

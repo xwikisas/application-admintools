@@ -41,7 +41,7 @@
 {{box cssClass="admin-tools-header-section"}}
 {{container layoutStyle="columns" justify="yes"}}
 (((
-{{toc start=2 scope=page /}}
+{{toc scope=page /}}
 )))
 {{/container}}
 {{/box}}
@@ -111,7 +111,7 @@
     </class>
     <property>
       <content>{{velocity}}
-=={{html clean='false'}}$services.icon.renderHTML('world'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))==
+={{html clean='false'}}$services.icon.renderHTML('world'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))=
 {{html clean='false'}}
   $services.admintools.getConfigurationData('configuration')
 {{/html}}
@@ -179,7 +179,7 @@
     </class>
     <property>
       <content>{{velocity}}
-=={{html clean='false'}}$services.icon.renderHTML('download'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.download.title'))==
+={{html clean='false'}}$services.icon.renderHTML('download'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.download.title'))=
 {{html clean='false'}}
   $services.admintools.getFilesSection()
 {{/html}}
@@ -251,7 +251,7 @@
 {{include reference="AdminTools.Code.HealthCheckMacros" /}}
 
 {{velocity}}
-=={{html clean='false'}}$services.icon.renderHTML('bug'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))==
+={{html clean='false'}}$services.icon.renderHTML('bug'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))=
   {{html clean='false'}}
     #healthCheckUI()
   {{/html}}
