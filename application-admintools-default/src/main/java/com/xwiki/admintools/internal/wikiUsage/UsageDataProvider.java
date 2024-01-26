@@ -99,7 +99,7 @@ public class UsageDataProvider implements Initializable
      *
      * @return a {@link Map} containing the database metadata.
      */
-    public Map<String, String> getDatabaseNetadata()
+    public Map<String, String> getDatabaseMetadata()
     {
         databasePingDataProvider.provideData(ping);
         DatabasePing databasePing = ping.getDatabase();

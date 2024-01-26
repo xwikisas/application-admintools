@@ -144,7 +144,7 @@ class ConfigurationDataProviderTest
         when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
         when(usageDataProvider.getServerMetadata()).thenReturn(
             Map.of("name", "test_server_name", "version", "test_server_version"));
-        when(usageDataProvider.getDatabaseNetadata()).thenReturn(Map.of("name", "MySQL", "version", "x.y.z"));
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(Map.of("name", "MySQL", "version", "x.y.z"));
     }
 
     @Test
@@ -156,7 +156,7 @@ class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonDatabaseFail() throws Exception
     {
-        when(usageDataProvider.getDatabaseNetadata()).thenReturn(new HashMap<>());
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(new HashMap<>());
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);
         json.put("databaseVersion", null);
@@ -201,7 +201,7 @@ class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
     {
-        when(usageDataProvider.getDatabaseNetadata()).thenReturn(new HashMap<>());
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(new HashMap<>());
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);

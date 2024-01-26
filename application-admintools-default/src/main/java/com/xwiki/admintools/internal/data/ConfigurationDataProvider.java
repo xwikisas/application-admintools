@@ -88,7 +88,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
-            Map<String, String> dbMetadata = this.usageDataProvider.getDatabaseNetadata();
+            Map<String, String> dbMetadata = this.usageDataProvider.getDatabaseMetadata();
             systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
             systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
