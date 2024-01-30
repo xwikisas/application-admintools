@@ -319,6 +319,7 @@
     </class>
     <property>
       <content>{{velocity}}
+={{html clean='false'}}$services.icon.renderHTML('drive'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))=
 {{html}}
   $services.admintools.getInstanceSizeSection()
 {{/html}}
@@ -452,7 +453,7 @@
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   padding: 1rem 1.1rem;
-  min-height: 35rem;
+  min-height: 40rem;
 }
 
 .logs-modal-content {
