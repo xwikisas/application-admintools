@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link TomcatIdentifier}
+ * Unit test for {@link TomcatInfo}
  *
  * @version $Id$
  */
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 class TomcatIdentifierTest
 {
     @InjectMockComponents
-    private TomcatIdentifier tomcatIdentifier;
+    private TomcatInfo tomcatIdentifier;
 
     @MockComponent
     @Named("default")

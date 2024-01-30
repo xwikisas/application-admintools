@@ -25,25 +25,43 @@ import java.util.regex.Pattern;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.StringUtils;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 
 /**
- * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
+ * {@link ServerInfo} implementation used for identifying a Tomcat server and retrieving its info.
  *
  * @version $Id$
  */
 @Component
-@Named(TomcatIdentifier.HINT)
+@Named(TomcatInfo.HINT)
 @Singleton
-public class TomcatIdentifier extends AbstractServerIdentifier
+public class TomcatInfo extends AbstractServerInfo
 {
     /**
      * Component identifier.
      */
-    public static final String HINT = "tomcat";
+    public static final String HINT = "Tomcat";
+
+    @Override
+    public boolean isUsed()
+    {
+        this.serverPath = null;
+        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
+        if (providedConfigServerPath != null && !providedConfigServerPath.isEmpty()) {
+            return checkAndSetServerPath(providedConfigServerPath);
+        } else {
+            String catalinaBase = System.getProperty("catalina.base");
+            String catalinaHome = System.getenv("CATALINA_HOME");
+            if (catalinaBase != null && !catalinaBase.isEmpty()) {
+                return checkAndSetServerPath(catalinaBase);
+            } else if (catalinaHome != null && !catalinaHome.isEmpty()) {
+                return checkAndSetServerPath(catalinaHome);
+            }
+        }
+        return false;
+    }
 
     @Override
     public String getComponentHint()

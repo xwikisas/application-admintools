@@ -31,8 +31,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
-import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.ServerInfo;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -48,12 +47,9 @@ public class CurrentServer implements Initializable
     private static final String SERVER_VERSION_KEY = "version";
 
     @Inject
-    private Provider<List<ServerIdentifier>> supportedServers;
+    private Provider<List<ServerInfo>> supportedServers;
 
-    private ServerIdentifier currentServerIdentifier;
-
-    @Inject
-    private PingProvider pingProvider;
+    private ServerInfo currentServerInfo;
 
     @Override
     public void initialize() throws InitializationException
@@ -64,11 +60,11 @@ public class CurrentServer implements Initializable
     /**
      * Get the used server identifier.
      *
-     * @return {@link ServerIdentifier}
+     * @return {@link ServerInfo}
      */
-    public ServerIdentifier getCurrentServer()
+    public ServerInfo getCurrentServer()
     {
-        return this.currentServerIdentifier;
+        return this.currentServerInfo;
     }
 
     /**
@@ -89,8 +85,8 @@ public class CurrentServer implements Initializable
     public List<String> getSupportedServers()
     {
         List<String> supportedServerList = new ArrayList<>();
-        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            supportedServerList.add(serverIdentifier.getComponentHint());
+        for (ServerInfo serverInfo : this.supportedServers.get()) {
+            supportedServerList.add(serverInfo.getComponentHint());
         }
         return supportedServerList;
     }
@@ -110,13 +106,11 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        this.currentServerIdentifier = null;
-        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            boolean matchingHint =
-                getServerMetadata().getName().toLowerCase().contains(serverIdentifier.getComponentHint());
-            if (matchingHint && serverIdentifier.foundServerPath()) {
-                this.currentServerIdentifier = serverIdentifier;
-                this.currentServerIdentifier.updatePossiblePaths();
+        this.currentServerInfo = null;
+        for (ServerInfo serverInfo : this.supportedServers.get()) {
+            if (serverInfo.isUsed()) {
+                this.currentServerInfo = serverInfo;
+                this.currentServerInfo.updatePossiblePaths();
                 break;
             }
         }

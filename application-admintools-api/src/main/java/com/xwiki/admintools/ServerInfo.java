@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Role;
  * @version $Id$
  */
 @Role
-public interface ServerIdentifier
+public interface ServerInfo
 {
     /**
      * Verify if a specific server is used. If a server path is provided in the XWiki configurations, it verifies if the

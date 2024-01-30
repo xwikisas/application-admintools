@@ -78,8 +78,7 @@
       </ul>
     </div>
   #else
-    #set($warningMessage =
-      $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
       [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
     #warning($warningMessage)
   #end

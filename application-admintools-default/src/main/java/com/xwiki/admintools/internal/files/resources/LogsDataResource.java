@@ -48,7 +48,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -96,7 +96,7 @@ public class LogsDataResource implements DataResource
     public byte[] getByteData(Map<String, String[]> params) throws IOException, NumberFormatException
     {
         try {
-            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            ServerInfo usedServer = currentServer.getCurrentServer();
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }

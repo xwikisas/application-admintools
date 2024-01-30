@@ -27,14 +27,12 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.xwiki.activeinstalls2.internal.data.DatabasePing;
-import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.ServerInfo;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -62,7 +60,7 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     private CurrentServer currentServer;
 
     @Inject
-    private PingProvider pingProvider;
+    private UsageDataProvider usageDataProvider;
 
     @Override
     public String getIdentifier()
@@ -90,16 +88,16 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     {
         try {
             Map<String, String> systemInfo = new HashMap<>();
-            Map<String, String> dbMetadata = this.identifyDB();
+            Map<String, String> dbMetadata = this.usageDataProvider.getDatabaseMetadata();
             systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
             systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
             systemInfo.put("serverPath", getCurrentServer().getServerPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
-            ServletContainerPing currentServerMetadata = this.currentServer.getServerMetadata();
-            systemInfo.put("usedServerName", currentServerMetadata.getName());
-            systemInfo.put("usedServerVersion", currentServerMetadata.getVersion());
+            Map<String, String> serverMetadata = this.usageDataProvider.getServerMetadata();
+            systemInfo.put("usedServerName", serverMetadata.get(METADATA_NAME));
+            systemInfo.put("usedServerVersion", serverMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiVersion", getXWikiVersion());
             systemInfo.putAll(this.getOSInfo());
             return systemInfo;
@@ -119,20 +117,6 @@ public class ConfigurationDataProvider extends AbstractDataProvider
     }
 
     /**
-     * Identify the used database for XWiki by accessing the {@link DatabasePing}.
-     *
-     * @return database metadata or {@code null} in case of an error or if the used DB is not supported.
-     */
-    private Map<String, String> identifyDB()
-    {
-        DatabasePing databasePing = pingProvider.getDatabasePing();
-        if (databasePing == null) {
-            return new HashMap<>();
-        }
-        return Map.of(METADATA_NAME, databasePing.getName(), METADATA_VERSION, databasePing.getVersion());
-    }
-
-    /**
      * Get info about the OS that XWiki is running on.
      *
      * @return info about the OS structured in a {@link Map}.
@@ -147,13 +131,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         return result;
     }
 
-    private ServerIdentifier getCurrentServer()
+    private ServerInfo getCurrentServer()
     {
-        ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
-        if (serverIdentifier == null) {
+        ServerInfo serverInfo = currentServer.getCurrentServer();
+        if (serverInfo == null) {
             throw new NullPointerException("Failed to retrieve the current used server, check your configurations.");
         }
-        return serverIdentifier;
+        return serverInfo;
     }
 
     private String getXWikiVersion()
