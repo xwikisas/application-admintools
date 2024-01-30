@@ -22,32 +22,27 @@ package com.xwiki.admintools.internal.data.identifiers;
 import java.io.File;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.admintools.ServerInfo;
 
 /**
- * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
+ * {@link ServerInfo} implementation used for identifying a Tomcat server and retrieving its info.
  *
  * @version $Id$
  */
 @Component
-@Named(TomcatIdentifier.HINT)
+@Named(TomcatInfo.HINT)
 @Singleton
-public class TomcatIdentifier extends AbstractServerIdentifier
+public class TomcatInfo extends AbstractServerInfo
 {
     /**
      * Component identifier.
      */
     public static final String HINT = "Tomcat";
-
-    @Inject
-    private UsageDataProvider usageDataProvider;
 
     @Override
     public boolean isUsed()

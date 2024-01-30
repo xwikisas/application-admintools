@@ -38,7 +38,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -76,7 +76,7 @@ class InstanceUsageTest
     private ScriptContextManager scriptContextManager;
 
     @Mock
-    private ServerIdentifier serverIdentifier;
+    private ServerInfo serverInfo;
 
     @Mock
     private WikiDescriptor wikiDescriptor;
@@ -90,7 +90,7 @@ class InstanceUsageTest
     @BeforeEach
     void setUp()
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
 
         when(usageDataProvider.getExtensionCount()).thenReturn(2);

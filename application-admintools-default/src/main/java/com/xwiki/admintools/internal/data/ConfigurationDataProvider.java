@@ -31,7 +31,7 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -130,13 +130,13 @@ public class ConfigurationDataProvider extends AbstractDataProvider
         return result;
     }
 
-    private ServerIdentifier getCurrentServer()
+    private ServerInfo getCurrentServer()
     {
-        ServerIdentifier serverIdentifier = currentServer.getCurrentServer();
-        if (serverIdentifier == null) {
+        ServerInfo serverInfo = currentServer.getCurrentServer();
+        if (serverInfo == null) {
             throw new NullPointerException("Failed to retrieve the current used server, check your configurations.");
         }
-        return serverIdentifier;
+        return serverInfo;
     }
 
     private String getXWikiVersion()

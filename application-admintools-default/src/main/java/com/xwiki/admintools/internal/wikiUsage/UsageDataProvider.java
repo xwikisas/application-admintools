@@ -35,8 +35,6 @@ import org.xwiki.activeinstalls2.internal.data.Ping;
 import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.activeinstalls2.internal.data.UsersPing;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
@@ -52,7 +50,7 @@ import com.xwiki.admintools.WikiSizeResult;
  */
 @Component(roles = UsageDataProvider.class)
 @Singleton
-public class UsageDataProvider implements Initializable
+public class UsageDataProvider
 {
     private static final String METADATA_NAME = "name";
 
@@ -74,8 +72,6 @@ public class UsageDataProvider implements Initializable
     @Named("users")
     private PingDataProvider usersPingDataProvider;
 
-    private Ping ping;
-
     @Inject
     private QueryManager queryManager;
 
@@ -84,23 +80,13 @@ public class UsageDataProvider implements Initializable
     private QueryFilter countFilter;
 
     /**
-     * Initialize {@link Ping}.
-     *
-     * @throws InitializationException
-     */
-    @Override
-    public void initialize() throws InitializationException
-    {
-        this.ping = new Ping();
-    }
-
-    /**
      * Get the database metadata using {@link DatabasePing}.
      *
      * @return a {@link Map} containing the database metadata.
      */
     public Map<String, String> getDatabaseMetadata()
     {
+        Ping ping = new Ping();
         databasePingDataProvider.provideData(ping);
         DatabasePing databasePing = ping.getDatabase();
         if (databasePing == null) {
@@ -116,6 +102,7 @@ public class UsageDataProvider implements Initializable
      */
     public Map<String, String> getServerMetadata()
     {
+        Ping ping = new Ping();
         servletPingDataProvider.provideData(ping);
         String serverName = ping.getServletContainer().getName();
         String serverVersion = ping.getServletContainer().getVersion();
@@ -129,6 +116,7 @@ public class UsageDataProvider implements Initializable
      */
     public int getExtensionCount()
     {
+        Ping ping = new Ping();
         extensionsPingDataProvider.provideData(ping);
         return ping.getExtensions().size();
     }
@@ -140,6 +128,7 @@ public class UsageDataProvider implements Initializable
      */
     public long getInstanceUsersCount()
     {
+        Ping ping = new Ping();
         usersPingDataProvider.provideData(ping);
         return ping.getUsers().getTotal();
     }
@@ -166,11 +155,12 @@ public class UsageDataProvider implements Initializable
 
     private Long getWikiUserCount(String wikiId) throws QueryException
     {
-        Query query = this.queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
-            + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
-            + "SELECT doc.fullName FROM XWikiDocument doc, BaseObject objLimit, IntegerProperty propActive "
-            + "WHERE objLimit.name = doc.fullName AND propActive.id.id = objLimit.id AND propActive.id.name = 'active' "
-            + "AND propActive.value = 0)", Query.XWQL).setWiki(wikiId);
+        StringBuilder statement = new StringBuilder(", BaseObject as obj, IntegerProperty as prop ");
+        statement.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
+        statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
+
+        Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
+        query.addFilter(this.countFilter).setWiki(wikiId);
         List<Long> results = query.execute();
         return results.get(0);
     }
@@ -185,7 +175,7 @@ public class UsageDataProvider implements Initializable
     private Long getWikiAttachmentSize(String wikiId) throws QueryException
     {
         List<Long> results = this.queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+            "select sum(attach.longSize) from XWikiAttachment attach",
             Query.XWQL).setWiki(wikiId).execute();
         return results.get(0);
     }
@@ -193,8 +183,8 @@ public class UsageDataProvider implements Initializable
     private Long getWikiAttachmentsCount(String wikiId) throws QueryException
     {
         List<Long> results = this.queryManager.createQuery(
-                "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
-                Query.XWQL).setWiki(wikiId).addFilter(this.countFilter).execute();
+            "select count(attach) from XWikiAttachment attach",
+            Query.XWQL).setWiki(wikiId).execute();
         return results.get(0);
     }
 

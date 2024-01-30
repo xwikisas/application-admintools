@@ -37,14 +37,13 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.admintools.WikiSizeResult;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class UsageDataProviderTest
+class UsageDataProviderTest
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
@@ -61,7 +60,7 @@ public class UsageDataProviderTest
 
     @MockComponent
     @Named("count")
-    private QueryFilter queryFilter;
+    private QueryFilter countFilter;
 
     @MockComponent
     private TemplateManager templateManager;
@@ -70,31 +69,13 @@ public class UsageDataProviderTest
     private WikiDescriptor wikiDescriptor;
 
     @Mock
-    private Query usersQueryRes;
-
-    @Mock
     private Query usersQuery;
-
-    @Mock
-    private Query docQueryRes;
 
     @Mock
     private Query docQuery;
 
     @Mock
-    private Query docQueryFilter;
-
-    @Mock
-    private Query attSizeQueryRes;
-
-    @Mock
     private Query attSizeQuery;
-
-    @Mock
-    private Query attCountQueryFilter;
-
-    @Mock
-    private Query attCountQueryRes;
 
     @Mock
     private Query attCountQuery;
@@ -105,31 +86,29 @@ public class UsageDataProviderTest
         when(wikiDescriptor.getId()).thenReturn(WIKI_ID);
         when(wikiDescriptor.getPrettyName()).thenReturn("XWiki Wiki Name");
 
-        when(queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
-            + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
-            + "SELECT doc.fullName FROM XWikiDocument doc, BaseObject objLimit, IntegerProperty propActive "
-            + "WHERE objLimit.name = doc.fullName AND propActive.id.id = objLimit.id AND propActive.id.name = 'active' "
-            + "AND propActive.value = 0)", "xwql")).thenReturn(usersQuery);
-        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQueryRes);
-        when(usersQueryRes.execute()).thenReturn(List.of(1234L));
+        when(queryManager.createQuery(", BaseObject as obj, IntegerProperty as prop "
+            + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and "
+            + "prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'", "hql")).thenReturn(usersQuery);
+        when(usersQuery.addFilter(countFilter)).thenReturn(usersQuery);
+        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQuery);
+        when(usersQuery.execute()).thenReturn(List.of(1234L));
 
         when(queryManager.createQuery("", "xwql")).thenReturn(docQuery);
-        when(docQuery.setWiki(WIKI_ID)).thenReturn(docQueryRes);
-        when(docQueryRes.addFilter(queryFilter)).thenReturn(docQueryFilter);
-        when(docQueryFilter.execute()).thenReturn(List.of(12345L));
+        when(docQuery.setWiki(WIKI_ID)).thenReturn(docQuery);
+        when(docQuery.addFilter(countFilter)).thenReturn(docQuery);
+        when(docQuery.execute()).thenReturn(List.of(12345L));
 
         when(queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+            "select sum(attach.longSize) from XWikiAttachment attach",
             "xwql")).thenReturn(attSizeQuery);
-        when(attSizeQuery.setWiki(WIKI_ID)).thenReturn(attSizeQueryRes);
-        when(attSizeQueryRes.execute()).thenReturn(List.of(123456789L));
+        when(attSizeQuery.setWiki(WIKI_ID)).thenReturn(attSizeQuery);
+        when(attSizeQuery.execute()).thenReturn(List.of(123456789L));
 
         when(queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach, XWikiDocument doc where attach.docId=doc.id",
+            "select count(attach) from XWikiAttachment attach",
             "xwql")).thenReturn(attCountQuery);
-        when(attCountQuery.setWiki(WIKI_ID)).thenReturn(attCountQueryRes);
-        when(attCountQueryRes.addFilter(queryFilter)).thenReturn(attCountQueryFilter);
-        when(attCountQueryFilter.execute()).thenReturn(List.of(123456L));
+        when(attCountQuery.setWiki(WIKI_ID)).thenReturn(attCountQuery);
+        when(attCountQuery.execute()).thenReturn(List.of(123456L));
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
@@ -148,13 +127,13 @@ public class UsageDataProviderTest
         when(wikiDescriptor.getId()).thenReturn(WIKI_ID);
         when(wikiDescriptor.getPrettyName()).thenReturn("XWiki Wiki Name");
 
-        when(queryManager.createQuery("SELECT COUNT(DISTINCT doc.fullName) FROM Document doc, "
-            + "doc.object(XWiki.XWikiUsers) AS obj WHERE doc.fullName NOT IN ("
-            + "SELECT doc.fullName FROM XWikiDocument doc, BaseObject objLimit, IntegerProperty propActive "
-            + "WHERE objLimit.name = doc.fullName AND propActive.id.id = objLimit.id AND propActive.id.name = 'active' "
-            + "AND propActive.value = 0)", "xwql")).thenReturn(usersQuery);
-        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQueryRes);
-        when(usersQueryRes.execute()).thenThrow(new QueryException("user query error", usersQueryRes, new Exception()));
+        when(queryManager.createQuery(", BaseObject as obj, IntegerProperty as prop "
+            + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and "
+            + "prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'", "hql")).thenReturn(usersQuery);
+        when(usersQuery.addFilter(countFilter)).thenReturn(usersQuery);
+        when(usersQuery.setWiki(WIKI_ID)).thenReturn(usersQuery);
+        when(usersQuery.execute()).thenThrow(new QueryException("user query error", usersQuery, new Exception()));
+
         assertThrows(QueryException.class, () -> usageDataProvider.getWikiSize(wikiDescriptor));
     }
 }
