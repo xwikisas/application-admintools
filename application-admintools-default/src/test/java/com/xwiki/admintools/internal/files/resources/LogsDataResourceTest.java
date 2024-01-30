@@ -51,7 +51,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -91,7 +91,7 @@ class LogsDataResourceTest
     private CurrentServer currentServer;
 
     @MockComponent
-    private ServerIdentifier serverIdentifier;
+    private ServerInfo serverInfo;
 
     @MockComponent
     private Provider<XWikiContext> contextProvider;
@@ -152,8 +152,8 @@ class LogsDataResourceTest
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
 
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         readLines(44);
 
         assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
@@ -165,8 +165,8 @@ class LogsDataResourceTest
         File testFile = new File("server.2023-10-06.log");
         assertFalse(testFile.exists());
 
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         IOException exception = assertThrows(IOException.class, () -> {
             logsDataResource.getByteData(null);
         });
@@ -187,8 +187,8 @@ class LogsDataResourceTest
     @Test
     void getByteDataIncorrectInput()
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         String invalidInput = "not a number";
         Map<String, String[]> params = Map.of("noLines", new String[] { "not a number" });
         Exception exception = assertThrows(Exception.class, () -> logsDataResource.getByteData(params));
@@ -199,8 +199,8 @@ class LogsDataResourceTest
     @Test
     void getByteDataNullInput() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
 
         readLines(1000);
 
@@ -210,8 +210,8 @@ class LogsDataResourceTest
     @Test
     void getByteDataNullNoLines() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         Map<String, String[]> params = Map.of("noLines", new String[] { null });
         readLines(1000);
 
@@ -221,9 +221,9 @@ class LogsDataResourceTest
     @Test
     void addZipEntrySuccessNoFilters() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-        when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
         logsDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, times(2)).closeEntry();
     }
@@ -231,9 +231,9 @@ class LogsDataResourceTest
     @Test
     void addZipEntrySuccessWithFilters() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-        when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "06-10-2023" });
@@ -252,9 +252,9 @@ class LogsDataResourceTest
     @Test
     void addZipEntryFilesOutOfFiltersRange() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-        when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd yy MM");
 
         Map<String, String[]> filters = new HashMap<>();
@@ -268,9 +268,9 @@ class LogsDataResourceTest
     @Test
     void addZipEntryDateParseError()
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-        when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "2023-10-03" });
         filters.put("to", new String[] { "2023-10-05" });
@@ -282,9 +282,9 @@ class LogsDataResourceTest
     @Test
     void addZipEntryPatternNotFound() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-        when(serverIdentifier.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}_\\d{2}_\\d{2}"));
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}_\\d{2}_\\d{2}"));
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "2023-10-03" });
         filters.put("to", new String[] { "2023-10-05" });

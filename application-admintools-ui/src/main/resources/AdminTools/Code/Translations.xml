@@ -126,6 +126,17 @@ adminTools.dashboard.healthcheck.flushCache.success=Cache flush successfully.
 adminTools.dashboard.healthcheck.flushCache=Flush Wiki cache
 adminTools.dashboard.healthcheck.wikiBins=Shrink the recycle bin for pages and attachments
 
+##Instance usage
+adminTools.dashboard.instanceUsage.description=See the stats related to the usage of the instance.
+adminTools.dashboard.instanceUsage.error=There have been issues while gathering info about the size of the Wikis.
+adminTools.dashboard.instanceUsage.title=Instance usage
+adminTools.dashboard.instanceUsage.total.extensions=There are {0} extensions installed.
+adminTools.dashboard.instanceUsage.total.users=There are a total of {0} users registered in this XWiki instance.
+adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} ({1})
+adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
+adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
+adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
+
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
 adminTools.dashboard.security.configurationEncoding=Configuration encoding

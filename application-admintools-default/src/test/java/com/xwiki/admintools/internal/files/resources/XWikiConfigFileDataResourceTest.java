@@ -43,7 +43,7 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -72,7 +72,7 @@ class XWikiConfigFileDataResourceTest
     private CurrentServer currentServer;
 
     @MockComponent
-    private ServerIdentifier serverIdentifier;
+    private ServerInfo serverInfo;
 
     @MockComponent
     @Named("default")
@@ -129,8 +129,8 @@ class XWikiConfigFileDataResourceTest
     void getByteData() throws Exception
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
 
         assertArrayEquals(readLines(), configFileDataResource.getByteData(null));
     }
@@ -143,8 +143,8 @@ class XWikiConfigFileDataResourceTest
         cfgDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
         Exception exception = assertThrows(Exception.class, () -> {
             configFileDataResource.getByteData(null);
         });
@@ -170,8 +170,8 @@ class XWikiConfigFileDataResourceTest
     void addZipEntry() throws Exception
     {
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXwikiCfgFolderPath()).thenReturn(cfgDirPath);
         configFileDataResource.addZipEntry(zipOutputStream, null);
         byte[] buff = readLines();
         int buffLength = buff.length;
@@ -186,8 +186,8 @@ class XWikiConfigFileDataResourceTest
         cfgDir2.deleteOnExit();
 
         when(adminToolsConfiguration.getExcludedLines()).thenReturn(excludedLines);
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXwikiCfgFolderPath()).thenReturn(cfgDir2.getAbsolutePath() + "/");
 
         configFileDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, never()).write(any(), eq(0), anyInt());

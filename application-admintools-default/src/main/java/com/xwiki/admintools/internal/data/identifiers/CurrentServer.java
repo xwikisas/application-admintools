@@ -30,7 +30,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -42,9 +42,9 @@ import com.xwiki.admintools.ServerIdentifier;
 public class CurrentServer implements Initializable
 {
     @Inject
-    private Provider<List<ServerIdentifier>> supportedServers;
+    private Provider<List<ServerInfo>> supportedServers;
 
-    private ServerIdentifier currentServerIdentifier;
+    private ServerInfo currentServerInfo;
 
     @Override
     public void initialize() throws InitializationException
@@ -55,11 +55,11 @@ public class CurrentServer implements Initializable
     /**
      * Get the used server identifier.
      *
-     * @return {@link ServerIdentifier}
+     * @return {@link ServerInfo}
      */
-    public ServerIdentifier getCurrentServer()
+    public ServerInfo getCurrentServer()
     {
-        return this.currentServerIdentifier;
+        return this.currentServerInfo;
     }
 
     /**
@@ -80,8 +80,8 @@ public class CurrentServer implements Initializable
     public List<String> getSupportedServers()
     {
         List<String> supportedServerList = new ArrayList<>();
-        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            supportedServerList.add(serverIdentifier.getComponentHint());
+        for (ServerInfo serverInfo : this.supportedServers.get()) {
+            supportedServerList.add(serverInfo.getComponentHint());
         }
         return supportedServerList;
     }
@@ -91,11 +91,11 @@ public class CurrentServer implements Initializable
      */
     public void updateCurrentServer()
     {
-        this.currentServerIdentifier = null;
-        for (ServerIdentifier serverIdentifier : this.supportedServers.get()) {
-            if (serverIdentifier.isUsed()) {
-                this.currentServerIdentifier = serverIdentifier;
-                this.currentServerIdentifier.updatePossiblePaths();
+        this.currentServerInfo = null;
+        for (ServerInfo serverInfo : this.supportedServers.get()) {
+            if (serverInfo.isUsed()) {
+                this.currentServerInfo = serverInfo;
+                this.currentServerInfo.updatePossiblePaths();
                 break;
             }
         }

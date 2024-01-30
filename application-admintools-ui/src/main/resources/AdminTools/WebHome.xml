@@ -247,6 +247,73 @@
 {{/velocity}}</content>
     </property>
     <property>
+      <position>2, 2</position>
+    </property>
+    <property>
+      <title/>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.WebHome</name>
+    <number>4</number>
+    <className>XWiki.GadgetClass</className>
+    <guid>82bfc6e3-4516-42a3-a85f-6a8a81d21120</guid>
+    <class>
+      <name>XWiki.GadgetClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <content>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>content</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>content</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <position>
+        <disabled>0</disabled>
+        <name>position</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>position</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </position>
+      <title>
+        <disabled>0</disabled>
+        <name>title</name>
+        <number>1</number>
+        <picker>0</picker>
+        <prettyName>title</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </title>
+    </class>
+    <property>
+      <content>{{velocity}}
+{{html}}
+  $services.admintools.getInstanceSizeSection()
+{{/html}}
+{{/velocity}}</content>
+    </property>
+    <property>
       <position>1, 2</position>
     </property>
     <property>
@@ -364,7 +431,7 @@
 .admin-tools-dashboard-item {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
-  min-height: 35rem;
+  min-height: 40rem;
   padding: 1rem 1.1rem;
 }
 
@@ -397,6 +464,11 @@
 
 .health-check-wrapper button {
   margin-top: 2rem;
+}
+
+.wikis-size-info-list {
+  max-height: 20rem;
+  overflow-y: auto;
 }</code>
     </property>
     <property>

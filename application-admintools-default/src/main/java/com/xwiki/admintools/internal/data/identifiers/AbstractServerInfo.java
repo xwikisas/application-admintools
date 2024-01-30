@@ -24,15 +24,15 @@ import java.io.File;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 /**
- * Common methods for {@link ServerIdentifier} classes.
+ * Common methods for {@link ServerInfo} classes.
  *
  * @version $Id$
  */
-public abstract class AbstractServerIdentifier implements ServerIdentifier
+public abstract class AbstractServerInfo implements ServerInfo
 {
     protected String[] serverCfgPossiblePaths;
 
