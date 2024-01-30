@@ -20,13 +20,20 @@
 package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.List;
+import java.util.Vector;
 
+import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -38,12 +45,18 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -86,6 +99,36 @@ class InstanceUsageTest
 
     @Mock
     private WikiSizeResult wikiSizeResult;
+
+    @MockComponent
+    private Provider<XWikiContext> wikiContextProvider;
+
+    @Mock
+    private XWikiContext wikiContext;
+
+    @Mock
+    private XWiki wiki;
+
+    @MockComponent
+    private DocumentReferenceResolver<String> resolver;
+
+    @MockComponent
+    private XWikiDocument wikiDocument;
+
+    @MockComponent
+    private XWikiDocument secondWikiDocument;
+
+    @Mock
+    private DocumentReference firstDocumentReference;
+
+    @Mock
+    private DocumentReference secondDocumentReference;
+
+    @MockComponent
+    private QueryManager queryManager;
+
+    @Mock
+    private Query docQuery;
 
     @BeforeEach
     void setUp()
@@ -152,5 +195,43 @@ class InstanceUsageTest
         assertEquals(
             "Failed to render [" + TEMPLATE_NAME + "] template. Root cause is: [Exception: Failed to render template.]",
             logCapture.getMessage(0));
+    }
+
+    @Test
+    void getPagesOverGivenNumberOfComments() throws QueryException, XWikiException
+    {
+        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
+        when(queryManager.createQuery(
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
+            "xwql")).thenReturn(docQuery);
+        when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
+        when(docQuery.execute()).thenReturn(List.of("Page.one", "Page.two"));
+        when(wikiContextProvider.get()).thenReturn(wikiContext);
+        when(wikiContext.getWiki()).thenReturn(wiki);
+        when(resolver.resolve("Page.one")).thenReturn(firstDocumentReference);
+        when(resolver.resolve("Page.two")).thenReturn(secondDocumentReference);
+        when(wiki.getDocument(resolver.resolve("Page.one"), wikiContext)).thenReturn(wikiDocument);
+        when(wiki.getDocument(resolver.resolve("Page.two"), wikiContext)).thenReturn(secondWikiDocument);
+        Vector<BaseObject> vectorOne = new Vector<>();
+        Vector<BaseObject> vectorTwo = new Vector<>();
+        vectorOne.add(new BaseObject());
+        vectorOne.add(new BaseObject());
+        vectorOne.add(new BaseObject());
+        when(wikiDocument.getComments()).thenReturn(vectorOne);
+        when(secondWikiDocument.getComments()).thenReturn(vectorTwo);
+        assertEquals(1, instanceUsage.getPagesOverGivenNumberOfComments(2).size());
+    }
+
+    @Test
+    void getPagesOverGivenNumberOfCommentsError() throws QueryException
+    {
+        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
+        when(queryManager.createQuery(
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
+            "xwql")).thenThrow(new QueryException("ERROR IN QUERY", docQuery, null));
+        Exception exception = assertThrows(QueryException.class, () -> {
+            this.instanceUsage.getPagesOverGivenNumberOfComments(5);
+        });
+        assertEquals("ERROR IN QUERY. Query statement = [null]", exception.getMessage());
     }
 }
