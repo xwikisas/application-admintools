@@ -39,7 +39,7 @@ public interface ServerInfo
      *
      * @return {@code true} if the server is used, {@code false} otherwise.
      */
-    boolean foundServerPath();
+    boolean isUsed();
 
     /**
      * Extract the hint of a component.

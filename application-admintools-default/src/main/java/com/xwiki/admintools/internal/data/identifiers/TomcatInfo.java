@@ -42,7 +42,7 @@ public class TomcatInfo extends AbstractServerInfo
     /**
      * Component identifier.
      */
-    public static final String HINT = "Tomcat";
+    public static final String HINT = "tomcat";
 
     @Override
     public boolean isUsed()
@@ -98,25 +98,6 @@ public class TomcatInfo extends AbstractServerInfo
     public Pattern getLogsPattern()
     {
         return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
-    }
-
-    @Override
-    public boolean foundServerPath()
-    {
-        this.serverPath = null;
-        String providedConfigServerPath = this.adminToolsConfig.getServerPath();
-        if (!StringUtils.isEmpty(providedConfigServerPath)) {
-            return checkAndSetServerPath(providedConfigServerPath);
-        } else {
-            String catalinaBase = System.getProperty("catalina.base");
-            String catalinaHome = System.getenv("CATALINA_HOME");
-            if (!StringUtils.isEmpty(catalinaBase)) {
-                return checkAndSetServerPath(catalinaBase);
-            } else if (!StringUtils.isEmpty(catalinaHome)) {
-                return checkAndSetServerPath(catalinaHome);
-            }
-        }
-        return false;
     }
 
     private boolean checkAndSetServerPath(String path)

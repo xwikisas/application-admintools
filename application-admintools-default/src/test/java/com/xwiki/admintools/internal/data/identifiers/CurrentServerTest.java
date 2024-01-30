@@ -21,13 +21,12 @@ package com.xwiki.admintools.internal.data.identifiers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -36,7 +35,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -63,15 +62,19 @@ class CurrentServerTest
     @Named("default")
     private AdminToolsConfiguration adminToolsConfig;
 
+    @MockComponent
+    private UsageDataProvider usageDataProvider;
+
     @BeforeComponent
     void setUp()
     {
         // Mock the list of supported servers.
-        List<ServerInfo> mockServerInfos = new ArrayList<>();
-        mockServerInfos.add(serverInfo);
-        when(supportedServers.get()).thenReturn(mockServerInfos);
+        List<ServerInfo> mockServerInfo = new ArrayList<>();
+        mockServerInfo.add(serverInfo);
+        when(supportedServers.get()).thenReturn(mockServerInfo);
         when(serverInfo.isUsed()).thenReturn(true);
-
+        when(usageDataProvider.getServerMetadata()).thenReturn(Map.of("name", "Tomcat"));
+        when(serverInfo.getComponentHint()).thenReturn("tomcat");
         // Mock the behavior of adminToolsConfig.
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
     }

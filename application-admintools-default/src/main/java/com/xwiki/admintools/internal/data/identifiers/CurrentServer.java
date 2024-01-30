@@ -26,12 +26,12 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerInfo;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -44,10 +44,11 @@ public class CurrentServer implements Initializable
 {
     private static final String SERVER_NAME_KEY = "name";
 
-    private static final String SERVER_VERSION_KEY = "version";
-
     @Inject
     private Provider<List<ServerInfo>> supportedServers;
+
+    @Inject
+    private UsageDataProvider usageDataProvider;
 
     private ServerInfo currentServerInfo;
 
@@ -92,23 +93,15 @@ public class CurrentServer implements Initializable
     }
 
     /**
-     * Access a {@link ServletContainerPing} containing the server metadata.
-     *
-     * @return the server metadata.
-     */
-    public ServletContainerPing getServerMetadata()
-    {
-        return pingProvider.getServletPing();
-    }
-
-    /**
      * Go through all supported servers and return the one that is used.
      */
     public void updateCurrentServer()
     {
         this.currentServerInfo = null;
         for (ServerInfo serverInfo : this.supportedServers.get()) {
-            if (serverInfo.isUsed()) {
+            boolean matchingHint = usageDataProvider.getServerMetadata().get(SERVER_NAME_KEY).toLowerCase()
+                .contains(serverInfo.getComponentHint());
+            if (matchingHint && serverInfo.isUsed()) {
                 this.currentServerInfo = serverInfo;
                 this.currentServerInfo.updatePossiblePaths();
                 break;
