@@ -30,7 +30,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
@@ -61,7 +61,7 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
     public HealthCheckResult check()
     {
         File diskPartition;
-        ServerIdentifier server = currentServer.getCurrentServer();
+        ServerInfo server = currentServer.getCurrentServer();
         if (server == null) {
             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
                 diskPartition = new File("C:");

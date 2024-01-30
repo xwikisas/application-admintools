@@ -36,7 +36,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -78,7 +78,7 @@ public class XWikiConfigFileDataResource implements DataResource
     public byte[] getByteData(Map<String, String[]> params) throws IOException
     {
         try {
-            ServerIdentifier usedServer = currentServer.getCurrentServer();
+            ServerInfo usedServer = currentServer.getCurrentServer();
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
