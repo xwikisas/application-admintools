@@ -123,6 +123,17 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
+     * Get the rendered template for viewing info about the size of the XWiki instance.
+     *
+     * @return a {@link String} representation of the template.
+     */
+    public String getInstanceSizeSection() throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return adminToolsManager.getInstanceSizeTemplate();
+    }
+
+    /**
      * Check if an Admin Tools Health Check job for the wiki from where the request was made exists. If it does, return
      * the job instance, else create a new Admin Tools health check request for the given wiki and start the execution.
      *

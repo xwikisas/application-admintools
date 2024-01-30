@@ -20,36 +20,29 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
-import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.component.annotation.Component;
 
-import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.ServerInfo;
 
 /**
- * {@link ServerIdentifier} implementation used for identifying a Tomcat server and retrieving its info.
+ * {@link ServerInfo} implementation used for identifying a Tomcat server and retrieving its info.
  *
  * @version $Id$
  */
 @Component
-@Named(TomcatIdentifier.HINT)
+@Named(TomcatInfo.HINT)
 @Singleton
-public class TomcatIdentifier extends AbstractServerIdentifier
+public class TomcatInfo extends AbstractServerInfo
 {
     /**
      * Component identifier.
      */
     public static final String HINT = "Tomcat";
-
-    @Inject
-    private PingProvider pingProvider;
 
     @Override
     public boolean isUsed()
@@ -87,15 +80,6 @@ public class TomcatIdentifier extends AbstractServerIdentifier
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
-    }
-
-    @Override
-    public Map<String, String> getServerMetadata()
-    {
-        ServletContainerPing servletPing = pingProvider.getServletPing();
-        String serverName = servletPing.getName();
-        String serverVersion = servletPing.getVersion();
-        return Map.of("name", serverName, "version", serverVersion);
     }
 
     @Override

@@ -32,7 +32,7 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xwiki.admintools.ServerIdentifier;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,10 +51,10 @@ class CurrentServerTest
     private CurrentServer currentServer;
 
     @MockComponent
-    private Provider<List<ServerIdentifier>> supportedServers;
+    private Provider<List<ServerInfo>> supportedServers;
 
     @MockComponent
-    private ServerIdentifier serverIdentifier;
+    private ServerInfo serverInfo;
 
     @MockComponent
     @Named("default")
@@ -64,10 +64,10 @@ class CurrentServerTest
     void setUp()
     {
         // Mock the list of supported servers.
-        List<ServerIdentifier> mockServerIdentifiers = new ArrayList<>();
-        mockServerIdentifiers.add(serverIdentifier);
-        when(supportedServers.get()).thenReturn(mockServerIdentifiers);
-        when(serverIdentifier.isUsed()).thenReturn(true);
+        List<ServerInfo> mockServerInfos = new ArrayList<>();
+        mockServerInfos.add(serverInfo);
+        when(supportedServers.get()).thenReturn(mockServerInfos);
+        when(serverInfo.isUsed()).thenReturn(true);
 
         // Mock the behavior of adminToolsConfig.
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
@@ -80,13 +80,13 @@ class CurrentServerTest
         currentServer.initialize();
 
         // Verify that the currentServerIdentifier is set correctly.
-        assertEquals(serverIdentifier, currentServer.getCurrentServer());
+        assertEquals(serverInfo, currentServer.getCurrentServer());
     }
 
     @Test
     void initializeWithServerNotFound() throws InitializationException
     {
-        when(serverIdentifier.isUsed()).thenReturn(false);
+        when(serverInfo.isUsed()).thenReturn(false);
         currentServer.initialize();
 
         assertNull(currentServer.getCurrentServer());
@@ -95,19 +95,19 @@ class CurrentServerTest
     @Test
     void updateCurrentServer()
     {
-        when(serverIdentifier.isUsed()).thenReturn(false);
+        when(serverInfo.isUsed()).thenReturn(false);
         currentServer.updateCurrentServer();
         assertNull(currentServer.getCurrentServer());
 
-        when(serverIdentifier.isUsed()).thenReturn(true);
+        when(serverInfo.isUsed()).thenReturn(true);
         currentServer.updateCurrentServer();
-        assertEquals(serverIdentifier, currentServer.getCurrentServer());
+        assertEquals(serverInfo, currentServer.getCurrentServer());
     }
 
     @Test
     void getSupportedServers()
     {
-        when(serverIdentifier.getComponentHint()).thenReturn("testServer");
+        when(serverInfo.getComponentHint()).thenReturn("testServer");
 
         // Create the expected list.
         List<String> testServersList = new ArrayList<>();

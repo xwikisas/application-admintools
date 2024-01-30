@@ -33,9 +33,10 @@ import org.xwiki.component.manager.ComponentManager;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.wikiUsage.InstanceUsage;
 
 /**
- * Manages the data providers.
+ * Manages the data that needs to be used by the Admin Tools application.
  *
  * @version $Id$
  */
@@ -57,6 +58,9 @@ public class AdminToolsManager
 
     @Inject
     private ImportantFilesManager importantFilesManager;
+
+    @Inject
+    private InstanceUsage instanceUsage;
 
     @Inject
     @Named("context")
@@ -118,5 +122,15 @@ public class AdminToolsManager
     public String getFilesSection()
     {
         return this.importantFilesManager.renderTemplate();
+    }
+
+    /**
+     * Get the rendered template for viewing info about the size of the XWiki instance.
+     *
+     * @return a {@link String} representation of the rendered template.
+     */
+    public String getInstanceSizeTemplate()
+    {
+        return instanceUsage.renderTemplate();
     }
 }
