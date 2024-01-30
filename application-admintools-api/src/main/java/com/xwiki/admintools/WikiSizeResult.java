@@ -22,7 +22,7 @@ package com.xwiki.admintools;
 import org.xwiki.stability.Unstable;
 
 /**
- * Stores info about the size of a Wiki.
+ * Stores info about the size of a wiki.
  *
  * @version $Id$
  * @since 1.0
@@ -30,15 +30,15 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public class WikiSizeResult
 {
-    private String wikiName;
+    private String name;
 
-    private Long numberOfUsers;
+    private Long userCount;
 
-    private String attachmentSize;
+    private String attachmentsSize;
 
-    private Long numberOfAttachments;
+    private Long attachmentsCount;
 
-    private Long numberOfDocuments;
+    private Long documentsCount;
 
     /**
      * Null constructor to initialize a {@link WikiSizeResult} object.
@@ -48,102 +48,102 @@ public class WikiSizeResult
     }
 
     /**
-     * Get the name of the Wiki.
+     * Get the name of the wiki.
      *
-     * @return the name of the Wiki.
+     * @return the name of the wiki.
      */
-    public String getWikiName()
+    public String getName()
     {
-        return wikiName;
+        return name;
     }
 
     /**
-     * Set the name of the Wiki.
+     * Set the name of the wiki.
      *
-     * @param wikiName representing the name of the Wiki.
+     * @param name representing the name of the wiki.
      */
-    public void setWikiName(String wikiName)
+    public void setName(String name)
     {
-        this.wikiName = wikiName;
+        this.name = name;
     }
 
     /**
-     * Get the number of users registered in the Wiki.
+     * Get the number of users registered in the wiki.
      *
-     * @return {@link Long} representing the number of users in the Wiki.
+     * @return {@link Long} representing the number of users in the wiki.
      */
-    public Long getNumberOfUsers()
+    public Long getUserCount()
     {
-        return numberOfUsers;
+        return userCount;
     }
 
     /**
-     * Set the number of users registered in the Wiki.
+     * Set the number of users registered in the wiki.
      *
-     * @param numberOfUsers the number of users in the Wiki.
+     * @param userCount the number of users in the wiki.
      */
-    public void setNumberOfUsers(Long numberOfUsers)
+    public void setUserCount(Long userCount)
     {
-        this.numberOfUsers = numberOfUsers;
+        this.userCount = userCount;
     }
 
     /**
-     * Get the total size of the attachments in the Wiki.
+     * Get the total size of the attachments in the wiki.
      *
-     * @return formatted {@link String} with the size of the attachments in the Wiki and corresponding size unit.
+     * @return formatted {@link String} with the size of the attachments in the wiki and corresponding size unit.
      */
-    public String getAttachmentSize()
+    public String getAttachmentsSize()
     {
-        return attachmentSize;
+        return attachmentsSize;
     }
 
     /**
-     * Set the total size of the attachments in the Wiki.
+     * Set the total size of the attachments in the wiki.
      *
-     * @param attachmentSize the size of the attachments in the Wiki and corresponding size unit.
+     * @param attachmentsSize the size of the attachments in the wiki and corresponding size unit.
      */
-    public void setAttachmentSize(String attachmentSize)
+    public void setAttachmentsSize(String attachmentsSize)
     {
-        this.attachmentSize = attachmentSize;
+        this.attachmentsSize = attachmentsSize;
     }
 
     /**
-     * Get the total number of the attachments in Wiki.
+     * Get the total number of the attachments in wiki.
      *
-     * @return the total number of the attachments in Wiki.
+     * @return the total number of the attachments in wiki.
      */
-    public Long getNumberOfAttachments()
+    public Long getAttachmentsCount()
     {
-        return numberOfAttachments;
+        return attachmentsCount;
     }
 
     /**
-     * Set the total number of the attachments in Wiki.
+     * Set the total number of the attachments in wiki.
      *
-     * @param numberOfAttachments the total number of the attachments in Wiki.
+     * @param attachmentsCount the total number of the attachments in wiki.
      */
-    public void setNumberOfAttachments(Long numberOfAttachments)
+    public void setAttachmentsCount(Long attachmentsCount)
     {
-        this.numberOfAttachments = numberOfAttachments;
+        this.attachmentsCount = attachmentsCount;
     }
 
     /**
-     * Get the total number of documents in Wiki.
+     * Get the total number of documents in wiki.
      *
-     * @return the total number of documents in Wiki.
+     * @return the total number of documents in wiki.
      */
-    public Long getNumberOfDocuments()
+    public Long getDocumentsCount()
     {
-        return numberOfDocuments;
+        return documentsCount;
     }
 
     /**
-     * Set the total number of documents in Wiki.
+     * Set the total number of documents in wiki.
      *
-     * @param numberOfDocuments the total number of documents in Wiki.
+     * @param documentsCount the total number of documents in wiki.
      */
-    public void setNumberOfDocuments(Long numberOfDocuments)
+    public void setDocumentsCount(Long documentsCount)
     {
-        this.numberOfDocuments = numberOfDocuments;
+        this.documentsCount = documentsCount;
     }
 }

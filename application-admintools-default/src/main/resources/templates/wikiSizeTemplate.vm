@@ -26,24 +26,23 @@
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
       <hr/>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
-        [$numberOfExtensions]))</p>
+        [$extensionCount]))</p>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
-        [$totalNumberOfUsers]))</p>
+        [$totalUsers]))</p>
       <div class="wikis-size-info-list">
-        #if ($wikisInfo.size() != 0)
+        #if ($instanceUsage.size() != 0)
           <ul>
-            #foreach($wiki in $wikisInfo)
-              #set($attachmentsSize = $wiki.getAttachmentSize())
-              #set($wikiName = "<strong>$wiki.getWikiName()</strong>")
+            #foreach($wikiData in $instanceUsage)
+              #set($wikiName = "<strong>$wikiData.getName()</strong>")
                 <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
                   '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
                 <ul>
                   <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
-                    $wiki.getNumberOfUsers()]))</li>
+                    $wikiData.getUserCount()]))</li>
                   <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
-                    [$wiki.getNumberOfDocuments()]))</li>
+                    [$wikiData.getDocumentsCount()]))</li>
                   <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
-                    [$wiki.getNumberOfAttachments(), $attachmentsSize]))</li>
+                    [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
                 </ul>
             #end
           </ul>

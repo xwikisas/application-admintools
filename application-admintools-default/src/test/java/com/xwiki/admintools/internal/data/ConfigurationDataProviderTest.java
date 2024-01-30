@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
 import org.xwiki.activeinstalls2.internal.data.DatabasePing;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
@@ -43,9 +42,9 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xwiki.admintools.ServerIdentifier;
-import com.xwiki.admintools.internal.PingProvider;
+import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -87,16 +86,13 @@ class ConfigurationDataProviderTest
     private ScriptContextManager scriptContextManager;
 
     @Mock
-    private ServerIdentifier serverIdentifier;
+    private ServerInfo serverInfo;
 
     @Mock
     private ScriptContext scriptContext;
 
     @MockComponent
-    private PingProvider pingProvider;
-
-    @Mock
-    private DatabasePing databasePing;
+    private UsageDataProvider usageDataProvider;
 
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
@@ -140,14 +136,12 @@ class ConfigurationDataProviderTest
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getVersion()).thenReturn("xwiki_version");
-        when(currentServer.getCurrentServer()).thenReturn(serverIdentifier);
-        when(serverIdentifier.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
-        when(serverIdentifier.getServerCfgPath()).thenReturn("server_config_folder_path");
-        when(serverIdentifier.getServerMetadata()).thenReturn(
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
+        when(serverInfo.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(usageDataProvider.getServerMetadata()).thenReturn(
             Map.of("name", "test_server_name", "version", "test_server_version"));
-        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
-        when(databasePing.getName()).thenReturn("MySQL");
-        when(databasePing.getVersion()).thenReturn("x.y.z");
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(Map.of("name", "MySQL", "version", "x.y.z"));
     }
 
     @Test
@@ -159,7 +153,7 @@ class ConfigurationDataProviderTest
     @Test
     void getDataAsJsonDatabaseFail() throws Exception
     {
-        when(pingProvider.getDatabasePing()).thenReturn(null);
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(new HashMap<>());
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);
         json.put("databaseVersion", null);
@@ -171,9 +165,6 @@ class ConfigurationDataProviderTest
     void getDataAsJsonWithSuccessfulExecution() throws Exception
     {
         Map<String, String> json = new HashMap<>(defaultJson);
-        when(pingProvider.getDatabasePing()).thenReturn(databasePing);
-        when(databasePing.getName()).thenReturn("MySQL");
-        when(databasePing.getVersion()).thenReturn("x.y.z");
         assertEquals(json, configurationDataProvider.getDataAsJSON());
     }
 
@@ -207,7 +198,7 @@ class ConfigurationDataProviderTest
     @Test
     void getRenderedDataWithSuccessfulExecutionButUnsupportedDB() throws Exception
     {
-        when(pingProvider.getDatabasePing()).thenReturn(null);
+        when(usageDataProvider.getDatabaseMetadata()).thenReturn(new HashMap<>());
 
         Map<String, String> json = new HashMap<>(defaultJson);
         json.put("databaseName", null);

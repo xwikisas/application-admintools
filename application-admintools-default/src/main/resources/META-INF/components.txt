@@ -3,7 +3,7 @@ com.xwiki.admintools.internal.AdminToolsManager
 com.xwiki.admintools.internal.data.ConfigurationDataProvider
 com.xwiki.admintools.internal.data.SecurityDataProvider
 com.xwiki.admintools.internal.data.identifiers.CurrentServer
-com.xwiki.admintools.internal.data.identifiers.TomcatIdentifier
+com.xwiki.admintools.internal.data.identifiers.TomcatInfo
 com.xwiki.admintools.internal.files.resources.XWikiPropertiesFileDataResource
 com.xwiki.admintools.internal.files.resources.XWikiConfigFileDataResource
 com.xwiki.admintools.internal.files.resources.LogsDataResource
@@ -26,6 +26,5 @@ com.xwiki.admintools.internal.health.checks.memory.CacheMemoryHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.MemoryHealthCheck
 com.xwiki.admintools.internal.health.job.HealthCheckJob
 com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
-com.xwiki.admintools.internal.PingProvider
-com.xwiki.admintools.internal.wikiSize.InstanceUsage
-com.xwiki.admintools.internal.wikiSize.WikiSizeProvider
+com.xwiki.admintools.internal.wikiUsage.UsageDataProvider
+com.xwiki.admintools.internal.wikiUsage.InstanceUsage
