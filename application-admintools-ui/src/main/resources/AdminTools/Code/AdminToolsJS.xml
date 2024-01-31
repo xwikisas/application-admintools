@@ -189,7 +189,7 @@
   };
 
   $(document).ready(function() {
-    removeEmptyHeaders($('.wikitoc'));
+    removeBrokenTOCHeaders($('.wikitoc'));
 
     if ($('#healthCheck').length) {
       initialiseJobJS();
@@ -249,11 +249,11 @@
     }
   });
 
-  // Currently, the Dashboard gadgets title doesn't have an ID set (https://jira.xwiki.org/browse/XWIKI-20600). Solution
-  // is to check for an empty ID and remove the said title as it does not point anywhere in the page. Also, this
-  // function will check for an empty name (TOC macro will generate a title with the name of the page if the
-  // header is empty; this behaviour is modified by https://github.com/xwiki/xwiki-rendering/pull/253/).
-  const removeEmptyHeaders = function(element) {
+  // Remove broken dashboard gadget titles, since in some cases these will be either empty, with the wrong title or
+  // will have no ID set, which will make the link unusable. This method should be updated after upgrading to a
+  // XWiki parent that includes fixes for XWIKI-20600: Gadget headings don't have an ID set, or
+  // XRENDERING-707: The toc macro use the name of the page for empty headers entries.
+  const removeBrokenTOCHeaders = function(element) {
     element.children('li').each(function() {
       var itemContent = $(this).children('span.wikilink');
       var hrefValue = itemContent.find('a').attr("href");
@@ -261,7 +261,7 @@
       if (hrefValue === '#' || itemContent.find("span.wikigeneratedlinkcontent").length) {
         var itemChild = $(this).children('ul');
         if (itemChild.length) {
-          removeEmptyHeaders(itemChild);
+          removeBrokenTOCHeaders(itemChild);
           $(this).replaceWith(itemChild.children('li'));
         } else {
           // Remove empty link
@@ -269,14 +269,9 @@
         }
       } else {
         $(this).children('ul').each(function() {
-          removeEmptyHeaders($(this));
+          removeBrokenTOCHeaders($(this));
         });
       }
-    });
-
-    // Recursively call for each child element
-    element.children('ul').each(function() {
-      removeEmptyHeaders($(this));
     });
   }
 });</code>
