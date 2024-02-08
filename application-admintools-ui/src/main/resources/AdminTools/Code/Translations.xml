@@ -130,8 +130,8 @@ adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} (
 adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
 adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
-adminTools.dashboard.instanceUsage.other=Other stats
-adminTools.dashboard.instanceUsage.other.comments=View pages with over 50 comments
+adminTools.dashboard.instanceUsage.specific=Specific stats
+adminTools.dashboard.instanceUsage.specific.comments=View pages with over 50 comments
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -187,7 +187,7 @@ adminTools.dashboard.showLogs=View last n lines of log...
 adminTools.spamPage.description=Below there is a list with all the pages that have more than {0} comments.
 adminTools.spamPage.line={0} has {1} comments.
 adminTools.spamPage.notFound=There are no pages that have over {0} comments.
-adminTools.spamPage.error=There was an error when trying to retrieve the pages!</content>
+adminTools.spamPage.error=There was an error while trying to retrieve the pages!</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

@@ -147,6 +147,6 @@ public class AdminToolsManager
      */
     public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComment) throws QueryException, XWikiException
     {
-        return instanceUsage.getPagesOverGivenNumberOfComments(maxComment);
+        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComment);
     }
 }

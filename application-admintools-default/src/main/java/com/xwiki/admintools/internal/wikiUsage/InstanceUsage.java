@@ -115,31 +115,32 @@ public class InstanceUsage
     }
 
     /**
-     * Retrieve the pages that have more than a given number of comments.
+     * Retrieves in descending order the documents that have more than a given number of comments.
      *
-     * @param maxComment maximum number of comments below which the page is ignored.
+     * @param maxComment maximum number of comments below which the document is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
      * @throws XWikiException if a document is not found.
      */
-    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComment) throws QueryException, XWikiException
+    public List<XWikiDocument> getDocumentsOverGivenNumberOfComments(int maxComment)
+        throws QueryException, XWikiException
     {
-        List<String> pagesWithComments = this.queryManager.createQuery(
+        List<String> documentsWithComments = this.queryManager.createQuery(
             "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
             Query.XWQL).setWiki(wikiDescriptorManager.getCurrentWikiId()).execute();
 
-        List<XWikiDocument> pagesOverMaxComments = new ArrayList<>();
-        for (String pageName : pagesWithComments) {
+        List<XWikiDocument> documentsOverMaxComments = new ArrayList<>();
+        for (String documentName : documentsWithComments) {
             XWikiContext wikiContext = wikiContextProvider.get();
             XWiki wiki = wikiContext.getWiki();
-            XWikiDocument document = wiki.getDocument(resolver.resolve(pageName), wikiContext);
+            XWikiDocument document = wiki.getDocument(resolver.resolve(documentName), wikiContext);
             int numberOfComments = document.getComments().size();
             if (numberOfComments > maxComment) {
-                pagesOverMaxComments.add(document);
+                documentsOverMaxComments.add(document);
             }
         }
-        pagesOverMaxComments.sort((t1, t2) -> Integer.compare(t2.getComments().size(), t1.getComments().size()));
-        return pagesOverMaxComments;
+        documentsOverMaxComments.sort((d1, d2) -> Integer.compare(d2.getComments().size(), d1.getComments().size()));
+        return documentsOverMaxComments;
     }
 
     private List<WikiSizeResult> getWikisSize()

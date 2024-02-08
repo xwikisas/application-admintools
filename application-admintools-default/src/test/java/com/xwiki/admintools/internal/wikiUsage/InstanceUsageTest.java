@@ -219,7 +219,7 @@ class InstanceUsageTest
         vectorOne.add(new BaseObject());
         when(wikiDocument.getComments()).thenReturn(vectorOne);
         when(secondWikiDocument.getComments()).thenReturn(vectorTwo);
-        assertEquals(1, instanceUsage.getPagesOverGivenNumberOfComments(2).size());
+        assertEquals(1, instanceUsage.getDocumentsOverGivenNumberOfComments(2).size());
     }
 
     @Test
@@ -230,7 +230,7 @@ class InstanceUsageTest
             "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
             "xwql")).thenThrow(new QueryException("ERROR IN QUERY", docQuery, null));
         Exception exception = assertThrows(QueryException.class, () -> {
-            this.instanceUsage.getPagesOverGivenNumberOfComments(5);
+            this.instanceUsage.getDocumentsOverGivenNumberOfComments(5);
         });
         assertEquals("ERROR IN QUERY. Query statement = [null]", exception.getMessage());
     }
