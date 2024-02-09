@@ -38,7 +38,7 @@
   <hidden>true</hidden>
   <content>{{velocity}}
   #includeMacros("AdminTools.Code.Macros")
-  {{html}}
+  {{html clean='false'}}
     #displayPagesOverNumberOfComments(50)
   {{/html}}
 {{/velocity}}
