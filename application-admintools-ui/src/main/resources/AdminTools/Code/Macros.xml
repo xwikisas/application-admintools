@@ -153,23 +153,53 @@
   &lt;/div&gt;
 #end
 #macro (displayPagesOverNumberOfComments $maxComments)
-  #set ($pages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
-  #if ($pages != $null)
-    #if ($pages.size() != 0)
-      &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.description', [$maxComments]))&lt;/p&gt;
-      &lt;hr/&gt;
-      #foreach ($page in $pages)
-        #set ($pageLink = "&lt;a href='$xwiki.getURL($page.getDocumentReference())'&gt;$page.getTitle()&lt;/a&gt;")
-        &lt;p&gt;
-          $escapetool.xml($services.localization.render('adminTools.spamPage.line', [
-          '__INSERTEDLINK__', $page.getComments().size()])).replace('__INSERTEDLINK__', $pageLink)&lt;/p&gt;
-      #end
-    #else
-      &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.spamPage.notFound', [$maxComments]))&lt;/p&gt;
-    #end
-  #else
-    #error($escapetool.xml($services.localization.render('adminTools.spamPage.error')))
-  #end
+  #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
+  &lt;div class="modal fade" id="pagesOverNumberOfComments" tabindex="-1" role="dialog"
+    aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="cache-modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+            &lt;h1 class="modal-title"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.title',
+              [$maxComments]))&lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            #set ($spamPages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
+            #if ($spamPages.size() != 0)
+              &lt;table id="wikiComments" class="sortable doOddEven admin-tools-spam-pages"&gt;
+                &lt;tr class="sortHeader"&gt;
+                  &lt;th&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.spamPage.modal.header.page'))&lt;/th&gt;
+                  &lt;th&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.spamPage.modal.header.noComments'))&lt;/th&gt;
+                &lt;/tr&gt;
+                #foreach($spamPage in $spamPages)
+                  #set ($pageLink =
+                    "&lt;a href='$xwiki.getURL($spamPage.getDocumentReference())'&gt;$spamPage.getTitle()&lt;/a&gt;")
+                  &lt;tr&gt;
+                    &lt;td&gt;$pageLink&lt;/td&gt;
+                    &lt;td&gt;$spamPage.getComments().size()&lt;/td&gt;
+                  &lt;/tr&gt;
+                #end
+              &lt;/table&gt;
+            #else
+              #set($infoMessage =
+                $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.notFound',
+                [$maxComments])))
+              #info($infoMessage)
+            #end
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 {{/velocity}}</content>
 </xwikidoc>
