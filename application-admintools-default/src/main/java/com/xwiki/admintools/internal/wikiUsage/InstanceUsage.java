@@ -40,10 +40,7 @@ import org.xwiki.template.TemplateManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
@@ -120,27 +117,13 @@ public class InstanceUsage
      * @param maxComment maximum number of comments below which the document is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
-     * @throws XWikiException if a document is not found.
      */
-    public List<XWikiDocument> getDocumentsOverGivenNumberOfComments(int maxComment)
-        throws QueryException, XWikiException
+    public List<String> getDocumentsOverGivenNumberOfComments(long maxComment) throws QueryException
     {
-        List<String> documentsWithComments = this.queryManager.createQuery(
-            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
-            Query.XWQL).setWiki(wikiDescriptorManager.getCurrentWikiId()).execute();
-
-        List<XWikiDocument> documentsOverMaxComments = new ArrayList<>();
-        for (String documentName : documentsWithComments) {
-            XWikiContext wikiContext = wikiContextProvider.get();
-            XWiki wiki = wikiContext.getWiki();
-            XWikiDocument document = wiki.getDocument(resolver.resolve(documentName), wikiContext);
-            int numberOfComments = document.getComments().size();
-            if (numberOfComments > maxComment) {
-                documentsOverMaxComments.add(document);
-            }
-        }
-        documentsOverMaxComments.sort((d1, d2) -> Integer.compare(d2.getComments().size(), d1.getComments().size()));
-        return documentsOverMaxComments;
+        return this.queryManager.createQuery(
+                "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                    + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL)
+            .setWiki(wikiDescriptorManager.getCurrentWikiId()).bindValue("maxComments", maxComment).execute();
     }
 
     private List<WikiSizeResult> getWikisSize()

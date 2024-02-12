@@ -20,17 +20,13 @@
 package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.List;
-import java.util.Vector;
 
-import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -45,11 +41,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -99,30 +91,6 @@ class InstanceUsageTest
 
     @Mock
     private WikiSizeResult wikiSizeResult;
-
-    @MockComponent
-    private Provider<XWikiContext> wikiContextProvider;
-
-    @Mock
-    private XWikiContext wikiContext;
-
-    @Mock
-    private XWiki wiki;
-
-    @MockComponent
-    private DocumentReferenceResolver<String> resolver;
-
-    @MockComponent
-    private XWikiDocument wikiDocument;
-
-    @MockComponent
-    private XWikiDocument secondWikiDocument;
-
-    @Mock
-    private DocumentReference firstDocumentReference;
-
-    @Mock
-    private DocumentReference secondDocumentReference;
 
     @MockComponent
     private QueryManager queryManager;
@@ -202,23 +170,12 @@ class InstanceUsageTest
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
         when(queryManager.createQuery(
-            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
-            "xwql")).thenReturn(docQuery);
+            "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(
+            docQuery);
         when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
-        when(docQuery.execute()).thenReturn(List.of("Page.one", "Page.two"));
-        when(wikiContextProvider.get()).thenReturn(wikiContext);
-        when(wikiContext.getWiki()).thenReturn(wiki);
-        when(resolver.resolve("Page.one")).thenReturn(firstDocumentReference);
-        when(resolver.resolve("Page.two")).thenReturn(secondDocumentReference);
-        when(wiki.getDocument(resolver.resolve("Page.one"), wikiContext)).thenReturn(wikiDocument);
-        when(wiki.getDocument(resolver.resolve("Page.two"), wikiContext)).thenReturn(secondWikiDocument);
-        Vector<BaseObject> vectorOne = new Vector<>();
-        Vector<BaseObject> vectorTwo = new Vector<>();
-        vectorOne.add(new BaseObject());
-        vectorOne.add(new BaseObject());
-        vectorOne.add(new BaseObject());
-        when(wikiDocument.getComments()).thenReturn(vectorOne);
-        when(secondWikiDocument.getComments()).thenReturn(vectorTwo);
+        when(docQuery.bindValue("maxComments", 2L)).thenReturn(docQuery);
+        when(docQuery.execute()).thenReturn(List.of("Page.one"));
         assertEquals(1, instanceUsage.getDocumentsOverGivenNumberOfComments(2).size());
     }
 
@@ -227,8 +184,9 @@ class InstanceUsageTest
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
         when(queryManager.createQuery(
-            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' group by obj.name",
-            "xwql")).thenThrow(new QueryException("ERROR IN QUERY", docQuery, null));
+            "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
+            new QueryException("ERROR IN QUERY", docQuery, null));
         Exception exception = assertThrows(QueryException.class, () -> {
             this.instanceUsage.getDocumentsOverGivenNumberOfComments(5);
         });

@@ -39,7 +39,6 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -143,7 +142,7 @@ public class AdminToolsScriptService implements ScriptService
      * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
      *     any errors.
      */
-    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComments)
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments)
         throws AccessDeniedException, QueryException, XWikiException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);

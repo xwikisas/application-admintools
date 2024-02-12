@@ -32,7 +32,6 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.query.QueryException;
 
 import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -145,7 +144,7 @@ public class AdminToolsManager
      * @throws QueryException if the query to retrieve the document fails.
      * @throws XWikiException if a document is not found.
      */
-    public List<XWikiDocument> getPagesOverGivenNumberOfComments(int maxComment) throws QueryException, XWikiException
+    public List<String> getPagesOverGivenNumberOfComments(long maxComment) throws QueryException, XWikiException
     {
         return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComment);
     }

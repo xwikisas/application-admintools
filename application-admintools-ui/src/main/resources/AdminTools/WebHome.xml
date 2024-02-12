@@ -472,10 +472,6 @@
 .wikis-size-info-list {
   max-height: 20rem;
   overflow-y: auto;
-}
-
-.admin-tools-spam-pages td, th {
-  text-align: center;
 }</code>
     </property>
     <property>

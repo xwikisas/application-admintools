@@ -62,7 +62,7 @@
             [$spamLimit]))</a></li>
         </ul>
       </div>
-      #displayPagesOverNumberOfComments($spamLimit)
+      #pagesOverNumberOfCommentsModal($spamLimit)
     </div>
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',

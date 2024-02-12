@@ -152,7 +152,7 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
-#macro (displayPagesOverNumberOfComments $maxComments)
+#macro (pagesOverNumberOfCommentsModal $maxComments)
   #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
   &lt;div class="modal fade" id="pagesOverNumberOfComments" tabindex="-1" role="dialog"
     aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
@@ -169,18 +169,17 @@
           &lt;div class="modal-body"&gt;
             #set ($spamPages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
             #if ($spamPages.size() != 0)
-              &lt;table id="wikiComments" class="sortable doOddEven admin-tools-spam-pages"&gt;
+              &lt;table id="wikiComments" class="sortable doOddEven centered"&gt;
                 &lt;tr class="sortHeader"&gt;
                   &lt;th&gt;$escapetool.xml($services.localization.render(
                     'adminTools.dashboard.spamPage.modal.header.page'))&lt;/th&gt;
                   &lt;th&gt;$escapetool.xml($services.localization.render(
                     'adminTools.dashboard.spamPage.modal.header.noComments'))&lt;/th&gt;
                 &lt;/tr&gt;
-                #foreach($spamPage in $spamPages)
-                  #set ($pageLink =
-                    "&lt;a href='$xwiki.getURL($spamPage.getDocumentReference())'&gt;$spamPage.getTitle()&lt;/a&gt;")
+                #foreach($spammedPageReference in $spamPages)
+                  #set($spamPage = $xwiki.getDocument($spammedPageReference))
                   &lt;tr&gt;
-                    &lt;td&gt;$pageLink&lt;/td&gt;
+                    &lt;td&gt;&lt;a href='$xwiki.getURL($spamPage.getDocumentReference())'&gt;$spamPage.getTitle()&lt;/a&gt;&lt;/td&gt;
                     &lt;td&gt;$spamPage.getComments().size()&lt;/td&gt;
                   &lt;/tr&gt;
                 #end
