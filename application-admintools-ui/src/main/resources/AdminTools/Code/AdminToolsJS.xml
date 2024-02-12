@@ -256,8 +256,8 @@
   // is empty, it will automatically generate a text with the name of the page stored in
   // 'span.wikigeneratedlinkcontent'. We remove the text if it has children, or the entire heading otherwise, as
   // after the fix of XRENDERING-707, the 'span' is no longer used. We do not however remove those headings that have an
-  // empty ID, but a valid text, as it is a problem of how those headings are generated and not an issue from Admin
-  // Tools.
+  // empty ID, but a valid text, since this can happen only when users add their own content to the dashboard and we
+  // don't want to alter the macro behavior or fixes from recent versions.
   const removeBrokenTOCHeaders = function() {
     var headings = $('.wikitoc').find('a');
     for (let element of headings) {
