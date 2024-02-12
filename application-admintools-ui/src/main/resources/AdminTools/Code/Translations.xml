@@ -136,6 +136,7 @@ adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} (
 adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
 adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
+adminTools.dashboard.instanceUsage.specific=Specific stats
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
