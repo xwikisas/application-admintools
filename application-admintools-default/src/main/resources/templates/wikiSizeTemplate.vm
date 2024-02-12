@@ -53,7 +53,6 @@
       </div>
       <hr/>
       <div class="specific-stats">
-        #set ($solutionLink = $xwiki.getURL('AdminTools.SpamPages'))
         <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific'))</h2>
         <ul>
         <li><a href="#viewWikisRecycleBinModal" data-toggle="modal" data-target="#viewWikisRecycleBinModal">
