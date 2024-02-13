@@ -114,16 +114,16 @@ public class InstanceUsage
     /**
      * Retrieves in descending order the documents that have more than a given number of comments.
      *
-     * @param maxComment maximum number of comments below which the document is ignored.
+     * @param maxComments maximum number of comments below which the document is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
      */
-    public List<String> getDocumentsOverGivenNumberOfComments(long maxComment) throws QueryException
+    public List<String> getDocumentsOverGivenNumberOfComments(long maxComments) throws QueryException
     {
         return this.queryManager.createQuery(
-                "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
                     + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL)
-            .setWiki(wikiDescriptorManager.getCurrentWikiId()).bindValue("maxComments", maxComment).execute();
+            .setWiki(wikiDescriptorManager.getCurrentWikiId()).bindValue("maxComments", maxComments).execute();
     }
 
     private List<WikiSizeResult> getWikisSize()

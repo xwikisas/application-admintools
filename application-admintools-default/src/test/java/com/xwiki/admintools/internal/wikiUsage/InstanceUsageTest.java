@@ -170,7 +170,7 @@ class InstanceUsageTest
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
         when(queryManager.createQuery(
-            "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
                 + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(
             docQuery);
         when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
@@ -184,7 +184,7 @@ class InstanceUsageTest
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
         when(queryManager.createQuery(
-            "select obj.name as name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
                 + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
             new QueryException("ERROR IN QUERY", docQuery, null));
         Exception exception = assertThrows(QueryException.class, () -> {

@@ -46,9 +46,9 @@
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 class="modal-title"&gt;
+            &lt;div id="${modalId}Label" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.title'))
-            &lt;/h1&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
@@ -82,9 +82,9 @@
         &lt;div class="modal-header"&gt;
           &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
             &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-          &lt;h1 class="modal-title"&gt;
+          &lt;div id="downloadFilesModalLabel" class="modal-title"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.download.modal.title'))
-          &lt;/h1&gt;
+          &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="modal-body"&gt;
           &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files"&gt;
@@ -154,6 +154,7 @@
 #end
 #macro (pagesOverNumberOfCommentsModal $maxComments)
   #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
+  #set ($discard = $xwiki.ssfx.use("js/xwiki/table/table.css"))
   &lt;div class="modal fade" id="pagesOverNumberOfComments" tabindex="-1" role="dialog"
     aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
     &lt;div class="modal-dialog" role="document"&gt;
@@ -162,22 +163,22 @@
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 class="modal-title"&gt;
+            &lt;h1 id="pagesOverNumberOfCommentsLabel" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.title',
               [$maxComments]))&lt;/h1&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             #set ($spamPages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
             #if ($spamPages.size() != 0)
-              &lt;table id="wikiComments" class="sortable doOddEven centered"&gt;
+              &lt;table id="adminTools_spamPages" class="sortable doOddEven centered"&gt;
                 &lt;tr class="sortHeader"&gt;
                   &lt;th&gt;$escapetool.xml($services.localization.render(
                     'adminTools.dashboard.spamPage.modal.header.page'))&lt;/th&gt;
                   &lt;th&gt;$escapetool.xml($services.localization.render(
                     'adminTools.dashboard.spamPage.modal.header.noComments'))&lt;/th&gt;
                 &lt;/tr&gt;
-                #foreach($spammedPageReference in $spamPages)
-                  #set($spamPage = $xwiki.getDocument($spammedPageReference))
+                #foreach ($spammedPageReference in $spamPages)
+                  #set ($spamPage = $xwiki.getDocument($spammedPageReference))
                   &lt;tr&gt;
                     &lt;td&gt;&lt;a href='$xwiki.getURL($spamPage.getDocumentReference())'&gt;$spamPage.getTitle()&lt;/a&gt;&lt;/td&gt;
                     &lt;td&gt;$spamPage.getComments().size()&lt;/td&gt;
@@ -185,10 +186,9 @@
                 #end
               &lt;/table&gt;
             #else
-              #set($infoMessage =
-                $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.notFound',
-                [$maxComments])))
-              #info($infoMessage)
+              #set ($infoMessage = $escapetool.xml(
+                $services.localization.render('adminTools.dashboard.spamPage.modal.notFound', [$maxComments])))
+              #info ($infoMessage)
             #end
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;

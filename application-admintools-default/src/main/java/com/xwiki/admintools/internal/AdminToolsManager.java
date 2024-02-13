@@ -139,13 +139,13 @@ public class AdminToolsManager
     /**
      * Retrieve the pages that have more than a given number of comments.
      *
-     * @param maxComment maximum number of comments below which the page is ignored.
+     * @param maxComments maximum number of comments below which the page is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
      * @throws XWikiException if a document is not found.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComment) throws QueryException, XWikiException
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
     {
-        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComment);
+        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
     }
 }
