@@ -20,10 +20,7 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($found == 'true')
-    #includeMacros("AdminTools.Code.Macros")
-    <div class="admin-tools-dashboard-item second-row">
-      <h2>$services.icon.renderHTML('drive')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))</h2>
+    <div class="second-row">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
       <hr/>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
