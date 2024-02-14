@@ -453,7 +453,14 @@
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   padding: 1rem 1.1rem;
-  min-height: 40rem;
+}
+
+.first-row {
+  min-height: 30rem;
+}
+
+.second-row {
+  min-height: 42rem;
 }
 
 .logs-modal-content {
