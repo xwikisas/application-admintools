@@ -120,6 +120,7 @@ adminTools.job.notFound=Health check job status not found
 adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
+adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
 

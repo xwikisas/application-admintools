@@ -44,10 +44,10 @@
                 </ul>
             #end
           </ul>
-        </div>
-      #else
-        #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
-      #end
+        #else
+          #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
+        #end
+      </div>
     </div>
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
