@@ -20,12 +20,10 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #includeMacros("AdminTools.Code.Macros")
+  #includeMacros('AdminTools.Code.Macros')
   #if ($configuration.serverFound == 'true')
     #viewLastNLinesMoldal("configuration")
-    <div class="admin-tools-dashboard-item first-row">
-      <h2>$services.icon.renderHTML('world')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))</h2>
+    <div class="first-row">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>
       <hr/>
       <ul>
