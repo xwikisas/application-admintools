@@ -189,6 +189,8 @@
   };
 
   $(document).ready(function() {
+    removeBrokenTOCHeaders();
+
     if ($('#healthCheck').length) {
       initialiseJobJS();
       let jobState = $('.health-check-job-state').attr('data-job-state');
@@ -246,6 +248,29 @@
       $('#downloadFilesModal .download-logs-date-fields').hide();
     }
   });
+
+  // Remove broken dashboard gadget titles, since in some cases these will be either empty, with the wrong title or
+  // will have no ID set, which will make the link unusable. This method should be updated after upgrading to a
+  // XWiki parent that includes fixes for XWIKI-20600: Gadget headings don't have an ID set, or XRENDERING-707: The toc
+  // macro use the name of the page for empty heading entries. In older versions of the TOC macro, when the heading
+  // is empty, it will automatically generate a text with the name of the page stored in
+  // 'span.wikigeneratedlinkcontent'. We remove the text if it has children, or the entire heading otherwise, as
+  // after the fix of XRENDERING-707, the 'span' is no longer used. We do not however remove those headings that have an
+  // empty ID, but a valid text, since this can happen only when users add their own content to the dashboard and we
+  // don't want to alter the macro behavior or fixes from recent versions.
+  const removeBrokenTOCHeaders = function() {
+    var headings = $('.wikitoc').find('a');
+    for (let element of headings) {
+      if ($(element).children("span.wikigeneratedlinkcontent").length) {
+        let parent = element.parentElement.parentElement;
+        if($(parent).children('ul').length){
+          $(element).remove();
+        } else {
+          $(parent).remove();
+        }
+      }
+    }
+  }
 });</code>
     </property>
     <property>

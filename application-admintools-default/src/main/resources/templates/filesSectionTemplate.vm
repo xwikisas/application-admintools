@@ -20,43 +20,39 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #includeMacros("AdminTools.Code.Macros")
+  #includeMacros('AdminTools.Code.Macros')
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
-    <div class="admin-tools-dashboard-item">
-      <h2>$services.icon.renderHTML('download')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.download.title'))</h2>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.download.description'))</p>
-      <hr/>
-      <ul>
-        <li>
-          <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.download.label'))</a>
-        </li>
-        <li>
-          $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.description'))
-          <ul>
-            <li>
-              <a href="$adminToolsFilesPath/xwikiConfig"
-              target="_blank">
-                $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.configuration'))
-              </a>
-            </li>
-            <li>
-              <a href="$adminToolsFilesPath/xwikiProperties"
-              target="_blank">
-                $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.properties'))
-              </a>
-            </li>
-            <li>
-              <a href="#filesViewLastNLinesModal" data-toggle="modal" data-target="#filesViewLastNLinesModal">
-                $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      #warning($escapetool.xml($services.localization.render('adminTools.dashboard.download.warning')))
-    </div>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.download.description'))</p>
+    <hr/>
+    <ul>
+      <li>
+        <a href="#downloadFilesModal"  data-toggle="modal" data-target="#downloadFilesModal">
+          $escapetool.xml($services.localization.render('adminTools.dashboard.download.label'))</a>
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.description'))
+        <ul>
+          <li>
+            <a href="$adminToolsFilesPath/xwikiConfig"
+            target="_blank">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.configuration'))
+            </a>
+          </li>
+          <li>
+            <a href="$adminToolsFilesPath/xwikiProperties"
+            target="_blank">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.properties'))
+            </a>
+          </li>
+          <li>
+            <a href="#filesViewLastNLinesModal" data-toggle="modal" data-target="#filesViewLastNLinesModal">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    #warning($escapetool.xml($services.localization.render('adminTools.dashboard.download.warning')))
     #viewLastNLinesMoldal("files")
     #downloadArchiveModal()
   #else

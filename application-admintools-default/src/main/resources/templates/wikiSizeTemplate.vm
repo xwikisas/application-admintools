@@ -20,36 +20,32 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($found == 'true')
-    <div class="admin-tools-dashboard-item">
-      <h2>$services.icon.renderHTML('drive')
-        $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))</h2>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
-      <hr/>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
-        [$extensionCount]))</p>
-      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
-        [$totalUsers]))</p>
-      <div class="wikis-size-info-list">
-        #if ($instanceUsage.size() != 0)
-          <ul>
-            #foreach($wikiData in $instanceUsage)
-              #set($wikiName = "<strong>$wikiData.getName()</strong>")
-                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
-                  '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
-                <ul>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
-                    $wikiData.getUserCount()]))</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
-                    [$wikiData.getDocumentsCount()]))</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
-                    [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
-                </ul>
-            #end
-          </ul>
-        #else
-          #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
-        #end
-      </div>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
+    <hr/>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
+      [$extensionCount]))</p>
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
+      [$totalUsers]))</p>
+    <div class="wikis-size-info-list">
+      #if ($instanceUsage.size() != 0)
+        <ul>
+          #foreach($wikiData in $instanceUsage)
+            #set($wikiName = "<strong>$wikiData.getName()</strong>")
+              <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
+                '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
+              <ul>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
+                  $wikiData.getUserCount()]))</li>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
+                  [$wikiData.getDocumentsCount()]))</li>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
+                  [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
+              </ul>
+          #end
+        </ul>
+      #else
+        #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
+      #end
     </div>
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
