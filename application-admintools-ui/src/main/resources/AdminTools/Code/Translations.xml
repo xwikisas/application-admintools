@@ -123,9 +123,6 @@ adminTools.dashboard.healthcheck.message.error=Critical issues were found, pleas
 adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
-adminTools.dashboard.healthcheck.operations=Instance operations
-adminTools.dashboard.healthcheck.flushCache.success=Cache flush successfully.
-adminTools.dashboard.healthcheck.flushCache=Flush Wiki cache
 adminTools.dashboard.healthcheck.wikiBins=Shrink the recycle bin for pages and attachments
 
 ##Instance usage

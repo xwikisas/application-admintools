@@ -62,8 +62,8 @@
         </ul>
       </div>
       #pagesOverNumberOfCommentsModal($spamLimit)
+      #wikisRecycleBinModal()
     </div>
-    #wikisRecycleBinModal()
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
       [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))

@@ -486,10 +486,6 @@
   margin-bottom: 2rem;
 }
 
-.admin-tools-bins td, th {
-  text-align: center;
-}
-
 .health-check-wrapper button {
   margin-top: 2rem;
 }

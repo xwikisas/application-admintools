@@ -163,9 +163,9 @@
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 id="pagesOverNumberOfCommentsLabel" class="modal-title"&gt;
+            &lt;div id="pagesOverNumberOfCommentsLabel" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.title',
-              [$maxComments]))&lt;/h1&gt;
+              [$maxComments]))&lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             #set ($spamPages = $services.admintools.getPagesOverGivenNumberOfComments($maxComments))
@@ -201,16 +201,17 @@
   &lt;/div&gt;
 #end
 #macro (cacheFlushModal)
-  &lt;div class="modal fade" id="confirmCacheFlushModal" tabindex="-1" role="dialog" aria-labelledby="confirmCacheFlushModalLabel"&gt;
+  &lt;div class="modal fade" id="confirmCacheFlushModal" tabindex="-1" role="dialog"
+      aria-labelledby="confirmCacheFlushModalLabel"&gt;
     &lt;div class="modal-dialog modal-sm" role="document"&gt;
       &lt;div class="modal-content"&gt;
         &lt;div class="cache-modal-content"&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 class="modal-title"&gt;
+            &lt;div id="confirmCacheFlushModalLabel" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.title'))
-            &lt;/h1&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.content'))
@@ -231,21 +232,21 @@
 #macro (wikisRecycleBinModal)
   #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
   &lt;div class="modal fade" id="viewWikisRecycleBinModal" tabindex="-1" role="dialog"
-    aria-labelledby="viewWikisRecycleBinModal"&gt;
+      aria-labelledby="viewWikisRecycleBinModalLabel"&gt;
     &lt;div class="modal-dialog modal-lg" role="document"&gt;
       &lt;div class="modal-content"&gt;
         &lt;div class="cache-modal-content"&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;h1 class="modal-title"&gt;
+            &lt;div id="viewWikisRecycleBinModalLabel" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.title'))
-            &lt;/h1&gt;
+            &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             #set($wikisRecycleBin = $services.admintools.getWikisRecycleBinSize())
             #if ($wikisRecycleBin != $null)
-              &lt;table id="wikisBins" class="sortable doOddEven admin-tools-bins"&gt;
+              &lt;table id="wikisBins" class="sortable doOddEven centered"&gt;
                 &lt;tr class="sortHeader"&gt;
                   &lt;th&gt;$escapetool.xml($services.localization.render(
                     'adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki'))&lt;/th&gt;
