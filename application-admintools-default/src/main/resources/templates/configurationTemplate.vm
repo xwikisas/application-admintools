@@ -23,7 +23,7 @@
   #includeMacros('AdminTools.Code.Macros')
   #if ($configuration.serverFound == 'true')
     #viewLastNLinesMoldal("configuration")
-    <div class="first-row">
+    <div class="backend-section">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.backend.description'))</p>
       <hr/>
       <ul>

@@ -23,7 +23,7 @@
   #includeMacros('AdminTools.Code.Macros')
   #set($adminToolsFilesPath = "$request.getContextPath()/rest/admintools/files")
   #if ($found)
-    <div class="first-row">
+    <div class="files-section">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.download.description'))</p>
       <hr/>
       <ul>

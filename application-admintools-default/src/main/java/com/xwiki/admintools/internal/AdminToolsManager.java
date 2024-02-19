@@ -34,6 +34,7 @@ import org.xwiki.query.QueryException;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.health.WikiRecycleBinResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -136,11 +137,24 @@ public class AdminToolsManager
     /**
      * Get the rendered template for viewing info about the size of the XWiki instance.
      *
-     * @return a {@link String} representation of the rendered template.
+     * @return a {@link String} representation of the template.
      */
     public String getInstanceSizeTemplate()
     {
         return instanceUsage.renderTemplate();
+    }
+
+    /**
+     * Retrieve the pages that have more than a given number of comments.
+     *
+     * @param maxComments maximum number of comments below which the page is ignored.
+     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @throws QueryException if the query to retrieve the document fails.
+     * @throws XWikiException if a document is not found.
+     */
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
+    {
+        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
     }
 
     /**

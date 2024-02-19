@@ -20,7 +20,8 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($found == 'true')
-    <div class="second-row">
+    #includeMacros("AdminTools.Code.Macros")
+    <div class="wiki-size-section">
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
       <hr/>
       <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
@@ -32,16 +33,16 @@
           <ul>
             #foreach($wikiData in $instanceUsage)
               #set($wikiName = "<strong>$wikiData.getName()</strong>")
-                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
-                  '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
-                <ul>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
-                    $wikiData.getUserCount()]))</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
-                    [$wikiData.getDocumentsCount()]))</li>
-                  <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
-                    [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
-                </ul>
+              <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
+                '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
+              <ul>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
+                  $wikiData.getUserCount()]))</li>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
+                  [$wikiData.getDocumentsCount()]))</li>
+                <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
+                  [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
+              </ul>
             #end
           </ul>
         #else
@@ -50,13 +51,17 @@
       </div>
       <hr/>
       <div class="specific-stats">
+        #set ($spamLimit = 50)
         <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific'))</h2>
         <ul>
-        <li><a href="#viewWikisRecycleBinModal" data-toggle="modal" data-target="#viewWikisRecycleBinModal">
-          $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.wikiBins'))</a>
-        </li>
+          <li><a href="#pagesOverNumberOfComments" data-toggle="modal" data-target="#pagesOverNumberOfComments">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.comments',
+            [$spamLimit]))</a></li>
+          <li><a href="#viewWikisRecycleBinModal" data-toggle="modal" data-target="#viewWikisRecycleBinModal">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.wikiBins'))</a></li>
         </ul>
       </div>
+      #pagesOverNumberOfCommentsModal($spamLimit)
     </div>
     #wikisRecycleBinModal()
   #else

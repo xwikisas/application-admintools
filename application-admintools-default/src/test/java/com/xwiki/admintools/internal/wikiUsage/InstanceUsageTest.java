@@ -27,6 +27,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -38,12 +41,14 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -86,6 +91,12 @@ class InstanceUsageTest
 
     @Mock
     private WikiSizeResult wikiSizeResult;
+
+    @MockComponent
+    private QueryManager queryManager;
+
+    @Mock
+    private Query docQuery;
 
     @BeforeEach
     void setUp()
@@ -152,5 +163,33 @@ class InstanceUsageTest
         assertEquals(
             "Failed to render [" + TEMPLATE_NAME + "] template. Root cause is: [Exception: Failed to render template.]",
             logCapture.getMessage(0));
+    }
+
+    @Test
+    void getPagesOverGivenNumberOfComments() throws QueryException, XWikiException
+    {
+        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
+        when(queryManager.createQuery(
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(
+            docQuery);
+        when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
+        when(docQuery.bindValue("maxComments", 2L)).thenReturn(docQuery);
+        when(docQuery.execute()).thenReturn(List.of("Page.one"));
+        assertEquals(1, instanceUsage.getDocumentsOverGivenNumberOfComments(2).size());
+    }
+
+    @Test
+    void getPagesOverGivenNumberOfCommentsError() throws QueryException
+    {
+        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
+        when(queryManager.createQuery(
+            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
+            new QueryException("ERROR IN QUERY", docQuery, null));
+        Exception exception = assertThrows(QueryException.class, () -> {
+            this.instanceUsage.getDocumentsOverGivenNumberOfComments(5);
+        });
+        assertEquals("ERROR IN QUERY. Query statement = [null]", exception.getMessage());
     }
 }
