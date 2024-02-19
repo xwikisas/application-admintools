@@ -136,7 +136,6 @@ adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
 adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
 adminTools.dashboard.instanceUsage.specific=Specific stats
-adminTools.dashboard.instanceUsage.specific=Specific stats
 adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} comments
 
 ## Security
