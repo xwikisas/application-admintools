@@ -31,12 +31,14 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
+import org.xwiki.query.QueryException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -131,6 +133,20 @@ public class AdminToolsScriptService implements ScriptService
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return adminToolsManager.getInstanceSizeTemplate();
+    }
+
+    /**
+     * Retrieve the pages that have more than a given number of comments.
+     *
+     * @param maxComments maximum number of comments below which the page is ignored.
+     * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
+     *     any errors.
+     */
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments)
+        throws AccessDeniedException, QueryException, XWikiException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);
     }
 
     /**

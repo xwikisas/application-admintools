@@ -455,12 +455,12 @@
   padding: 1rem 1.1rem;
 }
 
-.first-row {
+.backend-section, .files-section {
   min-height: 30rem;
 }
 
-.second-row {
-  min-height: 42rem;
+.wiki-size-section, .health-check-section {
+  min-height: 45rem;
 }
 
 .logs-modal-content {
