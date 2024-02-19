@@ -453,7 +453,14 @@
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
   padding: 1rem 1.1rem;
-  min-height: 40rem;
+}
+
+.backend-section, .files-section {
+  min-height: 30rem;
+}
+
+.wiki-size-section, .health-check-section {
+  min-height: 45rem;
 }
 
 .logs-modal-content {

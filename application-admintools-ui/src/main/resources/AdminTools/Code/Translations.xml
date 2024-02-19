@@ -131,6 +131,8 @@ adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} (
 adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
 adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
+adminTools.dashboard.instanceUsage.specific=Specific stats
+adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} comments
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -180,7 +182,11 @@ adminTools.dashboard.logs.modal.nLines.hint=The maximum number of lines is 50000
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
 adminTools.dashboard.logs.modal.submit=View
 adminTools.dashboard.logs.modal.title=Show last n lines of log
-adminTools.dashboard.showLogs=View last n lines of log...</content>
+adminTools.dashboard.showLogs=View last n lines of log...
+adminTools.dashboard.spamPage.modal.title=Pages with more than {0} comments
+adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {0} comments.
+adminTools.dashboard.spamPage.modal.header.page=Page
+adminTools.dashboard.spamPage.modal.header.noComments=Number of comments</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
