@@ -156,7 +156,7 @@
   #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
   #set ($discard = $xwiki.ssfx.use("js/xwiki/table/table.css"))
   &lt;div class="modal fade" id="pagesOverNumberOfComments" tabindex="-1" role="dialog"
-    aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
+      aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
     &lt;div class="modal-dialog" role="document"&gt;
       &lt;div class="modal-content"&gt;
         &lt;div class="cache-modal-content"&gt;

@@ -133,7 +133,7 @@
   &lt;span class="health-check-job-state"
     data-job-state="${healthJobStatus.state}"&gt;
   &lt;/span&gt;
-  &lt;div class="second-row" id="healthCheck"&gt;
+  &lt;div class="health-check-section" id="healthCheck"&gt;
     &lt;p&gt;$description&lt;/p&gt;
     &lt;hr/&gt;
     &lt;div class="health-check-wrapper"&gt;
