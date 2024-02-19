@@ -20,17 +20,19 @@
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if($found == 'true')
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
-    <hr/>
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
-      [$extensionCount]))</p>
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
-      [$totalUsers]))</p>
-    <div class="wikis-size-info-list">
-      #if ($instanceUsage.size() != 0)
-        <ul>
-          #foreach($wikiData in $instanceUsage)
-            #set($wikiName = "<strong>$wikiData.getName()</strong>")
+    #includeMacros("AdminTools.Code.Macros")
+    <div class="wiki-size-section">
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.description'))</p>
+      <hr/>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.extensions',
+        [$extensionCount]))</p>
+      <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
+        [$totalUsers]))</p>
+      <div class="wikis-size-info-list">
+        #if ($instanceUsage.size() != 0)
+          <ul>
+            #foreach($wikiData in $instanceUsage)
+              #set($wikiName = "<strong>$wikiData.getName()</strong>")
               <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
                 '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
               <ul>
@@ -41,11 +43,23 @@
                 <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
                   [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
               </ul>
-          #end
+            #end
+          </ul>
+        #else
+          #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
+        #end
+      </div>
+      <hr/>
+      <div class="specific-stats">
+        #set ($spamLimit = 50)
+        <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific'))</h2>
+        <ul>
+          <li><a href="#pagesOverNumberOfComments" data-toggle="modal" data-target="#pagesOverNumberOfComments">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.comments',
+            [$spamLimit]))</a></li>
         </ul>
-      #else
-        #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
-      #end
+      </div>
+      #pagesOverNumberOfCommentsModal($spamLimit)
     </div>
   #else
     #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
