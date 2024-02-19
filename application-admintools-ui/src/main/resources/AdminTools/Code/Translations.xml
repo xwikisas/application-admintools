@@ -190,7 +190,7 @@ adminTools.dashboard.spamPage.modal.title=Pages with more than {0} comments
 adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {0} comments.
 adminTools.dashboard.spamPage.modal.header.page=Page
 adminTools.dashboard.spamPage.modal.header.noComments=Number of comments
-adminTools.dashboard.healthcheck.modal.title=Flush Wiki cache action
+adminTools.dashboard.healthcheck.modal.title=Flush instance cache
 adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush XWiki cache?
 adminTools.dashboard.healthcheck.modal.button=Flush</content>
   <object>

@@ -125,7 +125,15 @@
       <cache>default</cache>
     </property>
     <property>
-      <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
+      <code>define('admin-tools-cache-flush-editor', {
+  prefix: 'adminTools.dashboard.healthcheck.flushCache.',
+  keys: [
+    'success'
+  ]
+});
+
+require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cache-flush-editor'],
+    function($, xwikiMeta, JobRunner, l10n) {
   const getHealthCheckActionPageURL = function() {
     let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
     return new XWiki.Document(documentReference).getURL('get');
@@ -280,10 +288,12 @@
       url: target,
       type: 'POST',
       success: function(response) {
-        $(".operationMessage").html('&lt;div class="successmessage"&gt;'+ response + '&lt;/div&gt;');
+        $(".health-check-section .operation-message").html('&lt;div class="successmessage"&gt;'+ l10n.get('success') +
+          '&lt;/div&gt;');
       },
       error: function(error) {
-        $(".operationMessage").html('&lt;div class="errormessage"&gt;'+ error.statusText + '&lt;/div&gt;');
+        $(".health-check-section .operation-message").html('&lt;div class="errormessage"&gt;'+ error.statusText +
+          '&lt;/div&gt;');
       }
     });
     $(event.currentTarget).closest('.modal').modal('toggle');
