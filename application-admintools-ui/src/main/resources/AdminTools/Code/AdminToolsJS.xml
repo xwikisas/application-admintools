@@ -286,9 +286,10 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     const flushButton = $('#confirmCacheFlushModal .btn-primary');
     const target = flushButton.attr('data-action');
     $.post(target).done(function() {
-      notification = new XWiki.widgets.Notification(l10n.get('success'), 'done');
-    }).fail(function() {
-      notification = new XWiki.widgets.Notification(l10n.get('error'), 'error');
+      new XWiki.widgets.Notification(l10n.get('success'), 'done');
+    }).fail(function(error) {
+      console.log('Failed to flush instance cache. Cause: ' + error.statusText);
+      new XWiki.widgets.Notification(l10n.get('error'), 'error');
     });
     $(event.currentTarget).closest('.modal').modal('toggle');
   });
