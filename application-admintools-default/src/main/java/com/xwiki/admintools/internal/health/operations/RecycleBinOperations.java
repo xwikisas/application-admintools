@@ -77,9 +77,9 @@ public class RecycleBinOperations
         return results;
     }
 
-    private long getNumberOfDeletedDocuments(String wikiId, String database) throws QueryException
+    private long getNumberOfDeletedDocuments(String wikiId, String table) throws QueryException
     {
-        return (long) this.queryManager.createQuery("select count(ddoc) from " + database + " as ddoc", Query.XWQL)
-            .setWiki(wikiId).execute().get(0);
+        String statement = String.format("select count(ddoc) from %s as ddoc", table);
+        return (long) this.queryManager.createQuery(statement, Query.XWQL).setWiki(wikiId).execute().get(0);
     }
 }
