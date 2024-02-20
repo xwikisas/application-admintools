@@ -130,7 +130,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             logger.warn("Failed to flush the cache due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
-            logger.warn("Failed to flush wiki cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to flush instance cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }

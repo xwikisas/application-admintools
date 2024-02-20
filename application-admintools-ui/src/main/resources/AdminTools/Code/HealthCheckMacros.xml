@@ -157,7 +157,7 @@
       #end
     &lt;/div&gt;
     &lt;hr/&gt;
-    &lt;div class="operation-message"&gt;&lt;/div&gt;
+    &lt;span class="instance-operation-result"&gt;&lt;/span&gt;
     &lt;div class="instance-operations"&gt;
       &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.operations'))&lt;/h2&gt;
       &lt;ul&gt;

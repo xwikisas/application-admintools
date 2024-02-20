@@ -283,19 +283,16 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
   $(document).on('click', '#confirmCacheFlushModal .btn-primary', function(event) {
     event.preventDefault();
     const flushButton = $('#confirmCacheFlushModal .btn-primary');
-    const target = flushButton.attr('data-action')
-    $.ajax({
-      url: target,
-      type: 'POST',
-      success: function(response) {
-        $(".health-check-section .operation-message").html('&lt;div class="successmessage"&gt;'+ l10n.get('success') +
-          '&lt;/div&gt;');
-      },
-      error: function(error) {
-        $(".health-check-section .operation-message").html('&lt;div class="errormessage"&gt;'+ error.statusText +
-          '&lt;/div&gt;');
-      }
-    });
+    const target = flushButton.attr('data-action');
+    $.post(target)
+    .done(function() {
+      $(".operation-result").addClass("successmessage");
+      $(".operation-result").html(l10n.get('success'));
+    })
+    .fail(function(error) {
+      $(".instance-operation-result").addClass("errormessage");
+      $(".instance-operation-result").html(error.statusText);
+    })
     $(event.currentTarget).closest('.modal').modal('toggle');
   });
 });</code>
