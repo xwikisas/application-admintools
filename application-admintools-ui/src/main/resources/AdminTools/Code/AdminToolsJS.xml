@@ -128,7 +128,8 @@
       <code>define('admin-tools-cache-flush-editor', {
   prefix: 'adminTools.dashboard.healthcheck.flushCache.',
   keys: [
-    'success'
+    'success',
+    'error'
   ]
 });
 
@@ -284,15 +285,11 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     event.preventDefault();
     const flushButton = $('#confirmCacheFlushModal .btn-primary');
     const target = flushButton.attr('data-action');
-    $.post(target)
-    .done(function() {
-      $(".operation-result").addClass("successmessage");
-      $(".operation-result").html(l10n.get('success'));
-    })
-    .fail(function(error) {
-      $(".instance-operation-result").addClass("errormessage");
-      $(".instance-operation-result").html(error.statusText);
-    })
+    $.post(target).done(function() {
+      notification = new XWiki.widgets.Notification(l10n.get('success'), 'done');
+    }).fail(function() {
+      notification = new XWiki.widgets.Notification(l10n.get('error'), 'error');
+    });
     $(event.currentTarget).closest('.modal').modal('toggle');
   });
 });</code>
