@@ -258,13 +258,17 @@
                     'adminTools.dashboard.healthcheck.modal.wikiBins.header.total'))&lt;/th&gt;
                 &lt;/tr&gt;
                 #foreach($wikiBin in $wikisRecycleBin)
+                  #set ($wikiRecycleReference = "${wikiBin.getWikiId()}:Main.AllDocs")
                   &lt;tr&gt;
+                    &lt;td&gt;$wikiBin.getWikiName()&lt;/td&gt;
                     &lt;td&gt;
-                      &lt;a href="$doc.getURL('view')/WikiRecycleBin?reqwiki=$wikiBin.getWikiId()"&gt;$wikiBin.getWikiName()
-                      &lt;/a&gt;
+                      &lt;a href="${xwiki.getURL($wikiRecycleReference)}?view=deletedDocs" target="_blank"&gt;
+                        $wikiBin.getPageSize()&lt;/a&gt;
                     &lt;/td&gt;
-                    &lt;td&gt;$wikiBin.getPageSize()&lt;/td&gt;
-                    &lt;td&gt;$wikiBin.getAttachmentSize()&lt;/td&gt;
+                    &lt;td&gt;
+                      &lt;a href="${xwiki.getURL($wikiRecycleReference)}?view=deletedAttachments" target="_blank"&gt;
+                        $wikiBin.getAttachmentSize()&lt;/a&gt;
+                    &lt;/td&gt;
                     &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
                   &lt;/tr&gt;
                 #end
