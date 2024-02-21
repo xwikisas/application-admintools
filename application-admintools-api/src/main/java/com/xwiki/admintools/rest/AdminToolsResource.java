@@ -58,9 +58,9 @@ public interface AdminToolsResource extends XWikiRestComponent
     Response getFiles() throws XWikiRestException;
 
     /**
-     * Flush the cache of a Wiki.
+     * Flush the cache of the XWiki instance, including all wikis, plugins and renderers.
      *
-     * @return a text response.
+     * @return the status of the operation.
      * @throws XWikiRestException if an error occurred while flushing the cache.
      */
     @POST

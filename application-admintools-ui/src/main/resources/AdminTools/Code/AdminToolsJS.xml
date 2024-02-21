@@ -125,7 +125,16 @@
       <cache>default</cache>
     </property>
     <property>
-      <code>require(['jquery', 'xwiki-meta', 'xwiki-job-runner'], function($, xwikiMeta, JobRunner) {
+      <code>define('admin-tools-cache-flush-editor', {
+  prefix: 'adminTools.dashboard.healthcheck.flushCache.',
+  keys: [
+    'success',
+    'error'
+  ]
+});
+
+require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cache-flush-editor'],
+    function($, xwikiMeta, JobRunner, l10n) {
   const getHealthCheckActionPageURL = function() {
     let documentReference = XWiki.Model.resolve('AdminTools.Code.HealthCheckResources', XWiki.EntityType.DOCUMENT);
     return new XWiki.Document(documentReference).getURL('get');
@@ -275,16 +284,12 @@
   $(document).on('click', '#confirmCacheFlushModal .btn-primary', function(event) {
     event.preventDefault();
     const flushButton = $('#confirmCacheFlushModal .btn-primary');
-    const target = flushButton.attr('data-action')
-    $.ajax({
-      url: target,
-      type: 'POST',
-      success: function(response) {
-        $(".operationMessage").html('&lt;div class="successmessage"&gt;'+ response + '&lt;/div&gt;');
-      },
-      error: function(error) {
-        $(".operationMessage").html('&lt;div class="errormessage"&gt;'+ error.statusText + '&lt;/div&gt;');
-      }
+    const target = flushButton.attr('data-action');
+    $.post(target).done(function() {
+      new XWiki.widgets.Notification(l10n.get('success'), 'done');
+    }).fail(function(error) {
+      console.log('Failed to flush instance cache. Cause: ' + error.statusText);
+      new XWiki.widgets.Notification(l10n.get('error'), 'error');
     });
     $(event.currentTarget).closest('.modal').modal('toggle');
   });

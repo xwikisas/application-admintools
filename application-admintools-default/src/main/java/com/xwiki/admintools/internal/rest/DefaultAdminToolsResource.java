@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -56,9 +55,6 @@ import com.xwiki.admintools.rest.AdminToolsResource;
 @Singleton
 public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
-    @Inject
-    private ContextualLocalizationManager localization;
-
     @Inject
     private Logger logger;
 
@@ -125,16 +121,16 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
     {
         try {
             this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-            XWikiContext wikiContext = xcontextProvider.get();
-            XWiki wiki = wikiContext.getWiki();
-            wiki.flushCache(wikiContext);
-            return Response.ok(localization.getTranslationPlain("adminTools.dashboard.healthcheck.flushCache.success"))
-                .type(MediaType.TEXT_PLAIN_TYPE).build();
+            this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+            XWikiContext xwikiContext = xcontextProvider.get();
+            XWiki xwiki = xwikiContext.getWiki();
+            xwiki.flushCache(xwikiContext);
+            return Response.ok().type(MediaType.TEXT_PLAIN_TYPE).build();
         } catch (AccessDeniedException deniedException) {
             logger.warn("Failed to flush the cache due to restricted rights.");
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
-            logger.warn("Failed to flush wiki cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to flush instance cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
