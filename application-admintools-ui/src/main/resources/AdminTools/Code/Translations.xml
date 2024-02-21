@@ -124,7 +124,7 @@ adminTools.dashboard.healthcheck.message.error=Critical issues were found, pleas
 adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
-adminTools.dashboard.healthcheck.wikiBins=Shrink the recycle bin for pages and attachments
+adminTools.dashboard.healthcheck.wikiBins=View instance recycle bins for pages and attachments
 
 ##Instance usage
 adminTools.dashboard.instanceUsage.description=See the stats related to the usage of the instance.
