@@ -68,16 +68,16 @@
   #if ($status.error)
     #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
     #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('ERROR'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.error'))
-    #set($messageClass = 'errormessage')
+    #set($messageClass = 'errormessage health-check-result-message')
   #elseif ($status.hasLevel('WARN'))
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.warning'))
-    #set($messageClass = 'warningmessage')
+    #set($messageClass = 'warningmessage health-check-result-message')
   #else
     #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.success'))
-    #set($messageClass = 'successmessage')
+    #set($messageClass = 'successmessage health-check-result-message')
   #end
   &lt;div class="box $messageClass"&gt;
     $escapetool.xml($healthCheckReportMessage)
@@ -118,6 +118,7 @@
 #end
 #macro (healthCheckUI)
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  #includeMacros("AdminTools.Code.Macros")
   #set ($jobId = $services.admintools.getHealthCheckJobId())
   #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
     'jobId': $jobId,
@@ -154,6 +155,16 @@
       #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
         #displayHealthCheckResults($healthJobStatus true)
       #end
+    &lt;/div&gt;
+    &lt;hr/&gt;
+    &lt;div class="instance-operations"&gt;
+      &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.operations'))&lt;/h2&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
+          $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
+        &lt;/li&gt;
+      &lt;/ul&gt;
+      #cacheFlushModal()
     &lt;/div&gt;
   &lt;/div&gt;
 #end

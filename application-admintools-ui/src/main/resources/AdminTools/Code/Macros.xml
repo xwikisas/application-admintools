@@ -200,5 +200,33 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
+#macro (cacheFlushModal)
+  &lt;div class="modal fade" id="confirmCacheFlushModal" tabindex="-1" role="dialog" aria-labelledby="confirmCacheFlushModalLabel"&gt;
+    &lt;div class="modal-dialog modal-sm" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="cache-modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+            &lt;h1 class="modal-title"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))
+            &lt;/h1&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.content'))
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-primary"
+                data-action="$request.getContextPath()/rest/admintools/flushCache"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.button'))
+            &lt;/button&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+#end
 {{/velocity}}</content>
 </xwikidoc>
