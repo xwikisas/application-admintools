@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.operations;
+package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,16 +34,16 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.health.WikiRecycleBinResult;
+import com.xwiki.admintools.health.WikiRecycleBins;
 
 /**
  * Retrieve data about wikis recycle bins.
  *
  * @version $Id$
  */
-@Component(roles = RecycleBinOperations.class)
+@Component(roles = RecycleBinsManager.class)
 @Singleton
-public class RecycleBinOperations
+public class RecycleBinsManager
 {
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
@@ -52,7 +52,7 @@ public class RecycleBinOperations
     private QueryManager queryManager;
 
     /**
-     * Generate a {@link List} of {@link WikiRecycleBinResult} that is populated with results for all existing wikis in
+     * Generate a {@link List} of {@link WikiRecycleBins} that is populated with results for all existing wikis in
      * instance.
      *
      * @return info about all existing wikis in instance.
@@ -61,17 +61,17 @@ public class RecycleBinOperations
      * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
      *     {@link WikiDescriptor}.
      */
-    public List<WikiRecycleBinResult> getAllWikisRecycleBinInfo() throws QueryException, WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws QueryException, WikiManagerException
     {
         Collection<WikiDescriptor> wikiDescriptors = wikiDescriptorManager.getAll();
-        List<WikiRecycleBinResult> results = new ArrayList<>();
+        List<WikiRecycleBins> results = new ArrayList<>();
         for (WikiDescriptor wikiDescriptor : wikiDescriptors) {
             String wikiId = wikiDescriptor.getId();
-            WikiRecycleBinResult result = new WikiRecycleBinResult();
+            WikiRecycleBins result = new WikiRecycleBins();
             result.setWikiName(wikiDescriptor.getPrettyName());
             result.setWikiId(wikiId);
-            result.setAttachmentSize(getNumberOfDeletedDocuments(wikiId, "DeletedAttachment"));
-            result.setPageSize(getNumberOfDeletedDocuments(wikiId, "XWikiDeletedDocument"));
+            result.setAttachmentsCount(getNumberOfDeletedDocuments(wikiId, "DeletedAttachment"));
+            result.setDocumentsCount(getNumberOfDeletedDocuments(wikiId, "XWikiDeletedDocument"));
             results.add(result);
         }
         return results;

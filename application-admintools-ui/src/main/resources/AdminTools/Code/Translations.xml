@@ -124,7 +124,7 @@ adminTools.dashboard.healthcheck.message.error=Critical issues were found, pleas
 adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
-adminTools.dashboard.healthcheck.wikiBins=View instance recycle bins for pages and attachments
+adminTools.dashboard.healthcheck.recycleBins=Check pages and attachments recycle bins
 
 ##Instance usage
 adminTools.dashboard.instanceUsage.description=See the stats related to the usage of the instance.
@@ -195,11 +195,11 @@ adminTools.dashboard.spamPage.modal.header.noComments=Number of comments
 adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush XWiki cache?
 adminTools.dashboard.healthcheck.modal.button=Confirm
 adminTools.dashboard.showLogs=View last n lines of log...
-adminTools.dashboard.healthcheck.modal.wikiBins.title=Wikis recycle bin (number of documents)
-adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error while gathering info about your instance wikis recycle bin size.
+adminTools.dashboard.healthcheck.modal.wikiBins.title=Recycle bins size for all wikis
+adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error while gathering recycle bins size info for all wikis.
 adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki=Wiki
-adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Page recycle bin
-adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Attachment recycle bin
+adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Deleted attachments
 adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total</content>
   <object>
     <name>AdminTools.Code.Translations</name>

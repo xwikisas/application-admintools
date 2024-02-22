@@ -28,70 +28,76 @@ import org.xwiki.stability.Unstable;
  * @since 1.0
  */
 @Unstable
-public class WikiRecycleBinResult
+public class WikiRecycleBins
 {
     private String wikiId;
 
     private String wikiName;
 
-    private long pageSize;
+    private long documentsCount;
 
-    private long attachmentSize;
+    private long attachmentsCount;
 
     /**
-     * Initialise an empty {@link WikiRecycleBinResult}.
+     * Initialise an empty {@link WikiRecycleBins}.
      */
-    public WikiRecycleBinResult()
+    public WikiRecycleBins()
     {
     }
 
     /**
      * Get the number of deleted attachments in this wiki.
+     *
      * @return number of deleted attachments in wiki.
      */
-    public long getAttachmentSize()
+    public long getAttachmentsCount()
     {
-        return attachmentSize;
+        return attachmentsCount;
     }
 
     /**
      * Set the number of deleted attachments in this wiki.
-     * @param attachmentSize number of deleted attachments for wiki.
+     *
+     * @param attachmentsCount number of deleted attachments for wiki.
      */
-    public void setAttachmentSize(long attachmentSize)
+    public void setAttachmentsCount(long attachmentsCount)
     {
-        this.attachmentSize = attachmentSize;
+        this.attachmentsCount = attachmentsCount;
     }
 
     /**
      * Get the number of deleted documents in this wiki.
+     *
      * @return number of deleted documents in wiki.
      */
-    public long getPageSize()
+    public long getDocumentsCount()
     {
-        return pageSize;
+        return documentsCount;
     }
 
     /**
      * Set the number of deleted documents in this wiki.
-     * @param pageSize number of deleted documents for wiki.
+     *
+     * @param documentsCount number of deleted documents for wiki.
      */
-    public void setPageSize(long pageSize)
+    public void setDocumentsCount(long documentsCount)
     {
-        this.pageSize = pageSize;
+        this.documentsCount = documentsCount;
     }
 
     /**
      * Get the sum of deleted documents and attachments.
+     *
      * @return total number of deleted files.
      */
     public long getTotal()
     {
-        return attachmentSize + pageSize;
+        return attachmentsCount + documentsCount;
     }
 
     /**
      * Get the pretty name of a wiki.
+     *
      * @return the name of the wiki.
      */
     public String getWikiName()
@@ -101,6 +107,7 @@ public class WikiRecycleBinResult
 
     /**
      * Set the name of the wiki.
+     *
      * @param wikiName name of the wiki
      */
     public void setWikiName(String wikiName)
@@ -110,6 +117,7 @@ public class WikiRecycleBinResult
 
     /**
      * Get the wiki id.
+     *
      * @return the wiki id.
      */
     public String getWikiId()
@@ -119,6 +127,7 @@ public class WikiRecycleBinResult
 
     /**
      * Set the wiki id.
+     *
      * @param wikiId the id of the wiki.
      */
     public void setWikiId(String wikiId)

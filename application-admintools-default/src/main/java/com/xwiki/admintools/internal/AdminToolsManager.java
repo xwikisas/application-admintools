@@ -36,10 +36,10 @@ import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.health.WikiRecycleBinResult;
+import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.health.operations.RecycleBinOperations;
+import com.xwiki.admintools.internal.wikiUsage.RecycleBinsManager;
 import com.xwiki.admintools.internal.wikiUsage.InstanceUsage;
 
 /**
@@ -74,7 +74,7 @@ public class AdminToolsManager
     private ComponentManager contextComponentManager;
 
     @Inject
-    private RecycleBinOperations recycleBinOperations;
+    private RecycleBinsManager recycleBinsManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -158,7 +158,7 @@ public class AdminToolsManager
     }
 
     /**
-     * Return a {@link List} of {@link WikiRecycleBinResult} that is populated with results for all existing wikis in
+     * Return a {@link List} of {@link WikiRecycleBins} that is populated with results for all existing wikis in
      * instance.
      *
      * @return info about all existing wikis in instance.
@@ -167,8 +167,8 @@ public class AdminToolsManager
      * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
      *     {@link WikiDescriptor}.
      */
-    public List<WikiRecycleBinResult> getWikisRecycleBinSize() throws QueryException, WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinSize() throws QueryException, WikiManagerException
     {
-        return recycleBinOperations.getAllWikisRecycleBinInfo();
+        return recycleBinsManager.getWikisRecycleBinsSize();
     }
 }

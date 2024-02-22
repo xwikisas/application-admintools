@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.health.operations;
+package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,16 +35,16 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.health.WikiRecycleBinResult;
+import com.xwiki.admintools.health.WikiRecycleBins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class RecycleBinOperationsTest
+class RecycleBinsManagerTest
 {
     @InjectMockComponents
-    RecycleBinOperations recycleBinOperations;
+    RecycleBinsManager recycleBinsManager;
 
     @MockComponent
     WikiDescriptorManager wikiDescriptorManager;
@@ -78,16 +78,18 @@ class RecycleBinOperationsTest
         when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
         when(wikiDescriptor.getId()).thenReturn(wikiId1);
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
-        when(queryManager.createQuery("select count(ddoc) from DeletedAttachment as ddoc", Query.XWQL)).thenReturn(createQueryAttach);
+        when(queryManager.createQuery("select count(ddoc) from DeletedAttachment as ddoc", Query.XWQL)).thenReturn(
+            createQueryAttach);
         when(createQueryAttach.setWiki(wikiId1)).thenReturn(setWikiQueryAttach);
         when(setWikiQueryAttach.execute()).thenReturn(List.of(4L));
-        when(queryManager.createQuery("select count(ddoc) from XWikiDeletedDocument as ddoc", Query.XWQL)).thenReturn(createQueryDoc);
+        when(queryManager.createQuery("select count(ddoc) from XWikiDeletedDocument as ddoc", Query.XWQL)).thenReturn(
+            createQueryDoc);
         when(createQueryDoc.setWiki(wikiId1)).thenReturn(setWikiQueryDoc);
         when(setWikiQueryDoc.execute()).thenReturn(List.of(23L));
-        WikiRecycleBinResult wikiRecycleBinResult = recycleBinOperations.getAllWikisRecycleBinInfo().get(0);
-        assertEquals(1, recycleBinOperations.getAllWikisRecycleBinInfo().size());
-        assertEquals(23, wikiRecycleBinResult.getPageSize());
-        assertEquals(4, wikiRecycleBinResult.getAttachmentSize());
-        assertEquals("wiki pretty name", wikiRecycleBinResult.getWikiName());
+        WikiRecycleBins wikiRecycleBins = recycleBinsManager.getWikisRecycleBinsSize().get(0);
+        assertEquals(1, recycleBinsManager.getWikisRecycleBinsSize().size());
+        assertEquals(23, wikiRecycleBins.getDocumentsCount());
+        assertEquals(4, wikiRecycleBins.getAttachmentsCount());
+        assertEquals("wiki pretty name", wikiRecycleBins.getWikiName());
     }
 }

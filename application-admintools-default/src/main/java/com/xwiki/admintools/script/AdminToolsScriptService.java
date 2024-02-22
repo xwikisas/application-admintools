@@ -39,7 +39,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.health.WikiRecycleBinResult;
+import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
@@ -187,7 +187,7 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@link List} with wikis recycle bin info or null in case of an error.
      */
-    public List<WikiRecycleBinResult> getWikisRecycleBinSize()
+    public List<WikiRecycleBins> getWikisRecycleBinSize()
         throws AccessDeniedException, QueryException, WikiManagerException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);

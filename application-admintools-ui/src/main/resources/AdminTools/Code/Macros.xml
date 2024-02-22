@@ -229,17 +229,17 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
-#macro (wikisRecycleBinModal)
+#macro (recycleBinsModal)
   #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
-  &lt;div class="modal fade" id="viewWikisRecycleBinModal" tabindex="-1" role="dialog"
-      aria-labelledby="viewWikisRecycleBinModalLabel"&gt;
+  &lt;div class="modal fade" id="checkRecycleBinsModal" tabindex="-1" role="dialog"
+      aria-labelledby="checkRecycleBinsModalLabel"&gt;
     &lt;div class="modal-dialog modal-lg" role="document"&gt;
       &lt;div class="modal-content"&gt;
         &lt;div class="cache-modal-content"&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
-            &lt;div id="viewWikisRecycleBinModalLabel" class="modal-title"&gt;
+            &lt;div id="checkRecycleBinsModalLabel" class="modal-title"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.title'))
             &lt;/div&gt;
           &lt;/div&gt;
@@ -258,16 +258,16 @@
                     'adminTools.dashboard.healthcheck.modal.wikiBins.header.total'))&lt;/th&gt;
                 &lt;/tr&gt;
                 #foreach($wikiBin in $wikisRecycleBin)
-                  #set ($wikiRecycleReference = "${wikiBin.getWikiId()}:Main.AllDocs")
+                  #set ($allDocsRef = $services.model.createDocumentReference($wikiBin.getWikiId(), 'Main', 'AllDocs'))
                   &lt;tr&gt;
                     &lt;td&gt;$wikiBin.getWikiName()&lt;/td&gt;
                     &lt;td&gt;
-                      &lt;a href="${xwiki.getURL($wikiRecycleReference)}?view=deletedDocs" target="_blank"&gt;
-                        $wikiBin.getPageSize()&lt;/a&gt;
+                      &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedDocs'}))}"
+                        target="_blank"&gt;$wikiBin.getDocumentsCount()&lt;/a&gt;
                     &lt;/td&gt;
                     &lt;td&gt;
-                      &lt;a href="${xwiki.getURL($wikiRecycleReference)}?view=deletedAttachments" target="_blank"&gt;
-                        $wikiBin.getAttachmentSize()&lt;/a&gt;
+                      &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedAttachments'}))}"
+                        target="_blank"&gt;$wikiBin.getAttachmentsCount()&lt;/a&gt;
                     &lt;/td&gt;
                     &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
                   &lt;/tr&gt;
