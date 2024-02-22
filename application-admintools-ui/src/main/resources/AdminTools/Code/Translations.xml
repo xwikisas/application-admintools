@@ -192,7 +192,7 @@ adminTools.dashboard.spamPage.modal.title=Pages with more than {0} comments
 adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {0} comments.
 adminTools.dashboard.spamPage.modal.header.page=Page
 adminTools.dashboard.spamPage.modal.header.noComments=Number of comments
-adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush XWiki cache?
+adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush the instance cache?
 adminTools.dashboard.healthcheck.modal.button=Confirm
 adminTools.dashboard.showLogs=View last n lines of log...
 adminTools.dashboard.healthcheck.modal.wikiBins.title=Recycle bins size for all wikis
@@ -200,7 +200,9 @@ adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error wh
 adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki=Wiki
 adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Deleted pages
 adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Deleted attachments
-adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total</content>
+adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total
+adminTools.dashboard.healthcheck.modal.wikiBins.documents=View deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

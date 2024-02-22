@@ -263,11 +263,15 @@
                     &lt;td&gt;$wikiBin.getWikiName()&lt;/td&gt;
                     &lt;td&gt;
                       &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedDocs'}))}"
-                        target="_blank"&gt;$wikiBin.getDocumentsCount()&lt;/a&gt;
+                        target="_blank" title="$escapetool.xml($services.localization.render(
+                        'adminTools.dashboard.healthcheck.modal.wikiBins.documents'))"&gt;
+                          $wikiBin.getDocumentsCount()&lt;/a&gt;
                     &lt;/td&gt;
                     &lt;td&gt;
                       &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedAttachments'}))}"
-                        target="_blank"&gt;$wikiBin.getAttachmentsCount()&lt;/a&gt;
+                        target="_blank" title="$escapetool.xml($services.localization.render(
+                        'adminTools.dashboard.healthcheck.modal.wikiBins.attachments'))"&gt;
+                          $wikiBin.getAttachmentsCount()&lt;/a&gt;
                     &lt;/td&gt;
                     &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
                   &lt;/tr&gt;
