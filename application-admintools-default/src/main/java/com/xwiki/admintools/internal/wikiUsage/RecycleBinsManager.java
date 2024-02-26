@@ -52,34 +52,42 @@ public class RecycleBinsManager
     private QueryManager queryManager;
 
     /**
-     * Generate a {@link List} of {@link WikiRecycleBins} that is populated with results for all existing wikis in
-     * instance.
+     * Get instance recycle bins info, like deleted documents and attachments.
      *
-     * @return info about all existing wikis in instance.
-     * @throws QueryException when there is an issue regarding the queries that retrieve the number of deleted
+     * @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of the
+     *     instance.
+     * @throws RuntimeException when there is an issue regarding the queries that retrieve the number of deleted
      *     documents and attachments.
      * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
      *     {@link WikiDescriptor}.
      */
-    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws QueryException, WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = wikiDescriptorManager.getAll();
         List<WikiRecycleBins> results = new ArrayList<>();
-        for (WikiDescriptor wikiDescriptor : wikiDescriptors) {
-            String wikiId = wikiDescriptor.getId();
-            WikiRecycleBins result = new WikiRecycleBins();
-            result.setWikiName(wikiDescriptor.getPrettyName());
-            result.setWikiId(wikiId);
-            result.setAttachmentsCount(getNumberOfDeletedDocuments(wikiId, "DeletedAttachment"));
-            result.setDocumentsCount(getNumberOfDeletedDocuments(wikiId, "XWikiDeletedDocument"));
-            results.add(result);
-        }
+        wikiDescriptorManager.getAll().forEach(wikiDescriptor -> {
+            try {
+                results.add(getWikiRecycleBinsSize(wikiDescriptor));
+            } catch (QueryException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return results;
     }
 
-    private long getNumberOfDeletedDocuments(String wikiId, String table) throws QueryException
+    private WikiRecycleBins getWikiRecycleBinsSize(WikiDescriptor wikiDescriptor) throws QueryException
+    {
+        String wikiId = wikiDescriptor.getId();
+        WikiRecycleBins result = new WikiRecycleBins();
+        result.setWikiName(wikiDescriptor.getPrettyName());
+        result.setWikiId(wikiId);
+        result.setAttachmentsCount(getNumberOfDeletedDocuments(wikiId, "DeletedAttachment"));
+        result.setDocumentsCount(getNumberOfDeletedDocuments(wikiId, "XWikiDeletedDocument"));
+        return result;
+    }
+
+    private long getNumberOfDeletedDocuments(String wikiID, String table) throws QueryException
     {
         String statement = String.format("select count(ddoc) from %s as ddoc", table);
-        return (long) this.queryManager.createQuery(statement, Query.XWQL).setWiki(wikiId).execute().get(0);
+        return (long) this.queryManager.createQuery(statement, Query.XWQL).setWiki(wikiID).execute().get(0);
     }
 }

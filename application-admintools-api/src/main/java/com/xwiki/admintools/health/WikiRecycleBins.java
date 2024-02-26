@@ -22,7 +22,7 @@ package com.xwiki.admintools.health;
 import org.xwiki.stability.Unstable;
 
 /**
- * Wiki bin result. Stores info about the wiki recycle bin size and wiki identifier.
+ * Store info about deleted attachments and documents from a wiki.
  *
  * @version $Id$
  * @since 1.0
@@ -83,16 +83,6 @@ public class WikiRecycleBins
     public void setDocumentsCount(long documentsCount)
     {
         this.documentsCount = documentsCount;
-    }
-
-    /**
-     * Get the sum of deleted documents and attachments.
-     *
-     * @return total number of deleted files.
-     */
-    public long getTotal()
-    {
-        return attachmentsCount + documentsCount;
     }
 
     /**

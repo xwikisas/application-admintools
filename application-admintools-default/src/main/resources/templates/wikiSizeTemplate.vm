@@ -54,11 +54,16 @@
         #set ($spamLimit = 50)
         <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific'))</h2>
         <ul>
-          <li><a href="#pagesOverNumberOfComments" data-toggle="modal" data-target="#pagesOverNumberOfComments">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.comments',
-            [$spamLimit]))</a></li>
-          <li><a href="#checkRecycleBinsModal" data-toggle="modal" data-target="#checkRecycleBinsModal">
-            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.recycleBins'))</a></li>
+          <li><a href="#pagesOverNumberOfComments" data-toggle="modal" data-target="#pagesOverNumberOfComments"
+            title="$escapetool.xml($services.localization.render(
+            'adminTools.dashboard.instanceUsage.specific.comments.hint', [$spamLimit]))">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.comments',
+              [$spamLimit]))</a></li>
+          <li><a href="#checkRecycleBinsModal" data-toggle="modal" data-target="#checkRecycleBinsModal"
+              title="$escapetool.xml($services.localization.render(
+              'adminTools.dashboard.instanceUsage.specific.recycleBins.hint'))">
+                $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.recycleBins'))
+            </a></li>
         </ul>
       </div>
       #pagesOverNumberOfCommentsModal($spamLimit)

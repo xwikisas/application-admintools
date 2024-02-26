@@ -259,6 +259,7 @@
                 &lt;/tr&gt;
                 #foreach($wikiBin in $wikisRecycleBin)
                   #set ($allDocsRef = $services.model.createDocumentReference($wikiBin.getWikiId(), 'Main', 'AllDocs'))
+                  #set ($wikiBinTotal = $wikiBin.getDocumentsCount() + $wikiBin.getAttachmentsCount())
                   &lt;tr&gt;
                     &lt;td&gt;$wikiBin.getWikiName()&lt;/td&gt;
                     &lt;td&gt;
@@ -273,7 +274,7 @@
                         'adminTools.dashboard.healthcheck.modal.wikiBins.attachments'))"&gt;
                           $wikiBin.getAttachmentsCount()&lt;/a&gt;
                     &lt;/td&gt;
-                    &lt;td&gt;$wikiBin.getTotal()&lt;/td&gt;
+                    &lt;td&gt;$wikiBinTotal&lt;/td&gt;
                   &lt;/tr&gt;
                 #end
               &lt;/table&gt;
