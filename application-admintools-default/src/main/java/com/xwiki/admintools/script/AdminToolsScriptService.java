@@ -190,7 +190,7 @@ public class AdminToolsScriptService implements ScriptService
      * Check if the used server is compatible with Admin tools installation.
      *
      * @return a {@code true} if the used server is compatible with the application installation, or {@code false}
-     * otherwise.
+     *     otherwise.
      */
     public boolean isUsedServerCompatible()
     {
