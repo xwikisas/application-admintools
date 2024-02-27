@@ -64,6 +64,6 @@ public class DashboardFilesSectionView extends ViewPage
 
     public WebElement getNonAdminUserView()
     {
-        return this.getDriver().findElement(By.cssSelector(".xwikirenderingerror"));
+        return this.getDriver().findElement(By.cssSelector(".gadget-content .xwikirenderingerror"));
     }
 }
