@@ -137,6 +137,9 @@ adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
 adminTools.dashboard.instanceUsage.specific=Specific stats
 adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} comments
+adminTools.dashboard.instanceUsage.specific.comments.hint=View a list with all the pages that have above {0} comments
+adminTools.dashboard.instanceUsage.specific.recycleBins=Check pages and attachments recycle bins
+adminTools.dashboard.instanceUsage.specific.recycleBins.hint=View the size of the recycle bins for all wikis in instance
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -192,7 +195,15 @@ adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {
 adminTools.dashboard.spamPage.modal.header.page=Page
 adminTools.dashboard.spamPage.modal.header.noComments=Number of comments
 adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush the instance cache?
-adminTools.dashboard.healthcheck.modal.button=Confirm</content>
+adminTools.dashboard.healthcheck.modal.button=Confirm
+adminTools.dashboard.healthcheck.modal.wikiBins.title=Recycle bins size for all wikis
+adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error while gathering recycle bins size info for all wikis.
+adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki=Wiki
+adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Deleted attachments
+adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total
+adminTools.dashboard.healthcheck.modal.wikiBins.documents=View deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

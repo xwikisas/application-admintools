@@ -37,8 +37,10 @@ import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
+import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
@@ -188,10 +190,22 @@ public class AdminToolsScriptService implements ScriptService
      * Check if the used server is compatible with Admin tools installation.
      *
      * @return a {@code true} if the used server is compatible with the application installation, or {@code false}
-     * otherwise.
+     *     otherwise.
      */
     public boolean isUsedServerCompatible()
     {
         return currentServer.getCurrentServer() != null;
+    }
+
+    /**
+     * Get recycle bin info for all wikis in your instance.
+     *
+     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
+     *     the instance.
+     */
+    public List<WikiRecycleBins> getWikisRecycleBinSize() throws AccessDeniedException, WikiManagerException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return adminToolsManager.getWikisRecycleBinsSize();
     }
 }

@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,12 +31,16 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.query.QueryException;
+import org.xwiki.wiki.descriptor.WikiDescriptor;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.wikiUsage.InstanceUsage;
+import com.xwiki.admintools.internal.wikiUsage.RecycleBinsManager;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.
@@ -67,6 +72,9 @@ public class AdminToolsManager
     @Inject
     @Named("context")
     private ComponentManager contextComponentManager;
+
+    @Inject
+    private RecycleBinsManager recycleBinsManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -147,5 +155,20 @@ public class AdminToolsManager
     public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
     {
         return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
+    }
+
+    /**
+     * Get instance recycle bins info, like deleted documents and attachment.
+     *
+     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
+     *     the instance.
+     * @throws RuntimeException when there is an issue regarding the queries that retrieve the number of deleted
+     *     documents and attachments.
+     * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
+     *     {@link WikiDescriptor}.
+     */
+    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws WikiManagerException
+    {
+        return this.recycleBinsManager.getWikisRecycleBinsSize();
     }
 }
