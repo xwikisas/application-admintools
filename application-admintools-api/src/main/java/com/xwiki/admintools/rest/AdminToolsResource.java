@@ -20,6 +20,7 @@
 package com.xwiki.admintools.rest;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
@@ -55,4 +56,14 @@ public interface AdminToolsResource extends XWikiRestComponent
     @GET
     @Path("/files")
     Response getFiles() throws XWikiRestException;
+
+    /**
+     * Flush the cache of the XWiki instance, including all wikis, plugins and renderers.
+     *
+     * @return the status of the operation.
+     * @throws XWikiRestException if an error occurred while flushing the cache.
+     */
+    @POST
+    @Path("/flushCache")
+    Response flushCache() throws XWikiRestException;
 }

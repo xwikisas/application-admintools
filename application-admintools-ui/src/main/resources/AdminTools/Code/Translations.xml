@@ -77,6 +77,9 @@ adminTools.dashboard.healthcheck.database.info=Database status OK.
 adminTools.dashboard.healthcheck.database.warn=Database not found!
 adminTools.dashboard.healthcheck.database.notSupported=The currently used database is {0}, which is not supported by XWiki. Check the help links to find the database compatibility requirements.
 adminTools.dashboard.healthcheck.description=Check if your instance is configured correctly and is properly running. For any issues, check out this {0}.
+adminTools.dashboard.healthcheck.flushCache=Flush instance cache
+adminTools.dashboard.healthcheck.flushCache.error=There has been an error while flushing the instance cache.
+adminTools.dashboard.healthcheck.flushCache.success=Cache flushed successfully.
 adminTools.dashboard.healthcheck.java.info=Java status OK.
 adminTools.dashboard.healthcheck.java.warn=Java version could not be found! Please make sure you correctly installed and configured the paths for your Java installation. For further help, consult the help links.
 adminTools.dashboard.healthcheck.java.error=You are currently using Java version {0} which is not compatible with the XWiki installation version {1}. Please check the help links to view the compatibility.
@@ -119,6 +122,7 @@ adminTools.job.notFound=Health check job status not found
 adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
+adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
 
@@ -134,6 +138,9 @@ adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
 adminTools.dashboard.instanceUsage.specific=Specific stats
 adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} comments
+adminTools.dashboard.instanceUsage.specific.comments.hint=View a list with all the pages that have above {0} comments
+adminTools.dashboard.instanceUsage.specific.recycleBins=Check pages and attachments recycle bins
+adminTools.dashboard.instanceUsage.specific.recycleBins.hint=View the size of the recycle bins for all wikis in instance
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -187,7 +194,17 @@ adminTools.dashboard.showLogs=View last n lines of log...
 adminTools.dashboard.spamPage.modal.title=Pages with more than {0} comments
 adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {0} comments.
 adminTools.dashboard.spamPage.modal.header.page=Page
-adminTools.dashboard.spamPage.modal.header.noComments=Number of comments</content>
+adminTools.dashboard.spamPage.modal.header.noComments=Number of comments
+adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush the instance cache?
+adminTools.dashboard.healthcheck.modal.button=Confirm
+adminTools.dashboard.healthcheck.modal.wikiBins.title=Recycle bins size for all wikis
+adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error while gathering recycle bins size info for all wikis.
+adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki=Wiki
+adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Deleted attachments
+adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total
+adminTools.dashboard.healthcheck.modal.wikiBins.documents=View deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

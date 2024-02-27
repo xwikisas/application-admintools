@@ -36,9 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros"/}}
-
-{{box cssClass="admin-tools-header-section"}}
+  <content>{{box cssClass="admin-tools-header-section"}}
 {{container layoutStyle="columns" justify="yes"}}
 (((
 {{toc scope=page /}}
@@ -51,9 +49,7 @@
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   {{dashboard/}}
 #else
-  {{error}}
-    #getMissingLicenseMessage('adminTools.extension.name')
-  {{/error}}
+  {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
 #end
 {{/velocity}}</content>
   <object>

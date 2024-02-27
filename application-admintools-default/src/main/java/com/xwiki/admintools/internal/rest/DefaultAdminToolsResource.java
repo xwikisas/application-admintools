@@ -39,6 +39,7 @@ import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -111,6 +112,25 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             logger.warn("Failed to get zip archive. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response flushCache()
+    {
+        try {
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+            this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+            XWikiContext xwikiContext = xcontextProvider.get();
+            XWiki xwiki = xwikiContext.getWiki();
+            xwiki.flushCache(xwikiContext);
+            return Response.ok().type(MediaType.TEXT_PLAIN_TYPE).build();
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to flush the cache due to restricted rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        } catch (Exception e) {
+            logger.warn("Failed to flush instance cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
