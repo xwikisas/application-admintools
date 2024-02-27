@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-class TomcatIdentifierTest
+class TomcatInfoTest
 {
     @InjectMockComponents
     private TomcatInfo tomcatIdentifier;
@@ -56,7 +56,7 @@ class TomcatIdentifierTest
     private File tmpDir;
 
     @Test
-    void isUsedFound() throws IOException
+    void isUsedPathFound() throws IOException
     {
         when(adminToolsConfig.getServerPath()).thenReturn(tmpDir.getAbsolutePath());
 
@@ -104,6 +104,6 @@ class TomcatIdentifierTest
     @Test
     void getIdentifier()
     {
-        assertEquals("Tomcat", tomcatIdentifier.getComponentHint());
+        assertEquals("tomcat", tomcatIdentifier.getComponentHint());
     }
 }

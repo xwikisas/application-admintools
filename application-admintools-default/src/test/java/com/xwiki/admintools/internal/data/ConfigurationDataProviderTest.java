@@ -31,7 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.xwiki.activeinstalls2.internal.data.DatabasePing;
+import org.xwiki.activeinstalls2.internal.data.ServletContainerPing;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -94,6 +94,9 @@ class ConfigurationDataProviderTest
     @MockComponent
     private UsageDataProvider usageDataProvider;
 
+    @Mock
+    private ServletContainerPing servletContainerPing;
+
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
@@ -113,6 +116,7 @@ class ConfigurationDataProviderTest
         defaultJson.put("usedServerVersion", "test_server_version");
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
+        defaultJson.put("serverPath", null);
 
         // Set system properties that will be used.
         System.setProperty("java.version", "used_java_version");

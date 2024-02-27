@@ -53,4 +53,12 @@
     <module>application-admintools-default</module>
     <module>application-admintools-ui</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <modules>
+        <module>application-admintools-test</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
