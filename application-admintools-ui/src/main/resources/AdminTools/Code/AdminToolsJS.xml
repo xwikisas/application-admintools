@@ -270,7 +270,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
   const removeBrokenTOCHeaders = function() {
     var headings = $('.wikitoc').find('a');
     for (let element of headings) {
-      if ($(element).children("span.wikigeneratedlinkcontent").length) {
+      if ($(element).children("span.wikigeneratedlinkcontent").length || $.trim($(element).text()) === "") {
         let parent = element.parentElement.parentElement;
         if($(parent).children('ul').length){
           $(element).remove();
