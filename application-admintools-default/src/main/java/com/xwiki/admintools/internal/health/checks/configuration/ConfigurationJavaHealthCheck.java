@@ -19,6 +19,8 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -29,6 +31,7 @@ import org.xwiki.component.annotation.Component;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
 import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.health.XWikiVersions;
 
 /**
  * Implementation of {@link HealthCheck} for checking the Java configuration.
@@ -45,6 +48,8 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
      */
     public static final String HINT = "configurationJava";
 
+    private static final String REGEX = "\\.";
+
     @Override
     public HealthCheckResult check()
     {
@@ -55,9 +60,8 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
             return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn", HealthCheckResultLevel.WARN);
         }
         String xwikiVersionString = configurationJson.get("xwikiVersion");
-        float xwikiVersion = parseFloat(xwikiVersionString);
-        float javaVersion = parseFloat(javaVersionString);
-        if (!isJavaXWikiCompatible(xwikiVersion, javaVersion)) {
+        float javaVersion = parseJavaVersionFloat(javaVersionString);
+        if (!isJavaXWikiCompatible(xwikiVersionString, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
             return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error", HealthCheckResultLevel.ERROR,
                 javaVersionString, xwikiVersionString);
@@ -65,35 +69,92 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", HealthCheckResultLevel.INFO);
     }
 
-    private static float parseFloat(String javaVersionString)
+    private float parseJavaVersionFloat(String javaVersionString)
     {
-        String[] parts = javaVersionString.split("\\.");
+        String[] parts = javaVersionString.split(REGEX);
         return Float.parseFloat(parts[0] + "." + parts[1]);
     }
 
-    private boolean isJavaXWikiCompatible(float xwikiVersion, float javaVersion)
+    private boolean isJavaXWikiCompatible(String xwikiVersion, float javaVersion)
     {
         boolean isCompatible = false;
-
-        if (isInInterval(xwikiVersion, 0, 6)) {
-            isCompatible = javaVersion == 1.6;
-        } else if (isInInterval(xwikiVersion, 6, 8.1f)) {
-            isCompatible = javaVersion == 1.7;
-        } else if (isInInterval(xwikiVersion, 8.1f, 11.3f)) {
-            isCompatible = javaVersion == 1.8;
-        } else if (isInInterval(xwikiVersion, 11.2f, 14)) {
-            isCompatible = (javaVersion == 1.8) || isInInterval(javaVersion, 10.99f, 12);
-        } else if (isInInterval(xwikiVersion, 13.9f, 15.3f)) {
-            isCompatible = isInInterval(javaVersion, 10.99f, 12);
-        } else if (isInInterval(xwikiVersion, 15.2f, Float.MAX_VALUE)) {
-            isCompatible = isInInterval(javaVersion, 10.99f, 12) || isInInterval(javaVersion, 16.99f, 18);
+        if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_8_1.getVersion(), XWikiVersions.XWIKI_11_3.getVersion())) {
+            isCompatible = javaVersion == 1.8f;
+        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_11_3.getVersion(),
+            XWikiVersions.XWIKI_14_0.getVersion()))
+        {
+            isCompatible = (javaVersion == 1.8f) || isJavaCompatible(javaVersion, 10.99f, 12.0f);
+        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_14_0.getVersion(),
+            XWikiVersions.XWIKI_14_10_9.getVersion()))
+        {
+            isCompatible = isJavaCompatible(javaVersion, 10.99f, 12.0f);
+        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_14_10_9.getVersion(),
+            XWikiVersions.XWIKI_15_3.getVersion()))
+        {
+            isCompatible = isJavaCompatible(javaVersion, 16.99f, 18.0f) || isJavaCompatible(javaVersion, 10.99f, 12.0f);
+        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_15_3.getVersion(),
+            XWikiVersions.XWIKI_16_0.getVersion()))
+        {
+            isCompatible = isJavaCompatible(javaVersion, 10.99f, 12f) || isJavaCompatible(javaVersion, 16.99f, 18f);
+        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_16_0.getVersion(),
+            XWikiVersions.XWIKI_17_0.getVersion()))
+        {
+            isCompatible = isJavaCompatible(javaVersion, 16.99f, 22f);
         }
 
         return isCompatible;
     }
 
-    private boolean isInInterval(float checkedValue, float lowerBound, float upperBound)
+    private boolean isJavaCompatible(float checkedValue, float lowerBound, float upperBound)
     {
         return checkedValue > lowerBound && checkedValue < upperBound;
+    }
+
+    private boolean isInInterval(String checkedValue, String lowerBound, String upperBound)
+    {
+        List<String> checkedValueParts = new ArrayList<>(List.of(checkedValue.split(REGEX)));
+        List<String> lowerBoundParts = List.of(lowerBound.split(REGEX));
+        List<String> upperBoundParts = List.of(upperBound.split(REGEX));
+        for (int i = checkedValueParts.size(); i < lowerBoundParts.size(); i++) {
+            checkedValueParts.add("0");
+        }
+        return checkLowerBoundaries(checkedValueParts, lowerBoundParts) && checkUpperBoundaries(checkedValueParts,
+            upperBoundParts);
+    }
+
+    private boolean checkLowerBoundaries(List<String> checkedValueParts, List<String> lowerBoundParts)
+    {
+        int i = 0;
+        int valueNumber;
+        int lowBoundValNumber;
+        while (i < checkedValueParts.size()) {
+            valueNumber = Integer.parseInt(checkedValueParts.get(i));
+            lowBoundValNumber = Integer.parseInt(lowerBoundParts.get(i));
+            if (valueNumber > lowBoundValNumber) {
+                return true;
+            } else if (valueNumber < lowBoundValNumber) {
+                return false;
+            }
+            i++;
+        }
+        return true;
+    }
+
+    private boolean checkUpperBoundaries(List<String> checkedValueParts, List<String> upperBoundParts)
+    {
+        int i = 0;
+        int valueNumber;
+        int highBoundValNumber;
+        while (i < checkedValueParts.size()) {
+            valueNumber = Integer.parseInt(checkedValueParts.get(i));
+            highBoundValNumber = Integer.parseInt(upperBoundParts.get(i));
+            if (valueNumber < highBoundValNumber) {
+                return true;
+            } else if (valueNumber > highBoundValNumber) {
+                return false;
+            }
+            i++;
+        }
+        return false;
     }
 }

@@ -23,7 +23,6 @@ import java.util.Map;
 
 import javax.inject.Named;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.test.LogLevel;
@@ -51,16 +50,51 @@ class ConfigurationJavaHealthCheckTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
-    @BeforeEach
-    void beforeEach() throws Exception
-    {
-        Map<String, String> jsonResponse = Map.of("javaVersion", "11.0.2", "xwikiVersion", "14.10.2");
-        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
-    }
-
     @Test
-    void check()
+    void check() throws Exception
     {
+        Map<String, String> jsonResponse = Map.of("javaVersion", "1.8.2", "xwikiVersion", "8.1.0");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "1.8.2", "xwikiVersion", "11.2.9");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "11.2", "xwikiVersion", "11.4.0");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "11.2", "xwikiVersion", "13.9.9");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "11.2", "xwikiVersion", "14.0.0");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "11.2", "xwikiVersion", "14.5.8");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "11.2", "xwikiVersion", "14.10");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "17.2", "xwikiVersion", "14.10.9");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "17.2", "xwikiVersion", "15.8");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "17.2", "xwikiVersion", "16");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
+        assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
+
+        jsonResponse = Map.of("javaVersion", "21.2", "xwikiVersion", "16.8");
+        when(dataProvider.getDataAsJSON()).thenReturn(jsonResponse);
         assertEquals("adminTools.dashboard.healthcheck.java.info", javaHealthCheck.check().getMessage());
     }
 
