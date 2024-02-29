@@ -104,6 +104,6 @@ class TomcatIdentifierTest
     @Test
     void getIdentifier()
     {
-        assertEquals("Tomcat", tomcatIdentifier.getComponentHint());
+        assertEquals("tomcat", tomcatIdentifier.getComponentHint());
     }
 }
