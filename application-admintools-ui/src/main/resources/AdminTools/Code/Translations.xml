@@ -48,6 +48,7 @@ adminTools.extension.title=Admin Tools
 ## Dashboard sections
 adminTools.dashboard.toc.title=Table of contents
 adminTools.dashboard.serverNotFound.error=Server path was not found or is currently not supported by this version of Admin Tools Pro. Please manually add the path to the server on the Admin Tools configuration page. Currently supported servers: {0}
+adminTools.dashboard.missingRights=Access denied due to missing admin rights!
 
 ## Config
 adminTools.dashboard.backend.description=Get info about your backend.

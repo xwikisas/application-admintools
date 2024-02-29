@@ -47,7 +47,12 @@
 {{velocity}}
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  {{dashboard/}}
+  #if ($hasAdmin)
+    {{dashboard/}}
+  #else
+    {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
+      $xwiki.currentContentSyntaxId){{/error}}
+  #end
 #else
   {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
 #end
