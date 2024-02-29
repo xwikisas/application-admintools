@@ -36,18 +36,23 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{box cssClass="admin-tools-header-section"}}
-{{container layoutStyle="columns" justify="yes"}}
-(((
-{{toc scope=page /}}
-)))
-{{/container}}
-{{/box}}
-
-{{velocity}}
+  <content>{{velocity}}
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  {{dashboard/}}
+  #if ($hasAdmin)
+    {{box cssClass="admin-tools-header-section"}}
+      {{container layoutStyle="columns" justify="yes"}}
+        (((
+        {{toc scope=page /}}
+        )))
+      {{/container}}
+    {{/box}}
+
+    {{dashboard/}}
+  #else
+    {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
+      $xwiki.currentContentSyntaxId){{/error}}
+  #end
 #else
   {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
 #end
