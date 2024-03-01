@@ -101,7 +101,7 @@ public class CurrentServer implements Initializable
         for (ServerInfo serverInfo : this.supportedServers.get()) {
             boolean matchingHint = usageDataProvider.getServerMetadata().get(SERVER_NAME_KEY).toLowerCase()
                 .contains(serverInfo.getComponentHint());
-            if (matchingHint && serverInfo.isUsed()) {
+            if (matchingHint && serverInfo.foundServerPath()) {
                 this.currentServerInfo = serverInfo;
                 this.currentServerInfo.updatePossiblePaths();
                 break;
