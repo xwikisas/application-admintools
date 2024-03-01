@@ -147,16 +147,37 @@ class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataSuccess() throws Exception
+    void getByteDataSuccessLinux() throws Exception
     {
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
 
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        readLines(44);
-
+        List<String> logLines = readLines(44, testFile);
+        Collections.reverse(logLines);
+        System.setProperty("os.name", "Linux");
         assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataSuccessWindows() throws Exception
+    {
+        when(serverInfo.getLogsHint()).thenReturn("server");
+        assertTrue(testFile.exists());
+        assertTrue(testFile.isFile());
+        assertTrue(testFile2.exists());
+        assertTrue(testFile2.isFile());
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        List<String> logLines = readLines(444, testFile2);
+        logLines.addAll(readLines(444, testFile));
+        Collections.reverse(logLines);
+        System.setProperty("os.name", "Windows");
+        Map<String, String[]> params2 = Map.of("noLines", new String[] { "444" });
+        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params2));
+        System.clearProperty("os.name");
     }
 
     @Test
@@ -167,11 +188,12 @@ class LogsDataResourceTest
 
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        IOException exception = assertThrows(IOException.class, () -> {
-            logsDataResource.getByteData(null);
-        });
+        System.setProperty("os.name", "Linux");
+
+        IOException exception = assertThrows(IOException.class, () -> logsDataResource.getByteData(null));
         assertEquals(String.format("Error while accessing log files at [%s].", testFile.getAbsolutePath()),
             exception.getMessage());
+        System.clearProperty("os.name");
     }
 
     @Test
@@ -202,9 +224,11 @@ class LogsDataResourceTest
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
 
-        readLines(1000);
-
+        List<String> logLines = readLines(400, testFile);
+        Collections.reverse(logLines);
+        System.setProperty("os.name", "Linux");
         assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(null));
+        System.clearProperty("os.name");
     }
 
     @Test
@@ -213,9 +237,11 @@ class LogsDataResourceTest
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         Map<String, String[]> params = Map.of("noLines", new String[] { null });
-        readLines(1000);
-
+        List<String> logLines = readLines(400, testFile);
+        Collections.reverse(logLines);
+        System.setProperty("os.name", "Linux");
         assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
     }
 
     @Test
@@ -238,7 +264,6 @@ class LogsDataResourceTest
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "06-10-2023" });
         filters.put("to", new String[] { "07-10-2023" });
-        readLines(400);
         logsDataResource.addZipEntry(zipOutputStream, filters);
         byte[] buff = new byte[2048];
         int bytesRead;
@@ -292,11 +317,11 @@ class LogsDataResourceTest
         verify(zipOutputStream, never()).closeEntry();
     }
 
-    private void readLines(int lines) throws IOException
+    private List<String> readLines(int lines, File testFile) throws IOException
     {
         RandomAccessFile randomAccessFile = new RandomAccessFile(testFile, "r");
         long fileLength = randomAccessFile.length();
-        logLines = new ArrayList<>();
+        List<String> logLines = new ArrayList<>();
         long startPosition = fileLength - 1;
         for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
             randomAccessFile.seek(startPosition - 1);
@@ -306,6 +331,6 @@ class LogsDataResourceTest
                 i++;
             }
         }
-        Collections.reverse(logLines);
+        return logLines;
     }
 }

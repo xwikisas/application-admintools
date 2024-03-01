@@ -95,6 +95,12 @@ public class TomcatInfo extends AbstractServerInfo
     }
 
     @Override
+    public String getLogsHint()
+    {
+        return "catalina";
+    }
+
+    @Override
     public Pattern getLogsPattern()
     {
         return Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
