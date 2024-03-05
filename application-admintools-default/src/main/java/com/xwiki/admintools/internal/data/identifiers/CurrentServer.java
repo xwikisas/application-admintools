@@ -31,6 +31,7 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerInfo;
+import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
@@ -41,8 +42,13 @@ import com.xwiki.admintools.ServerInfo;
 @Singleton
 public class CurrentServer implements Initializable
 {
+    private static final String SERVER_NAME_KEY = "name";
+
     @Inject
     private Provider<List<ServerInfo>> supportedServers;
+
+    @Inject
+    private UsageDataProvider usageDataProvider;
 
     private ServerInfo currentServerInfo;
 
@@ -93,7 +99,9 @@ public class CurrentServer implements Initializable
     {
         this.currentServerInfo = null;
         for (ServerInfo serverInfo : this.supportedServers.get()) {
-            if (serverInfo.isUsed()) {
+            boolean matchingHint = usageDataProvider.getServerMetadata().get(SERVER_NAME_KEY).toLowerCase()
+                .contains(serverInfo.getComponentHint());
+            if (matchingHint && serverInfo.foundServerPath()) {
                 this.currentServerInfo = serverInfo;
                 this.currentServerInfo.updatePossiblePaths();
                 break;
