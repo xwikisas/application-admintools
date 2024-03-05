@@ -42,10 +42,10 @@ public class TomcatInfo extends AbstractServerInfo
     /**
      * Component identifier.
      */
-    public static final String HINT = "Tomcat";
+    public static final String HINT = "tomcat";
 
     @Override
-    public boolean isUsed()
+    public boolean foundServerPath()
     {
         this.serverPath = null;
         String providedConfigServerPath = this.adminToolsConfig.getServerPath();
