@@ -253,7 +253,7 @@
 
 {{velocity}}
 ={{html clean='false'}}$services.icon.renderHTML('bug'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))=
-  {{html clean='false'}}
+  {{html clean='false' wiki='true'}}
     #healthCheckUI()
   {{/html}}
 {{/velocity}}</content>

@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.wikiUsage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,6 +32,7 @@ import javax.script.ScriptContext;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
@@ -43,6 +45,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.licensing.Licensor;
 
 /**
  * Access info about the size of the existing wikis.
@@ -54,6 +57,11 @@ import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 public class InstanceUsage
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
+
+    private static final String ERROR_TEMPLATE = "licenseError.vm";
+
+    @Inject
+    protected Provider<XWikiContext> xcontextProvider;
 
     @Inject
     private UsageDataProvider usageDataProvider;
@@ -82,6 +90,9 @@ public class InstanceUsage
     @Inject
     private ScriptContextManager scriptContextManager;
 
+    @Inject
+    private Provider<Licensor> licensorProvider;
+
     /**
      * Get the data in a format given by the associated template.
      *
@@ -90,6 +101,14 @@ public class InstanceUsage
     public String renderTemplate()
     {
         try {
+            Licensor licensor = licensorProvider.get();
+            String wiki = xcontextProvider.get().getWikiId();
+            DocumentReference mainRef =
+                new DocumentReference(wiki, Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+            if (licensor == null || !licensor.hasLicensure(mainRef)) {
+                return this.templateManager.render(ERROR_TEMPLATE);
+            }
+
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             boolean found = currentServer.getCurrentServer() != null;
             scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);

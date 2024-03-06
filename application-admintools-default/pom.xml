@@ -80,5 +80,11 @@
       <artifactId>xwiki-commons-cache-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.xwiki.licensing</groupId>
+      <artifactId>application-licensing-licensor-api</artifactId>
+      <version>${licensing.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 </project>

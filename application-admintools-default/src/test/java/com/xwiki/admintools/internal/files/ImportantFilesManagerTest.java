@@ -20,11 +20,13 @@
 package com.xwiki.admintools.internal.files;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -40,10 +43,13 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.resources.LogsDataResource;
+import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,9 +103,29 @@ class ImportantFilesManagerTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
+    @MockComponent
+    private Provider<XWikiContext> xcontextProvider;
+
+    @Mock
+    private XWikiContext xWikiContext;
+
+    @MockComponent
+    private Provider<Licensor> licensorProvider;
+
+    @Mock
+    private Licensor licensor;
+
+    private DocumentReference mainRef =
+        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+
     @BeforeEach
     void setUp() throws Exception
     {
+        when(xcontextProvider.get()).thenReturn(xWikiContext);
+        when(xWikiContext.getWikiId()).thenReturn("wiki_id");
+        when(licensorProvider.get()).thenReturn(licensor);
+        when(licensor.hasLicensure(mainRef)).thenReturn(true);
+
         when(archiverDataResource.getByteData(params)).thenReturn(new byte[] { 2 });
         when(contextComponentManager.getInstance(DataResource.class, "data_resource_identifier")).thenReturn(
             archiverDataResource);
@@ -201,5 +227,13 @@ class ImportantFilesManagerTest
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
         assertEquals("Failed to render [filesSectionTemplate.vm] template. Root cause is: [Exception: Render failed.]",
             logCapture.getMessage(0));
+    }
+
+    @Test
+    void getRenderedDataInvalidLicense() throws Exception
+    {
+        when(licensor.hasLicensure(mainRef)).thenReturn(false);
+        when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
+        assertEquals("invalid license", importantFilesManager.renderTemplate());
     }
 }
