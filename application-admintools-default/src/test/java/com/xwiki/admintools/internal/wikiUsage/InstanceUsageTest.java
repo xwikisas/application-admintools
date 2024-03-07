@@ -19,14 +19,17 @@
  */
 package com.xwiki.admintools.internal.wikiUsage;
 
+import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Provider;
 import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -41,10 +44,12 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -98,9 +103,29 @@ class InstanceUsageTest
     @Mock
     private Query docQuery;
 
+    @MockComponent
+    private Provider<XWikiContext> xcontextProvider;
+
+    @Mock
+    private XWikiContext xWikiContext;
+
+    @MockComponent
+    private Provider<Licensor> licensorProvider;
+
+    @Mock
+    private Licensor licensor;
+
+    private DocumentReference mainRef =
+        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+
     @BeforeEach
     void setUp()
     {
+        when(xcontextProvider.get()).thenReturn(xWikiContext);
+        when(xWikiContext.getWikiId()).thenReturn("wiki_id");
+        when(licensorProvider.get()).thenReturn(licensor);
+        when(licensor.hasLicensure(mainRef)).thenReturn(true);
+
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
 
@@ -169,10 +194,8 @@ class InstanceUsageTest
     void getPagesOverGivenNumberOfComments() throws QueryException, XWikiException
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
-        when(queryManager.createQuery(
-            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
-                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(
-            docQuery);
+        when(queryManager.createQuery("select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+            + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(docQuery);
         when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
         when(docQuery.bindValue("maxComments", 2L)).thenReturn(docQuery);
         when(docQuery.execute()).thenReturn(List.of("Page.one"));
@@ -183,13 +206,20 @@ class InstanceUsageTest
     void getPagesOverGivenNumberOfCommentsError() throws QueryException
     {
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
-        when(queryManager.createQuery(
-            "select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
-                + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
+        when(queryManager.createQuery("select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
+            + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
             new QueryException("ERROR IN QUERY", docQuery, null));
         Exception exception = assertThrows(QueryException.class, () -> {
             this.instanceUsage.getDocumentsOverGivenNumberOfComments(5);
         });
         assertEquals("ERROR IN QUERY. Query statement = [null]", exception.getMessage());
+    }
+
+    @Test
+    void getRenderedDataInvalidLicense() throws Exception
+    {
+        when(licensor.hasLicensure(mainRef)).thenReturn(false);
+        when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
+        assertEquals("invalid license", instanceUsage.renderTemplate());
     }
 }

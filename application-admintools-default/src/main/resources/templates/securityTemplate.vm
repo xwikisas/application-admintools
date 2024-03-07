@@ -17,39 +17,31 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
-#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  #if($security['serverFound'] == 'true')
-    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
-    <hr/>
-    <ul>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
-        $security['activeEncoding']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
-        $security['configurationEncoding']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
-      </li>
-      <li>
-        $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
-        $security['fileEncoding']
-      </li>
-    </ul>
-  #else
-    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
-      [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
-    #warning($warningMessage)
-  #end
+#if($security['serverFound'] == 'true')
+  <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
+  <hr/>
+  <ul>
+    <li>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
+      $security['activeEncoding']
+    </li>
+    <li>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
+      $security['configurationEncoding']
+    </li>
+    <li>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
+    </li>
+    <li>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
+    </li>
+    <li>
+      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
+      $security['fileEncoding']
+    </li>
+  </ul>
 #else
-  #includeMacros('Licenses.Code.VelocityMacros')
-  {{error}}
-    #getMissingLicenseMessage('adminTools.extension.name')
-  {{/error}}
+  #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+    [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
+  #warning($warningMessage)
 #end

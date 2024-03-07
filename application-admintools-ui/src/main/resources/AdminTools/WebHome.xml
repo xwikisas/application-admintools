@@ -253,7 +253,7 @@
 
 {{velocity}}
 =$services.icon.render('bug') {{translation key='adminTools.dashboard.healthcheck.title'/}}=
-  {{html clean='false'}}
+  {{html clean='false' wiki='true'}}
     #healthCheckUI()
   {{/html}}
 {{/velocity}}</content>

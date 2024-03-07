@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.xwiki.activeinstalls2.internal.data.DatabasePing;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -45,6 +46,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -97,6 +99,15 @@ class ConfigurationDataProviderTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
+    @MockComponent
+    private Provider<Licensor> licensorProvider;
+
+    @Mock
+    private Licensor licensor;
+
+    private DocumentReference mainRef =
+        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+
     @BeforeAll
     static void setUp()
     {
@@ -134,6 +145,10 @@ class ConfigurationDataProviderTest
     void beforeEach()
     {
         when(xcontextProvider.get()).thenReturn(xWikiContext);
+        when(xWikiContext.getWikiId()).thenReturn("wiki_id");
+        when(licensorProvider.get()).thenReturn(licensor);
+        when(licensor.hasLicensure(mainRef)).thenReturn(true);
+
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(wiki.getVersion()).thenReturn("xwiki_version");
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
@@ -254,5 +269,13 @@ class ConfigurationDataProviderTest
         assertEquals("Failed to render custom template. Root cause is: [Exception: Render failed.]",
             logCapture.getMessage(1));
         verify(scriptContext).setAttribute(ConfigurationDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+    }
+
+    @Test
+    void getRenderedDataInvalidLicense() throws Exception
+    {
+        when(licensor.hasLicensure(mainRef)).thenReturn(false);
+        when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
+        assertEquals("invalid license", configurationDataProvider.getRenderedData());
     }
 }
