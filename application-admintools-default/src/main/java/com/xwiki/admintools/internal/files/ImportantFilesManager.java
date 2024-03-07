@@ -21,12 +21,14 @@ package com.xwiki.admintools.internal.files;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
@@ -35,11 +37,14 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.licensing.Licensor;
 
 /**
  * Endpoints used for accessing important server files.
@@ -53,6 +58,11 @@ public class ImportantFilesManager
     private static final String TEMPLATE_NAME = "filesSectionTemplate.vm";
 
     private static final String REQUESTED_FILES_KEY = "files";
+
+    private static final String ERROR_TEMPLATE = "licenseError.vm";
+
+    @Inject
+    protected Provider<XWikiContext> xcontextProvider;
 
     @Inject
     @Named("context")
@@ -69,6 +79,9 @@ public class ImportantFilesManager
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private Provider<Licensor> licensorProvider;
 
     /**
      * Access system file content.
@@ -132,6 +145,14 @@ public class ImportantFilesManager
     public String renderTemplate()
     {
         try {
+            Licensor licensor = licensorProvider.get();
+            String wiki = xcontextProvider.get().getWikiId();
+            DocumentReference mainRef =
+                new DocumentReference(wiki, Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+            if (licensor == null || !licensor.hasLicensure(mainRef)) {
+                return this.templateManager.render(ERROR_TEMPLATE);
+            }
+
             boolean found = currentServer.getCurrentServer() != null;
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute("found", found, ScriptContext.ENGINE_SCOPE);

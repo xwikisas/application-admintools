@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +29,12 @@ import javax.script.ScriptContext;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -42,6 +45,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -89,6 +93,15 @@ class SecurityDataProviderTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
+    @MockComponent
+    private Provider<Licensor> licensorProvider;
+
+    @Mock
+    private Licensor licensor;
+
+    private DocumentReference mainRef =
+        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+
     @BeforeAll
     static void beforeAll()
     {
@@ -110,6 +123,20 @@ class SecurityDataProviderTest
         System.clearProperty("file.encoding");
     }
 
+    @BeforeEach
+    void beforeEach()
+    {
+        when(xcontextProvider.get()).thenReturn(xWikiContext);
+        when(xWikiContext.getWiki()).thenReturn(wiki);
+        when(wiki.getEncoding()).thenReturn("wiki_encoding");
+        when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
+        when(xWikiContext.getWikiId()).thenReturn("wiki_id");
+        when(licensorProvider.get()).thenReturn(licensor);
+        when(licensor.hasLicensure(mainRef)).thenReturn(true);
+
+        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
+    }
+
     @Test
     void getIdentifier()
     {
@@ -127,25 +154,13 @@ class SecurityDataProviderTest
     @Test
     void getDataAsJSONSuccess() throws Exception
     {
-        // Mock xwiki security info.
-        when(xcontextProvider.get()).thenReturn(xWikiContext);
-        when(xWikiContext.getWiki()).thenReturn(wiki);
-        when(wiki.getEncoding()).thenReturn("wiki_encoding");
-        when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
-
         assertEquals(defaultJson, securityDataProvider.getDataAsJSON());
     }
 
     @Test
     void getRenderedDataWithSuccessfulExecution() throws Exception
     {
-        when(xcontextProvider.get()).thenReturn(xWikiContext);
-        when(xWikiContext.getWiki()).thenReturn(wiki);
-        when(wiki.getEncoding()).thenReturn("wiki_encoding");
-        when(configurationSource.getProperty("xwiki.encoding", String.class)).thenReturn("configuration_encoding");
-
         // Mock the renderer.
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
         Map<String, String> json = new HashMap<>(defaultJson);
@@ -166,7 +181,6 @@ class SecurityDataProviderTest
             new NullPointerException("ConfigurationSourceNotFound"));
 
         // Mock the renderer.
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenReturn("success");
 
         Map<String, String> json = new HashMap<>();
@@ -189,7 +203,6 @@ class SecurityDataProviderTest
             new NullPointerException("ConfigurationSourceNotFound"));
 
         // Mock the renderer.
-        when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(templateManager.render(templatePath)).thenThrow(new Exception("Render failed."));
 
         Map<String, String> json = new HashMap<>();
@@ -202,5 +215,13 @@ class SecurityDataProviderTest
         assertEquals("Failed to render custom template. Root cause is: [Exception: Render failed.]",
             logCapture.getMessage(1));
         verify(scriptContext).setAttribute(SecurityDataProvider.HINT, json, ScriptContext.ENGINE_SCOPE);
+    }
+
+    @Test
+    void getRenderedDataInvalidLicense() throws Exception
+    {
+        when(licensor.hasLicensure(mainRef)).thenReturn(false);
+        when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
+        assertEquals("invalid license", securityDataProvider.getRenderedData());
     }
 }
