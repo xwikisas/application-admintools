@@ -19,14 +19,14 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.extension.version.Version;
+import org.xwiki.extension.version.internal.DefaultVersion;
 
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.health.HealthCheckResult;
@@ -112,49 +112,10 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
 
     private boolean isInInterval(String checkedValue, String lowerBound, String upperBound)
     {
-        List<String> checkedValueParts = new ArrayList<>(List.of(checkedValue.split(REGEX)));
-        List<String> lowerBoundParts = List.of(lowerBound.split(REGEX));
-        List<String> upperBoundParts = List.of(upperBound.split(REGEX));
-        for (int i = checkedValueParts.size(); i < lowerBoundParts.size(); i++) {
-            checkedValueParts.add("0");
-        }
-        return checkLowerBoundaries(checkedValueParts, lowerBoundParts) && checkUpperBoundaries(checkedValueParts,
-            upperBoundParts);
-    }
+        Version checkedVersion = new DefaultVersion(checkedValue);
+        Version lowerBoundVersion = new DefaultVersion(lowerBound);
+        Version upperBoundVersion = new DefaultVersion(upperBound);
 
-    private boolean checkLowerBoundaries(List<String> checkedValueParts, List<String> lowerBoundParts)
-    {
-        int i = 0;
-        int valueNumber;
-        int lowBoundValNumber;
-        while (i < checkedValueParts.size()) {
-            valueNumber = Integer.parseInt(checkedValueParts.get(i));
-            lowBoundValNumber = Integer.parseInt(lowerBoundParts.get(i));
-            if (valueNumber > lowBoundValNumber) {
-                return true;
-            } else if (valueNumber < lowBoundValNumber) {
-                return false;
-            }
-            i++;
-        }
-        return true;
-    }
-
-    private boolean checkUpperBoundaries(List<String> checkedValueParts, List<String> upperBoundParts)
-    {
-        int i = 0;
-        int valueNumber;
-        int highBoundValNumber;
-        while (i < checkedValueParts.size()) {
-            valueNumber = Integer.parseInt(checkedValueParts.get(i));
-            highBoundValNumber = Integer.parseInt(upperBoundParts.get(i));
-            if (valueNumber < highBoundValNumber) {
-                return true;
-            } else if (valueNumber > highBoundValNumber) {
-                return false;
-            }
-            i++;
-        }
-        return false;
+        return checkedVersion.compareTo(lowerBoundVersion) >= 0 && checkedVersion.compareTo(upperBoundVersion) < 0;
     }
 }
