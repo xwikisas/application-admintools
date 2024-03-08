@@ -90,7 +90,10 @@ public class LogsDataResource implements DataResource
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    private int writtenLines;
+    /**
+     * Number of log lines that have been read.
+     */
+    private int readLogLines;
 
     @Override
     public String getIdentifier()
@@ -106,16 +109,16 @@ public class LogsDataResource implements DataResource
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
-            writtenLines = 0;
-            int maxLines = getLines(params);
+            readLogLines = 0;
+            int requestedLines = getLines(params);
             String osName = System.getProperty("os.name").toLowerCase();
             if (osName.contains("linux")) {
                 File file = new File(usedServer.getLastLogFilePath());
-                List<String> logData = readFileData(maxLines, file);
+                List<String> logData = readFileLines(requestedLines, file);
                 Collections.reverse(logData);
                 return String.join(LINE_BREAK, logData).getBytes();
             } else if (osName.contains("windows")) {
-                return getWindowsByteData(maxLines, usedServer);
+                return getWindowsByteData(requestedLines, usedServer);
             } else {
                 throw new RuntimeException("OS not supported!");
             }
@@ -162,28 +165,38 @@ public class LogsDataResource implements DataResource
         }
     }
 
-    private byte[] getWindowsByteData(int maxLines, ServerInfo usedServer) throws IOException
+    /**
+     * Retrieve the last lines of logs by going in descending order through each log file, as Windows OS lacks a merged
+     * file of the logs. Reading starts from the latest file last line, until the requested number of log lines is
+     * reached.
+     *
+     * @param requestedLines represents the number of requested lines.
+     * @param usedServer represents the currently used server.
+     * @return the last lines of log as a {@link Byte} array.
+     * @throws IOException if there are any errors while handling the log files.
+     */
+    private byte[] getWindowsByteData(int requestedLines, ServerInfo usedServer) throws IOException
     {
         String directoryPath = usedServer.getLogsFolderPath();
 
-        // Get list of files in the directory
+        // Get list of files in the directory.
         File folder = new File(directoryPath);
         File[] files = folder.listFiles();
 
         if (files == null) {
             files = new File[0];
         }
-        // Filter files starting with the server filter
+        // Filter files starting with the server filter.
         files = Arrays.stream(files).filter(file -> file.getName().startsWith(usedServer.getLogsHint()))
             .toArray(File[]::new);
 
-        // Sort files in descending order
+        // Sort files in descending order.
         Arrays.sort(files, Comparator.comparing(File::getName).reversed());
-        // Print the sorted files
-        List<String> combinedLogs = new ArrayList<>();
+
+        List<String> combinedLogs = new ArrayList<>(requestedLines);
         for (File file : files) {
-            combinedLogs.addAll(readFileData(maxLines, file));
-            if (writtenLines >= maxLines) {
+            combinedLogs.addAll(readFileLines(requestedLines, file));
+            if (readLogLines >= requestedLines) {
                 break;
             }
         }
@@ -191,7 +204,7 @@ public class LogsDataResource implements DataResource
         return String.join(LINE_BREAK, combinedLogs).getBytes();
     }
 
-    private List<String> readFileData(int maxLines, File file) throws IOException
+    private List<String> readFileLines(int requestedLines, File file) throws IOException
     {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
 
@@ -201,14 +214,14 @@ public class LogsDataResource implements DataResource
             // Calculate the approximate position to start reading from based on line length.
             long startPosition = fileLength - 1;
 
-            for (; writtenLines < maxLines && startPosition > 0 && writtenLines < 50000; startPosition--) {
+            for (; readLogLines < requestedLines && startPosition > 0 && readLogLines < 50000; startPosition--) {
                 randomAccessFile.seek(startPosition - 1);
 
                 int currentByte = randomAccessFile.read();
                 if (currentByte == '\n' || currentByte == '\r') {
                     // Found a newline character, add the line to the list.
                     logLines.add(randomAccessFile.readLine());
-                    writtenLines++;
+                    readLogLines++;
                 }
             }
             return logLines;
