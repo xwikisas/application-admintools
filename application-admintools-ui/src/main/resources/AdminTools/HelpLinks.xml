@@ -70,12 +70,6 @@
 * [[{{translation key="adminTools.helpPage.database.instructions" /}}
 &gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/#HSpecificdatabasesinstructions
 ||target="_blank"]]
-* [[{{translation key="adminTools.helpPage.database.mysql.install" /}}
-&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HInstallationSteps
-||target="_blank"]]
-* [[{{translation key="adminTools.helpPage.database.mysql.troubleshoot" /}}
-&gt;&gt;https://www.xwiki.org/xwiki/bin/view/Documentation/AdminGuide/Installation/InstallationWAR/InstallationMySQL/#HTroubleshooting
-||target="_blank"]]
 
 = {{translation key="adminTools.helpPage.other.title" /}} =
 == {{translation key="adminTools.helpPage.java.title" /}} ==
