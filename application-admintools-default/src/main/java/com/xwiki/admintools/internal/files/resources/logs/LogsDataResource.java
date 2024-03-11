@@ -114,7 +114,7 @@ public class LogsDataResource implements DataResource
             }
             String osName = System.getProperty("os.name").toLowerCase();
             if (osName.contains("linux")) {
-                return getWindowsByteData(usedServer, linesCount);
+                return getLinuxByteData(usedServer, linesCount);
             } else if (osName.contains("windows")) {
                 return getWindowsByteData(usedServer, linesCount);
             } else {

@@ -75,11 +75,13 @@ public class LogFiles
 
     /**
      * Get the list of files from a specific directory and with a specific starting hint.
+     *
      * @param directoryPath path to the directory.
      * @param specificLogsHint specific hint for a file name to start with.
      * @return a {@link File} array with items in descending order.
      */
-    public File[] getLogFiles(String directoryPath, String specificLogsHint) {
+    public File[] getLogFiles(String directoryPath, String specificLogsHint)
+    {
         File folder = new File(directoryPath);
         File[] files = folder.listFiles();
 
@@ -87,8 +89,7 @@ public class LogFiles
             files = new File[0];
         }
         // Filter files starting with the server filter.
-        files = Arrays.stream(files).filter(file -> file.getName().startsWith(specificLogsHint))
-            .toArray(File[]::new);
+        files = Arrays.stream(files).filter(file -> file.getName().startsWith(specificLogsHint)).toArray(File[]::new);
 
         // Sort files in descending order.
         Arrays.sort(files, Comparator.comparing(File::getName).reversed());
