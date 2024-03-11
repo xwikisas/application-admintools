@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +88,7 @@ public class LogsDataResource implements DataResource
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    private LogFile logFile;
+    private LogFiles logFiles;
 
     /**
      * Number of log lines that have been read.
@@ -116,7 +114,7 @@ public class LogsDataResource implements DataResource
             }
             String osName = System.getProperty("os.name").toLowerCase();
             if (osName.contains("linux")) {
-                return getLinuxByteData(usedServer, linesCount);
+                return getWindowsByteData(usedServer, linesCount);
             } else if (osName.contains("windows")) {
                 return getWindowsByteData(usedServer, linesCount);
             } else {
@@ -168,7 +166,7 @@ public class LogsDataResource implements DataResource
     private byte[] getLinuxByteData(ServerInfo usedServer, int linesCount) throws IOException
     {
         File file = new File(usedServer.getLastLogFilePath());
-        List<String> logData = logFile.getLines(file, linesCount);
+        List<String> logData = logFiles.getLines(file, linesCount);
         Collections.reverse(logData);
         return String.join(LINE_BREAK, logData).getBytes();
     }
@@ -186,25 +184,11 @@ public class LogsDataResource implements DataResource
     private byte[] getWindowsByteData(ServerInfo usedServer, int requestedLines) throws IOException
     {
         int linesCount = requestedLines;
-        String directoryPath = usedServer.getLogsFolderPath();
-
-        // Get list of files in the directory.
-        File folder = new File(directoryPath);
-        File[] files = folder.listFiles();
-
-        if (files == null) {
-            files = new File[0];
-        }
-        // Filter files starting with the server filter.
-        files = Arrays.stream(files).filter(file -> file.getName().startsWith(usedServer.getLogsHint()))
-            .toArray(File[]::new);
-
-        // Sort files in descending order.
-        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+        File[] files = logFiles.getLogFiles(usedServer.getLogsFolderPath(), usedServer.getLogsHint());
 
         List<String> combinedLogs = new ArrayList<>(linesCount);
         for (File file : files) {
-            List<String> retrievedLines = logFile.getLines(file, linesCount);
+            List<String> retrievedLines = logFiles.getLines(file, linesCount);
             linesCount -= retrievedLines.size();
             combinedLogs.addAll(retrievedLines);
             if (linesCount <= 0) {

@@ -96,7 +96,7 @@ class LogsDataResourceTest
     private Provider<XWikiContext> contextProvider;
 
     @MockComponent
-    private LogFile logFile;
+    private LogFiles logFiles;
 
     @Mock
     private XWikiContext wikiContext;
@@ -161,7 +161,7 @@ class LogsDataResourceTest
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
 
-        when(logFile.getLines(testFile, 44)).thenReturn(logLines);
+        when(logFiles.getLines(testFile, 44)).thenReturn(logLines);
         List<String> checkLines = new ArrayList<>(logLines);
         Collections.reverse(checkLines);
 
@@ -178,9 +178,12 @@ class LogsDataResourceTest
         assertTrue(testFile.isFile());
         assertTrue(testFile2.exists());
         assertTrue(testFile2.isFile());
-
+        File[] files = new File[2];
+        files[0] = testFile;
+        files[1] = testFile2;
         logLines.addAll(List.of("log line 1, file 2", "log line 2, file 2", "log line 3, file 2"));
-        when(logFile.getLines(testFile, 44)).thenReturn(logLines);
+        when(logFiles.getLines(testFile, 44)).thenReturn(logLines);
+        when(logFiles.getLogFiles(serverInfo.getLogsFolderPath(), serverInfo.getLogsHint())).thenReturn(files);
         List<String> checkLines = new ArrayList<>(logLines);
         Collections.reverse(checkLines);
         System.setProperty("os.name", "Windows");
@@ -204,7 +207,7 @@ class LogsDataResourceTest
     void getByteDataNullInput() throws IOException
     {
 
-        when(logFile.getLines(testFile, 1000)).thenReturn(logLines);
+        when(logFiles.getLines(testFile, 1000)).thenReturn(logLines);
         List<String> checkLines = new ArrayList<>(logLines);
         Collections.reverse(checkLines);
         System.setProperty("os.name", "Linux");
@@ -217,7 +220,7 @@ class LogsDataResourceTest
     {
         Map<String, String[]> params = Map.of("noLines", new String[] { null });
 
-        when(logFile.getLines(testFile, 1000)).thenReturn(logLines);
+        when(logFiles.getLines(testFile, 1000)).thenReturn(logLines);
         List<String> checkLines = new ArrayList<>(logLines);
         Collections.reverse(checkLines);
         byte[] testBytes = String.join("\n", checkLines).getBytes();
@@ -233,7 +236,7 @@ class LogsDataResourceTest
         assertFalse(testInvalidFile.exists());
 
         when(serverInfo.getLastLogFilePath()).thenReturn(testInvalidFile.getAbsolutePath());
-        when(logFile.getLines(new File(testInvalidFile.getAbsolutePath()), 1000)).thenThrow(new IOException(""));
+        when(logFiles.getLines(new File(testInvalidFile.getAbsolutePath()), 1000)).thenThrow(new IOException(""));
 
         System.setProperty("os.name", "Linux");
         IOException exception = assertThrows(IOException.class, () -> logsDataResource.getByteData(null));

@@ -25,10 +25,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.test.annotation.BeforeComponent;
 import org.xwiki.test.junit5.XWikiTempDir;
@@ -44,18 +42,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link LogFile}
+ * Unit test for {@link LogFiles}
  *
  * @version $Id$
  */
 @ComponentTest
-public class LogFileTest
+public class LogFilesTest
 {
     @InjectMockComponents
-    private LogFile logFile;
+    private LogFiles logFiles;
 
     @MockComponent
     private CurrentServer currentServer;
@@ -93,7 +90,7 @@ public class LogFileTest
         assertTrue(testFile.isFile());
 
         List<String> logLines = readLines(44, testFile);
-        assertArrayEquals(logLines.toArray(), logFile.getLines(testFile, 44).toArray());
+        assertArrayEquals(logLines.toArray(), logFiles.getLines(testFile, 44).toArray());
     }
 
     @Test
@@ -101,7 +98,7 @@ public class LogFileTest
     {
         File invalidFile = new File("");
         IOException exception = assertThrows(IOException.class,
-            () -> logFile.getLines(invalidFile, 1000));
+            () -> logFiles.getLines(invalidFile, 1000));
         assertEquals(" (No such file or directory)", exception.getMessage());
     }
 

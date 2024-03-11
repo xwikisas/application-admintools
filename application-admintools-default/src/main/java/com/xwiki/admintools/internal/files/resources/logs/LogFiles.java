@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.inject.Singleton;
@@ -30,16 +32,16 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 /**
- * Retrieves the required last lines of log from the server.
+ * Executes operations on the log files.
  *
  * @version $Id$
  */
-@Component(roles = LogFile.class)
+@Component(roles = LogFiles.class)
 @Singleton
-public class LogFile
+public class LogFiles
 {
     /**
-     * Get the last lines oof text from a specific file.
+     * Get the last lines of text from a specific file.
      *
      * @param file the {@link File} from which to retrieve the lines.
      * @param requestedLines the number of lines that has been requested.
@@ -69,5 +71,28 @@ public class LogFile
             }
             return logLines;
         }
+    }
+
+    /**
+     * Get the list of files from a specific directory and with a specific starting hint.
+     * @param directoryPath path to the directory.
+     * @param specificLogsHint specific hint for a file name to start with.
+     * @return a {@link File} array with items in descending order.
+     */
+    public File[] getLogFiles(String directoryPath, String specificLogsHint) {
+        File folder = new File(directoryPath);
+        File[] files = folder.listFiles();
+
+        if (files == null) {
+            files = new File[0];
+        }
+        // Filter files starting with the server filter.
+        files = Arrays.stream(files).filter(file -> file.getName().startsWith(specificLogsHint))
+            .toArray(File[]::new);
+
+        // Sort files in descending order.
+        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+
+        return files;
     }
 }
