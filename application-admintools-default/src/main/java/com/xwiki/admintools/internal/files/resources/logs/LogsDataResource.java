@@ -17,21 +17,15 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.files.resources;
+package com.xwiki.admintools.internal.files.resources.logs;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -79,8 +73,6 @@ public class LogsDataResource implements DataResource
 
     private static final String DEFAULT_NO_LINES = "1000";
 
-    private static final String LINE_BREAK = "\n";
-
     @Inject
     private Logger logger;
 
@@ -90,11 +82,12 @@ public class LogsDataResource implements DataResource
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private LastLogsUtil lastLogsUtil;
+
     /**
      * Number of log lines that have been read.
      */
-    private int remainingLines;
-
     @Override
     public String getIdentifier()
     {
@@ -110,22 +103,11 @@ public class LogsDataResource implements DataResource
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
 
-            String osName = System.getProperty("os.name").toLowerCase();
-            remainingLines = getLines(params);
-            if (remainingLines > 50000) {
-                remainingLines = 50000;
+            int requestedLines = getRequestedLines(params);
+            if (requestedLines > 50000) {
+                requestedLines = 50000;
             }
-
-            if (osName.contains("linux")) {
-                File file = new File(usedServer.getLastLogFilePath());
-                List<String> logData = readFileLines(file);
-                Collections.reverse(logData);
-                return String.join(LINE_BREAK, logData).getBytes();
-            } else if (osName.contains("windows")) {
-                return getWindowsByteData(usedServer);
-            } else {
-                throw new RuntimeException("OS not supported!");
-            }
+            return lastLogsUtil.getLastLinesOfLog(usedServer, requestedLines);
         } catch (IOException exception) {
             throw new IOException(String.format("Error while accessing log files at [%s].",
                 currentServer.getCurrentServer().getLastLogFilePath()), exception);
@@ -169,68 +151,6 @@ public class LogsDataResource implements DataResource
         }
     }
 
-    /**
-     * Retrieve the last lines of logs by going in descending order through each log file, as Windows OS lacks a merged
-     * file of the logs. Reading starts from the latest file last line, until the requested number of log lines is
-     * reached.
-     *
-     * @param usedServer represents the currently used server.
-     * @return the last lines of log as a {@link Byte} array.
-     * @throws IOException if there are any errors while handling the log files.
-     */
-    private byte[] getWindowsByteData(ServerInfo usedServer) throws IOException
-    {
-        String directoryPath = usedServer.getLogsFolderPath();
-
-        // Get list of files in the directory.
-        File folder = new File(directoryPath);
-        File[] files = folder.listFiles();
-
-        if (files == null) {
-            files = new File[0];
-        }
-        // Filter files starting with the server filter.
-        files = Arrays.stream(files).filter(file -> file.getName().startsWith(usedServer.getLogsHint()))
-            .toArray(File[]::new);
-
-        // Sort files in descending order.
-        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
-
-        List<String> combinedLogs = new ArrayList<>(remainingLines);
-        for (File file : files) {
-            combinedLogs.addAll(readFileLines(file));
-            if (remainingLines <= 0) {
-                break;
-            }
-        }
-        Collections.reverse(combinedLogs);
-        return String.join(LINE_BREAK, combinedLogs).getBytes();
-    }
-
-    private List<String> readFileLines(File file) throws IOException
-    {
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-
-            long fileLength = randomAccessFile.length();
-            List<String> logLines = new ArrayList<>();
-
-            // Calculate the approximate position to start reading from based on line length.
-            long startPosition = fileLength - 1;
-
-            for (; startPosition > 0 && remainingLines > 0; startPosition--) {
-                randomAccessFile.seek(startPosition - 1);
-
-                int currentByte = randomAccessFile.read();
-                if (currentByte == '\n' || currentByte == '\r') {
-                    // Found a newline character, add the line to the list.
-                    logLines.add(randomAccessFile.readLine());
-                    remainingLines--;
-                }
-            }
-            return logLines;
-        }
-    }
-
     private static Map<String, String> getFilters(Map<String, String[]> params)
     {
         Map<String, String> filters = new HashMap<>();
@@ -241,7 +161,7 @@ public class LogsDataResource implements DataResource
         return filters;
     }
 
-    private int getLines(Map<String, String[]> params)
+    private int getRequestedLines(Map<String, String[]> params)
     {
         String noLines;
         if (params == null) {

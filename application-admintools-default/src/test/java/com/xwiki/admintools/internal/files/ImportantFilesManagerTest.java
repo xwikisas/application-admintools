@@ -43,12 +43,11 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.download.DataResource;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.files.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.resources.logs.LogsDataResource;
 import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
