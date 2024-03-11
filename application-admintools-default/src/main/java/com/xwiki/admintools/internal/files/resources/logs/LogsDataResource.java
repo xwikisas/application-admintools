@@ -179,11 +179,13 @@ public class LogsDataResource implements DataResource
      * reached.
      *
      * @param usedServer represents the currently used server.
+     * @param requestedLines the number of lines that has been requested.
      * @return the last lines of log as a {@link Byte} array.
      * @throws IOException if there are any errors while handling the log files.
      */
-    private byte[] getWindowsByteData(ServerInfo usedServer, int linesCount) throws IOException
+    private byte[] getWindowsByteData(ServerInfo usedServer, int requestedLines) throws IOException
     {
+        int linesCount = requestedLines;
         String directoryPath = usedServer.getLogsFolderPath();
 
         // Get list of files in the directory.

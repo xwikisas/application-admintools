@@ -42,12 +42,13 @@ public class LogFile
      * Get the last lines oof text from a specific file.
      *
      * @param file the {@link File} from which to retrieve the lines.
-     * @param linesCount the number of lines that has been requested.
+     * @param requestedLines the number of lines that has been requested.
      * @return the last lines from the file as a {@link Byte} array.
      * @throws IOException when there are errors while handling the file.
      */
-    public List<String> getLines(File file, int linesCount) throws IOException
+    public List<String> getLines(File file, int requestedLines) throws IOException
     {
+        int linesCount = requestedLines;
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
 
             long fileLength = randomAccessFile.length();
