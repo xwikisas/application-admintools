@@ -93,7 +93,7 @@ public class LogsDataResource implements DataResource
     /**
      * Number of log lines that have been read.
      */
-    private int readLogLines;
+    private int requestedLines;
 
     @Override
     public String getIdentifier()
@@ -109,16 +109,18 @@ public class LogsDataResource implements DataResource
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
-            readLogLines = 0;
-            int requestedLines = getLines(params);
+            requestedLines = getLines(params);
+            if (requestedLines > 50000) {
+                requestedLines = 50000;
+            }
             String osName = System.getProperty("os.name").toLowerCase();
             if (osName.contains("linux")) {
                 File file = new File(usedServer.getLastLogFilePath());
-                List<String> logData = readFileLines(requestedLines, file);
+                List<String> logData = readFileLines(file);
                 Collections.reverse(logData);
                 return String.join(LINE_BREAK, logData).getBytes();
             } else if (osName.contains("windows")) {
-                return getWindowsByteData(requestedLines, usedServer);
+                return getWindowsByteData(usedServer);
             } else {
                 throw new RuntimeException("OS not supported!");
             }
@@ -170,12 +172,11 @@ public class LogsDataResource implements DataResource
      * file of the logs. Reading starts from the latest file last line, until the requested number of log lines is
      * reached.
      *
-     * @param requestedLines represents the number of requested lines.
      * @param usedServer represents the currently used server.
      * @return the last lines of log as a {@link Byte} array.
      * @throws IOException if there are any errors while handling the log files.
      */
-    private byte[] getWindowsByteData(int requestedLines, ServerInfo usedServer) throws IOException
+    private byte[] getWindowsByteData(ServerInfo usedServer) throws IOException
     {
         String directoryPath = usedServer.getLogsFolderPath();
 
@@ -195,8 +196,8 @@ public class LogsDataResource implements DataResource
 
         List<String> combinedLogs = new ArrayList<>(requestedLines);
         for (File file : files) {
-            combinedLogs.addAll(readFileLines(requestedLines, file));
-            if (readLogLines >= requestedLines) {
+            combinedLogs.addAll(readFileLines(file));
+            if (requestedLines <= 0) {
                 break;
             }
         }
@@ -204,7 +205,7 @@ public class LogsDataResource implements DataResource
         return String.join(LINE_BREAK, combinedLogs).getBytes();
     }
 
-    private List<String> readFileLines(int requestedLines, File file) throws IOException
+    private List<String> readFileLines(File file) throws IOException
     {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
 
@@ -214,14 +215,14 @@ public class LogsDataResource implements DataResource
             // Calculate the approximate position to start reading from based on line length.
             long startPosition = fileLength - 1;
 
-            for (; readLogLines < requestedLines && startPosition > 0 && readLogLines < 50000; startPosition--) {
+            for (; startPosition > 0 && requestedLines > 0; startPosition--) {
                 randomAccessFile.seek(startPosition - 1);
 
                 int currentByte = randomAccessFile.read();
                 if (currentByte == '\n' || currentByte == '\r') {
                     // Found a newline character, add the line to the list.
                     logLines.add(randomAccessFile.readLine());
-                    readLogLines++;
+                    requestedLines--;
                 }
             }
             return logLines;
