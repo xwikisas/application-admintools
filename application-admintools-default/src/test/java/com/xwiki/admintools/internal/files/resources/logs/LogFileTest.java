@@ -27,7 +27,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,15 +47,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit test for {@link LastLogsUtil}
+ * Unit test for {@link LogFile}
  *
  * @version $Id$
  */
 @ComponentTest
-public class LastLogsUtilTest
+public class LogFileTest
 {
     @InjectMockComponents
-    private LastLogsUtil lastLogsUtil;
+    private LogFile logFile;
 
     @MockComponent
     private CurrentServer currentServer;
@@ -69,8 +68,6 @@ public class LastLogsUtilTest
 
     private File testFile;
 
-    private File testFile2;
-
     private File logsDir;
 
     @BeforeComponent
@@ -82,68 +79,30 @@ public class LastLogsUtilTest
         testFile = new File(logsDir, "server.2023-10-06.log");
         testFile.createNewFile();
 
-        testFile2 = new File(logsDir, "server.2023-10-09.log");
-        testFile2.createNewFile();
-
         BufferedWriter writer = new BufferedWriter(new FileWriter(testFile.getAbsolutePath()));
-        BufferedWriter writer2 = new BufferedWriter(new FileWriter(testFile2.getAbsolutePath()));
         for (int i = 0; i < 100; i++) {
             writer.append(String.format("log line %d\n", i));
-            writer2.append(String.format("log line 2.%d\n", i));
         }
         writer.close();
-        writer2.close();
     }
-
-    @BeforeEach
-    void beforeEach() {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
-    }
-
 
     @Test
-    void getLastLinesOfLogSuccessLinux() throws Exception
+    void getLinesSuccess() throws Exception
     {
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
 
         List<String> logLines = readLines(44, testFile);
-        Collections.reverse(logLines);
-        System.setProperty("os.name", "Linux");
-        assertArrayEquals(String.join("\n", logLines).getBytes(), lastLogsUtil.getLastLinesOfLog(serverInfo, 44));
-        System.clearProperty("os.name");
+        assertArrayEquals(logLines.toArray(), logFile.getLines(testFile, 44).toArray());
     }
 
     @Test
-    void getLastLinesOfLogSuccessWindows() throws Exception
+    void getLinesFileError() throws Exception
     {
-        when(serverInfo.getLogsHint()).thenReturn("server");
-        assertTrue(testFile.exists());
-        assertTrue(testFile.isFile());
-        assertTrue(testFile2.exists());
-        assertTrue(testFile2.isFile());
-
-        List<String> logLines = readLines(444, testFile2);
-        logLines.addAll(readLines(444, testFile));
-        Collections.reverse(logLines);
-        System.setProperty("os.name", "Windows");
-        assertArrayEquals(String.join("\n", logLines).getBytes(), lastLogsUtil.getLastLinesOfLog(serverInfo, 444));
-        System.clearProperty("os.name");
-    }
-
-    @Test
-    void getByteDataUnsupportedOS() throws IOException
-    {
-        File testFile = new File("server.2023-10-06.log");
-        assertFalse(testFile.exists());
-
-        System.setProperty("os.name", "ChromeOS");
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> lastLogsUtil.getLastLinesOfLog(serverInfo, 1000));
-        assertEquals("OS not supported!", exception.getMessage());
-        System.clearProperty("os.name");
+        File invalidFile = new File("");
+        IOException exception = assertThrows(IOException.class,
+            () -> logFile.getLines(invalidFile, 1000));
+        assertEquals(" (No such file or directory)", exception.getMessage());
     }
 
     private List<String> readLines(int lines, File testFile) throws IOException

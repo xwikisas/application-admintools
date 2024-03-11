@@ -96,7 +96,7 @@ class LogsDataResourceTest
     private Provider<XWikiContext> contextProvider;
 
     @MockComponent
-    private LastLogsUtil lastLogsUtil;
+    private LogFile logFile;
 
     @Mock
     private XWikiContext wikiContext;
@@ -146,6 +146,7 @@ class LogsDataResourceTest
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd-MM-yyyy");
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
     }
 
     @Test
@@ -155,26 +156,59 @@ class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataSuccess() throws Exception
+    void getByteDataSuccessLinux() throws Exception
     {
-        Collections.reverse(logLines);
-        byte[] testBytes = String.join("\n", logLines).getBytes();
-        when(lastLogsUtil.getLastLinesOfLog(serverInfo, 44)).thenReturn(testBytes);
+        assertTrue(testFile.exists());
+        assertTrue(testFile.isFile());
+
+        when(logFile.getLines(testFile, 44)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+
         System.setProperty("os.name", "Linux");
-        assertArrayEquals(testBytes, logsDataResource.getByteData(params));
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(params));
         System.clearProperty("os.name");
     }
 
+    @Test
+    void getByteDataSuccessWindows() throws Exception
+    {
+        when(serverInfo.getLogsHint()).thenReturn("server");
+        assertTrue(testFile.exists());
+        assertTrue(testFile.isFile());
+        assertTrue(testFile2.exists());
+        assertTrue(testFile2.isFile());
 
+        logLines.addAll(List.of("log line 1, file 2", "log line 2, file 2", "log line 3, file 2"));
+        when(logFile.getLines(testFile, 44)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+        System.setProperty("os.name", "Windows");
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataUnsupportedOS() throws IOException
+    {
+        File testFile = new File("server.2023-10-06.log");
+        assertFalse(testFile.exists());
+
+        System.setProperty("os.name", "ChromeOS");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> logsDataResource.getByteData(params));
+        assertEquals("OS not supported!", exception.getMessage());
+        System.clearProperty("os.name");
+    }
 
     @Test
     void getByteDataNullInput() throws IOException
     {
-        Collections.reverse(logLines);
-        byte[] testBytes = String.join("\n", logLines).getBytes();
-        when(lastLogsUtil.getLastLinesOfLog(serverInfo, 1000)).thenReturn(testBytes);
+
+        when(logFile.getLines(testFile, 1000)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
         System.setProperty("os.name", "Linux");
-        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(null));
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(null));
         System.clearProperty("os.name");
     }
 
@@ -182,9 +216,11 @@ class LogsDataResourceTest
     void getByteDataNullNoLines() throws IOException
     {
         Map<String, String[]> params = Map.of("noLines", new String[] { null });
-        Collections.reverse(logLines);
-        byte[] testBytes = String.join("\n", logLines).getBytes();
-        when(lastLogsUtil.getLastLinesOfLog(serverInfo, 1000)).thenReturn(testBytes);
+
+        when(logFile.getLines(testFile, 1000)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+        byte[] testBytes = String.join("\n", checkLines).getBytes();
         System.setProperty("os.name", "Linux");
         assertArrayEquals(testBytes, logsDataResource.getByteData(params));
         System.clearProperty("os.name");
@@ -193,14 +229,15 @@ class LogsDataResourceTest
     @Test
     void getByteDataFileNotFound() throws IOException
     {
-        File testFile = new File("server.2023-10-06.log");
-        assertFalse(testFile.exists());
+        File testInvalidFile = new File("server_invalid.2023-10-07.log");
+        assertFalse(testInvalidFile.exists());
 
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
+        when(serverInfo.getLastLogFilePath()).thenReturn(testInvalidFile.getAbsolutePath());
+        when(logFile.getLines(new File(testInvalidFile.getAbsolutePath()), 1000)).thenThrow(new IOException(""));
+
         System.setProperty("os.name", "Linux");
-        when(lastLogsUtil.getLastLinesOfLog(serverInfo, 1000)).thenThrow(new IOException(""));
         IOException exception = assertThrows(IOException.class, () -> logsDataResource.getByteData(null));
-        assertEquals(String.format("Error while accessing log files at [%s].", testFile.getAbsolutePath()),
+        assertEquals(String.format("Error while accessing log files at [%s].", testInvalidFile.getAbsolutePath()),
             exception.getMessage());
         System.clearProperty("os.name");
     }

@@ -25,7 +25,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -73,6 +78,8 @@ public class LogsDataResource implements DataResource
 
     private static final String DEFAULT_NO_LINES = "1000";
 
+    private static final String LINE_BREAK = "\n";
+
     @Inject
     private Logger logger;
 
@@ -83,7 +90,7 @@ public class LogsDataResource implements DataResource
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    private LastLogsUtil lastLogsUtil;
+    private LogFile logFile;
 
     /**
      * Number of log lines that have been read.
@@ -103,11 +110,18 @@ public class LogsDataResource implements DataResource
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
 
-            int requestedLines = getRequestedLines(params);
-            if (requestedLines > 50000) {
-                requestedLines = 50000;
+            int linesCount = getRequestedLines(params);
+            if (linesCount > 50000) {
+                linesCount = 50000;
             }
-            return lastLogsUtil.getLastLinesOfLog(usedServer, requestedLines);
+            String osName = System.getProperty("os.name").toLowerCase();
+            if (osName.contains("linux")) {
+                return getLinuxByteData(usedServer, linesCount);
+            } else if (osName.contains("windows")) {
+                return getWindowsByteData(usedServer, linesCount);
+            } else {
+                throw new RuntimeException("OS not supported!");
+            }
         } catch (IOException exception) {
             throw new IOException(String.format("Error while accessing log files at [%s].",
                 currentServer.getCurrentServer().getLastLogFilePath()), exception);
@@ -149,6 +163,54 @@ public class LogsDataResource implements DataResource
         } catch (Exception e) {
             logger.warn("Failed to get logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
+    }
+
+    private byte[] getLinuxByteData(ServerInfo usedServer, int linesCount) throws IOException
+    {
+        File file = new File(usedServer.getLastLogFilePath());
+        List<String> logData = logFile.getLines(file, linesCount);
+        Collections.reverse(logData);
+        return String.join(LINE_BREAK, logData).getBytes();
+    }
+
+    /**
+     * Retrieve the last lines of logs by going in descending order through each log file, as Windows OS lacks a merged
+     * file of the logs. Reading starts from the latest file last line, until the requested number of log lines is
+     * reached.
+     *
+     * @param usedServer represents the currently used server.
+     * @return the last lines of log as a {@link Byte} array.
+     * @throws IOException if there are any errors while handling the log files.
+     */
+    private byte[] getWindowsByteData(ServerInfo usedServer, int linesCount) throws IOException
+    {
+        String directoryPath = usedServer.getLogsFolderPath();
+
+        // Get list of files in the directory.
+        File folder = new File(directoryPath);
+        File[] files = folder.listFiles();
+
+        if (files == null) {
+            files = new File[0];
+        }
+        // Filter files starting with the server filter.
+        files = Arrays.stream(files).filter(file -> file.getName().startsWith(usedServer.getLogsHint()))
+            .toArray(File[]::new);
+
+        // Sort files in descending order.
+        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+
+        List<String> combinedLogs = new ArrayList<>(linesCount);
+        for (File file : files) {
+            List<String> retrievedLines = logFile.getLines(file, linesCount);
+            linesCount -= retrievedLines.size();
+            combinedLogs.addAll(retrievedLines);
+            if (linesCount <= 0) {
+                break;
+            }
+        }
+        Collections.reverse(combinedLogs);
+        return String.join(LINE_BREAK, combinedLogs).getBytes();
     }
 
     private static Map<String, String> getFilters(Map<String, String[]> params)
