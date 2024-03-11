@@ -93,7 +93,7 @@ public class LogsDataResource implements DataResource
     /**
      * Number of log lines that have been read.
      */
-    private int requestedLines;
+    private int remainingLines;
 
     @Override
     public String getIdentifier()
@@ -109,11 +109,13 @@ public class LogsDataResource implements DataResource
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
-            requestedLines = getLines(params);
-            if (requestedLines > 50000) {
-                requestedLines = 50000;
-            }
+
             String osName = System.getProperty("os.name").toLowerCase();
+            remainingLines = getLines(params);
+            if (remainingLines > 50000) {
+                remainingLines = 50000;
+            }
+
             if (osName.contains("linux")) {
                 File file = new File(usedServer.getLastLogFilePath());
                 List<String> logData = readFileLines(file);
@@ -194,10 +196,10 @@ public class LogsDataResource implements DataResource
         // Sort files in descending order.
         Arrays.sort(files, Comparator.comparing(File::getName).reversed());
 
-        List<String> combinedLogs = new ArrayList<>(requestedLines);
+        List<String> combinedLogs = new ArrayList<>(remainingLines);
         for (File file : files) {
             combinedLogs.addAll(readFileLines(file));
-            if (requestedLines <= 0) {
+            if (remainingLines <= 0) {
                 break;
             }
         }
@@ -215,14 +217,14 @@ public class LogsDataResource implements DataResource
             // Calculate the approximate position to start reading from based on line length.
             long startPosition = fileLength - 1;
 
-            for (; startPosition > 0 && requestedLines > 0; startPosition--) {
+            for (; startPosition > 0 && remainingLines > 0; startPosition--) {
                 randomAccessFile.seek(startPosition - 1);
 
                 int currentByte = randomAccessFile.read();
                 if (currentByte == '\n' || currentByte == '\r') {
                     // Found a newline character, add the line to the list.
                     logLines.add(randomAccessFile.readLine());
-                    requestedLines--;
+                    remainingLines--;
                 }
             }
             return logLines;
