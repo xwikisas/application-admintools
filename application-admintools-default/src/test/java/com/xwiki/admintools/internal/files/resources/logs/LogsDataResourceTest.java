@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.files.resources;
+package com.xwiki.admintools.internal.files.resources.logs;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,6 +95,9 @@ class LogsDataResourceTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    private LogFiles logFiles;
+
     @Mock
     private XWikiContext wikiContext;
 
@@ -121,15 +123,19 @@ class LogsDataResourceTest
 
         testFile2 = new File(logsDir, "server.2023-10-09.log");
         testFile2.createNewFile();
-
         BufferedWriter writer = new BufferedWriter(new FileWriter(testFile.getAbsolutePath()));
         BufferedWriter writer2 = new BufferedWriter(new FileWriter(testFile2.getAbsolutePath()));
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             writer.append(String.format("log line %d\n", i));
             writer2.append(String.format("log line 2.%d\n", i));
         }
         writer.close();
         writer2.close();
+        logLines = new ArrayList<>();
+        logLines.add("log line 1");
+        logLines.add("log line 2");
+        logLines.add("log line 3");
+        logLines.add("log line 4");
     }
 
     @BeforeEach
@@ -138,6 +144,9 @@ class LogsDataResourceTest
         when(contextProvider.get()).thenReturn(wikiContext);
         when(wikiContext.getWiki()).thenReturn(xWiki);
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd-MM-yyyy");
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
+        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
     }
 
     @Test
@@ -147,36 +156,100 @@ class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataSuccess() throws Exception
+    void getByteDataSuccessLinux() throws Exception
     {
         assertTrue(testFile.exists());
         assertTrue(testFile.isFile());
 
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        readLines(44);
+        when(logFiles.getLines(testFile, 44)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
 
-        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
+        System.setProperty("os.name", "Linux");
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
     }
 
     @Test
-    void getByteDataFileNotFound()
+    void getByteDataSuccessWindows() throws Exception
+    {
+        when(serverInfo.getLogsHint()).thenReturn("server");
+        assertTrue(testFile.exists());
+        assertTrue(testFile.isFile());
+        assertTrue(testFile2.exists());
+        assertTrue(testFile2.isFile());
+        File[] files = new File[2];
+        files[0] = testFile;
+        files[1] = testFile2;
+        logLines.addAll(List.of("log line 1, file 2", "log line 2, file 2", "log line 3, file 2"));
+        when(logFiles.getLines(testFile, 44)).thenReturn(logLines);
+        when(logFiles.getLogFiles(serverInfo.getLogsFolderPath(), serverInfo.getLogsHint())).thenReturn(files);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+        System.setProperty("os.name", "Windows");
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataUnsupportedOS() throws IOException
     {
         File testFile = new File("server.2023-10-06.log");
         assertFalse(testFile.exists());
 
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        IOException exception = assertThrows(IOException.class, () -> {
-            logsDataResource.getByteData(null);
-        });
-        assertEquals(String.format("Error while accessing log files at [%s].", testFile.getAbsolutePath()),
+        System.setProperty("os.name", "ChromeOS");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> logsDataResource.getByteData(params));
+        assertEquals("OS not supported!", exception.getMessage());
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataNullInput() throws IOException
+    {
+
+        when(logFiles.getLines(testFile, 1000)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+        System.setProperty("os.name", "Linux");
+        assertArrayEquals(String.join("\n", checkLines).getBytes(), logsDataResource.getByteData(null));
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataNullNoLines() throws IOException
+    {
+        Map<String, String[]> params = Map.of("noLines", new String[] { null });
+
+        when(logFiles.getLines(testFile, 1000)).thenReturn(logLines);
+        List<String> checkLines = new ArrayList<>(logLines);
+        Collections.reverse(checkLines);
+        byte[] testBytes = String.join("\n", checkLines).getBytes();
+        System.setProperty("os.name", "Linux");
+        assertArrayEquals(testBytes, logsDataResource.getByteData(params));
+        System.clearProperty("os.name");
+    }
+
+    @Test
+    void getByteDataFileNotFound() throws IOException
+    {
+        File testInvalidFile = new File("server_invalid.2023-10-07.log");
+        assertFalse(testInvalidFile.exists());
+
+        when(serverInfo.getLastLogFilePath()).thenReturn(testInvalidFile.getAbsolutePath());
+        when(logFiles.getLines(new File(testInvalidFile.getAbsolutePath()), 1000)).thenThrow(new IOException(""));
+
+        System.setProperty("os.name", "Linux");
+        IOException exception = assertThrows(IOException.class, () -> logsDataResource.getByteData(null));
+        assertEquals(String.format("Error while accessing log files at [%s].", testInvalidFile.getAbsolutePath()),
             exception.getMessage());
+        System.clearProperty("os.name");
     }
 
     @Test
     void getByteDataServerNotFound()
     {
+        when(currentServer.getCurrentServer()).thenReturn(null);
+
         Exception exception = assertThrows(Exception.class, () -> {
             this.logsDataResource.getByteData(params);
         });
@@ -187,8 +260,6 @@ class LogsDataResourceTest
     @Test
     void getByteDataIncorrectInput()
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
         String invalidInput = "not a number";
         Map<String, String[]> params = Map.of("noLines", new String[] { "not a number" });
         Exception exception = assertThrows(Exception.class, () -> logsDataResource.getByteData(params));
@@ -197,32 +268,8 @@ class LogsDataResourceTest
     }
 
     @Test
-    void getByteDataNullInput() throws IOException
-    {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-
-        readLines(1000);
-
-        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(null));
-    }
-
-    @Test
-    void getByteDataNullNoLines() throws IOException
-    {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLastLogFilePath()).thenReturn(testFile.getAbsolutePath());
-        Map<String, String[]> params = Map.of("noLines", new String[] { null });
-        readLines(1000);
-
-        assertArrayEquals(String.join("\n", logLines).getBytes(), logsDataResource.getByteData(params));
-    }
-
-    @Test
     void addZipEntrySuccessNoFilters() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
         logsDataResource.addZipEntry(zipOutputStream, null);
         verify(zipOutputStream, times(2)).closeEntry();
@@ -231,14 +278,11 @@ class LogsDataResourceTest
     @Test
     void addZipEntrySuccessWithFilters() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
 
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "06-10-2023" });
         filters.put("to", new String[] { "07-10-2023" });
-        readLines(400);
         logsDataResource.addZipEntry(zipOutputStream, filters);
         byte[] buff = new byte[2048];
         int bytesRead;
@@ -252,8 +296,6 @@ class LogsDataResourceTest
     @Test
     void addZipEntryFilesOutOfFiltersRange() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}-\\d{2}-\\d{2}"));
         when(xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext)).thenReturn("dd yy MM");
 
@@ -268,8 +310,6 @@ class LogsDataResourceTest
     @Test
     void addZipEntryDateParseError()
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\bserver\\b"));
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "2023-10-03" });
@@ -282,30 +322,11 @@ class LogsDataResourceTest
     @Test
     void addZipEntryPatternNotFound() throws IOException
     {
-        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
-        when(serverInfo.getLogsFolderPath()).thenReturn(logsDir.getAbsolutePath());
         when(serverInfo.getLogsPattern()).thenReturn(Pattern.compile("\\d{4}_\\d{2}_\\d{2}"));
         Map<String, String[]> filters = new HashMap<>();
         filters.put("from", new String[] { "2023-10-03" });
         filters.put("to", new String[] { "2023-10-05" });
         logsDataResource.addZipEntry(zipOutputStream, filters);
         verify(zipOutputStream, never()).closeEntry();
-    }
-
-    private void readLines(int lines) throws IOException
-    {
-        RandomAccessFile randomAccessFile = new RandomAccessFile(testFile, "r");
-        long fileLength = randomAccessFile.length();
-        logLines = new ArrayList<>();
-        long startPosition = fileLength - 1;
-        for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
-            randomAccessFile.seek(startPosition - 1);
-            int currentByte = randomAccessFile.read();
-            if (currentByte == '\n' || currentByte == '\r') {
-                logLines.add(randomAccessFile.readLine());
-                i++;
-            }
-        }
-        Collections.reverse(logLines);
     }
 }

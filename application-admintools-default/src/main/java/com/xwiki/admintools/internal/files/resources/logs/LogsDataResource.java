@@ -17,13 +17,12 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.files.resources;
+package com.xwiki.admintools.internal.files.resources.logs;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -77,6 +76,8 @@ public class LogsDataResource implements DataResource
 
     private static final String DEFAULT_NO_LINES = "1000";
 
+    private static final String LINE_BREAK = "\n";
+
     @Inject
     private Logger logger;
 
@@ -86,6 +87,12 @@ public class LogsDataResource implements DataResource
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private LogFiles logFiles;
+
+    /**
+     * Number of log lines that have been read.
+     */
     @Override
     public String getIdentifier()
     {
@@ -100,30 +107,18 @@ public class LogsDataResource implements DataResource
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
-            File file = new File(usedServer.getLastLogFilePath());
 
-            try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-                int lines = getLines(params);
-
-                long fileLength = randomAccessFile.length();
-                List<String> logLines = new ArrayList<>();
-
-                // Calculate the approximate position to start reading from based on line length.
-                long startPosition = fileLength - 1;
-                for (long i = 0; i < lines && startPosition > 0 && i < 50000; startPosition--) {
-                    randomAccessFile.seek(startPosition - 1);
-
-                    int currentByte = randomAccessFile.read();
-                    if (currentByte == '\n' || currentByte == '\r') {
-                        // Found a newline character, add the line to the list.
-                        logLines.add(randomAccessFile.readLine());
-                        i++;
-                    }
-                }
-                // Reverse the list to get the lines in the correct order.
-                Collections.reverse(logLines);
-                // Join the lines with newline characters.
-                return String.join("\n", logLines).getBytes();
+            int linesCount = getRequestedLines(params);
+            if (linesCount > 50000) {
+                linesCount = 50000;
+            }
+            String osName = System.getProperty("os.name").toLowerCase();
+            if (osName.contains("linux")) {
+                return getLinuxByteData(usedServer, linesCount);
+            } else if (osName.contains("windows")) {
+                return getWindowsByteData(usedServer, linesCount);
+            } else {
+                throw new RuntimeException("OS not supported!");
             }
         } catch (IOException exception) {
             throw new IOException(String.format("Error while accessing log files at [%s].",
@@ -146,7 +141,7 @@ public class LogsDataResource implements DataResource
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
                 // Check if the selected file is of file type and check filters.
                 if (file.isFile()) {
-                    if (filters != null && (!checkFilters(file, filters))) {
+                    if (!filters.isEmpty() && (!checkFilters(file, filters))) {
                         continue;
                     }
                     // Create a new zip entry and add the content.
@@ -168,6 +163,42 @@ public class LogsDataResource implements DataResource
         }
     }
 
+    private byte[] getLinuxByteData(ServerInfo usedServer, int linesCount) throws IOException
+    {
+        File file = new File(usedServer.getLastLogFilePath());
+        List<String> logData = logFiles.getLines(file, linesCount);
+        Collections.reverse(logData);
+        return String.join(LINE_BREAK, logData).getBytes();
+    }
+
+    /**
+     * Retrieve the last lines of logs by going in descending order through each log file, as Windows OS lacks a merged
+     * file of the logs. Reading starts from the latest file last line, until the requested number of log lines is
+     * reached.
+     *
+     * @param usedServer represents the currently used server.
+     * @param requestedLines the number of lines that has been requested.
+     * @return the last lines of log as a {@link Byte} array.
+     * @throws IOException if there are any errors while handling the log files.
+     */
+    private byte[] getWindowsByteData(ServerInfo usedServer, int requestedLines) throws IOException
+    {
+        int linesCount = requestedLines;
+        File[] files = logFiles.getLogFiles(usedServer.getLogsFolderPath(), usedServer.getLogsHint());
+
+        List<String> combinedLogs = new ArrayList<>(linesCount);
+        for (File file : files) {
+            List<String> retrievedLines = logFiles.getLines(file, linesCount);
+            linesCount -= retrievedLines.size();
+            combinedLogs.addAll(retrievedLines);
+            if (linesCount <= 0) {
+                break;
+            }
+        }
+        Collections.reverse(combinedLogs);
+        return String.join(LINE_BREAK, combinedLogs).getBytes();
+    }
+
     private static Map<String, String> getFilters(Map<String, String[]> params)
     {
         Map<String, String> filters = new HashMap<>();
@@ -178,7 +209,7 @@ public class LogsDataResource implements DataResource
         return filters;
     }
 
-    private int getLines(Map<String, String[]> params)
+    private int getRequestedLines(Map<String, String[]> params)
     {
         String noLines;
         if (params == null) {
@@ -189,8 +220,7 @@ public class LogsDataResource implements DataResource
                 noLines = DEFAULT_NO_LINES;
             }
         }
-        int lines = parseInt(noLines);
-        return lines;
+        return parseInt(noLines);
     }
 
     /**

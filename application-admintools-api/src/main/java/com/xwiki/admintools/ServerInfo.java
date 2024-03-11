@@ -94,4 +94,11 @@ public interface ServerInfo
      * @return {@link Pattern} representing the date format in server log files names.
      */
     Pattern getLogsPattern();
+
+    /**
+     * Get server logs common identifier.
+     *
+     * @return a {@link String} with the server logs common identifier.
+     */
+    String getLogsHint();
 }

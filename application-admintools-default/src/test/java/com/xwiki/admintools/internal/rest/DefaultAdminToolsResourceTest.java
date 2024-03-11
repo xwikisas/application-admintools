@@ -44,7 +44,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.files.resources.LogsDataResource;
+import com.xwiki.admintools.internal.files.resources.logs.LogsDataResource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

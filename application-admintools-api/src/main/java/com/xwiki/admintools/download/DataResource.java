@@ -45,7 +45,7 @@ public interface DataResource
      * Retrieve the content of a system file.
      *
      * @param params can be used to send additional info to the component.
-     * @return the content of the file as an {@link Byte} array.
+     * @return the content of the file as a {@link Byte} array.
      * @throws IOException when there are errors while handling searched files.
      * @throws NumberFormatException when there is an invalid numeric input.
      */
