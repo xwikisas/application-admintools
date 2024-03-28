@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-class TomcatInfoTest
+class TomcatIdentifierTest
 {
     @InjectMockComponents
     private TomcatInfo tomcatIdentifier;
@@ -56,7 +56,7 @@ class TomcatInfoTest
     private File tmpDir;
 
     @Test
-    void isUsedPathFound() throws IOException
+    void foundServerPathTrue() throws IOException
     {
         when(adminToolsConfig.getServerPath()).thenReturn(tmpDir.getAbsolutePath());
 
@@ -69,11 +69,11 @@ class TomcatInfoTest
         assertTrue(testFile.exists());
 
         // Test with a valid providedConfigServerPath
-        assertTrue(tomcatIdentifier.isUsed());
+        assertTrue(tomcatIdentifier.foundServerPath());
     }
 
     @Test
-    void isUsedWithValidCatalinaBase() throws IOException
+    void foundServerPathWithValidCatalinaBase() throws IOException
     {
         File configDirectory = new File(tmpDir, "conf");
         configDirectory.mkdir();
@@ -85,18 +85,18 @@ class TomcatInfoTest
 
         when(adminToolsConfig.getServerPath()).thenReturn(null);
         System.setProperty("catalina.base", tmpDir.getAbsolutePath());
-        assertTrue(tomcatIdentifier.isUsed());
+        assertTrue(tomcatIdentifier.foundServerPath());
         System.clearProperty("catalina.base");
     }
 
     @Test
-    void isUsedValidSystemPathMissingCatalinaProperties()
+    void foundServerPathValidSystemPathMissingCatalinaProperties()
     {
         File configDirectory = new File(tmpDir, "conf");
         configDirectory.mkdir();
         when(adminToolsConfig.getServerPath()).thenReturn(null);
         System.setProperty("catalina.base", tmpDir.getAbsolutePath());
-        assertFalse(tomcatIdentifier.isUsed());
+        assertFalse(tomcatIdentifier.foundServerPath());
         System.clearProperty("catalina.base");
         configDirectory.delete();
     }

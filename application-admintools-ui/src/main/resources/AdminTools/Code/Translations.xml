@@ -49,6 +49,7 @@ adminTools.extension.title=Admin Tools
 ## Dashboard sections
 adminTools.dashboard.toc.title=Table of contents
 adminTools.dashboard.serverNotFound.error=Server path was not found or is currently not supported by this version of Admin Tools Pro. Please manually add the path to the server on the Admin Tools configuration page. Currently supported servers: {0}
+adminTools.dashboard.missingRights=Access denied due to missing admin rights!
 
 ## Config
 adminTools.dashboard.backend.description=Get info about your backend.
@@ -157,8 +158,6 @@ adminTools.dashboard.security.title=Security
 adminTools.helpPage.browser.support=Browser support
 adminTools.helpPage.browser.title=Browser
 adminTools.helpPage.database.instructions=Specific databases instructions
-adminTools.helpPage.database.mysql.install=MySQL installation guide
-adminTools.helpPage.database.mysql.troubleshoot=MySQL troubleshoot
 adminTools.helpPage.database.supported=Supported databases
 adminTools.helpPage.database.title=Database issues
 adminTools.helpPage.java.memory=Java memory
@@ -169,7 +168,7 @@ adminTools.helpPage.performance.cache=Cache recommendations
 adminTools.helpPage.performance.hardware=Hardware requirements
 adminTools.helpPage.performance.memory=Memory recommendations
 adminTools.helpPage.performance.title=Performance issues
-adminTools.helpPage.server.security=Security configuration
+adminTools.helpPage.server.encoding=Encoding configuration
 adminTools.helpPage.server.supported=Supported servers
 adminTools.helpPage.server.title=Server issues
 adminTools.helpPage.server.tomcat=Tomcat recommendations

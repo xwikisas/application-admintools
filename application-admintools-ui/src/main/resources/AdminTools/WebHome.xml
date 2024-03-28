@@ -36,18 +36,23 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{box cssClass="admin-tools-header-section"}}
-{{container layoutStyle="columns" justify="yes"}}
-(((
-{{toc scope=page /}}
-)))
-{{/container}}
-{{/box}}
-
-{{velocity}}
+  <content>{{velocity}}
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  {{dashboard/}}
+  #if ($hasAdmin)
+    {{box cssClass="admin-tools-header-section"}}
+      {{container layoutStyle="columns" justify="yes"}}
+        (((
+        {{toc scope=page /}}
+        )))
+      {{/container}}
+    {{/box}}
+
+    {{dashboard/}}
+  #else
+    {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
+      $xwiki.currentContentSyntaxId){{/error}}
+  #end
 #else
   {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
 #end
@@ -107,7 +112,7 @@
     </class>
     <property>
       <content>{{velocity}}
-={{html clean='false'}}$services.icon.renderHTML('world'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.backend.title'))=
+=$services.icon.render('world') {{translation key='adminTools.dashboard.backend.title'/}}=
 {{html clean='false'}}
   $services.admintools.getConfigurationData('configuration')
 {{/html}}
@@ -175,7 +180,7 @@
     </class>
     <property>
       <content>{{velocity}}
-={{html clean='false'}}$services.icon.renderHTML('download'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.download.title'))=
+=$services.icon.render('download') {{translation key='adminTools.dashboard.download.title'/}}=
 {{html clean='false'}}
   $services.admintools.getFilesSection()
 {{/html}}
@@ -247,8 +252,8 @@
 {{include reference="AdminTools.Code.HealthCheckMacros" /}}
 
 {{velocity}}
-={{html clean='false'}}$services.icon.renderHTML('bug'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.title'))=
-  {{html clean='false'}}
+=$services.icon.render('bug') {{translation key='adminTools.dashboard.healthcheck.title'/}}=
+  {{html clean='false' wiki='true'}}
     #healthCheckUI()
   {{/html}}
 {{/velocity}}</content>
@@ -315,7 +320,7 @@
     </class>
     <property>
       <content>{{velocity}}
-={{html clean='false'}}$services.icon.renderHTML('drive'){{/html}} $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.title'))=
+=$services.icon.render('drive') {{translation key='adminTools.dashboard.instanceUsage.title'/}}=
 {{html}}
   $services.admintools.getInstanceSizeSection()
 {{/html}}

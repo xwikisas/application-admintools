@@ -69,12 +69,13 @@ class CurrentServerTest
     void setUp()
     {
         // Mock the list of supported servers.
-        List<ServerInfo> mockServerInfo = new ArrayList<>();
-        mockServerInfo.add(serverInfo);
-        when(supportedServers.get()).thenReturn(mockServerInfo);
-        when(serverInfo.isUsed()).thenReturn(true);
-        when(usageDataProvider.getServerMetadata()).thenReturn(Map.of("name", "Tomcat"));
+        List<ServerInfo> mockServerInfos = new ArrayList<>();
+        mockServerInfos.add(serverInfo);
+        when(supportedServers.get()).thenReturn(mockServerInfos);
+        when(serverInfo.foundServerPath()).thenReturn(true);
+        when(usageDataProvider.getServerMetadata()).thenReturn(Map.of("name", "Tomcat Apache"));
         when(serverInfo.getComponentHint()).thenReturn("tomcat");
+
         // Mock the behavior of adminToolsConfig.
         when(adminToolsConfig.getServerPath()).thenReturn("exampleServerPath");
     }
@@ -92,7 +93,7 @@ class CurrentServerTest
     @Test
     void initializeWithServerNotFound() throws InitializationException
     {
-        when(serverInfo.isUsed()).thenReturn(false);
+        when(serverInfo.foundServerPath()).thenReturn(false);
         currentServer.initialize();
 
         assertNull(currentServer.getCurrentServer());
@@ -101,11 +102,11 @@ class CurrentServerTest
     @Test
     void updateCurrentServer()
     {
-        when(serverInfo.isUsed()).thenReturn(false);
+        when(serverInfo.foundServerPath()).thenReturn(false);
         currentServer.updateCurrentServer();
         assertNull(currentServer.getCurrentServer());
 
-        when(serverInfo.isUsed()).thenReturn(true);
+        when(serverInfo.foundServerPath()).thenReturn(true);
         currentServer.updateCurrentServer();
         assertEquals(serverInfo, currentServer.getCurrentServer());
     }

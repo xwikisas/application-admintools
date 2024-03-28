@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.data;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -27,11 +28,13 @@ import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.licensing.Licensor;
 
 /**
  * {@link DataProvider} implementations to simplify the code.
@@ -41,6 +44,8 @@ import com.xwiki.admintools.DataProvider;
 public abstract class AbstractDataProvider implements DataProvider
 {
     protected static final String SERVER_FOUND = "serverFound";
+
+    private static final String ERROR_TEMPLATE = "licenseError.vm";
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
@@ -54,6 +59,9 @@ public abstract class AbstractDataProvider implements DataProvider
     @Inject
     private ScriptContextManager scriptContextManager;
 
+    @Inject
+    private Provider<Licensor> licensorProvider;
+
     /**
      * Get the data in a format given by the associated template.
      *
@@ -65,6 +73,14 @@ public abstract class AbstractDataProvider implements DataProvider
     protected String renderTemplate(String template, Map<String, String> data, String hint)
     {
         try {
+            Licensor licensor = licensorProvider.get();
+            String wiki = xcontextProvider.get().getWikiId();
+            DocumentReference mainRef =
+                new DocumentReference(wiki, Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+            if (licensor == null || !licensor.hasLicensure(mainRef)) {
+                return this.templateManager.render(ERROR_TEMPLATE);
+            }
+
             // Binds the data provided to the template.
             ScriptContext scriptContext = this.scriptContextManager.getScriptContext();
             scriptContext.setAttribute(hint, data, ScriptContext.ENGINE_SCOPE);

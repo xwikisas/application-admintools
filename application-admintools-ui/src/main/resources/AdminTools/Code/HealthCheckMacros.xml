@@ -117,61 +117,66 @@
   &lt;/dl&gt;
 #end
 #macro (healthCheckUI)
-  #if ($services.admintools.isUsedServerCompatible())
-    #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-    #includeMacros("AdminTools.Code.Macros")
-    #set ($jobId = $services.admintools.getHealthCheckJobId())
-    #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
-      'jobId': $jobId,
-      'outputSyntax': 'plain'
-    })))
-    #set ($healthJobStatus = $services.job.getJobStatus($jobId))
-    #set ($solutionURL = $xwiki.getURL('AdminTools.HelpLinks'))
-    #set ($solutionLink = "&lt;a href='$escapetool.xml($solutionURL)'&gt;&lt;strong&gt;$escapetool.xml(
-      $services.localization.render('adminTools.dashboard.healthcheck.linkLabel'))&lt;/strong&gt;&lt;/a&gt;")
-    #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
-       '__INSERTEDLINK__'
-    ])).replace('__INSERTEDLINK__', $solutionLink))
-    &lt;span class="health-check-job-state"
-      data-job-state="${healthJobStatus.state}"&gt;
-    &lt;/span&gt;
-    &lt;div class="health-check-section" id="healthCheck"&gt;
-      &lt;p&gt;$description&lt;/p&gt;
-      &lt;hr/&gt;
-      &lt;div class="health-check-wrapper"&gt;
-        #set($timeSinceLastRun = $services.date.displayTimeAgo($healthJobStatus.getEndDate()))
-        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time', [$timeSinceLastRun]))
-        &lt;div class="buttonwrapper"&gt;
-          &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
-            value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
-              'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
+  #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+  #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+    #if ($services.admintools.isUsedServerCompatible())
+      #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+      #includeMacros("AdminTools.Code.Macros")
+      #set ($jobId = $services.admintools.getHealthCheckJobId())
+      #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
+        'jobId': $jobId,
+        'outputSyntax': 'plain'
+      })))
+      #set ($healthJobStatus = $services.job.getJobStatus($jobId))
+      #set ($solutionURL = $xwiki.getURL('AdminTools.HelpLinks'))
+      #set ($solutionLink = "&lt;a href='$escapetool.xml($solutionURL)'&gt;&lt;strong&gt;$escapetool.xml(
+        $services.localization.render('adminTools.dashboard.healthcheck.linkLabel'))&lt;/strong&gt;&lt;/a&gt;")
+      #set ($description = $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.description', [
+         '__INSERTEDLINK__'
+      ])).replace('__INSERTEDLINK__', $solutionLink))
+      &lt;span class="health-check-job-state"
+        data-job-state="${healthJobStatus.state}"&gt;
+      &lt;/span&gt;
+      &lt;div class="health-check-section" id="healthCheck"&gt;
+        &lt;p&gt;$description&lt;/p&gt;
+        &lt;hr/&gt;
+        &lt;div class="health-check-wrapper"&gt;
+          #set($timeSinceLastRun = $services.date.displayTimeAgo($healthJobStatus.getEndDate()))
+          $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.time', [$timeSinceLastRun]))
+          &lt;div class="buttonwrapper"&gt;
+            &lt;button id="healthCheckJobStart" type="submit" class="btn btn-primary" name="startHealthCheck"
+              value="startHealthCheck"&gt;$escapetool.xml($services.localization.render(
+                'adminTools.dashboard.healthcheck.start'))&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
+          #if ($healthJobStatus.state != 'FINISHED')
+            #displayJobProgressBar($healthJobStatus)
+          #else
+            #healthCheckJobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+          #end
+          #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
+            #displayHealthCheckResults($healthJobStatus true)
+          #end
+        &lt;/div&gt;
+        &lt;hr/&gt;
+        &lt;div class="instance-operations"&gt;
+          &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.operations'))&lt;/h2&gt;
+          &lt;ul&gt;
+            &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
+            &lt;/li&gt;
+          &lt;/ul&gt;
+          #cacheFlushModal()
         &lt;/div&gt;
       &lt;/div&gt;
-      &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
-        #if ($healthJobStatus.state != 'FINISHED')
-          #displayJobProgressBar($healthJobStatus)
-        #else
-          #healthCheckJobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
-        #end
-        #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
-          #displayHealthCheckResults($healthJobStatus true)
-        #end
-      &lt;/div&gt;
-      &lt;hr/&gt;
-      &lt;div class="instance-operations"&gt;
-        &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.operations'))&lt;/h2&gt;
-        &lt;ul&gt;
-          &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
-            $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
-          &lt;/li&gt;
-        &lt;/ul&gt;
-        #cacheFlushModal()
-      &lt;/div&gt;
-    &lt;/div&gt;
+    #else
+      #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+        [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
+      #warning($warningMessage)
+    #end
   #else
-    #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
-      [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
-    #warning($warningMessage)
+    {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
   #end
 #end
 {{/velocity}}</content>

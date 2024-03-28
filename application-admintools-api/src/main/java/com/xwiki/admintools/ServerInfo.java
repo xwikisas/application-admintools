@@ -33,13 +33,13 @@ import org.xwiki.component.annotation.Role;
 public interface ServerInfo
 {
     /**
-     * Verify if a specific server is used. If a server path is provided in the XWiki configurations, it verifies if the
-     * path corresponds to a server. Otherwise, it searches the server location in system properties and system
-     * environment.
+     * Verify if the path to a specific server is found. If a server path is provided in the XWiki configurations, it
+     * verifies if the path corresponds to a server. Otherwise, it searches the server location in system properties
+     * and system environment.
      *
      * @return {@code true} if the server is used, {@code false} otherwise.
      */
-    boolean isUsed();
+    boolean foundServerPath();
 
     /**
      * Extract the hint of a component.
@@ -94,4 +94,11 @@ public interface ServerInfo
      * @return {@link Pattern} representing the date format in server log files names.
      */
     Pattern getLogsPattern();
+
+    /**
+     * Get server logs common identifier.
+     *
+     * @return a {@link String} with the server logs common identifier.
+     */
+    String getLogsHint();
 }
