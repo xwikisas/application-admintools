@@ -184,17 +184,9 @@ class AdminToolsIT
     {
         testUtils.login(USER_NAME, PASSWORD);
 
-        DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
-        WebElement filesSectionNonAdminView = filesSectionView.getNonAdminUserView();
+        WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
         assertTrue(filesSectionNonAdminView.getText().contains(
-            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
-                + USER_NAME + "]]"));
-
-        DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
-        WebElement configurationSectionNonAdminView = configurationSectionView.getNonAdminUserView();
-        assertTrue(configurationSectionNonAdminView.getText().contains(
-            "[Access denied when checking [admin] access to [xwiki:AdminTools.WebHome] for user [xwiki:XWiki."
-                + USER_NAME + "]]"));
+            "Access denied due to missing admin rights!"));
     }
 
     /**

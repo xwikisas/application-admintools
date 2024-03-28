@@ -51,7 +51,7 @@ public class DashboardFilesSectionView extends ViewPage
      */
     public void clickPropertiesHyperlink()
     {
-        filesContent.findElement(By.id("filesProperties")).click();
+        filesContent.findElement(By.id("xwiki-properties-file")).click();
     }
 
     /**
@@ -59,11 +59,6 @@ public class DashboardFilesSectionView extends ViewPage
      */
     public void clickConfigurationHyperlink()
     {
-        filesContent.findElement(By.id("filesConfig")).click();
-    }
-
-    public WebElement getNonAdminUserView()
-    {
-        return this.getDriver().findElement(By.cssSelector(".gadget-content .xwikirenderingerror"));
+        filesContent.findElement(By.id("xwiki-config-file")).click();
     }
 }

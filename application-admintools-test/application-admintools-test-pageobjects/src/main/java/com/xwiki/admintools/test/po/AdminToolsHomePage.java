@@ -20,6 +20,7 @@
 package com.xwiki.admintools.test.po;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -69,5 +70,12 @@ public class AdminToolsHomePage extends ViewPage
             .equals(ADMIN_TOOLS_SPACE);
     }
 
+    /**
+     * Get the view for a user that does not have admin rights.
+     */
+    public WebElement getNonAdminUserView()
+    {
+        return this.getDriver().findElement(By.cssSelector(".errormessage"));
+    }
 }
 
