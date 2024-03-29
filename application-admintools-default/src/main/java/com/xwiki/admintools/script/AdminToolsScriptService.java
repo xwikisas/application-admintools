@@ -40,6 +40,7 @@ import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
+import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -58,6 +59,10 @@ import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 @Unstable
 public class AdminToolsScriptService implements ScriptService
 {
+    @Inject
+    @Named("default")
+    protected AdminToolsConfiguration adminToolsConfig;
+
     @Inject
     private AdminToolsManager adminToolsManager;
 
@@ -153,6 +158,17 @@ public class AdminToolsScriptService implements ScriptService
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);
+    }
+
+    /**
+     * Retrieve the configuration settings for minimum spam size.
+     *
+     * @return a {@link String} representing the configured minimum spam size.
+     */
+    public String getMinimumSpamSize() throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return this.adminToolsConfig.getSpamSize();
     }
 
     /**

@@ -44,4 +44,11 @@ public interface AdminToolsConfiguration
      * @return {@link List} with the lines to be excluded.
      */
     List<String> getExcludedLines();
+
+    /**
+     * Get the number of comments that are used for a page to be considered spam.
+     *
+     * @return {@link String} representing the spam size.
+     */
+    String getSpamSize();
 }

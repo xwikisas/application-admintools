@@ -49,7 +49,7 @@
     </div>
     <hr/>
     <div class="specific-stats">
-      #set ($spamLimit = 50)
+      #set ($spamLimit = $services.admintools.getMinimumSpamSize())
       <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific'))</h2>
       <ul>
         <li><a href="#pagesOverNumberOfComments" data-toggle="modal" data-target="#pagesOverNumberOfComments"

@@ -44,6 +44,8 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 
     private static final String EXCLUDED_LINES = "excludedLines";
 
+    private static final String SPAM_SIZE = "spamSize";
+
     @Inject
     @Named(AdminToolsConfigurationSource.HINT)
     private ConfigurationSource mainConfiguration;
@@ -59,5 +61,11 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     {
         return new ArrayList<>(
             List.of(this.mainConfiguration.getProperty(EXCLUDED_LINES, "NO_EXCLUDED_LINE").split(",")));
+    }
+
+    @Override
+    public String getSpamSize()
+    {
+        return this.mainConfiguration.getProperty(SPAM_SIZE, "50");
     }
 }
