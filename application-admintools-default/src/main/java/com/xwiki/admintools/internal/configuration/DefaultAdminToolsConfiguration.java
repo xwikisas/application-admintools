@@ -64,8 +64,8 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     }
 
     @Override
-    public String getSpamSize()
+    public int getSpamSize()
     {
-        return this.mainConfiguration.getProperty(SPAM_SIZE, "50");
+        return Integer.parseInt(this.mainConfiguration.getProperty(SPAM_SIZE, "50"));
     }
 }

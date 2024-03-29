@@ -48,7 +48,7 @@ public interface AdminToolsConfiguration
     /**
      * Get the number of comments that are used for a page to be considered spam.
      *
-     * @return {@link String} representing the spam size.
+     * @return {@link Integer} representing the spam size.
      */
-    String getSpamSize();
+    int getSpamSize();
 }

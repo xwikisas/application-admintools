@@ -163,9 +163,9 @@ public class AdminToolsScriptService implements ScriptService
     /**
      * Retrieve the configuration settings for minimum spam size.
      *
-     * @return a {@link String} representing the configured minimum spam size.
+     * @return an {@link Integer} representing the configured minimum spam size.
      */
-    public String getMinimumSpamSize() throws AccessDeniedException
+    public int getMinimumSpamSize() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsConfig.getSpamSize();

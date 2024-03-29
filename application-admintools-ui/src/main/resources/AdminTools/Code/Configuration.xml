@@ -83,12 +83,29 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </serverLocation>
+      <spamSize>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>spamSize</name>
+        <number>3</number>
+        <numberType>long</numberType>
+        <prettyName>spamSize</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </spamSize>
     </class>
     <property>
       <excludedLines/>
     </property>
     <property>
       <serverLocation/>
+    </property>
+    <property>
+      <spamSize>2</spamSize>
     </property>
   </object>
   <object>
