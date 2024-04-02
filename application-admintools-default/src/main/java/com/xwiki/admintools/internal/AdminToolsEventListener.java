@@ -64,7 +64,7 @@ public class AdminToolsEventListener extends AbstractEventListener
     private WikiDescriptorManager wikiManager;
 
     @Inject
-    private Provider<CurrentServer> currentServerProvider;
+    private Provider<CurrentServer> currentServer;
 
     /**
      * Creates an event-listener filtering for DocumentUpdatedEvent and DocumentDeletedEvent.
@@ -80,7 +80,7 @@ public class AdminToolsEventListener extends AbstractEventListener
         if (event instanceof DocumentUpdatedEvent || event instanceof DocumentDeletedEvent) {
             XWikiDocument document = (XWikiDocument) source;
             if (document != null && isAdminToolsConfigObject(document)) {
-                this.currentServerProvider.get().updateCurrentServer();
+                this.currentServer.get().updateCurrentServer();
             }
         }
     }
