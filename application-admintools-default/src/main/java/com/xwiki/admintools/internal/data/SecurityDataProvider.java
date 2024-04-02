@@ -122,8 +122,8 @@ public class SecurityDataProvider extends AbstractDataProvider
         Map<String, String> results = new HashMap<>();
         String workDirectory = System.getenv(WORK_DIRECTORY);
         String language = System.getenv(LANGUAGE);
-        results.put(WORK_DIRECTORY, System.getenv(WORK_DIRECTORY));
-        results.put(LANGUAGE, System.getenv(LANGUAGE));
+        results.put(WORK_DIRECTORY, workDirectory);
+        results.put(LANGUAGE, language);
         if (workDirectory == null || language == null) {
             this.logger.warn("Failed to access language or work directory environment variables.");
         }
