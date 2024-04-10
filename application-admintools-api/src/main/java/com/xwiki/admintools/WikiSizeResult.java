@@ -19,6 +19,9 @@
  */
 package com.xwiki.admintools;
 
+import java.text.DecimalFormat;
+import java.util.List;
+
 import org.xwiki.stability.Unstable;
 
 /**
@@ -34,7 +37,7 @@ public class WikiSizeResult
 
     private Long userCount;
 
-    private String attachmentsSize;
+    private Long attachmentsSize;
 
     private Long attachmentsCount;
 
@@ -92,7 +95,7 @@ public class WikiSizeResult
      *
      * @return formatted {@link String} with the size of the attachments in the wiki and corresponding size unit.
      */
-    public String getAttachmentsSize()
+    public Long getAttachmentsSize()
     {
         return attachmentsSize;
     }
@@ -102,7 +105,7 @@ public class WikiSizeResult
      *
      * @param attachmentsSize the size of the attachments in the wiki and corresponding size unit.
      */
-    public void setAttachmentsSize(String attachmentsSize)
+    public void setAttachmentsSize(Long attachmentsSize)
     {
         this.attachmentsSize = attachmentsSize;
     }
@@ -145,5 +148,23 @@ public class WikiSizeResult
     public void setDocumentsCount(Long documentsCount)
     {
         this.documentsCount = documentsCount;
+    }
+
+    /**
+     * Get the size of the attachments in a readable format.
+     *
+     * @return a {@link String} with the size of the attachments converted to the corresponding unit of measurement.
+     */
+    public String getReadableAttachmentSize()
+    {
+        if (this.attachmentsSize == null || this.attachmentsSize <= 0) {
+            return "0";
+        }
+        List<String> units = List.of("B", "KB", "MB", "GB");
+        int digitGroup = (int) (Math.log10(this.attachmentsSize) / Math.log10(1024));
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.#");
+        String resultedSize = decimalFormat.format(this.attachmentsSize / Math.pow(1024, digitGroup));
+
+        return String.format("%s %s", resultedSize, units.get(digitGroup));
     }
 }

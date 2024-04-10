@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.wikiUsage;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +147,7 @@ public class UsageDataProvider
         wikiData.setUserCount(getWikiUserCount(wikiId));
         wikiData.setDocumentsCount(getWikiDocumentsCount(wikiId));
         wikiData.setAttachmentsCount(getWikiAttachmentsCount(wikiId));
-        wikiData.setAttachmentsSize(readableSize(getWikiAttachmentSize(wikiId)));
+        wikiData.setAttachmentsSize(getWikiAttachmentSize(wikiId));
 
         return wikiData;
     }
@@ -174,30 +173,17 @@ public class UsageDataProvider
 
     private Long getWikiAttachmentSize(String wikiId) throws QueryException
     {
-        List<Long> results = this.queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach",
-            Query.XWQL).setWiki(wikiId).execute();
+        List<Long> results =
+            this.queryManager.createQuery("select sum(attach.longSize) from XWikiAttachment attach", Query.XWQL)
+                .setWiki(wikiId).execute();
         return results.get(0);
     }
 
     private Long getWikiAttachmentsCount(String wikiId) throws QueryException
     {
-        List<Long> results = this.queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach",
-            Query.XWQL).setWiki(wikiId).execute();
+        List<Long> results =
+            this.queryManager.createQuery("select count(attach) from XWikiAttachment attach", Query.XWQL)
+                .setWiki(wikiId).execute();
         return results.get(0);
-    }
-
-    private String readableSize(Long number)
-    {
-        if (number == null || number <= 0) {
-            return "0";
-        }
-        List<String> units = List.of("B", "KB", "MB", "GB");
-
-        int digitGroup = (int) (Math.log10(number) / Math.log10(1024));
-        DecimalFormat decimalFormat = new DecimalFormat("#,##0.#");
-        String resultedSize = decimalFormat.format(number / Math.pow(1024, digitGroup));
-        return String.format("%s %s", resultedSize, units.get(digitGroup));
     }
 }
