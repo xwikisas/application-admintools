@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,8 +35,8 @@ import org.xwiki.query.QueryException;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.DataProvider;
+import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -150,9 +151,8 @@ public class AdminToolsManager
      * @param maxComments maximum number of comments below which the page is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
-     * @throws XWikiException if a document is not found.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException
     {
         return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
     }
@@ -170,5 +170,18 @@ public class AdminToolsManager
     public List<WikiRecycleBins> getWikisRecycleBinsSize() throws WikiManagerException
     {
         return this.recycleBinsManager.getWikisRecycleBinsSize();
+    }
+
+    /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     */
+    public List<WikiSizeResult> getWikiSizeResults(Map<String, String> filters, String sortColumn, String order)
+    {
+        return this.instanceUsage.getWikisSize(filters, sortColumn, order);
     }
 }

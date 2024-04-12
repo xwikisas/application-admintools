@@ -26,27 +26,19 @@
       [$extensionCount]))</p>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
       [$totalUsers]))</p>
-    <div class="wikis-size-info-list">
-      #if ($instanceUsage.size() != 0)
-        <ul>
-          #foreach($wikiData in $instanceUsage)
-            #set($wikiName = "<strong>$wikiData.getName()</strong>")
-            <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
-              '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)</li>
-            <ul>
-              <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
-                $wikiData.getUserCount()]))</li>
-              <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
-                [$wikiData.getDocumentsCount()]))</li>
-              <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
-                [$wikiData.getAttachmentsCount(), $wikiData.getAttachmentsSize()]))</li>
-            </ul>
-          #end
-        </ul>
-      #else
-        #error($escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.error')))
-      #end
-    </div>
+    #set($wikiName = "<strong>$currentWikiUsage.getName()</strong>")
+    $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
+      '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)
+    <ul>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.users', [
+        $currentWikiUsage.getUserCount()]))</li>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.documents',
+        [$currentWikiUsage.getDocumentsCount()]))</li>
+      <li>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.attachments',
+        [$currentWikiUsage.getAttachmentsCount(), $currentWikiUsage.getReadableAttachmentSize()]))</li>
+    </ul>
+    <a href="#viewWikisSizeModal" data-toggle="modal" data-target="#viewWikisSizeModal">
+      $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.viewAll'))</a>
     <hr/>
     <div class="specific-stats">
       #set ($spamLimit = $services.admintools.getMinimumSpamSize())
@@ -66,6 +58,7 @@
     </div>
     #pagesOverNumberOfCommentsModal($spamLimit)
     #recycleBinsModal()
+    #wikisSizeModal()
   </div>
 #else
   #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
