@@ -40,7 +40,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWikiException;
+import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.usage.WikiRecycleBins;
 import com.xwiki.admintools.internal.AdminToolsManager;
@@ -89,6 +89,22 @@ public class AdminToolsScriptService implements ScriptService
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return this.adminToolsManager.generateData();
+    }
+
+    /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     */
+    public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return this.adminToolsManager.getWikiSizeResults(filters, sortColumn, order);
     }
 
     /**
@@ -154,8 +170,7 @@ public class AdminToolsScriptService implements ScriptService
      * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
      *     any errors.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments)
-        throws AccessDeniedException, QueryException, XWikiException
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws AccessDeniedException, QueryException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);

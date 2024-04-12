@@ -22,7 +22,9 @@ package com.xwiki.admintools.internal.usage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -59,6 +61,18 @@ public class InstanceUsage
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
     private static final String ERROR_TEMPLATE = "licenseError.vm";
+
+    private static final String NAME_KEY = "name";
+
+    private static final String USER_COUNT_KEY = "userCount";
+
+    private static final String ATTACHMENTS_SIZE_KEY = "attachmentsSize";
+
+    private static final String ATTACHMENTS_COUNT_KEY = "attachmentsCount";
+
+    private static final String DOCUMENTS_COUNT_KEY = "documentsCount";
+
+    private static final String INTERVAL_SEPARATOR = "-";
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
@@ -116,12 +130,15 @@ public class InstanceUsage
                 this.logger.error("Used server not found!");
                 return this.templateManager.render(TEMPLATE_NAME);
             }
-            List<WikiSizeResult> instanceUsage = getWikisSize();
-            scriptContext.setAttribute("instanceUsage", instanceUsage, ScriptContext.ENGINE_SCOPE);
-            int extensionCount = usageDataProvider.getExtensionCount();
-            scriptContext.setAttribute("extensionCount", extensionCount, ScriptContext.ENGINE_SCOPE);
-            long totalUsers = usageDataProvider.getInstanceUsersCount();
-            scriptContext.setAttribute("totalUsers", totalUsers, ScriptContext.ENGINE_SCOPE);
+
+            WikiDescriptor currentWikiDescriptor = this.wikiDescriptorManager.getCurrentWikiDescriptor();
+            WikiSizeResult currentWiki = usageDataProvider.getWikiSize(currentWikiDescriptor);
+            scriptContext.setAttribute("currentWikiUsage", currentWiki, ScriptContext.ENGINE_SCOPE);
+
+            scriptContext.setAttribute("extensionCount", usageDataProvider.getExtensionCount(),
+                ScriptContext.ENGINE_SCOPE);
+            scriptContext.setAttribute("totalUsers", usageDataProvider.getInstanceUsersCount(),
+                ScriptContext.ENGINE_SCOPE);
             return this.templateManager.render(TEMPLATE_NAME);
         } catch (Exception e) {
             this.logger.warn("Failed to render [{}] template. Root cause is: [{}]", TEMPLATE_NAME,
@@ -145,19 +162,92 @@ public class InstanceUsage
             .setWiki(wikiDescriptorManager.getCurrentWikiId()).bindValue("maxComments", maxComments).execute();
     }
 
-    private List<WikiSizeResult> getWikisSize()
+    /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     */
+    public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
     {
         List<WikiSizeResult> result = new ArrayList<>();
         try {
             Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManager.getAll();
-            for (WikiDescriptor wikiDescriptor : wikisDescriptors) {
-                result.add(usageDataProvider.getWikiSize(wikiDescriptor));
+            String filteredName = filters.get(NAME_KEY);
+            if (filteredName != null && !filteredName.isEmpty()) {
+                wikisDescriptors.removeIf(
+                    wiki -> !wiki.getPrettyName().toLowerCase().contains(filteredName.toLowerCase()));
+                filters.remove(NAME_KEY);
             }
+
+            for (WikiDescriptor wikiDescriptor : wikisDescriptors) {
+                WikiSizeResult wikiSizeResult = usageDataProvider.getWikiSize(wikiDescriptor);
+                if (checkFilters(filters, wikiSizeResult)) {
+                    result.add(wikiSizeResult);
+                }
+            }
+            applySort(result, sortColumn, order);
             return result;
         } catch (Exception e) {
             logger.warn("There have been issues while gathering instance usage data. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
             return new ArrayList<>();
+        }
+    }
+
+    private boolean checkFilters(Map<String, String> filters, WikiSizeResult wikiData)
+    {
+        return filters.entrySet().stream().filter(
+            filter -> filter.getValue() != null && !filter.getValue().isEmpty() && !filter.getValue()
+                .equals(INTERVAL_SEPARATOR)).allMatch(filter -> {
+                    switch (filter.getKey()) {
+                        case USER_COUNT_KEY:
+                            return wikiData.getUserCount().equals(Long.parseLong(filter.getValue()));
+                        case ATTACHMENTS_SIZE_KEY:
+                            String[] interval = filter.getValue().split(INTERVAL_SEPARATOR);
+                            long attachmentsSize = wikiData.getAttachmentsSize();
+                            long lowerBound = Long.parseLong(interval[0]);
+                            long upperBound = "x".equals(interval[1]) ? Long.MAX_VALUE : Long.parseLong(interval[1]);
+                            return attachmentsSize > lowerBound && attachmentsSize < upperBound;
+                        case ATTACHMENTS_COUNT_KEY:
+                            return wikiData.getAttachmentsCount().equals(Long.parseLong(filter.getValue()));
+                        case DOCUMENTS_COUNT_KEY:
+                            return wikiData.getDocumentsCount().equals(Long.parseLong(filter.getValue()));
+                        default:
+                            throw new IllegalArgumentException("Invalid filter field: " + filter.getKey());
+                    }
+                });
+    }
+
+    private void applySort(List<WikiSizeResult> list, String sort, String order)
+    {
+        Comparator<WikiSizeResult> comparator = null;
+        switch (sort) {
+            case NAME_KEY:
+                comparator = Comparator.comparing(WikiSizeResult::getName);
+                break;
+            case USER_COUNT_KEY:
+                comparator = Comparator.comparing(WikiSizeResult::getUserCount);
+                break;
+            case ATTACHMENTS_SIZE_KEY:
+                comparator = Comparator.comparing(WikiSizeResult::getAttachmentsSize);
+                break;
+            case ATTACHMENTS_COUNT_KEY:
+                comparator = Comparator.comparing(WikiSizeResult::getAttachmentsCount);
+                break;
+            case DOCUMENTS_COUNT_KEY:
+                comparator = Comparator.comparing(WikiSizeResult::getDocumentsCount);
+                break;
+            default:
+                break;
+        }
+        if (comparator != null) {
+            if ("desc".equals(order)) {
+                comparator = comparator.reversed();
+            }
+            list.sort(comparator);
         }
     }
 }

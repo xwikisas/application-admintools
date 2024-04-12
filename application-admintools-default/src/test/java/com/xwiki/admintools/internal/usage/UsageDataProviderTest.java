@@ -98,15 +98,13 @@ class UsageDataProviderTest
         when(docQuery.addFilter(countFilter)).thenReturn(docQuery);
         when(docQuery.execute()).thenReturn(List.of(12345L));
 
-        when(queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach",
-            "xwql")).thenReturn(attSizeQuery);
+        when(queryManager.createQuery("select sum(attach.longSize) from XWikiAttachment attach", "xwql")).thenReturn(
+            attSizeQuery);
         when(attSizeQuery.setWiki(WIKI_ID)).thenReturn(attSizeQuery);
         when(attSizeQuery.execute()).thenReturn(List.of(123456789L));
 
-        when(queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach",
-            "xwql")).thenReturn(attCountQuery);
+        when(queryManager.createQuery("select count(attach) from XWikiAttachment attach", "xwql")).thenReturn(
+            attCountQuery);
         when(attCountQuery.setWiki(WIKI_ID)).thenReturn(attCountQuery);
         when(attCountQuery.execute()).thenReturn(List.of(123456L));
 
@@ -117,7 +115,7 @@ class UsageDataProviderTest
         assertEquals(1234L, wiki.getUserCount());
         assertEquals(12345L, wiki.getDocumentsCount());
         assertEquals(123456L, wiki.getAttachmentsCount());
-        assertEquals("117.7 MB", wiki.getAttachmentsSize());
+        assertEquals("117.7 MB", wiki.getReadableAttachmentSize());
     }
 
     @Test

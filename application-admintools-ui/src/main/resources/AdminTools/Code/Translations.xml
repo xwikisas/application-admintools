@@ -130,14 +130,14 @@ adminTools.dashboard.healthcheck.linkLabel=help links
 
 ##Instance usage
 adminTools.dashboard.instanceUsage.description=See the stats related to the usage of the instance.
-adminTools.dashboard.instanceUsage.error=There have been issues while gathering info about the size of the Wikis.
 adminTools.dashboard.instanceUsage.title=Instance usage
 adminTools.dashboard.instanceUsage.total.extensions=There are {0} extensions installed.
 adminTools.dashboard.instanceUsage.total.users=There are a total of {0} users registered in this XWiki instance.
 adminTools.dashboard.instanceUsage.wiki.attachments=Number of attachments: {0} ({1})
 adminTools.dashboard.instanceUsage.wiki.documents=Number of documents: {0}
-adminTools.dashboard.instanceUsage.wiki.name=Size info for Wiki {0}
+adminTools.dashboard.instanceUsage.wiki.name=Size info for wiki {0}
 adminTools.dashboard.instanceUsage.wiki.users=Number of users: {0}
+adminTools.dashboard.instanceUsage.wiki.viewAll=View usage info for all wikis
 adminTools.dashboard.instanceUsage.specific=Specific stats
 adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} comments
 adminTools.dashboard.instanceUsage.specific.comments.hint=View a list with all the pages that have above {0} comments
@@ -204,7 +204,13 @@ adminTools.dashboard.healthcheck.modal.wikiBins.header.documentsCount=Deleted pa
 adminTools.dashboard.healthcheck.modal.wikiBins.header.attachmentsCount=Deleted attachments
 adminTools.dashboard.healthcheck.modal.wikiBins.header.totalCount=Total
 adminTools.dashboard.healthcheck.modal.wikiBins.documents=View deleted pages
-adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments</content>
+adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments
+adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsCount=Attachments count
+adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsSize=Total attachments size
+adminTools.dashboard.instanceUsage.modal.wikiSize.documentsCount=Documents count
+adminTools.dashboard.instanceUsage.modal.wikiSize.name=Wiki name
+adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
+adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>

@@ -19,8 +19,11 @@
  */
 package com.xwiki.admintools.internal.usage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Provider;
 import javax.script.ScriptContext;
@@ -54,8 +57,7 @@ import com.xwiki.licensing.Licensor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,10 +94,16 @@ class InstanceUsageTest
     private WikiDescriptor wikiDescriptor;
 
     @Mock
+    private WikiDescriptor wikiDescriptor2;
+
+    @Mock
     private ScriptContext scriptContext;
 
     @Mock
     private WikiSizeResult wikiSizeResult;
+
+    @Mock
+    private WikiSizeResult wikiSizeResult2;
 
     @MockComponent
     private QueryManager queryManager;
@@ -119,7 +127,7 @@ class InstanceUsageTest
         new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
 
     @BeforeEach
-    void setUp()
+    void setUp() throws QueryException, WikiManagerException
     {
         when(xcontextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWikiId()).thenReturn("wiki_id");
@@ -128,6 +136,9 @@ class InstanceUsageTest
 
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
+        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
+        when(wikiDescriptorManager.getCurrentWikiDescriptor()).thenReturn(wikiDescriptor);
+        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor)));
 
         when(usageDataProvider.getExtensionCount()).thenReturn(2);
         when(usageDataProvider.getInstanceUsersCount()).thenReturn(400L);
@@ -136,14 +147,13 @@ class InstanceUsageTest
     @Test
     void renderTemplate() throws Exception
     {
-        when(wikiDescriptorManager.getAll()).thenReturn(List.of(wikiDescriptor));
-        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
+        when(wikiDescriptor.getPrettyName()).thenReturn("wiki name");
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
         assertEquals("success", instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
+        verify(scriptContext).setAttribute("currentWikiUsage", wikiSizeResult, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
         assertEquals(0, logCapture.size());
@@ -162,27 +172,30 @@ class InstanceUsageTest
     @Test
     void renderTemplateGetWikisSizeInfoError() throws Exception
     {
-        when(wikiDescriptorManager.getAll()).thenThrow(new WikiManagerException("Failed to get wiki descriptors."));
-        when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
-        assertEquals("fail", instanceUsage.renderTemplate());
+        when(wikiDescriptor.getPrettyName()).thenReturn("wiki name");
+
+        when(wikiDescriptorManager.getCurrentWikiDescriptor()).thenThrow(
+            new WikiManagerException("Failed to get wiki descriptors."));
+
+        assertNull(this.instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
-        verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        assertEquals("There have been issues while gathering instance usage data. Root cause is: "
+        verify(scriptContext, never()).setAttribute("currentWikiUsage", null, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext, never()).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext, never()).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
+        assertEquals("Failed to render [wikiSizeTemplate.vm] template. Root cause is: "
             + "[WikiManagerException: Failed to get wiki descriptors.]", logCapture.getMessage(0));
     }
 
     @Test
     void renderTemplateError() throws Exception
     {
-        when(wikiDescriptorManager.getAll()).thenReturn(List.of(wikiDescriptor));
+        when(wikiDescriptor.getPrettyName()).thenReturn("wiki name");
 
         when(templateManager.render(TEMPLATE_NAME)).thenThrow(new Exception("Failed to render template."));
 
         assertNull(instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute(eq("instanceUsage"), anyList(), eq(ScriptContext.ENGINE_SCOPE));
+        verify(scriptContext).setAttribute("currentWikiUsage", wikiSizeResult, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
         assertEquals(
@@ -221,5 +234,61 @@ class InstanceUsageTest
         when(licensor.hasLicensure(mainRef)).thenReturn(false);
         when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
         assertEquals("invalid license", instanceUsage.renderTemplate());
+    }
+
+    @Test
+    void checkFilters() throws WikiManagerException, QueryException
+    {
+        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
+        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 name");
+        when(wikiSizeResult.getAttachmentsCount()).thenReturn(12345L);
+        when(wikiSizeResult.getName()).thenReturn("wiki name");
+        when(wikiSizeResult.getDocumentsCount()).thenReturn(123L);
+        when(wikiSizeResult.getUserCount()).thenReturn(12L);
+        when(wikiSizeResult.getAttachmentsSize()).thenReturn(123456L);
+
+        when(wikiSizeResult2.getAttachmentsCount()).thenReturn(1234L);
+        when(wikiSizeResult2.getName()).thenReturn("wiki2 name");
+        when(wikiSizeResult2.getDocumentsCount()).thenReturn(12L);
+        when(wikiSizeResult2.getUserCount()).thenReturn(1L);
+        when(wikiSizeResult2.getAttachmentsSize()).thenReturn(12345L);
+
+        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
+        when(usageDataProvider.getWikiSize(wikiDescriptor2)).thenReturn(wikiSizeResult2);
+
+        Map<String, String> filters = new HashMap<>(
+            Map.of("userCount", "12", "attachmentsSize", "1234-1234567", "attachmentsCount", "12345", "documentsCount",
+                "123"));
+        List<WikiSizeResult> testResults = instanceUsage.getWikisSize(filters, "", "");
+        assertEquals(1, testResults.size());
+        assertEquals("wiki name", testResults.get(0).getName());
+    }
+
+    @Test
+    void checkSort() throws WikiManagerException, QueryException
+    {
+        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
+        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 name");
+        when(wikiSizeResult.getAttachmentsCount()).thenReturn(12345L);
+        when(wikiSizeResult.getName()).thenReturn("wiki name");
+        when(wikiSizeResult.getDocumentsCount()).thenReturn(123L);
+        when(wikiSizeResult.getUserCount()).thenReturn(12L);
+        when(wikiSizeResult.getAttachmentsSize()).thenReturn(123456L);
+
+        when(wikiSizeResult2.getAttachmentsCount()).thenReturn(1234L);
+        when(wikiSizeResult2.getName()).thenReturn("wiki2 name");
+        when(wikiSizeResult2.getDocumentsCount()).thenReturn(12L);
+        when(wikiSizeResult2.getUserCount()).thenReturn(1L);
+        when(wikiSizeResult2.getAttachmentsSize()).thenReturn(1234567L);
+
+        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
+        when(usageDataProvider.getWikiSize(wikiDescriptor2)).thenReturn(wikiSizeResult2);
+
+        Map<String, String> filters =
+            new HashMap<>(Map.of("userCount", "", "attachmentsSize", "", "attachmentsCount", "", "documentsCount", ""));
+        List<WikiSizeResult> testResults = instanceUsage.getWikisSize(filters, "attachmentsSize", "desc");
+        assertEquals(2, testResults.size());
+        assertEquals("wiki2 name", testResults.get(0).getName());
+        assertEquals("wiki name", testResults.get(1).getName());
     }
 }

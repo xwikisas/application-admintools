@@ -35,9 +35,9 @@ import org.xwiki.query.QueryException;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.usage.WikiRecycleBins;
+import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.usage.InstanceUsage;
@@ -175,5 +175,18 @@ public class AdminToolsManager
         throws WikiManagerException
     {
         return this.recycleBinsManager.getWikisRecycleBinsSize(filters, sortColumn, order);
+    }
+
+    /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     */
+    public List<WikiSizeResult> getWikiSizeResults(Map<String, String> filters, String sortColumn, String order)
+    {
+        return this.instanceUsage.getWikisSize(filters, sortColumn, order);
     }
 }
