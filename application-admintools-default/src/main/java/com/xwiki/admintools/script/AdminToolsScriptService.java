@@ -98,7 +98,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
      * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
-     * @throws AccessDeniedException
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
      */
     public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
         throws AccessDeniedException

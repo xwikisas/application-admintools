@@ -57,6 +57,7 @@ import com.xwiki.licensing.Licensor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -173,14 +174,15 @@ class InstanceUsageTest
     {
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki name");
 
-        when(wikiDescriptorManager.getAll()).thenThrow(new WikiManagerException("Failed to get wiki descriptors."));
-        when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
-        assertEquals("fail", instanceUsage.renderTemplate());
+        when(wikiDescriptorManager.getCurrentWikiDescriptor()).thenThrow(
+            new WikiManagerException("Failed to get wiki descriptors."));
+
+        assertNull(this.instanceUsage.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("currentWikiUsage", null, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
-        verify(scriptContext).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
-        assertEquals("There have been issues while gathering instance usage data. Root cause is: "
+        verify(scriptContext, never()).setAttribute("currentWikiUsage", null, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext, never()).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
+        verify(scriptContext, never()).setAttribute("totalUsers", 400L, ScriptContext.ENGINE_SCOPE);
+        assertEquals("Failed to render [wikiSizeTemplate.vm] template. Root cause is: "
             + "[WikiManagerException: Failed to get wiki descriptors.]", logCapture.getMessage(0));
     }
 

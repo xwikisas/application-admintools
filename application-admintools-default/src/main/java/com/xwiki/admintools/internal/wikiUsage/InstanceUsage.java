@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -132,9 +131,8 @@ public class InstanceUsage
                 return this.templateManager.render(TEMPLATE_NAME);
             }
 
-            String wikiName = this.wikiDescriptorManager.getCurrentWikiDescriptor().getPrettyName();
-            List<WikiSizeResult> currentWikiUsage = getWikisSize(new HashMap<>(Map.of(NAME_KEY, wikiName)), "", "");
-            WikiSizeResult currentWiki = !currentWikiUsage.isEmpty() ? currentWikiUsage.get(0) : null;
+            WikiDescriptor currentWikiDescriptor = this.wikiDescriptorManager.getCurrentWikiDescriptor();
+            WikiSizeResult currentWiki = usageDataProvider.getWikiSize(currentWikiDescriptor);
             scriptContext.setAttribute("currentWikiUsage", currentWiki, ScriptContext.ENGINE_SCOPE);
 
             scriptContext.setAttribute("extensionCount", usageDataProvider.getExtensionCount(),

@@ -20,11 +20,11 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.WikisSize" locale="">
-  <web>AdminTools.Code</web>
+<xwikidoc version="1.5" reference="AdminTools.WikisSize" locale="">
+  <web>AdminTools</web>
   <name>WikisSize</name>
   <language/>
-  <defaultLanguage/>
+  <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>AdminTools.WebHome</parent>
@@ -35,10 +35,10 @@
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
+  <hidden>false</hidden>
   <content>{{velocity}}
 #set ($sourceParameters = $escapetool.url({
-    'className': 'AdminTools.Code.WikisSize',
+    'className': 'AdminTools.WikisSize',
     'resultPage': 'AdminTools.Code.WikisSizeJSON',
     'translationPrefix': 'adminTools.dashboard.instanceUsage.modal.wikiSize.'
   }))
@@ -66,7 +66,7 @@
   }}$jsontool.serialize($liveDataConfig){{/liveData}}
 {{/velocity}}</content>
   <class>
-    <name>AdminTools.Code.WikisSize</name>
+    <name>AdminTools.WikisSize</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>
