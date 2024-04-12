@@ -36,12 +36,12 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.usage.WikiRecycleBins;
-import com.xwiki.admintools.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.usage.InstanceUsage;
 import com.xwiki.admintools.internal.usage.RecycleBinsManager;
+import com.xwiki.admintools.usage.WikiRecycleBins;
+import com.xwiki.admintools.usage.WikiSizeResult;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.
@@ -151,9 +151,8 @@ public class AdminToolsManager
      * @param maxComments maximum number of comments below which the page is ignored.
      * @return a {@link List} with the documents that have more than the given number of comments.
      * @throws QueryException if the query to retrieve the document fails.
-     * @throws XWikiException if a document is not found.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
+    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException
     {
         return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
     }
