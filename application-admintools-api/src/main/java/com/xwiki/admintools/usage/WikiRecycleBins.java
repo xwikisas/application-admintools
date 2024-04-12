@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.health;
+package com.xwiki.admintools.usage;
 
 import org.xwiki.stability.Unstable;
 
@@ -34,9 +34,9 @@ public class WikiRecycleBins
 
     private String wikiName;
 
-    private long documentsCount;
+    private Long documentsCount;
 
-    private long attachmentsCount;
+    private Long attachmentsCount;
 
     /**
      * Initialise an empty {@link WikiRecycleBins}.
@@ -50,7 +50,7 @@ public class WikiRecycleBins
      *
      * @return number of deleted attachments in wiki.
      */
-    public long getAttachmentsCount()
+    public Long getAttachmentsCount()
     {
         return attachmentsCount;
     }
@@ -70,7 +70,7 @@ public class WikiRecycleBins
      *
      * @return number of deleted documents in wiki.
      */
-    public long getDocumentsCount()
+    public Long getDocumentsCount()
     {
         return documentsCount;
     }
@@ -123,5 +123,15 @@ public class WikiRecycleBins
     public void setWikiId(String wikiId)
     {
         this.wikiId = wikiId;
+    }
+
+    /**
+     * Get the total number of documents and attachments in a recycle bin.
+     *
+     * @return the total number of documents and attachments.
+     */
+    public Long getTotal()
+    {
+        return documentsCount + attachmentsCount;
     }
 }

@@ -199,10 +199,10 @@ adminTools.dashboard.healthcheck.modal.content=Are you sure you want to flush th
 adminTools.dashboard.healthcheck.modal.button=Confirm
 adminTools.dashboard.healthcheck.modal.wikiBins.title=Recycle bins size for all wikis
 adminTools.dashboard.healthcheck.modal.wikiBins.error=There has been an error while gathering recycle bins size info for all wikis.
-adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki=Wiki
-adminTools.dashboard.healthcheck.modal.wikiBins.header.page=Deleted pages
-adminTools.dashboard.healthcheck.modal.wikiBins.header.attach=Deleted attachments
-adminTools.dashboard.healthcheck.modal.wikiBins.header.total=Total
+adminTools.dashboard.healthcheck.modal.wikiBins.header.wikiName=Wiki name
+adminTools.dashboard.healthcheck.modal.wikiBins.header.documentsCount=Deleted pages
+adminTools.dashboard.healthcheck.modal.wikiBins.header.attachmentsCount=Deleted attachments
+adminTools.dashboard.healthcheck.modal.wikiBins.header.totalCount=Total
 adminTools.dashboard.healthcheck.modal.wikiBins.documents=View deleted pages
 adminTools.dashboard.healthcheck.modal.wikiBins.attachments=View deleted attachments</content>
   <object>

@@ -244,45 +244,7 @@
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            #set($wikisRecycleBin = $services.admintools.getWikisRecycleBinSize())
-            #if ($wikisRecycleBin != $null)
-              &lt;table id="wikisBins" class="sortable doOddEven centered"&gt;
-                &lt;tr class="sortHeader"&gt;
-                  &lt;th&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.healthcheck.modal.wikiBins.header.wiki'))&lt;/th&gt;
-                  &lt;th&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.healthcheck.modal.wikiBins.header.page'))&lt;/th&gt;
-                  &lt;th&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.healthcheck.modal.wikiBins.header.attach'))&lt;/th&gt;
-                  &lt;th&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.healthcheck.modal.wikiBins.header.total'))&lt;/th&gt;
-                &lt;/tr&gt;
-                #foreach($wikiBin in $wikisRecycleBin)
-                  #set ($allDocsRef = $services.model.createDocumentReference($wikiBin.getWikiId(), 'Main', 'AllDocs'))
-                  #set ($wikiBinTotal = $wikiBin.getDocumentsCount() + $wikiBin.getAttachmentsCount())
-                  &lt;tr&gt;
-                    &lt;td&gt;$wikiBin.getWikiName()&lt;/td&gt;
-                    &lt;td&gt;
-                      &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedDocs'}))}"
-                        target="_blank" title="$escapetool.xml($services.localization.render(
-                        'adminTools.dashboard.healthcheck.modal.wikiBins.documents'))"&gt;
-                          $wikiBin.getDocumentsCount()&lt;/a&gt;
-                    &lt;/td&gt;
-                    &lt;td&gt;
-                      &lt;a href="${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedAttachments'}))}"
-                        target="_blank" title="$escapetool.xml($services.localization.render(
-                        'adminTools.dashboard.healthcheck.modal.wikiBins.attachments'))"&gt;
-                          $wikiBin.getAttachmentsCount()&lt;/a&gt;
-                    &lt;/td&gt;
-                    &lt;td&gt;$wikiBinTotal&lt;/td&gt;
-                  &lt;/tr&gt;
-                #end
-              &lt;/table&gt;
-            #else
-              #set($warningMessage = $escapetool.xml($services.localization.render(
-                'adminTools.dashboard.healthcheck.modal.wikiBins.error')))
-              #error($warningMessage)
-            #end
+            {{include reference="AdminTools.WikisRecycleBins" /}}
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;

@@ -20,6 +20,7 @@
 package com.xwiki.admintools.script;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,7 +42,7 @@ import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
-import com.xwiki.admintools.health.WikiRecycleBins;
+import com.xwiki.admintools.usage.WikiRecycleBins;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
@@ -214,14 +215,18 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
-     * Get recycle bin info for all wikis in your instance.
+     * Get recycle bin info for all wikis in your instance with the options to sort and apply filters on it.
      *
-     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
-     *     the instance.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
+     *     info for wikis of the instance.
      */
-    public List<WikiRecycleBins> getWikisRecycleBinSize() throws AccessDeniedException, WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinSize(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException, WikiManagerException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getWikisRecycleBinsSize();
+        return adminToolsManager.getWikisRecycleBinsSize(filters, sortColumn, order);
     }
 }

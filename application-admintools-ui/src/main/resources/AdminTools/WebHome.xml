@@ -321,7 +321,7 @@
     <property>
       <content>{{velocity}}
 =$services.icon.render('drive') {{translation key='adminTools.dashboard.instanceUsage.title'/}}=
-{{html}}
+{{html clean='false', wiki='true'}}
   $services.admintools.getInstanceSizeSection()
 {{/html}}
 {{/velocity}}</content>
