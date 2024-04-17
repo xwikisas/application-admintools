@@ -26,7 +26,8 @@ com.xwiki.admintools.internal.health.checks.performance.PhysicalSpaceHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.CacheMemoryHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.MemoryHealthCheck
 com.xwiki.admintools.internal.health.job.HealthCheckJob
-com.xwiki.admintools.internal.usage.RecycleBinsManager
+com.xwiki.admintools.internal.usage.RecycleBinsProvider
 com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
 com.xwiki.admintools.internal.usage.UsageDataProvider
-com.xwiki.admintools.internal.usage.InstanceUsage
+com.xwiki.admintools.internal.usage.InstanceUsageManager
+com.xwiki.admintools.internal.usage.SpamPagesProvider

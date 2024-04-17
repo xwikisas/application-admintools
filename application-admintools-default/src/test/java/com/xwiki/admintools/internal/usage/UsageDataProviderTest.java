@@ -36,7 +36,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
-import com.xwiki.admintools.usage.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

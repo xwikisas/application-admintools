@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="AdminTools.Code.Macros" /}}
+
+{{velocity}}
 #if ($xcontext.action == 'get')
   #set ($offset = $numbertool.toNumber($request.offset).intValue())
   ## The offset sent by the live table starts at 1.
@@ -63,12 +65,7 @@
   #set ($wikisRecycleBin = $services.admintools.getWikisRecycleBinSize($filters, $sort, $order))
   #if ($offset &lt; $wikisRecycleBin.size())
     #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $wikisRecycleBin.size()))
-    #set ($resultList = [])
-    #set ($toIndex = $mathtool.sub($toIndex, 1))
-    #foreach ($i in [$offset..$toIndex])
-      #set ($element = $wikisRecycleBin.get($i))
-      #set ($discard = $resultList.add($element))
-    #end
+    #getSubset($wikisRecycleBin, $offset, $toIndex, $resultList)
   #end
   #set ($results = {
     "totalrows": $wikisRecycleBin.size(),

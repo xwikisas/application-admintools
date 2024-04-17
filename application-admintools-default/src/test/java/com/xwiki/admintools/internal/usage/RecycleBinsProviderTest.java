@@ -38,17 +38,16 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.usage.WikiRecycleBins;
-import com.xwiki.admintools.usage.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class RecycleBinsManagerTest
+class RecycleBinsProviderTest
 {
     @InjectMockComponents
-    RecycleBinsManager recycleBinsManager;
+    RecycleBinsProvider recycleBinsProvider;
 
     @MockComponent
     WikiDescriptorManager wikiDescriptorManager;

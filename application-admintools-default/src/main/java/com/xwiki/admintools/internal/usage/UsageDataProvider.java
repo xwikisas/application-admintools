@@ -19,9 +19,12 @@
  */
 package com.xwiki.admintools.internal.usage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,16 +43,17 @@ import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 
-import com.xwiki.admintools.usage.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
+import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
- * Retrieves {@link Ping} data from Active Installs 2.
+ * Retrieves info related to the wiki and instance.
  *
  * @version $Id$
  */
 @Component(roles = UsageDataProvider.class)
 @Singleton
-public class UsageDataProvider
+public class UsageDataProvider extends AbstractInstanceUsageProvider
 {
     private static final String METADATA_NAME = "name";
 
@@ -133,6 +137,35 @@ public class UsageDataProvider
     }
 
     /**
+     * Get instance wikis size info, like documents, attachments and users count.
+     *
+     * @param searchedWikis {@link Collection} of the searched wikis.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn the column after which to be sorted.
+     * @param order the sort oder.
+     * @return a sorted and filtered {@link List} of {@link WikiSizeResult} objects containing size info for wikis in
+     *     instance.
+     */
+    public List<WikiSizeResult> getWikisSize(Collection<WikiDescriptor> searchedWikis, Map<String, String> filters,
+        String sortColumn, String order)
+    {
+        List<WikiUsageResult> results = new ArrayList<>();
+        searchedWikis.forEach(wikiDescriptor -> {
+            try {
+                WikiSizeResult wikiRecycleBinResult = getWikiSize(wikiDescriptor);
+                if (checkFilters(filters, wikiRecycleBinResult)) {
+                    results.add(wikiRecycleBinResult);
+                }
+            } catch (QueryException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        applySort(results, sortColumn, order);
+        return results.stream().filter(WikiSizeResult.class::isInstance).map(WikiSizeResult.class::cast)
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Retrieve info about the size of a given wiki.
      *
      * @param wikiDescriptor the wiki for which the data will be retrieved.
@@ -143,7 +176,7 @@ public class UsageDataProvider
     {
         WikiSizeResult wikiData = new WikiSizeResult();
         String wikiId = wikiDescriptor.getId();
-        wikiData.setName(wikiDescriptor.getPrettyName());
+        wikiData.setWikiName(wikiDescriptor.getPrettyName());
         wikiData.setUserCount(getWikiUserCount(wikiId));
         wikiData.setDocumentsCount(getWikiDocumentsCount(wikiId));
         wikiData.setAttachmentsCount(getWikiAttachmentsCount(wikiId));

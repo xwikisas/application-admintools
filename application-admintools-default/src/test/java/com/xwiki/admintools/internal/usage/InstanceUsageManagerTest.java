@@ -50,8 +50,8 @@ import org.xwiki.wiki.manager.WikiManagerException;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.ServerInfo;
-import com.xwiki.admintools.usage.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,12 +62,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class InstanceUsageTest
+class InstanceUsageManagerTest
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
 
     @InjectMockComponents
-    private InstanceUsage instanceUsage;
+    private InstanceUsageManager instanceUsageManager;
 
     @MockComponent
     private UsageDataProvider usageDataProvider;
@@ -151,7 +151,7 @@ class InstanceUsageTest
 
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("success");
 
-        assertEquals("success", instanceUsage.renderTemplate());
+        assertEquals("success", instanceUsageManager.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("currentWikiUsage", wikiSizeResult, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
@@ -164,7 +164,7 @@ class InstanceUsageTest
     {
         when(currentServer.getCurrentServer()).thenReturn(null);
         when(templateManager.render(TEMPLATE_NAME)).thenReturn("fail");
-        assertEquals("fail", instanceUsage.renderTemplate());
+        assertEquals("fail", instanceUsageManager.renderTemplate());
         verify(scriptContext).setAttribute("found", false, ScriptContext.ENGINE_SCOPE);
         assertEquals("Used server not found!", logCapture.getMessage(0));
     }
@@ -177,7 +177,7 @@ class InstanceUsageTest
         when(wikiDescriptorManager.getCurrentWikiDescriptor()).thenThrow(
             new WikiManagerException("Failed to get wiki descriptors."));
 
-        assertNull(this.instanceUsage.renderTemplate());
+        assertNull(this.instanceUsageManager.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext, never()).setAttribute("currentWikiUsage", null, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext, never()).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
@@ -193,7 +193,7 @@ class InstanceUsageTest
 
         when(templateManager.render(TEMPLATE_NAME)).thenThrow(new Exception("Failed to render template."));
 
-        assertNull(instanceUsage.renderTemplate());
+        assertNull(instanceUsageManager.renderTemplate());
         verify(scriptContext).setAttribute("found", true, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("currentWikiUsage", wikiSizeResult, ScriptContext.ENGINE_SCOPE);
         verify(scriptContext).setAttribute("extensionCount", 2, ScriptContext.ENGINE_SCOPE);
