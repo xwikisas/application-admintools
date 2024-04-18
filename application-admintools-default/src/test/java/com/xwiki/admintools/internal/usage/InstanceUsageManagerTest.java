@@ -47,7 +47,6 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.api.Document;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -287,7 +286,7 @@ class InstanceUsageManagerTest
         List<WikiRecycleBins> wikiRecycleBinsList =
             instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER);
         assertEquals(1, wikiRecycleBinsList.size());
-        assertEquals(wikiRecycleBins,  wikiRecycleBinsList.get(0));
+        assertEquals(wikiRecycleBins, wikiRecycleBinsList.get(0));
     }
 
     @Test

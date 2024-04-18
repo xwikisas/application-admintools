@@ -38,7 +38,7 @@
   <hidden>false</hidden>
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
-#set ($sourceParameters = $escapetool.url({
+  #set ($sourceParameters = $escapetool.url({
     'resultPage': 'AdminTools.Code.WikisRecycleBinsJSON',
     'translationPrefix': 'adminTools.dashboard.healthcheck.modal.wikiBins.header.'
   }))
