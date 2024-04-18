@@ -83,7 +83,14 @@ public class RecycleBinsProvider extends AbstractInstanceUsageProvider
             .collect(Collectors.toList());
     }
 
-    private WikiRecycleBins getWikiRecycleBinsSize(WikiDescriptor wikiDescriptor) throws QueryException
+    /**
+     * Get wiki recycle bins info, like deleted documents and attachments.
+     *
+     * @param wikiDescriptor the wiki for which the data will be retrieved.
+     * @return a {@link WikiRecycleBins} containing info about the recycle bins of the wiki.
+     * @throws QueryException if there are any exceptions while running the queries for data retrieval.
+     */
+    public WikiRecycleBins getWikiRecycleBinsSize(WikiDescriptor wikiDescriptor) throws QueryException
     {
         String wikiId = wikiDescriptor.getId();
         WikiRecycleBins result = new WikiRecycleBins();

@@ -31,7 +31,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 
-import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -147,7 +147,7 @@ public class AdminToolsManager
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<Document> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
         String sortColumn, String order)
     {
         return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);

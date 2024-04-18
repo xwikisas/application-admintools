@@ -24,10 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
-import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
@@ -54,7 +55,7 @@ public abstract class AbstractInstanceUsageProvider
     private static final String DESCENDING_ORDER = "desc";
 
     @Inject
-    private WikiDescriptorManager wikiDescriptorManager;
+    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
 
     /**
      * Check if a {@link WikiUsageResult} matches the given filters.
@@ -136,21 +137,22 @@ public abstract class AbstractInstanceUsageProvider
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
      */
-    public void applySpamSort(List<Document> list, String sortColumn, String order)
+    public void applySpamSort(List<XWikiDocument> list, String sortColumn, String order)
     {
-        Comparator<Document> comparator = null;
+        Comparator<XWikiDocument> comparator = null;
         switch (sortColumn) {
             case WIKI_NAME_KEY:
                 comparator = Comparator.comparing(doc -> {
                     try {
-                        return wikiDescriptorManager.getById(doc.getWiki()).getPrettyName();
+                        return wikiDescriptorManagerProvider.get()
+                            .getById(doc.getDocumentReference().getWikiReference().getName()).getPrettyName();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 });
                 break;
             case "docName":
-                comparator = Comparator.comparing(Document::getTitle);
+                comparator = Comparator.comparing(XWikiDocument::getTitle);
                 break;
             case "numberOfComments":
                 comparator = Comparator.comparing(doc -> doc.getComments().size());

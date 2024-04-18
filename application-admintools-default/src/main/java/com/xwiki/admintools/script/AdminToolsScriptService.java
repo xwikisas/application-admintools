@@ -39,7 +39,7 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -170,10 +170,9 @@ public class AdminToolsScriptService implements ScriptService
      * @param filters {@link Map} of filters to be applied on the gathered list.
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
-     *     any errors.
+     * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<Document> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
         String sortColumn, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);

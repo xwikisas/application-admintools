@@ -36,13 +36,12 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
-import org.xwiki.security.authorization.Right;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.api.Document;
-import com.xpn.xwiki.api.XWiki;
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Provide data for the documents that are spammed.
@@ -77,6 +76,10 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
     @Named("document")
     private QueryFilter documentFilter;
 
+    @Inject
+    @Named("viewable")
+    private QueryFilter viewableFilter;
+
     /**
      * Retrieves the documents that have more than a given number of comments.
      *
@@ -87,20 +90,19 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<Document> getDocumentsOverGivenNumberOfComments(Collection<WikiDescriptor> searchedWikis,
+    public List<XWikiDocument> getDocumentsOverGivenNumberOfComments(Collection<WikiDescriptor> searchedWikis,
         long maxComments, Map<String, String> filters, String sortColumn, String order)
     {
-        List<Document> spammedDocuments = new ArrayList<>();
+        List<XWikiDocument> spammedDocuments = new ArrayList<>();
         searchedWikis.forEach(wikiDescriptor -> {
             try {
-                XWiki xWiki = new XWiki(xcontextProvider.get().getWiki(), xcontextProvider.get());
                 List<DocumentReference> queryResults =
                     getCommentsForWiki(maxComments, filters.get("docName"), wikiDescriptor.getId());
                 for (DocumentReference docRef : queryResults) {
-                    Document wikiDocument = xWiki.getDocument(docRef);
-                    if (wikiDocument.hasAccess(Right.VIEW)) {
-                        spammedDocuments.add(wikiDocument);
-                    }
+                    XWikiContext xWikiContext = xcontextProvider.get();
+                    XWiki xWiki = xWikiContext.getWiki();
+                    XWikiDocument wikiDocument = xWiki.getDocument(docRef, xWikiContext);
+                    spammedDocuments.add(wikiDocument);
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -110,20 +112,30 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
         return spammedDocuments;
     }
 
-    private List<DocumentReference> getCommentsForWiki(long maxComments, String searchedName, String wikiId)
+    /**
+     * Get the references of documents in wiki with comments above a given limit.
+     *
+     * @param maxComments maximum number of comments below which the document is ignored.
+     * @param searchedDocument document hint to be searched.
+     * @param wikiId the wiki for which the data will be retrieved.
+     * @return a {@link List} with the {@link DocumentReference} of the documents with comments above a given limit.
+     * @throws QueryException if there are any exceptions while running the queries for data retrieval.
+     */
+    public List<DocumentReference> getCommentsForWiki(long maxComments, String searchedDocument, String wikiId)
         throws QueryException
     {
         String searchString;
-        if (searchedName == null) {
+        if (searchedDocument == null || searchedDocument.isEmpty()) {
             searchString = "%";
         } else {
-            searchString = String.format("%%%s%%", searchedName);
+            searchString = String.format("%%%s%%", searchedDocument);
         }
         return this.queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
                 + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
                 + "and lower(doc.title) like lower(:searchString) "
                 + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL).setWiki(wikiId)
             .bindValue("maxComments", maxComments).bindValue("searchString", searchString)
-            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter).execute();
+            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter)
+            .addFilter(viewableFilter).execute();
     }
 }

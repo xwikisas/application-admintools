@@ -60,7 +60,8 @@
       'wikiName' : $request.get('wikiName'),
       'docName' : $request.get('docName')
     })
-    #set ($spammedPages = $services.admintools.getPagesOverGivenNumberOfComments(2, $filters, $sort, $order))
+    #set ($spamLimit = $services.admintools.getMinimumSpamSize())
+    #set ($spammedPages = $services.admintools.getPagesOverGivenNumberOfComments($spamLimit, $filters, $sort, $order))
     #if ($offset &lt; $spammedPages.size())
       #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $spammedPages.size()))
       #getSubset($spammedPages, $offset, $toIndex, $resultList)
@@ -72,8 +73,9 @@
       "rows": []
     })
     #foreach ($currentEntry in $resultList)
-      #set ($doc = "&lt;a href='$xwiki.getURL($currentEntry.getDocumentReference())'&gt;$currentEntry.getTitle()&lt;/a&gt;")
-      #set ($wikiDescriptor = $services.wiki.getById($currentEntry.getWiki()))
+      #set ($docReference = $currentEntry.getDocumentReference())
+      #set ($doc = "&lt;a href='$xwiki.getURL($docReference)'&gt;$currentEntry.getTitle()&lt;/a&gt;")
+      #set ($wikiDescriptor = $services.wiki.getById($docReference.getWikiReference().getName()))
       #set ($discard = $results.rows.add({
         'wikiName' : $wikiDescriptor.getPrettyName(),
         'docName' : $doc,

@@ -191,9 +191,9 @@ public class UsageDataProvider extends AbstractInstanceUsageProvider
         statement.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
         statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
 
-        Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
-        query.addFilter(this.countFilter).setWiki(wikiId);
-        List<Long> results = query.execute();
+        List<Long> results =
+            this.queryManager.createQuery(statement.toString(), Query.HQL).addFilter(this.countFilter).setWiki(wikiId)
+                .execute();
         return results.get(0);
     }
 

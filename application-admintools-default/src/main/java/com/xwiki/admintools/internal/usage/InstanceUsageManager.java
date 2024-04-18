@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.usage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +40,7 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
@@ -148,7 +147,7 @@ public class InstanceUsageManager
         } catch (Exception e) {
             logger.warn("There have been issues while gathering instance usage data. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
-            return new ArrayList<>();
+            throw new RuntimeException(e);
         }
     }
 
@@ -161,7 +160,7 @@ public class InstanceUsageManager
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<Document> getSpammedPages(long maxComments, Map<String, String> filters, String sortColumn,
+    public List<XWikiDocument> getSpammedPages(long maxComments, Map<String, String> filters, String sortColumn,
         String order)
     {
         try {

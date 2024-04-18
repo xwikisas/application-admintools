@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal.usage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryManager;
 import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.test.LogLevel;
@@ -48,12 +47,15 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.api.Document;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.licensing.Licensor;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -65,6 +67,13 @@ import static org.mockito.Mockito.when;
 class InstanceUsageManagerTest
 {
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
+
+    private static final String SORT_COLUMN = "sort column";
+
+    private static final String SORT_ORDER = "sort order";
+
+    private final DocumentReference mainRef =
+        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
 
     @InjectMockComponents
     private InstanceUsageManager instanceUsageManager;
@@ -87,6 +96,12 @@ class InstanceUsageManagerTest
     @MockComponent
     private ScriptContextManager scriptContextManager;
 
+    @MockComponent
+    private SpamPagesProvider spamPagesProvider;
+
+    @MockComponent
+    private RecycleBinsProvider recycleBinsProvider;
+
     @Mock
     private ServerInfo serverInfo;
 
@@ -103,13 +118,7 @@ class InstanceUsageManagerTest
     private WikiSizeResult wikiSizeResult;
 
     @Mock
-    private WikiSizeResult wikiSizeResult2;
-
-    @MockComponent
-    private QueryManager queryManager;
-
-    @Mock
-    private Query docQuery;
+    private WikiRecycleBins wikiRecycleBins;
 
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
@@ -123,8 +132,10 @@ class InstanceUsageManagerTest
     @Mock
     private Licensor licensor;
 
-    private DocumentReference mainRef =
-        new DocumentReference("wiki_id", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
+    @Mock
+    private XWikiDocument document;
+
+    private Map<String, String> filters = new HashMap<>(Map.of("wikiName", ""));
 
     @BeforeEach
     void setUp() throws QueryException, WikiManagerException
@@ -204,91 +215,92 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getPagesOverGivenNumberOfComments() throws QueryException, XWikiException
-    {
-        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
-        when(queryManager.createQuery("select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
-            + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenReturn(docQuery);
-        when(docQuery.setWiki("wikiId")).thenReturn(docQuery);
-        when(docQuery.bindValue("maxComments", 2L)).thenReturn(docQuery);
-        when(docQuery.execute()).thenReturn(List.of("Page.one"));
-        assertEquals(1, instanceUsage.getDocumentsOverGivenNumberOfComments(2).size());
-    }
-
-    @Test
-    void getPagesOverGivenNumberOfCommentsError() throws QueryException
-    {
-        when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("wikiId");
-        when(queryManager.createQuery("select obj.name from BaseObject obj where obj.className='XWiki.XWikiComments' "
-            + "group by obj.name having count(*) > :maxComments order by count(*) desc", "hql")).thenThrow(
-            new QueryException("ERROR IN QUERY", docQuery, null));
-        Exception exception = assertThrows(QueryException.class, () -> {
-            this.instanceUsage.getDocumentsOverGivenNumberOfComments(5);
-        });
-        assertEquals("ERROR IN QUERY. Query statement = [null]", exception.getMessage());
-    }
-
-    @Test
     void getRenderedDataInvalidLicense() throws Exception
     {
         when(licensor.hasLicensure(mainRef)).thenReturn(false);
         when(templateManager.render("licenseError.vm")).thenReturn("invalid license");
-        assertEquals("invalid license", instanceUsage.renderTemplate());
+        assertEquals("invalid license", instanceUsageManager.renderTemplate());
     }
 
     @Test
-    void checkFilters() throws WikiManagerException, QueryException
+    void getWikisSize()
     {
-        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
-        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 name");
-        when(wikiSizeResult.getAttachmentsCount()).thenReturn(12345L);
-        when(wikiSizeResult.getName()).thenReturn("wiki name");
-        when(wikiSizeResult.getDocumentsCount()).thenReturn(123L);
-        when(wikiSizeResult.getUserCount()).thenReturn(12L);
-        when(wikiSizeResult.getAttachmentsSize()).thenReturn(123456L);
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
+        List<WikiSizeResult> docs = List.of(wikiSizeResult);
+        when(usageDataProvider.getWikisSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
 
-        when(wikiSizeResult2.getAttachmentsCount()).thenReturn(1234L);
-        when(wikiSizeResult2.getName()).thenReturn("wiki2 name");
-        when(wikiSizeResult2.getDocumentsCount()).thenReturn(12L);
-        when(wikiSizeResult2.getUserCount()).thenReturn(1L);
-        when(wikiSizeResult2.getAttachmentsSize()).thenReturn(12345L);
-
-        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
-        when(usageDataProvider.getWikiSize(wikiDescriptor2)).thenReturn(wikiSizeResult2);
-
-        Map<String, String> filters = new HashMap<>(
-            Map.of("userCount", "12", "attachmentsSize", "1234-1234567", "attachmentsCount", "12345", "documentsCount",
-                "123"));
-        List<WikiSizeResult> testResults = instanceUsage.getWikisSize(filters, "", "");
-        assertEquals(1, testResults.size());
-        assertEquals("wiki name", testResults.get(0).getName());
+        assertArrayEquals(docs.toArray(),
+            instanceUsageManager.getWikisSize(filters, SORT_COLUMN, SORT_ORDER).toArray());
     }
 
     @Test
-    void checkSort() throws WikiManagerException, QueryException
+    void getWikisSizeError()
     {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
+        when(usageDataProvider.getWikisSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
+        Exception exception = assertThrows(RuntimeException.class,
+            () -> instanceUsageManager.getWikisSize(filters, SORT_COLUMN, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering instance usage data. Root cause is: [RuntimeException: Runtime error]",
+            logCapture.getMessage(0));
+    }
+
+    @Test
+    void getSpammedPages() throws QueryException
+    {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
+        List<XWikiDocument> docs = List.of(document);
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptors, 2, filters, SORT_COLUMN,
+            SORT_ORDER)).thenReturn(docs);
+
+        assertArrayEquals(docs.toArray(),
+            instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER).toArray());
+    }
+
+    @Test
+    void getPagesOverGivenNumberOfCommentsError()
+    {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptors, 2, filters, SORT_COLUMN,
+            SORT_ORDER)).thenThrow(new RuntimeException("Runtime error"));
+        Exception exception = assertThrows(RuntimeException.class,
+            () -> instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering wikis spammed pages. Root cause is: [RuntimeException: Runtime error]",
+            logCapture.getMessage(0));
+    }
+
+    @Test
+    void getWikisRecycleBinsData() throws WikiManagerException
+    {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2));
+        when(wikiDescriptor.getPrettyName()).thenReturn("wiki name 1");
+        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki name 2");
         when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
-        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 name");
-        when(wikiSizeResult.getAttachmentsCount()).thenReturn(12345L);
-        when(wikiSizeResult.getName()).thenReturn("wiki name");
-        when(wikiSizeResult.getDocumentsCount()).thenReturn(123L);
-        when(wikiSizeResult.getUserCount()).thenReturn(12L);
-        when(wikiSizeResult.getAttachmentsSize()).thenReturn(123456L);
+        List<WikiRecycleBins> docs = List.of(wikiRecycleBins);
+        filters.put("wikiName", "name 2");
+        when(recycleBinsProvider.getWikisRecycleBinsSize(List.of(wikiDescriptor2), filters, SORT_COLUMN,
+            SORT_ORDER)).thenReturn(docs);
+        List<WikiRecycleBins> wikiRecycleBinsList =
+            instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER);
+        assertEquals(1, wikiRecycleBinsList.size());
+        assertEquals(wikiRecycleBins,  wikiRecycleBinsList.get(0));
+    }
 
-        when(wikiSizeResult2.getAttachmentsCount()).thenReturn(1234L);
-        when(wikiSizeResult2.getName()).thenReturn("wiki2 name");
-        when(wikiSizeResult2.getDocumentsCount()).thenReturn(12L);
-        when(wikiSizeResult2.getUserCount()).thenReturn(1L);
-        when(wikiSizeResult2.getAttachmentsSize()).thenReturn(1234567L);
-
-        when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
-        when(usageDataProvider.getWikiSize(wikiDescriptor2)).thenReturn(wikiSizeResult2);
-
-        Map<String, String> filters =
-            new HashMap<>(Map.of("userCount", "", "attachmentsSize", "", "attachmentsCount", "", "documentsCount", ""));
-        List<WikiSizeResult> testResults = instanceUsage.getWikisSize(filters, "attachmentsSize", "desc");
-        assertEquals(2, testResults.size());
-        assertEquals("wiki2 name", testResults.get(0).getName());
-        assertEquals("wiki name", testResults.get(1).getName());
+    @Test
+    void getWikisRecycleBinsDataError()
+    {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
+        when(recycleBinsProvider.getWikisRecycleBinsSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
+        Exception exception = assertThrows(RuntimeException.class,
+            () -> instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering wikis recycle bins data. Root cause is: [RuntimeException: Runtime error]",
+            logCapture.getMessage(0));
     }
 }
