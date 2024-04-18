@@ -80,11 +80,11 @@
     #set ($allDocsRef = $services.model.createDocumentReference($currentEntry.getWikiId(), 'Main', 'AllDocs'))
     #set ($wikiBinTotal = $currentEntry.getDocumentsCount() + $currentEntry.getAttachmentsCount())
     #set ($docCount = "&lt;a href=${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedDocs'}))}
-                      target='_blank' title='$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.documents'))'&gt;
-                      $currentEntry.getDocumentsCount()&lt;/a&gt;")
+      target='_blank' title='$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.documents'))'&gt;
+      $currentEntry.getDocumentsCount()&lt;/a&gt;")
     #set ($attachCount = "&lt;a href=${xwiki.getURL($allDocsRef, 'view', $escapetool.url({'view': 'deletedAttachments'}))}
-                         target='_blank' title='$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.attachments'))'&gt;
-                         $currentEntry.getAttachmentsCount()&lt;/a&gt;")
+      target='_blank' title='$escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.wikiBins.attachments'))'&gt;
+      $currentEntry.getAttachmentsCount()&lt;/a&gt;")
     #set ($discard = $results.rows.add({
       'wikiName' : $currentEntry.getWikiName(),
       'documentsCount' : $docCount,
