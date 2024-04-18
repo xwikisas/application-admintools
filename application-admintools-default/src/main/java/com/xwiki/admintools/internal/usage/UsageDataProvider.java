@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiUsage;
+package com.xwiki.admintools.internal.usage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +40,7 @@ import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 
-import com.xwiki.admintools.WikiSizeResult;
+import com.xwiki.admintools.usage.WikiSizeResult;
 
 /**
  * Retrieves {@link Ping} data from Active Installs 2.

@@ -35,7 +35,7 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.admintools.internal.usage.UsageDataProvider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

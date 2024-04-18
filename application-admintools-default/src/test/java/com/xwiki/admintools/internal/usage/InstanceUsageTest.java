@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiUsage;
+package com.xwiki.admintools.internal.usage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +50,7 @@ import org.xwiki.wiki.manager.WikiManagerException;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.ServerInfo;
-import com.xwiki.admintools.WikiSizeResult;
+import com.xwiki.admintools.usage.WikiSizeResult;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.licensing.Licensor;
 

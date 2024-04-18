@@ -36,12 +36,12 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.WikiSizeResult;
-import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.wikiUsage.InstanceUsage;
-import com.xwiki.admintools.internal.wikiUsage.RecycleBinsManager;
+import com.xwiki.admintools.internal.usage.InstanceUsage;
+import com.xwiki.admintools.internal.usage.RecycleBinsManager;
+import com.xwiki.admintools.usage.WikiRecycleBins;
+import com.xwiki.admintools.usage.WikiSizeResult;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.
@@ -158,18 +158,22 @@ public class AdminToolsManager
     }
 
     /**
-     * Get instance recycle bins info, like deleted documents and attachment.
+     * Get recycle bin info for all wikis in your instance with the options to sort and apply filters on it.
      *
-     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
-     *     the instance.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
+     *     info for wikis of the instance.
      * @throws RuntimeException when there is an issue regarding the queries that retrieve the number of deleted
      *     documents and attachments.
      * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
      *     {@link WikiDescriptor}.
      */
-    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinsSize(Map<String, String> filters, String sortColumn, String order)
+        throws WikiManagerException
     {
-        return this.recycleBinsManager.getWikisRecycleBinsSize();
+        return this.recycleBinsManager.getWikisRecycleBinsSize(filters, sortColumn, order);
     }
 
     /**

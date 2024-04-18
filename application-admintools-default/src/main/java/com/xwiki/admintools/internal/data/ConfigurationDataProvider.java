@@ -32,7 +32,7 @@ import org.xwiki.component.annotation.Component;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerInfo;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.admintools.internal.usage.UsageDataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**

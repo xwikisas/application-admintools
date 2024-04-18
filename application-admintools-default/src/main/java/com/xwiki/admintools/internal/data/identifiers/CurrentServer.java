@@ -31,7 +31,7 @@ import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 
 import com.xwiki.admintools.ServerInfo;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.admintools.internal.usage.UsageDataProvider;
 
 /**
  * Manages the server identifiers and offers endpoints to retrieve info about their paths.
