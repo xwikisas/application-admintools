@@ -35,7 +35,6 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 
@@ -48,7 +47,6 @@ class RecycleBinsProviderTest
 {
     @InjectMockComponents
     RecycleBinsProvider recycleBinsProvider;
-
 
     @MockComponent
     QueryManager queryManager;

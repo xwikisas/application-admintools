@@ -227,11 +227,11 @@ class UsageDataProviderTest
         when(attCountQuery2.execute()).thenReturn(List.of(12345L));
 
         Map<String, String> filters = new HashMap<>(
-            Map.of("userCount", "", "attachmentsSize", "123456-12345678910", "attachmentsCount", "",
-                "documentsCount", ""));
+            Map.of("userCount", "", "attachmentsSize", "123456-12345678910", "attachmentsCount", "", "documentsCount",
+                ""));
 
-        List<WikiSizeResult> testResults = usageDataProvider.getWikisSize(wikiDescriptors, filters, "attachmentsSize",
-            "asc");
+        List<WikiSizeResult> testResults =
+            usageDataProvider.getWikisSize(wikiDescriptors, filters, "attachmentsSize", "asc");
         assertEquals(2, testResults.size());
         assertEquals("wiki name 2", testResults.get(0).getWikiName());
         assertEquals("wiki name", testResults.get(1).getWikiName());
