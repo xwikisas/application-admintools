@@ -42,6 +42,7 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.admintools.usage.WikiUsageResult;
@@ -139,17 +140,18 @@ public class UsageDataProvider extends AbstractInstanceUsageProvider
     /**
      * Get instance wikis size info, like documents, attachments and users count.
      *
-     * @param searchedWikis {@link Collection} of the searched wikis.
      * @param filters {@link Map} of filters to be applied on the gathered list.
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
      * @return a sorted and filtered {@link List} of {@link WikiSizeResult} objects containing size info for wikis in
      *     instance.
      */
-    public List<WikiSizeResult> getWikisSize(Collection<WikiDescriptor> searchedWikis, Map<String, String> filters,
-        String sortColumn, String order)
+    public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
+        throws WikiManagerException
     {
         List<WikiUsageResult> results = new ArrayList<>();
+        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
+
         searchedWikis.forEach(wikiDescriptor -> {
             try {
                 WikiSizeResult wikiRecycleBinResult = getWikiSize(wikiDescriptor);

@@ -79,7 +79,7 @@
       #set ($discard = $results.rows.add({
         'wikiName' : $wikiDescriptor.getPrettyName(),
         'docName' : $doc,
-        'numberOfComments' : $currentEntry.getComments().size()
+        'commentsCount' : $currentEntry.getComments().size()
       }))
     #end
     #jsonResponse($results)

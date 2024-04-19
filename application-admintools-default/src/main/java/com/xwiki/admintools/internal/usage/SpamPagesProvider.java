@@ -38,6 +38,7 @@ import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -83,16 +84,16 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
     /**
      * Retrieves the documents that have more than a given number of comments.
      *
-     * @param searchedWikis {@link Collection} used to identify the searched wikis.
      * @param maxComments maximum number of comments below which the document is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<XWikiDocument> getDocumentsOverGivenNumberOfComments(Collection<WikiDescriptor> searchedWikis,
-        long maxComments, Map<String, String> filters, String sortColumn, String order)
+    public List<XWikiDocument> getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String sortColumn, String order) throws WikiManagerException
     {
+        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
         List<XWikiDocument> spammedDocuments = new ArrayList<>();
         searchedWikis.forEach(wikiDescriptor -> {
             try {

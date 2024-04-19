@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
+import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 
@@ -67,6 +70,13 @@ class UsageDataProviderTest
 
     @MockComponent
     private TemplateManager templateManager;
+
+    @MockComponent
+    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
+
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
 
     @Mock
     private WikiDescriptor wikiDescriptor;
@@ -99,8 +109,14 @@ class UsageDataProviderTest
     private Query attCountQuery2;
 
     @BeforeEach
-    void beforeEach() throws QueryException
+    void beforeEach() throws QueryException, WikiManagerException
     {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
+        wikiDescriptors.add(wikiDescriptor);
+        wikiDescriptors.add(wikiDescriptor2);
+        when(wikiDescriptorManagerProvider.get()).thenReturn(wikiDescriptorManager);
+        when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
+
         when(wikiDescriptor.getId()).thenReturn(WIKI_ID);
         when(wikiDescriptor2.getId()).thenReturn(WIKI_ID_2);
 
@@ -161,31 +177,32 @@ class UsageDataProviderTest
     }
 
     @Test
-    void getWikisSize() throws QueryException
+    void getWikisSize() throws QueryException, WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
-        wikiDescriptors.add(wikiDescriptor);
         when(usersQuery.execute()).thenReturn(List.of(1234L));
         when(docQuery.execute()).thenReturn(List.of(12345L));
         when(attSizeQuery.execute()).thenReturn(List.of(123456789L));
         when(attCountQuery.execute()).thenReturn(List.of(123456L));
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
+
+        when(usersQuery2.execute()).thenReturn(List.of(123L));
+        when(docQuery2.execute()).thenReturn(List.of(1234L));
+        when(attSizeQuery2.execute()).thenReturn(List.of(1234567L));
+        when(attCountQuery2.execute()).thenReturn(List.of(12345L));
+
         Map<String, String> filters =
             new HashMap<>(Map.of("documentsCount", "", "attachmentsCount", "", "totalCount", ""));
 
-        List<WikiSizeResult> wikiSizeResultList = usageDataProvider.getWikisSize(wikiDescriptors, filters, "", "");
-        assertEquals(1, wikiSizeResultList.size());
+        List<WikiSizeResult> wikiSizeResultList = usageDataProvider.getWikisSize(filters, "", "");
+        assertEquals(2, wikiSizeResultList.size());
         assertEquals(12345, wikiSizeResultList.get(0).getDocumentsCount());
         assertEquals(123456, wikiSizeResultList.get(0).getAttachmentsCount());
         assertEquals("wiki pretty name", wikiSizeResultList.get(0).getWikiName());
     }
 
     @Test
-    void checkFilters() throws QueryException
+    void checkFilters() throws QueryException, WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
-        wikiDescriptors.add(wikiDescriptor);
-        wikiDescriptors.add(wikiDescriptor2);
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki name 2");
 
         when(usersQuery.execute()).thenReturn(List.of(1234L));
@@ -202,17 +219,14 @@ class UsageDataProviderTest
             Map.of("userCount", "123", "attachmentsSize", "1234-12345678", "attachmentsCount", "12345",
                 "documentsCount", "1234"));
 
-        List<WikiSizeResult> testResults = usageDataProvider.getWikisSize(wikiDescriptors, filters, "", "");
+        List<WikiSizeResult> testResults = usageDataProvider.getWikisSize(filters, "", "");
         assertEquals(1, testResults.size());
         assertEquals("wiki name 2", testResults.get(0).getWikiName());
     }
 
     @Test
-    void checkSort() throws QueryException
+    void checkSort() throws QueryException, WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
-        wikiDescriptors.add(wikiDescriptor);
-        wikiDescriptors.add(wikiDescriptor2);
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki name");
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki name 2");
 
@@ -231,7 +245,7 @@ class UsageDataProviderTest
                 ""));
 
         List<WikiSizeResult> testResults =
-            usageDataProvider.getWikisSize(wikiDescriptors, filters, "attachmentsSize", "asc");
+            usageDataProvider.getWikisSize(filters, "attachmentsSize", "asc");
         assertEquals(2, testResults.size());
         assertEquals("wiki name 2", testResults.get(0).getWikiName());
         assertEquals("wiki name", testResults.get(1).getWikiName());

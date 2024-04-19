@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.usage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,8 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
@@ -122,9 +125,21 @@ class SpamPagesProviderTest
 
     private long maxComments = 21L;
 
+    @MockComponent
+    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
+
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
     @BeforeEach
-    void beforeEach() throws QueryException, XWikiException
+    void beforeEach() throws QueryException, XWikiException, WikiManagerException
     {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
+        wikiDescriptors.add(wikiDescriptor);
+        wikiDescriptors.add(wikiDescriptor2);
+        when(wikiDescriptorManagerProvider.get()).thenReturn(wikiDescriptorManager);
+        when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
+
         when(wikiDescriptor.getId()).thenReturn(wikiId1);
         when(wikiDescriptor2.getId()).thenReturn(wikiId2);
 
@@ -174,14 +189,14 @@ class SpamPagesProviderTest
     }
 
     @Test
-    void getDocumentsOverGivenNumberOfComments() throws QueryException
+    void getDocumentsOverGivenNumberOfComments() throws QueryException, WikiManagerException
     {
         when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
         when(commentsQuery3.execute()).thenReturn(List.of());
         Collection<WikiDescriptor> wikiDescriptorCollection = List.of(wikiDescriptor, wikiDescriptor2);
 
         List<XWikiDocument> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptorCollection, maxComments,
+            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
                 Map.of("docName", ""), "", "");
         assertEquals(2, testResults.size());
         assertEquals(document, testResults.get(0));
@@ -195,7 +210,7 @@ class SpamPagesProviderTest
         when(commentsQuery3.execute()).thenThrow(new QueryException("Query error", commentsQuery3, new Exception()));
         Collection<WikiDescriptor> wikiDescriptorCollection = List.of(wikiDescriptor, wikiDescriptor2);
         Exception exception = assertThrows(RuntimeException.class,
-            () -> spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptorCollection, maxComments,
+            () -> spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
                 Map.of("docName", ""), "", ""));
 
         assertEquals("org.xwiki.query.QueryException: Query error. Query statement = [null]", exception.getMessage());
@@ -204,7 +219,7 @@ class SpamPagesProviderTest
     }
 
     @Test
-    void checkSort() throws QueryException
+    void checkSort() throws QueryException, WikiManagerException
     {
         when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
         when(commentsQuery3.execute()).thenReturn(List.of(documentRef3));
@@ -215,7 +230,7 @@ class SpamPagesProviderTest
         when(document2.getTitle()).thenReturn("ccc");
         when(document3.getTitle()).thenReturn("aaa");
         List<XWikiDocument> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptorCollection, maxComments,
+            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
                 Map.of("docName", ""), "docName", "asc");
 
         assertEquals(3, testResults.size());

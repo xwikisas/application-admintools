@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.usage;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,9 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.usage.WikiUsageResult;
@@ -154,7 +157,7 @@ public abstract class AbstractInstanceUsageProvider
             case "docName":
                 comparator = Comparator.comparing(XWikiDocument::getTitle);
                 break;
-            case "numberOfComments":
+            case "commentsCount":
                 comparator = Comparator.comparing(doc -> doc.getComments().size());
                 break;
             default:
@@ -166,5 +169,23 @@ public abstract class AbstractInstanceUsageProvider
             }
             list.sort(comparator);
         }
+    }
+
+    /**
+     * Get a {@link Collection} of {@link WikiDescriptor} that satisfy a given wiki name filter.
+     *
+     * @param filters {@link Map} of filters from where the wiki name filter will be searched.
+     * @return those {@link WikiDescriptor} that satisfy the wiki name filter.
+     * @throws WikiManagerException if there are any issues when gathering all wiki descriptors.
+     */
+    public Collection<WikiDescriptor> getRequestedWikis(Map<String, String> filters) throws WikiManagerException
+    {
+        Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManagerProvider.get().getAll();
+        String filteredName = filters.get(WIKI_NAME_KEY);
+        if (filteredName != null && !filteredName.isEmpty()) {
+            wikisDescriptors.removeIf(wiki -> !wiki.getPrettyName().toLowerCase().contains(filteredName.toLowerCase()));
+            filters.remove(WIKI_NAME_KEY);
+        }
+        return wikisDescriptors;
     }
 }

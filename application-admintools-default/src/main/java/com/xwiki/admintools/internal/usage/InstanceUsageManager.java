@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.usage;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +36,6 @@ import org.xwiki.script.ScriptContextManager;
 import org.xwiki.template.TemplateManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
-import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -142,8 +140,7 @@ public class InstanceUsageManager
     public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
     {
         try {
-            Collection<WikiDescriptor> wikisDescriptors = getFilteredWikis(filters);
-            return usageDataProvider.getWikisSize(wikisDescriptors, filters, sortColumn, order);
+            return usageDataProvider.getWikisSize(filters, sortColumn, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering instance usage data. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
@@ -164,9 +161,7 @@ public class InstanceUsageManager
         String order)
     {
         try {
-            Collection<WikiDescriptor> wikisDescriptors = getFilteredWikis(filters);
-            return spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikisDescriptors, maxComments, filters,
-                sortColumn, order);
+            return spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis spammed pages. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
@@ -185,23 +180,11 @@ public class InstanceUsageManager
     public List<WikiRecycleBins> getWikisRecycleBinsData(Map<String, String> filters, String sortColumn, String order)
     {
         try {
-            Collection<WikiDescriptor> wikisDescriptors = getFilteredWikis(filters);
-            return recycleBinsProvider.getWikisRecycleBinsSize(wikisDescriptors, filters, sortColumn, order);
+            return recycleBinsProvider.getWikisRecycleBinsSize(filters, sortColumn, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis recycle bins data. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
             throw new RuntimeException(e);
         }
-    }
-
-    private Collection<WikiDescriptor> getFilteredWikis(Map<String, String> filters) throws WikiManagerException
-    {
-        Collection<WikiDescriptor> wikisDescriptors = this.wikiDescriptorManager.getAll();
-        String filteredName = filters.get(WIKI_NAME_KEY);
-        if (filteredName != null && !filteredName.isEmpty()) {
-            wikisDescriptors.removeIf(wiki -> !wiki.getPrettyName().toLowerCase().contains(filteredName.toLowerCase()));
-            filters.remove(WIKI_NAME_KEY);
-        }
-        return wikisDescriptors;
     }
 }

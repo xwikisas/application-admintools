@@ -22,10 +22,10 @@ package com.xwiki.admintools.usage;
 import org.xwiki.stability.Unstable;
 
 /**
- * General interface for gathering info about the wiki.
+ * General interface for gathering info about a wiki.
  *
  * @version $Id$
- * @since 1.0-rc-3
+ * @since 1.0
  */
 @Unstable
 public interface WikiUsageResult

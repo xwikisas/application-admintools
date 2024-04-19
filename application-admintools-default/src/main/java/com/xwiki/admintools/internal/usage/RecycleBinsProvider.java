@@ -34,6 +34,7 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.usage.WikiUsageResult;
@@ -56,16 +57,17 @@ public class RecycleBinsProvider extends AbstractInstanceUsageProvider
     /**
      * Get instance recycle bins info, like deleted documents and attachments.
      *
-     * @param searchedWikis {@link Collection} of the searched wikis.
      * @param filters {@link Map} of filters to be applied on the gathered list.
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
      * @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for
      *     wikis in instance.
      */
-    public List<WikiRecycleBins> getWikisRecycleBinsSize(Collection<WikiDescriptor> searchedWikis,
-        Map<String, String> filters, String sortColumn, String order)
+    public List<WikiRecycleBins> getWikisRecycleBinsSize(Map<String, String> filters, String sortColumn, String order)
+        throws WikiManagerException
     {
+        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
+
         List<WikiUsageResult> results = new ArrayList<>();
 
         searchedWikis.forEach(wikiDescriptor -> {

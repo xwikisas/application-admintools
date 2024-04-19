@@ -148,7 +148,6 @@ class InstanceUsageManagerTest
         when(scriptContextManager.getScriptContext()).thenReturn(scriptContext);
         when(usageDataProvider.getWikiSize(wikiDescriptor)).thenReturn(wikiSizeResult);
         when(wikiDescriptorManager.getCurrentWikiDescriptor()).thenReturn(wikiDescriptor);
-        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor)));
 
         when(usageDataProvider.getExtensionCount()).thenReturn(2);
         when(usageDataProvider.getInstanceUsersCount()).thenReturn(400L);
@@ -222,21 +221,19 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getWikisSize()
+    void getWikisSize() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
         List<WikiSizeResult> docs = List.of(wikiSizeResult);
-        when(usageDataProvider.getWikisSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
+        when(usageDataProvider.getWikisSize(filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
 
         assertArrayEquals(docs.toArray(),
             instanceUsageManager.getWikisSize(filters, SORT_COLUMN, SORT_ORDER).toArray());
     }
 
     @Test
-    void getWikisSizeError()
+    void getWikisSizeError() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
-        when(usageDataProvider.getWikisSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+        when(usageDataProvider.getWikisSize(filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
             new RuntimeException("Runtime error"));
         Exception exception = assertThrows(RuntimeException.class,
             () -> instanceUsageManager.getWikisSize(filters, SORT_COLUMN, SORT_ORDER));
@@ -247,11 +244,10 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getSpammedPages() throws QueryException
+    void getSpammedPages() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
         List<XWikiDocument> docs = List.of(document);
-        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptors, 2, filters, SORT_COLUMN,
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN,
             SORT_ORDER)).thenReturn(docs);
 
         assertArrayEquals(docs.toArray(),
@@ -259,10 +255,9 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getPagesOverGivenNumberOfCommentsError()
+    void getPagesOverGivenNumberOfCommentsError() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
-        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(wikiDescriptors, 2, filters, SORT_COLUMN,
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN,
             SORT_ORDER)).thenThrow(new RuntimeException("Runtime error"));
         Exception exception = assertThrows(RuntimeException.class,
             () -> instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER));
@@ -275,13 +270,11 @@ class InstanceUsageManagerTest
     @Test
     void getWikisRecycleBinsData() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2));
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki name 1");
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki name 2");
-        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
         List<WikiRecycleBins> docs = List.of(wikiRecycleBins);
         filters.put("wikiName", "name 2");
-        when(recycleBinsProvider.getWikisRecycleBinsSize(List.of(wikiDescriptor2), filters, SORT_COLUMN,
+        when(recycleBinsProvider.getWikisRecycleBinsSize(filters, SORT_COLUMN,
             SORT_ORDER)).thenReturn(docs);
         List<WikiRecycleBins> wikiRecycleBinsList =
             instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER);
@@ -290,10 +283,9 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getWikisRecycleBinsDataError()
+    void getWikisRecycleBinsDataError() throws WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>(List.of(wikiDescriptor));
-        when(recycleBinsProvider.getWikisRecycleBinsSize(wikiDescriptors, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+        when(recycleBinsProvider.getWikisRecycleBinsSize(filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
             new RuntimeException("Runtime error"));
         Exception exception = assertThrows(RuntimeException.class,
             () -> instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER));
