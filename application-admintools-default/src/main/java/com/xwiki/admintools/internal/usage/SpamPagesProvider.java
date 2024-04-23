@@ -109,7 +109,7 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
                 throw new RuntimeException(e);
             }
         });
-        applySpamSort(spammedDocuments, sortColumn, order);
+        applyDocumentsSort(spammedDocuments, sortColumn, order);
         return spammedDocuments;
     }
 

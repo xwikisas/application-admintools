@@ -134,13 +134,13 @@ public abstract class AbstractInstanceUsageProvider
     }
 
     /**
-     * Sort the given {@link List} over a given column and in a given order.
+     * Sort the given {@link List} of documents over a given column and in a given order.
      *
      * @param list the {@link List} to be sorted.
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
      */
-    public void applySpamSort(List<XWikiDocument> list, String sortColumn, String order)
+    public void applyDocumentsSort(List<XWikiDocument> list, String sortColumn, String order)
     {
         Comparator<XWikiDocument> comparator = null;
         switch (sortColumn) {
