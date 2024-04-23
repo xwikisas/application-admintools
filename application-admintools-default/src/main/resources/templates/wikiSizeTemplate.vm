@@ -26,7 +26,7 @@
       [$extensionCount]))</p>
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.total.users',
       [$totalUsers]))</p>
-    #set($wikiName = "<strong>$currentWikiUsage.getName()</strong>")
+    #set($wikiName = "<strong>$currentWikiUsage.getWikiName()</strong>")
     $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.wiki.name', [
       '__WIKINAME__'])).replace('__WIKINAME__', $wikiName)
     <ul>

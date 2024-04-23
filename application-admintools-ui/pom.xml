@@ -99,6 +99,7 @@
             <contentPage>.*/AdminTools/HelpLinks\.xml</contentPage>
             <contentPage>.*/AdminTools/WikisRecycleBins\.xml</contentPage>
             <contentPage>.*/AdminTools/WikisSize\.xml</contentPage>
+            <contentPage>.*/AdminTools/SpammedPages\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>

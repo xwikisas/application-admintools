@@ -17,12 +17,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.usage;
+package com.xwiki.admintools.internal.usage.wikiResult;
 
 import java.text.DecimalFormat;
 import java.util.List;
 
 import org.xwiki.stability.Unstable;
+
+import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
  * Stores info about the size of a wiki.
@@ -31,9 +33,9 @@ import org.xwiki.stability.Unstable;
  * @since 1.0
  */
 @Unstable
-public class WikiSizeResult
+public class WikiSizeResult implements WikiUsageResult
 {
-    private String name;
+    private String wikiName;
 
     private Long userCount;
 
@@ -50,61 +52,37 @@ public class WikiSizeResult
     {
     }
 
-    /**
-     * Get the name of the wiki.
-     *
-     * @return the name of the wiki.
-     */
-    public String getName()
+    @Override
+    public String getWikiName()
     {
-        return name;
+        return wikiName;
     }
 
-    /**
-     * Set the name of the wiki.
-     *
-     * @param name representing the name of the wiki.
-     */
-    public void setName(String name)
+    @Override
+    public void setWikiName(String wikiName)
     {
-        this.name = name;
+        this.wikiName = wikiName;
     }
 
-    /**
-     * Get the number of users registered in the wiki.
-     *
-     * @return {@link Long} representing the number of users in the wiki.
-     */
+    @Override
     public Long getUserCount()
     {
         return userCount;
     }
 
-    /**
-     * Set the number of users registered in the wiki.
-     *
-     * @param userCount the number of users in the wiki.
-     */
+    @Override
     public void setUserCount(Long userCount)
     {
         this.userCount = userCount;
     }
 
-    /**
-     * Get the total size of the attachments in the wiki.
-     *
-     * @return formatted {@link String} with the size of the attachments in the wiki and corresponding size unit.
-     */
+    @Override
     public Long getAttachmentsSize()
     {
         return attachmentsSize;
     }
 
-    /**
-     * Set the total size of the attachments in the wiki.
-     *
-     * @param attachmentsSize the size of the attachments in the wiki and corresponding size unit.
-     */
+    @Override
     public void setAttachmentsSize(Long attachmentsSize)
     {
         this.attachmentsSize = attachmentsSize;

@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="AdminTools.Code.Macros" /}}
+
+{{velocity}}
 #if ($xcontext.action == 'get')
   #set ($offset = $numbertool.toNumber($request.offset).intValue())
   ## The offset sent by the live table starts at 1.
@@ -48,14 +50,14 @@
   #if (!$limit)
     #set ($limit = 15)
   #end
-  #set ($sort = 'name')
-  #set ($order = 'desc')
+  #set ($sort = 'wikiName')
+  #set ($order = 'asc')
   #if ($request.sort)
     #set ($sort = $request.sort)
     #set ($order = $request.dir)
   #end
   #set ($filters = {
-    'name' : $request.get('name'),
+    'wikiName' : $request.get('wikiName'),
     'userCount' : $request.get('userCount'),
     'documentsCount' : $request.get('documentsCount'),
     'attachmentsCount' : $request.get('attachmentsCount'),
@@ -64,12 +66,7 @@
   #set ($wikisSize = $services.admintools.getWikisSize($filters, $sort, $order))
   #if ($offset &lt; $wikisSize.size())
     #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $wikisSize.size()))
-    #set ($resultList = [])
-    #set ($toIndex = $mathtool.sub($toIndex, 1))
-    #foreach ($i in [$offset..$toIndex])
-      #set ($element = $wikisSize.get($i))
-      #set ($discard = $resultList.add($element))
-    #end
+    #getSubset($wikisSize, $offset, $toIndex, $resultList)
   #end
   #set ($results = {
     "totalrows": $wikisSize.size(),
@@ -79,7 +76,7 @@
   })
   #foreach ($currentEntry in $resultList)
     #set ($discard = $results.rows.add({
-      'name' : $currentEntry.getName(),
+      'wikiName' : $currentEntry.getWikiName(),
       'userCount' :  $currentEntry.getUserCount(),
       'documentsCount' : $currentEntry.getDocumentsCount(),
       'attachmentsCount' : $currentEntry.getAttachmentsCount(),

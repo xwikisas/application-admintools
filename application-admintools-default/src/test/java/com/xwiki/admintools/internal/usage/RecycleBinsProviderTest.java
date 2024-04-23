@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Provider;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -38,20 +40,17 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.usage.WikiRecycleBins;
-import com.xwiki.admintools.usage.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class RecycleBinsManagerTest
+class RecycleBinsProviderTest
 {
     @InjectMockComponents
-    RecycleBinsManager recycleBinsManager;
-
-    @MockComponent
-    WikiDescriptorManager wikiDescriptorManager;
+    RecycleBinsProvider recycleBinsProvider;
 
     @MockComponent
     QueryManager queryManager;
@@ -84,9 +83,21 @@ class RecycleBinsManagerTest
 
     String wikiId2 = "wikiId2";
 
+    @MockComponent
+    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
+
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
     @BeforeEach
-    void beforeEach() throws QueryException
+    void beforeEach() throws QueryException, WikiManagerException
     {
+        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
+        wikiDescriptors.add(wikiDescriptor);
+        wikiDescriptors.add(wikiDescriptor2);
+        when(wikiDescriptorManagerProvider.get()).thenReturn(wikiDescriptorManager);
+        when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
+
         when(queryManager.createQuery("select count(ddoc) from DeletedAttachment as ddoc", Query.XWQL)).thenReturn(
             createQueryAttach);
         when(createQueryAttach.setWiki(wikiId1)).thenReturn(setWikiQueryAttach);
@@ -101,31 +112,26 @@ class RecycleBinsManagerTest
     }
 
     @Test
-    void getAllWikisRecycleBinInfo() throws WikiManagerException, QueryException
+    void getAllWikisRecycleBinInfo() throws QueryException, WikiManagerException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
-        wikiDescriptors.add(wikiDescriptor);
-        when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
-
         when(setWikiQueryAttach.execute()).thenReturn(List.of(4L));
         when(setWikiQueryDoc.execute()).thenReturn(List.of(23L));
+        when(setWikiQueryAttach2.execute()).thenReturn(List.of(15L));
+        when(setWikiQueryDoc2.execute()).thenReturn(List.of(12L));
 
         List<WikiRecycleBins> wikisRecycleBins =
-            recycleBinsManager.getWikisRecycleBinsSize(new HashMap<>(Map.of("wikiName", "wiki pretty name")), "", "");
-        assertEquals(1, wikisRecycleBins.size());
+            recycleBinsProvider.getWikisRecycleBinsSize(new HashMap<>(Map.of("totalCount", "27")), "",
+                "");
+        assertEquals(2, wikisRecycleBins.size());
         assertEquals(23, wikisRecycleBins.get(0).getDocumentsCount());
         assertEquals(4, wikisRecycleBins.get(0).getAttachmentsCount());
         assertEquals("wiki pretty name", wikisRecycleBins.get(0).getWikiName());
     }
 
     @Test
-    void checkFilters() throws WikiManagerException, QueryException
+    void checkFilters() throws QueryException, WikiManagerException
     {
-        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
-        when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
-        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 pretty name");
-
         when(setWikiQueryAttach.execute()).thenReturn(List.of(4L));
         when(setWikiQueryDoc.execute()).thenReturn(List.of(23L));
 
@@ -134,15 +140,15 @@ class RecycleBinsManagerTest
 
         Map<String, String> filters =
             new HashMap<>(Map.of("documentsCount", "23", "attachmentsCount", "4", "totalCount", "27"));
-        List<WikiRecycleBins> testResults = recycleBinsManager.getWikisRecycleBinsSize(filters, "", "");
+        List<WikiRecycleBins> testResults =
+            recycleBinsProvider.getWikisRecycleBinsSize(filters, "", "");
         assertEquals(1, testResults.size());
-        assertEquals("wiki pretty name", testResults.get(0).getWikiName());
+        assertEquals(4L, testResults.get(0).getAttachmentsCount());
     }
 
     @Test
-    void checkSort() throws WikiManagerException, QueryException
+    void checkSort() throws QueryException, WikiManagerException
     {
-        when(wikiDescriptorManager.getAll()).thenReturn(new ArrayList<>(List.of(wikiDescriptor, wikiDescriptor2)));
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 pretty name");
 
@@ -154,9 +160,37 @@ class RecycleBinsManagerTest
 
         Map<String, String> filters =
             new HashMap<>(Map.of("documentsCount", "23", "attachmentsCount", "", "totalCount", ""));
-        List<WikiRecycleBins> testResults = recycleBinsManager.getWikisRecycleBinsSize(filters, "totalCount", "desc");
+        List<WikiRecycleBins> testResults =
+            recycleBinsProvider.getWikisRecycleBinsSize(filters, "totalCount", "desc");
         assertEquals(2, testResults.size());
         assertEquals("wiki2 pretty name", testResults.get(0).getWikiName());
         assertEquals("wiki pretty name", testResults.get(1).getWikiName());
+    }
+
+    @Test
+    void getWikiRecycleBinsSize() throws QueryException
+    {
+        when(setWikiQueryAttach.execute()).thenReturn(List.of(4L));
+        when(setWikiQueryDoc.execute()).thenReturn(List.of(23L));
+
+        WikiRecycleBins wikiRecycleBins = recycleBinsProvider.getWikiRecycleBinsSize(wikiDescriptor);
+
+        assertEquals(23L, wikiRecycleBins.getDocumentsCount());
+        assertEquals(4L, wikiRecycleBins.getAttachmentsCount());
+        assertEquals(27L, wikiRecycleBins.getTotal());
+    }
+
+    @Test
+    void getWikiRecycleBinsSizeQueryError() throws QueryException
+    {
+        when(setWikiQueryAttach.execute()).thenReturn(List.of(4L));
+        when(setWikiQueryDoc.execute()).thenThrow(
+            new QueryException("An error occurred while executing the documents query!", setWikiQueryDoc,
+                new RuntimeException()));
+        Exception exception =
+            assertThrows(QueryException.class, () -> recycleBinsProvider.getWikiRecycleBinsSize(wikiDescriptor));
+
+        assertEquals("An error occurred while executing the documents query!. Query statement = [null]",
+            exception.getMessage());
     }
 }

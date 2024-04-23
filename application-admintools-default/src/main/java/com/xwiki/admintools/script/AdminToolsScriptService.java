@@ -32,7 +32,6 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
-import org.xwiki.query.QueryException;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -40,13 +39,14 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
-import com.xwiki.admintools.usage.WikiRecycleBins;
-import com.xwiki.admintools.usage.WikiSizeResult;
 
 /**
  * Admin Tools script services.
@@ -167,13 +167,16 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the pages that have more than a given number of comments.
      *
      * @param maxComments maximum number of comments below which the page is ignored.
-     * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
-     *     any errors.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws AccessDeniedException, QueryException
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String sortColumn, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);
+        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
     }
 
     /**

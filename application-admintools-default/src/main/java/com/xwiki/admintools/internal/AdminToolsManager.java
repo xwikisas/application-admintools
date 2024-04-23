@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,17 +30,14 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.query.QueryException;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.usage.InstanceUsage;
-import com.xwiki.admintools.internal.usage.RecycleBinsManager;
-import com.xwiki.admintools.usage.WikiRecycleBins;
-import com.xwiki.admintools.usage.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.InstanceUsageManager;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.
@@ -68,14 +64,11 @@ public class AdminToolsManager
     private ImportantFilesManager importantFilesManager;
 
     @Inject
-    private InstanceUsage instanceUsage;
+    private InstanceUsageManager instanceUsageManager;
 
     @Inject
     @Named("context")
     private ComponentManager contextComponentManager;
-
-    @Inject
-    private RecycleBinsManager recycleBinsManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -142,19 +135,22 @@ public class AdminToolsManager
      */
     public String getInstanceSizeTemplate()
     {
-        return instanceUsage.renderTemplate();
+        return instanceUsageManager.renderTemplate();
     }
 
     /**
      * Retrieve the pages that have more than a given number of comments.
      *
      * @param maxComments maximum number of comments below which the page is ignored.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
-     * @throws QueryException if the query to retrieve the document fails.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException
+    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String sortColumn, String order)
     {
-        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
+        return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);
     }
 
     /**
@@ -165,15 +161,10 @@ public class AdminToolsManager
      * @param order the order of the sort.
      * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
      *     info for wikis of the instance.
-     * @throws RuntimeException when there is an issue regarding the queries that retrieve the number of deleted
-     *     documents and attachments.
-     * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
-     *     {@link WikiDescriptor}.
      */
     public List<WikiRecycleBins> getWikisRecycleBinsSize(Map<String, String> filters, String sortColumn, String order)
-        throws WikiManagerException
     {
-        return this.recycleBinsManager.getWikisRecycleBinsSize(filters, sortColumn, order);
+        return this.instanceUsageManager.getWikisRecycleBinsData(filters, sortColumn, order);
     }
 
     /**
@@ -186,6 +177,6 @@ public class AdminToolsManager
      */
     public List<WikiSizeResult> getWikiSizeResults(Map<String, String> filters, String sortColumn, String order)
     {
-        return this.instanceUsage.getWikisSize(filters, sortColumn, order);
+        return this.instanceUsageManager.getWikisSize(filters, sortColumn, order);
     }
 }

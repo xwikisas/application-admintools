@@ -45,24 +45,24 @@
   #set ($liveDataConfig= {
     'meta': {
       'propertyDescriptors': [
-        {'id': 'name', 'displayer': 'html'},
+        {'id': 'wikiName', 'displayer': 'html'},
         {'id': 'userCount', 'displayer': 'number'},
         {'id': 'documentsCount', 'displayer': 'number', 'filterable': false},
         {'id': 'attachmentsCount', 'displayer': 'number', 'filterable': false},
         {'id': 'attachmentsSize', 'displayer': 'html'}
       ],
       'entryDescriptor': {
-        'idProperty': 'name'
+        'idProperty': 'wikiName'
       }
     }
   })
 
   {{liveData
     id='wikisSize'
-    properties="name, userCount, documentsCount, attachmentsCount, attachmentsSize"
+    properties="wikiName, userCount, documentsCount, attachmentsCount, attachmentsSize"
     source='liveTable'
     sourceParameters="$sourceParameters"
-    sort='name:asc'
+    sort='wikiName:asc'
   }}$jsontool.serialize($liveDataConfig){{/liveData}}
 {{/velocity}}</content>
   <class>
