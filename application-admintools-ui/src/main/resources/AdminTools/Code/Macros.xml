@@ -192,7 +192,7 @@
           &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
             &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
           &lt;div id="emptyPagesDataLabel" class="modal-title"&gt;
-            $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.title',
+            $escapetool.xml($services.localization.render('adminTools.dashboard.emptyPage.modal.title',
             [$maxComments]))&lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="modal-body"&gt;
