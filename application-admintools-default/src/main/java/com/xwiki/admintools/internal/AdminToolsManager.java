@@ -30,8 +30,11 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.model.reference.DocumentReference;
 
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xwiki.admintools.DataProvider;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
@@ -147,7 +150,7 @@ public class AdminToolsManager
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
         String sortColumn, String order)
     {
         return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);
@@ -178,5 +181,19 @@ public class AdminToolsManager
     public List<WikiSizeResult> getWikiSizeResults(Map<String, String> filters, String sortColumn, String order)
     {
         return this.instanceUsageManager.getWikisSize(filters, sortColumn, order);
+    }
+
+    /**
+     * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
+     * or comments.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link DocumentReference}.
+     */
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    {
+        return this.instanceUsageManager.getEmptyDocuments(filters, sortColumn, order);
     }
 }

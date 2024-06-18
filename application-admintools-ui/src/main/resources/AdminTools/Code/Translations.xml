@@ -143,6 +143,8 @@ adminTools.dashboard.instanceUsage.specific.comments=View pages with over {0} co
 adminTools.dashboard.instanceUsage.specific.comments.hint=View a list with all the pages that have above {0} comments
 adminTools.dashboard.instanceUsage.specific.recycleBins=Check pages and attachments recycle bins
 adminTools.dashboard.instanceUsage.specific.recycleBins.hint=View the size of the recycle bins for all wikis in instance
+adminTools.dashboard.instanceUsage.specific.emptyPages=View empty pages
+adminTools.dashboard.instanceUsage.specific.emptyPages.hint=View the empty pages from all wikis
 
 ## Security
 adminTools.dashboard.security.activeEncoding=Active encoding
@@ -186,6 +188,11 @@ adminTools.dashboard.download.modal.provided=Configuration info
 adminTools.dashboard.download.modal.title=Get support files
 adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
 adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
+adminTools.dashboard.emptyPage.modal.title=Pages with no content
+adminTools.dashboard.emptyPage.modal.header.actions=Actions
+adminTools.dashboard.emptyPage.modal.header.docName=Page
+adminTools.dashboard.emptyPage.modal.header.wikiName=Wiki name
+adminTools.dashboard.emptyPage.modal.action.delete=Delete
 adminTools.dashboard.logs.modal.nLines.hint=The maximum number of lines is 50000, since the complete logs can also be downloaded. If no value is defined, 1000 will be used as a default value.
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
 adminTools.dashboard.logs.modal.submit=View

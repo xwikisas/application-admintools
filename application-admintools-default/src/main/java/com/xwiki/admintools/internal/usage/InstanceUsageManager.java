@@ -38,7 +38,9 @@ import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
@@ -85,6 +87,9 @@ public class InstanceUsageManager
 
     @Inject
     private SpamPagesProvider spamPagesProvider;
+
+    @Inject
+    private EmptyDocumentsProvider emptyDocumentsProvider;
 
     @Inject
     private RecycleBinsProvider recycleBinsProvider;
@@ -157,13 +162,33 @@ public class InstanceUsageManager
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<XWikiDocument> getSpammedPages(long maxComments, Map<String, String> filters, String sortColumn,
+    public List<DocumentReference> getSpammedPages(long maxComments, Map<String, String> filters, String sortColumn,
         String order)
     {
         try {
             return spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis spammed pages. Root cause is: [{}]",
+                ExceptionUtils.getRootCauseMessage(e));
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
+     * or comments.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a {@link List} with the {@link DocumentReference} of the empty documents.
+     */
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    {
+        try {
+            return emptyDocumentsProvider.getEmptyDocuments(filters, sortColumn, order);
+        } catch (Exception e) {
+            logger.warn("There have been issues while gathering wikis empty pages. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
             throw new RuntimeException(e);
         }

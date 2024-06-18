@@ -37,21 +37,25 @@ import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
+
 /**
- * Provide data for the documents that are spammed.
+ * Retrieve data about wikis empty pages.
  *
  * @version $Id$
+ * @since 1.1
  */
-@Component(roles = SpamPagesProvider.class)
+@Component(roles = EmptyDocumentsProvider.class)
 @Singleton
-public class SpamPagesProvider extends AbstractInstanceUsageProvider
+public class EmptyDocumentsProvider extends AbstractInstanceUsageProvider
 {
     @Inject
     private QueryManager queryManager;
-
-    @Inject
-    @Named("currentlanguage")
-    private QueryFilter currentLanguageFilter;
 
     @Inject
     @Named("hidden/document")
@@ -66,56 +70,56 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
     private QueryFilter viewableFilter;
 
     /**
-     * Retrieves the documents that have more than a given number of comments.
+     * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
+     * or comments.
      *
-     * @param maxComments maximum number of comments below which the document is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link List} with the {@link DocumentReference} of the empty documents.
      */
-    public List<DocumentReference> getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order) throws WikiManagerException
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+        throws WikiManagerException
     {
         Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
-        List<DocumentReference> spammedDocuments = new ArrayList<>();
+        List<DocumentReference> emptyDocuments = new ArrayList<>();
+        XWikiContext wikiContext = xcontextProvider.get();
+        XWiki wiki = wikiContext.getWiki();
         searchedWikis.forEach(wikiDescriptor -> {
             try {
-                List<DocumentReference> queryResults =
-                    getCommentsForWiki(maxComments, filters.get("docName"), wikiDescriptor.getId());
-                spammedDocuments.addAll(queryResults);
+                List<DocumentReference> queryResults = getEmptyDocumentsForWiki(wikiDescriptor.getId());
+                for (DocumentReference docRef : queryResults) {
+                    XWikiDocument wikiDocument = wiki.getDocument(docRef, wikiContext);
+                    if (wikiDocument.getXClassXML().isEmpty() && !wikiDocument.isHidden()) {
+                        emptyDocuments.add(docRef);
+                    }
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
-        applyDocumentsSort(spammedDocuments, sortColumn, order);
-        return spammedDocuments;
+        applyDocumentsSort(emptyDocuments, sortColumn, order);
+        return emptyDocuments;
     }
 
     /**
-     * Get the references of documents in wiki with comments above a given limit.
+     * Get the {@link DocumentReference} of empty documents in wiki.
      *
-     * @param maxComments maximum number of comments below which the document is ignored.
-     * @param searchedDocument document hint to be searched.
      * @param wikiId the wiki for which the data will be retrieved.
-     * @return a {@link List} with the {@link DocumentReference} of the documents with comments above a given limit.
+     * @return a {@link List} with the {@link DocumentReference} of the empty documents.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
-    public List<DocumentReference> getCommentsForWiki(long maxComments, String searchedDocument, String wikiId)
-        throws QueryException
+    public List<DocumentReference> getEmptyDocumentsForWiki(String wikiId) throws QueryException
     {
-        String searchString;
-        if (searchedDocument == null || searchedDocument.isEmpty()) {
-            searchString = "%";
-        } else {
-            searchString = String.format("%%%s%%", searchedDocument);
-        }
-        return this.queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
-                + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
-                + "and lower(doc.title) like lower(:searchString) "
-                + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL).setWiki(wikiId)
-            .bindValue("maxComments", maxComments).bindValue("searchString", searchString)
-            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter)
-            .addFilter(viewableFilter).execute();
+        return this.queryManager.createQuery(
+                "select doc.fullName from XWikiDocument doc "
+                    + "where (doc.content = '' or trim(doc.content) = '') "
+                    + "and not exists (select obj from BaseObject obj where obj.name = doc.fullName) "
+                    + "and not exists (select att from XWikiAttachment att where att.docId = doc.id)", Query.HQL)
+            .setWiki(wikiId)
+            .addFilter(hiddenDocumentFilter)
+            .addFilter(documentFilter)
+            .addFilter(viewableFilter)
+            .execute();
     }
 }

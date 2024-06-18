@@ -33,7 +33,6 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
@@ -48,9 +47,6 @@ import com.xwiki.admintools.usage.WikiUsageResult;
 @Singleton
 public class RecycleBinsProvider extends AbstractInstanceUsageProvider
 {
-    @Inject
-    private WikiDescriptorManager wikiDescriptorManager;
-
     @Inject
     private QueryManager queryManager;
 
