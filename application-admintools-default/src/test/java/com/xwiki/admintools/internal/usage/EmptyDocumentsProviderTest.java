@@ -49,26 +49,22 @@ import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class SpamPagesProviderTest
+class EmptyDocumentsProviderTest
 {
     @InjectMockComponents
-    SpamPagesProvider spamPagesProvider;
+    EmptyDocumentsProvider emptyDocumentsProvider;
 
     @MockComponent
     QueryManager queryManager;
 
     @Mock
-    Query commentsQuery;
+    Query emptyDocsQueryWiki1;
 
     @Mock
-    Query commentsQuery2;
-
-    @Mock
-    Query commentsQuery3;
+    Query emptyDocsQueryWiki2;
 
     @Mock
     WikiDescriptor wikiDescriptor;
@@ -99,6 +95,9 @@ class SpamPagesProviderTest
     private XWikiDocument document3;
 
     @Mock
+    private XWikiDocument document4;
+
+    @Mock
     private DocumentReference documentRef;
 
     @Mock
@@ -107,9 +106,8 @@ class SpamPagesProviderTest
     @Mock
     private DocumentReference documentRef3;
 
-    @MockComponent
-    @Named("currentlanguage")
-    private QueryFilter currentLanguageFilter;
+    @Mock
+    private DocumentReference documentRef4;
 
     @MockComponent
     @Named("hidden/document")
@@ -123,8 +121,6 @@ class SpamPagesProviderTest
     @Named("viewable")
     private QueryFilter viewableFilter;
 
-    private long maxComments = 21L;
-
     @MockComponent
     private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
 
@@ -132,7 +128,7 @@ class SpamPagesProviderTest
     private WikiDescriptorManager wikiDescriptorManager;
 
     @BeforeEach
-    void beforeEach() throws QueryException, WikiManagerException
+    void beforeEach() throws QueryException, WikiManagerException, XWikiException
     {
         Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
         wikiDescriptors.add(wikiDescriptor);
@@ -143,70 +139,70 @@ class SpamPagesProviderTest
         when(wikiDescriptor.getId()).thenReturn(wikiId1);
         when(wikiDescriptor2.getId()).thenReturn(wikiId2);
 
-        when(queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
-            + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
-            + "and lower(doc.title) like lower(:searchString) "
-            + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL)).thenReturn(
-            commentsQuery);
+        when(queryManager.createQuery(
+            "select doc.fullName from XWikiDocument doc " + "where (doc.content = '' or trim(doc.content) = '') "
+                + "and not exists (select obj from BaseObject obj where obj.name = doc.fullName) "
+                + "and not exists (select att from XWikiAttachment att where att.docId = doc.id)",
+            Query.HQL)).thenReturn(emptyDocsQueryWiki1);
 
-        when(commentsQuery.setWiki(wikiId1)).thenReturn(commentsQuery);
-        when(commentsQuery.bindValue("maxComments", maxComments)).thenReturn(commentsQuery);
-        when(commentsQuery.bindValue("searchString", "%")).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(currentLanguageFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(hiddenFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(documentFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(viewableFilter)).thenReturn(commentsQuery);
+        when(emptyDocsQueryWiki1.setWiki(wikiId1)).thenReturn(emptyDocsQueryWiki1);
+        when(emptyDocsQueryWiki1.addFilter(hiddenFilter)).thenReturn(emptyDocsQueryWiki1);
+        when(emptyDocsQueryWiki1.addFilter(documentFilter)).thenReturn(emptyDocsQueryWiki1);
+        when(emptyDocsQueryWiki1.addFilter(viewableFilter)).thenReturn(emptyDocsQueryWiki1);
 
-        when(commentsQuery.setWiki(wikiId2)).thenReturn(commentsQuery2);
-        when(commentsQuery2.bindValue("maxComments", maxComments)).thenReturn(commentsQuery2);
-        when(commentsQuery2.bindValue("searchString", "%Anna%")).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(currentLanguageFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(hiddenFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(documentFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(viewableFilter)).thenReturn(commentsQuery2);
-
-        when(commentsQuery2.bindValue("searchString", "%")).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(currentLanguageFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(hiddenFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(documentFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(viewableFilter)).thenReturn(commentsQuery3);
+        when(emptyDocsQueryWiki1.setWiki(wikiId2)).thenReturn(emptyDocsQueryWiki2);
+        when(emptyDocsQueryWiki2.addFilter(hiddenFilter)).thenReturn(emptyDocsQueryWiki2);
+        when(emptyDocsQueryWiki2.addFilter(documentFilter)).thenReturn(emptyDocsQueryWiki2);
+        when(emptyDocsQueryWiki2.addFilter(viewableFilter)).thenReturn(emptyDocsQueryWiki2);
 
         when(xcontextProvider.get()).thenReturn(xContext);
         when(xContext.getWiki()).thenReturn(xWiki);
+        when(xWiki.getDocument(documentRef, xContext)).thenReturn(document);
+        when(xWiki.getDocument(documentRef2, xContext)).thenReturn(document2);
+        when(xWiki.getDocument(documentRef3, xContext)).thenReturn(document3);
+        when(xWiki.getDocument(documentRef4, xContext)).thenReturn(document4);
+
+        when(document.isHidden()).thenReturn(false);
+        when(document2.isHidden()).thenReturn(false);
+        when(document3.isHidden()).thenReturn(true);
+        when(document4.isHidden()).thenReturn(false);
+
+        when(document.getXClassXML()).thenReturn("");
+        when(document2.getXClassXML()).thenReturn("");
+        when(document3.getXClassXML()).thenReturn("");
+        when(document4.getXClassXML()).thenReturn("a class");
     }
 
     @Test
-    void getCommentsForWiki() throws QueryException
+    void getEmptyDocumentsForWiki() throws QueryException
     {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery2.execute()).thenReturn(List.of(documentRef3));
+        when(emptyDocsQueryWiki1.execute()).thenReturn(List.of(documentRef, documentRef2));
+        when(emptyDocsQueryWiki2.execute()).thenReturn(List.of(documentRef3));
 
-        assertEquals(2, spamPagesProvider.getCommentsForWiki(maxComments, "", wikiId1).size());
-        assertEquals(1, spamPagesProvider.getCommentsForWiki(maxComments, "Anna", wikiId2).size());
+        assertEquals(2, emptyDocumentsProvider.getEmptyDocumentsForWiki(wikiId1).size());
+        assertEquals(1, emptyDocumentsProvider.getEmptyDocumentsForWiki(wikiId2).size());
     }
 
     @Test
-    void getDocumentsOverGivenNumberOfComments() throws QueryException, WikiManagerException
+    void getEmptyDocuments() throws QueryException, WikiManagerException
     {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery3.execute()).thenReturn(List.of());
+        when(emptyDocsQueryWiki1.execute()).thenReturn(List.of(documentRef, documentRef2, documentRef3));
+        when(emptyDocsQueryWiki2.execute()).thenReturn(List.of(documentRef4));
 
-        List<DocumentReference> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "", "");
+        List<DocumentReference> testResults = emptyDocumentsProvider.getEmptyDocuments(Map.of("docName", ""), "", "");
         assertEquals(2, testResults.size());
         assertEquals(documentRef, testResults.get(0));
         assertEquals(documentRef2, testResults.get(1));
     }
 
     @Test
-    void getDocumentsOverGivenNumberOfCommentsError() throws QueryException
+    void getEmptyDocumentsError() throws QueryException
     {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery3.execute()).thenThrow(new QueryException("Query error", commentsQuery3, new Exception()));
+        when(emptyDocsQueryWiki1.execute()).thenReturn(List.of(documentRef, documentRef2));
+        when(emptyDocsQueryWiki2.execute()).thenThrow(
+            new QueryException("Query error", emptyDocsQueryWiki2, new Exception()));
         Exception exception = assertThrows(RuntimeException.class,
-            () -> spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "", ""));
+            () -> emptyDocumentsProvider.getEmptyDocuments(Map.of("docName", ""), "", ""));
 
         assertEquals("org.xwiki.query.QueryException: Query error. Query statement = [null]", exception.getMessage());
     }
@@ -214,29 +210,32 @@ class SpamPagesProviderTest
     @Test
     void checkSort() throws QueryException, WikiManagerException, XWikiException
     {
-        DocumentReference docRefA = new DocumentReference("bbb", "bbb", "bbb");
+        DocumentReference docRefA = new DocumentReference("bbb", "bbb", "ddd");
         DocumentReference docRefB = new DocumentReference("bbb", "ccc", "ccc");
-        DocumentReference docRefC = new DocumentReference("aaa", "aaa", "aaa");
+        DocumentReference docRefC = new DocumentReference("aaa", "aaa", "bbb");
+        DocumentReference docRefD = new DocumentReference("aaa", "aaa", "aaa");
 
         when(xWiki.getDocument(docRefA, xContext)).thenReturn(document);
         when(xWiki.getDocument(docRefB, xContext)).thenReturn(document2);
         when(xWiki.getDocument(docRefC, xContext)).thenReturn(document3);
+        when(xWiki.getDocument(docRefD, xContext)).thenReturn(document4);
 
-        when(document.getTitle()).thenReturn("bbb");
+        when(document.getTitle()).thenReturn("ddd");
         when(document2.getTitle()).thenReturn("ccc");
-        when(document3.getTitle()).thenReturn("aaa");
+        when(document3.getTitle()).thenReturn("bbb");
+        when(document4.getTitle()).thenReturn("aaa");
+        when(document4.getXClassXML()).thenReturn("");
 
-        when(commentsQuery.execute()).thenReturn(List.of(docRefA, docRefB));
-        when(commentsQuery3.execute()).thenReturn(List.of(docRefC));
+        when(emptyDocsQueryWiki1.execute()).thenReturn(List.of(docRefA, docRefB));
+        when(emptyDocsQueryWiki2.execute()).thenReturn(List.of(docRefC, docRefD));
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 pretty name");
         List<DocumentReference> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "docName", "asc");
+            emptyDocumentsProvider.getEmptyDocuments(Map.of("docName", ""), "docName", "asc");
 
         assertEquals(3, testResults.size());
-        assertEquals(docRefC, testResults.get(0));
-        assertEquals(docRefA, testResults.get(1));
-        assertEquals(docRefB, testResults.get(2));
+        assertEquals(docRefD, testResults.get(0));
+        assertEquals(docRefB, testResults.get(1));
+        assertEquals(docRefA, testResults.get(2));
     }
 }

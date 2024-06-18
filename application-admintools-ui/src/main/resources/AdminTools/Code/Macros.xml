@@ -161,8 +161,6 @@
   &lt;/div&gt;
 #end
 #macro (pagesOverNumberOfCommentsModal $maxComments)
-  #set ($discard = $xwiki.jsfx.use('js/xwiki/table/tablefilterNsort.js', true))
-  #set ($discard = $xwiki.ssfx.use("js/xwiki/table/table.css"))
   &lt;div class="modal fade" id="pagesOverNumberOfComments" tabindex="-1" role="dialog"
       aria-labelledby="pagesOverNumberOfCommentsLabel"&gt;
     &lt;div class="modal-dialog" role="document"&gt;
@@ -176,6 +174,29 @@
         &lt;/div&gt;
         &lt;div class="modal-body"&gt;
           {{include reference="AdminTools.SpammedPages" /}}
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+#end
+#macro (emptyPagesModal)
+  &lt;div class="modal fade" id="emptyPagesData" tabindex="-1" role="dialog"
+      aria-labelledby="emptyPagesDataLabel"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+          &lt;div id="emptyPagesDataLabel" class="modal-title"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.spamPage.modal.title',
+            [$maxComments]))&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          {{include reference="AdminTools.EmptyPages" /}}
         &lt;/div&gt;
         &lt;div class="modal-footer"&gt;
           &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;

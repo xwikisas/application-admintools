@@ -32,6 +32,7 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -39,7 +40,6 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
@@ -172,11 +172,26 @@ public class AdminToolsScriptService implements ScriptService
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
      */
-    public List<XWikiDocument> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
         String sortColumn, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
+    }
+
+    /**
+     * Retrieve the empty documents from the XWiki instance.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a {@link List} with the empty documents.
+     */
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return adminToolsManager.getEmptyDocuments(filters, sortColumn, order);
     }
 
     /**
