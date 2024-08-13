@@ -66,10 +66,10 @@
       #getSubset($emptyPages, $offset, $toIndex, $resultList)
     #end
     #set ($results = {
-      "totalrows": $emptyPages.size(),
-      "returnedrows": $resultList.size(),
-      "offset": $mathtool.add($offset, 1),
-      "rows": []
+      'totalrows': $emptyPages.size(),
+      'returnedrows': $resultList.size(),
+      'offset': $mathtool.add($offset, 1),
+      'rows': []
     })
     #foreach ($currentEntry in $resultList)
       #set ($docURL = "&lt;a href='$xwiki.getURL($currentEntry)'&gt;$xwiki.getDocument($currentEntry).getTitle()&lt;/a&gt;")

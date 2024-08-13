@@ -84,7 +84,9 @@ public class AdminToolsScriptService implements ScriptService
      * providers.
      *
      * @return a {@link String} representing all templates.
+     * @since 1.0
      */
+    @Unstable
     public String getConfigurationData() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -99,7 +101,9 @@ public class AdminToolsScriptService implements ScriptService
      * @param order the order of the sort.
      * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
      * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.0
      */
+    @Unstable
     public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
         throws AccessDeniedException
     {
@@ -112,7 +116,9 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @param hint {@link String} representing the data provider
      * @return a {@link String} representing a specific template.
+     * @since 1.0
      */
+    @Unstable
     public String getConfigurationData(String hint) throws AccessDeniedException, ComponentLookupException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -123,7 +129,9 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the supported databases.
      *
      * @return inline list with supported databases separated by ",".
+     * @since 1.0
      */
+    @Unstable
     public List<String> getSupportedDatabases() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -134,7 +142,9 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the supported servers.
      *
      * @return inline list with supported servers separated by ",".
+     * @since 1.0
      */
+    @Unstable
     public List<String> getSupportedServers() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -145,7 +155,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the rendered template for accessing the downloads UI.
      *
      * @return a {@link String} representation of the template.
+     * @since 1.0
      */
+    @Unstable
     public String getFilesSection() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -156,7 +168,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the rendered template for viewing info about the size of the XWiki instance.
      *
      * @return a {@link String} representation of the template.
+     * @since 1.0
      */
+    @Unstable
     public String getInstanceSizeSection() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -171,7 +185,9 @@ public class AdminToolsScriptService implements ScriptService
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
+     * @since 1.0
      */
+    @Unstable
     public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
         String sortColumn, String order) throws AccessDeniedException
     {
@@ -186,7 +202,9 @@ public class AdminToolsScriptService implements ScriptService
      * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
      * @return a {@link List} with the empty documents.
+     * @since 1.1
      */
+    @Unstable
     public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
         throws AccessDeniedException
     {
@@ -198,7 +216,9 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the configuration settings for minimum spam size.
      *
      * @return an {@link Integer} representing the configured minimum spam size.
+     * @since 1.0
      */
+    @Unstable
     public int getMinimumSpamSize() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -210,7 +230,9 @@ public class AdminToolsScriptService implements ScriptService
      * the job instance, else create a new Admin Tools health check request for the given wiki and start the execution.
      *
      * @return the asynchronous background job that will execute the request.
+     * @since 1.0
      */
+    @Unstable
     public Job runHealthChecks() throws Exception
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -228,7 +250,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the Health Check job id for the current wiki.
      *
      * @return Health check job id.
+     * @since 1.0
      */
+    @Unstable
     public List<String> getHealthCheckJobId() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -241,7 +265,9 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@code true} if the used server is compatible with the application installation, or {@code false}
      *     otherwise.
+     * @since 1.0
      */
+    @Unstable
     public boolean isUsedServerCompatible()
     {
         return currentServer.getCurrentServer() != null;
@@ -255,7 +281,9 @@ public class AdminToolsScriptService implements ScriptService
      * @param order the order of the sort.
      * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
      *     info for wikis of the instance.
+     * @since 1.0
      */
+    @Unstable
     public List<WikiRecycleBins> getWikisRecycleBinSize(Map<String, String> filters, String sortColumn, String order)
         throws AccessDeniedException, WikiManagerException
     {
