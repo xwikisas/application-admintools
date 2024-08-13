@@ -27,11 +27,14 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
@@ -56,6 +59,9 @@ public abstract class AbstractInstanceUsageProvider
     private static final String INTERVAL_SEPARATOR = "-";
 
     private static final String DESCENDING_ORDER = "desc";
+
+    @Inject
+    protected Provider<XWikiContext> xcontextProvider;
 
     @Inject
     private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
@@ -140,25 +146,39 @@ public abstract class AbstractInstanceUsageProvider
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
      */
-    public void applyDocumentsSort(List<XWikiDocument> list, String sortColumn, String order)
+    public void applyDocumentsSort(List<DocumentReference> list, String sortColumn, String order)
     {
-        Comparator<XWikiDocument> comparator = null;
+        XWikiContext xWikiContext = xcontextProvider.get();
+        XWiki xWiki = xWikiContext.getWiki();
+        Comparator<DocumentReference> comparator = null;
         switch (sortColumn) {
             case WIKI_NAME_KEY:
                 comparator = Comparator.comparing(doc -> {
                     try {
-                        return wikiDescriptorManagerProvider.get()
-                            .getById(doc.getDocumentReference().getWikiReference().getName()).getPrettyName();
+                        return wikiDescriptorManagerProvider.get().getById(doc.getWikiReference().getName())
+                            .getPrettyName();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 });
                 break;
             case "docName":
-                comparator = Comparator.comparing(XWikiDocument::getTitle);
+                comparator = Comparator.comparing(doc -> {
+                    try {
+                        return xWiki.getDocument(doc, xWikiContext).getTitle();
+                    } catch (XWikiException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
                 break;
             case "commentsCount":
-                comparator = Comparator.comparing(doc -> doc.getComments().size());
+                comparator = Comparator.comparing(doc -> {
+                    try {
+                        return xWiki.getDocument(doc, xWikiContext).getComments().size();
+                    } catch (XWikiException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
                 break;
             default:
                 break;

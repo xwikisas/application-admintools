@@ -54,11 +54,17 @@
             'adminTools.dashboard.instanceUsage.specific.recycleBins.hint'))">
               $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.recycleBins'))
           </a></li>
+        <li><a href="#emptyPagesData" data-toggle="modal" data-target="#emptyPagesData"
+            title="$escapetool.xml($services.localization.render(
+            'adminTools.dashboard.instanceUsage.specific.emptyPages.hint'))">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.emptyPages'))
+          </a></li>
       </ul>
     </div>
     #pagesOverNumberOfCommentsModal($spamLimit)
     #recycleBinsModal()
     #wikisSizeModal()
+    #emptyPagesModal()
   </div>
 #else
   #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',

@@ -19,9 +19,7 @@
  */
 package com.xwiki.admintools.internal.usage;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,6 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
@@ -101,6 +98,9 @@ class InstanceUsageManagerTest
     @MockComponent
     private RecycleBinsProvider recycleBinsProvider;
 
+    @MockComponent
+    private EmptyDocumentsProvider emptyDocumentsProvider;
+
     @Mock
     private ServerInfo serverInfo;
 
@@ -132,7 +132,7 @@ class InstanceUsageManagerTest
     private Licensor licensor;
 
     @Mock
-    private XWikiDocument document;
+    private DocumentReference document;
 
     private Map<String, String> filters = new HashMap<>(Map.of("wikiName", ""));
 
@@ -246,9 +246,9 @@ class InstanceUsageManagerTest
     @Test
     void getSpammedPages() throws WikiManagerException
     {
-        List<XWikiDocument> docs = List.of(document);
-        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN,
-            SORT_ORDER)).thenReturn(docs);
+        List<DocumentReference> docs = List.of(document);
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN, SORT_ORDER)).thenReturn(
+            docs);
 
         assertArrayEquals(docs.toArray(),
             instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER).toArray());
@@ -257,8 +257,8 @@ class InstanceUsageManagerTest
     @Test
     void getPagesOverGivenNumberOfCommentsError() throws WikiManagerException
     {
-        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN,
-            SORT_ORDER)).thenThrow(new RuntimeException("Runtime error"));
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
         Exception exception = assertThrows(RuntimeException.class,
             () -> instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER));
         assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
@@ -268,14 +268,36 @@ class InstanceUsageManagerTest
     }
 
     @Test
+    void getEmptyPages() throws WikiManagerException
+    {
+        List<DocumentReference> docs = List.of(document);
+        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
+
+        assertArrayEquals(docs.toArray(),
+            instanceUsageManager.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER).toArray());
+    }
+
+    @Test
+    void getEmptyPagesError() throws WikiManagerException
+    {
+        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
+        Exception exception = assertThrows(RuntimeException.class,
+            () -> instanceUsageManager.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering wikis empty pages. Root cause is: [RuntimeException: Runtime "
+                + "error]", logCapture.getMessage(0));
+    }
+
+    @Test
     void getWikisRecycleBinsData() throws WikiManagerException
     {
         when(wikiDescriptor.getPrettyName()).thenReturn("wiki name 1");
         when(wikiDescriptor2.getPrettyName()).thenReturn("wiki name 2");
         List<WikiRecycleBins> docs = List.of(wikiRecycleBins);
         filters.put("wikiName", "name 2");
-        when(recycleBinsProvider.getWikisRecycleBinsSize(filters, SORT_COLUMN,
-            SORT_ORDER)).thenReturn(docs);
+        when(recycleBinsProvider.getWikisRecycleBinsSize(filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
         List<WikiRecycleBins> wikiRecycleBinsList =
             instanceUsageManager.getWikisRecycleBinsData(filters, SORT_COLUMN, SORT_ORDER);
         assertEquals(1, wikiRecycleBinsList.size());
