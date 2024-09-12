@@ -334,7 +334,15 @@
       <categoryIcon/>
     </property>
     <property>
-      <codeToExecute/>
+      <codeToExecute>#set ($adminToolsConfigClassName = 'AdminTools.Code.ConfigurationClass')
+#set ($classExists = $xwiki.exists($adminToolsConfigClassName))
+#if (!$classExists)
+  #set($infoMessage = "The configuration options for Admin Tools Pro are unavailable because the application has been uninstalled.&lt;br&gt;To remove Admin Tools Pro from administration configuration, please &lt;a href=$xwiki.getURL('AdminTools.Code.Configuration', 'delete')&gt;&lt;b&gt;delete this page&lt;/b&gt;&lt;/a&gt;. Note that deleting the page will permanently erase any custom configurations made on Admin Tools Pro configuration.")
+
+{{html clean=false}}
+  #info($infoMessage)
+{{/html}}
+#end</codeToExecute>
     </property>
     <property>
       <configurationClass>AdminTools.Code.ConfigurationClass</configurationClass>
