@@ -52,5 +52,6 @@
     <module>application-admintools-api</module>
     <module>application-admintools-default</module>
     <module>application-admintools-ui</module>
+    <module>application-admintools-xip</module>
   </modules>
 </project>
