@@ -20,32 +20,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.HealthCheckJob" locale="">
-  <web>AdminTools.Code</web>
-  <name>HealthCheckJob</name>
+<xwikidoc version="1.5" reference="AdminTools.Packages.WebHome" locale="">
+  <web>AdminTools.Packages</web>
+  <name>WebHome</name>
   <language/>
-  <defaultLanguage/>
+  <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>AdminTools.WebHome</parent>
+  <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>HealthCheckJob</title>
+  <title>Packages</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
-  <content>{{velocity}}
-#template('job_macros.vm')
-#includeMacros("AdminTools.Code.HealthCheckMacros")
-#set($jobId = $request.getParameterValues('jobId'))
-#set($jobStatus = $services.job.getJobStatus($jobId))
-#if ($jobStatus)
-  #healthCheckOutputJobStatus($jobStatus)
+  <hidden>false</hidden>
+  <content>{{include reference="AdminTools.Code.Macros"/}}
+
+{{velocity}}
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  #if ($hasAdmin)
+    #displayUploadedPackagesLiveData
+  #else
+    {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
+      $xwiki.currentContentSyntaxId){{/error}}
+  #end
 #else
-  $response.setStatus(404)
-  {{error}}{{translation key="admintools.job.notFound"/}}{{/error}}
+  {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
 #end
-{{/velocity}}</content>
+
+{{/velocity}}
+</content>
 </xwikidoc>

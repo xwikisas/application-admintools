@@ -36,86 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity output='false'}}
-#macro (getHealthCheckJobStatusJSON $status $json)
-  #set ($results = [])
-  #foreach ($result in $status.getHealthCheckResults())
-    #set ($discard = $results.add({
-      'level': $result.getLevel().name().toLowerCase(),
-      'renderedMessage': "#printResult($result)"
-    }))
-  #end
-  #set ($json = $NULL)
-  #setVariable("$json" {
-    'id': $status.request.id,
-    'state': $status.state,
-    'progress': {
-      'offset': $status.progress.offset
-    },
-    'log': {
-      'offset': 0,
-      'items': $results
-    }
-  })
-#end
-#macro (healthCheckOutputJobStatus $jobStatus)
-  #getHealthCheckJobStatusJSON($jobStatus, $json, $translationPrefix)
-  #set ($json.message = "#healthCheckJobFinishedMessage($jobStatus)")
-  $response.setContentType('application/json')
-  $jsontool.serialize($json)
-#end
-#macro (healthCheckJobFinishedMessage $status)
-  #if ($status.error)
-    #set($messageKeys = ["job.status.${status.jobType}.error", 'job.status.error'])
-    #set($healthCheckReportMessage = $services.localization.render($messageKeys))
-    #set($messageClass = 'errormessage health-check-result-message')
-  #elseif ($status.hasLevel('ERROR'))
-    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.error'))
-    #set($messageClass = 'errormessage health-check-result-message')
-  #elseif ($status.hasLevel('WARN'))
-    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.warning'))
-    #set($messageClass = 'warningmessage health-check-result-message')
-  #else
-    #set($healthCheckReportMessage = $services.localization.render('adminTools.dashboard.healthcheck.message.success'))
-    #set($messageClass = 'successmessage health-check-result-message')
-  #end
-  &lt;div class="box $messageClass"&gt;
-    $escapetool.xml($healthCheckReportMessage)
-  &lt;/div&gt;
-#end
-#macro (printResult $healthCheckResult)
-  &lt;div&gt;
-    $escapetool.xml($services.localization.render($healthCheckResult.getMessage(), $healthCheckResult.getParameters()))
-  &lt;/div&gt;
-#end
-#macro (printHealthCheckResults $status)
-  #if ($status.state != 'FINISHED')
-    #set($loading = true)
-  #end
-  #set($healthCheckResults = $status.getHealthCheckResults())
-  &lt;ul class="log"&gt;
-  #foreach ($healthCheckResult in $healthCheckResults)
-    #set ($resultLevel = $healthCheckResult.getLevel().name().toLowerCase())
-    ## Display the last result item as loading if the associated task is not finished.
-    &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
-      #printResult($healthCheckResult)
-    &lt;/li&gt;
-  #end
-  &lt;/ul&gt;
-#end
-#macro (displayHealthCheckResults $status $collapsed)
-  &lt;dl class="xform"&gt;
-    &lt;dt&gt;
-      &lt;label class="collapse-toggle#if ($collapsed || $status.state == 'WAITING') collapsed#end"
-          data-target-xpath="parent::*/following-sibling::*"&gt;
-        &lt;span class="icon-closed"&gt;$services.icon.renderHTML('caret-right')&lt;/span&gt;
-        &lt;span class="icon-opened"&gt;$services.icon.renderHTML('caret-down')&lt;/span&gt;
-        $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.result'))
-      &lt;/label&gt;
-    &lt;/dt&gt;
-    &lt;dd&gt;#printHealthCheckResults($status)&lt;/dd&gt;
-  &lt;/dl&gt;
-#end
+  <content>{{include reference="AdminTools.Code.JobCommonMacros" /}}
+
+{{velocity output='false'}}
 #macro (healthCheckUI)
   #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
   #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
@@ -123,8 +46,10 @@
       #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
       #includeMacros("AdminTools.Code.Macros")
       #set ($jobId = $services.admintools.getHealthCheckJobId())
-      #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.HealthCheckJob', 'get', $escapetool.url({
+      #set ($translationPrefix = 'adminTools.dashboard.healthcheck')
+      #set ($healthJobStatusURL = $xwiki.getURL('AdminTools.Code.JobOutput', 'get', $escapetool.url({
         'jobId': $jobId,
+        'translationPrefix': $translationPrefix,
         'outputSyntax': 'plain'
       })))
       #set ($healthJobStatus = $services.job.getJobStatus($jobId))
@@ -153,10 +78,10 @@
           #if ($healthJobStatus.state != 'FINISHED')
             #displayJobProgressBar($healthJobStatus)
           #else
-            #healthCheckJobFinishedMessage($healthJobStatus, $translationPrefix, $successKey, $errorKey, $canceledKey)
+            #customJobFinishedMessage($healthJobStatus, $translationPrefix)
           #end
           #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
-            #displayHealthCheckResults($healthJobStatus true)
+            #displayJobResults($healthJobStatus true)
           #end
         &lt;/div&gt;
         &lt;hr/&gt;

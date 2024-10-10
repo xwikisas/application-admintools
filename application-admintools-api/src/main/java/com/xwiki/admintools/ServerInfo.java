@@ -34,8 +34,8 @@ public interface ServerInfo
 {
     /**
      * Verify if the path to a specific server is found. If a server path is provided in the XWiki configurations, it
-     * verifies if the path corresponds to a server. Otherwise, it searches the server location in system properties
-     * and system environment.
+     * verifies if the path corresponds to a server. Otherwise, it searches the server location in system properties and
+     * system environment.
      *
      * @return {@code true} if the server is used, {@code false} otherwise.
      */
@@ -61,6 +61,13 @@ public interface ServerInfo
      * @return the path to the XWiki configuration folder.
      */
     String getXwikiCfgFolderPath();
+
+    /**
+     * Access the path to the XWiki installation folder.
+     *
+     * @return the path to the XWiki installation folder.
+     */
+    String getXWikiInstallFolderPath();
 
     /**
      * Update the possible paths to the configuration files.

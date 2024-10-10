@@ -29,39 +29,49 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.stability.Unstable;
 
 /**
- * The status of the health check job.
+ * The status of a package upload job.
  *
  * @version $Id$
- * @since 1.0
+ * @since 1.1
  */
 @Unstable
-public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
+public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobRequest>
 {
-    private final List<CustomJobResult> customJobResults = new LinkedList<>();
+    private List<CustomJobResult> uploadLogs = new LinkedList<>();
 
     /**
-     * Create a new health check job status.
+     * Create a new import job status.
      *
-     * @param jobType the job type
-     * @param request the request provided when the job was started
-     * @param observationManager the observation manager
-     * @param loggerManager the logger manager
+     * @param jobType the job type.
+     * @param request the request provided when the job was started.
+     * @param observationManager the observation manager.
+     * @param loggerManager the logger manager.
      */
-    public HealthCheckJobStatus(String jobType, HealthCheckJobRequest request, ObservationManager observationManager,
-        LoggerManager loggerManager)
+    public PackageUploadJobStatus(String jobType, PackageUploadJobRequest request,
+        ObservationManager observationManager, LoggerManager loggerManager)
     {
         super(jobType, request, null, observationManager, loggerManager);
         setCancelable(true);
     }
 
     /**
-     * Get the list issues list from the job.
+     * Get the list result list from the job.
      *
-     * @return list with {@link CustomJobResult} containing errors.
+     * @return list with {@link CustomJobResult} containing the results.
      */
     public List<CustomJobResult> getJobResults()
     {
-        return customJobResults;
+        return uploadLogs;
+    }
+
+    /**
+     * Add a new log to the job results.
+     *
+     * @param statusLog the new log result.
+     */
+    public void addLog(CustomJobResult statusLog)
+    {
+        uploadLogs.add(statusLog);
     }
 
     /**
@@ -72,6 +82,6 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
      */
     public boolean hasLevel(CustomJobResultLevel level)
     {
-        return this.customJobResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
+        return this.uploadLogs.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
     }
 }

@@ -32,8 +32,8 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
@@ -77,14 +77,14 @@ class HealthCheckJobTest
         healthCheckList.add(secondHealthCheck);
 
         when(listProvider.get()).thenReturn(healthCheckList);
-        when(firstHealthCheck.check()).thenReturn(new HealthCheckResult("err", HealthCheckResultLevel.ERROR, "error"));
-        when(secondHealthCheck.check()).thenReturn(new HealthCheckResult("safe", HealthCheckResultLevel.INFO));
+        when(firstHealthCheck.check()).thenReturn(new CustomJobResult("err", CustomJobResultLevel.ERROR, "error"));
+        when(secondHealthCheck.check()).thenReturn(new CustomJobResult("safe", CustomJobResultLevel.INFO));
 
         healthCheckJob.initialize(new HealthCheckJobRequest());
         healthCheckJob.runInternal();
         HealthCheckJobStatus healthCheckJobStatus = healthCheckJob.getStatus();
-        assertEquals(2, healthCheckJobStatus.getHealthCheckResults().size());
-        assertTrue(healthCheckJobStatus.hasLevel(HealthCheckResultLevel.ERROR));
+        assertEquals(2, healthCheckJobStatus.getJobResults().size());
+        assertTrue(healthCheckJobStatus.hasLevel(CustomJobResultLevel.ERROR));
     }
 
     @Test

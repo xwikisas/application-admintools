@@ -23,10 +23,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.xwiki.rest.XWikiRestComponent;
 import org.xwiki.rest.XWikiRestException;
+import org.xwiki.stability.Unstable;
 
 /**
  * Provides the APIs needed by the Admin Tools server in order to download and view configuration files and logs.
@@ -66,4 +68,19 @@ public interface AdminToolsResource extends XWikiRestComponent
     @POST
     @Path("/flushCache")
     Response flushCache() throws XWikiRestException;
+
+    /**
+     * Start a package upload job based on the attachment reference that was sent.
+     *
+     * @param attachReference the reference of the attachment.
+     * @param startTime the start time of the request.
+     * @return HTML status code 202 to hint that the upload job has started.
+     * @throws XWikiRestException if an error occurred while creating the job.
+     * @since 1.1
+     */
+    @POST
+    @Path("/import")
+    @Unstable
+    Response uploadPackageArchive(@QueryParam("attach") String attachReference,
+        @QueryParam("startTime") String startTime) throws XWikiRestException;
 }

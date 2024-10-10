@@ -283,5 +283,20 @@
     &lt;/div&gt;
   &lt;/div&gt;
 #end
+#macro (displayUploadedPackagesLiveData)
+=$services.icon.render('book') {{translation key='adminTools.packages.started.livedata.title'/}}=
+{{liveData
+  id="adminToolsPackageUploads"
+  properties="doc.title,job_status,doc.author,doc.date"
+  source="liveTable"
+  sourceParameters="resultPage=AdminTools.Code.PackagesJSON&amp;className=AdminTools.Code.PackageUploadClass&amp;translationPrefix=adminTools.packages.upload.livetable."
+  sort='doc.date:desc'}}{
+  "meta": {
+    "propertyDescriptors": [
+      { "id": "job_status", "displayer": "html", "filterable": "false", "sortable": "false"}
+    ]
+  }
+}{{/liveData}}
+#end
 {{/velocity}}</content>
 </xwikidoc>

@@ -25,8 +25,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking XWiki configuration encoding.
@@ -44,21 +44,21 @@ public class ConfigurationEncodingHealthCheck extends AbstractSecurityHealthChec
     public static final String HINT = "configurationEncoding";
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         String configEnc = getSecurityProviderJSON().get(HINT);
         if (configEnc == null) {
             logger.warn("Configuration encoding could not be detected!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.notFound",
-                HealthCheckResultLevel.WARN);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.config.notFound",
+                CustomJobResultLevel.WARN);
         }
         boolean isConfigEncSafe = isSafeEncoding(configEnc, "XWiki configuration");
 
         if (!isConfigEncSafe) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn",
-                HealthCheckResultLevel.WARN, configEnc);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.config.warn",
+                CustomJobResultLevel.WARN, configEnc);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.xwiki.config.info",
-            HealthCheckResultLevel.INFO);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.config.info",
+            CustomJobResultLevel.INFO);
     }
 }

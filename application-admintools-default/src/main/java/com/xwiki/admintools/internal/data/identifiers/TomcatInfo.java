@@ -80,6 +80,10 @@ public class TomcatInfo extends AbstractServerInfo
         this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
             String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+
+        this.xwikiInstallPossiblePaths =
+            new String[] { "/etc/xwiki/lib/", "/usr/local/xwiki/", "/opt/xwiki/",
+                String.format("%s/webapps/xwiki/", this.serverPath) };
     }
 
     @Override

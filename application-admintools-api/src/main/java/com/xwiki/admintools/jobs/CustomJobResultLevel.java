@@ -17,32 +17,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.health;
+package com.xwiki.admintools.jobs;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * Represents the severity type of {@link HealthCheckResult}, where "INFO" is for informative results, "WARN" for
+ * Represents the severity level of a job, where "INFO" is for informative results, "WARN" for
  * warnings and "ERROR" for critical issues.
  *
  * @version $Id$
  * @since 1.0
  */
 @Unstable
-public enum HealthCheckResultLevel
+public enum CustomJobResultLevel
 {
     /**
-     * Used to mark a {@link HealthCheckResult} as an error.
+     * Used to mark a {@link CustomJobResultLevel} as an error.
      */
     ERROR,
 
     /**
-     * Used to mark a {@link HealthCheckResult} as a warning.
+     * Used to mark a {@link CustomJobResultLevel} as a warning.
      */
     WARN,
 
     /**
-     * Used to mark a {@link HealthCheckResult} as informative.
+     * Used to mark a {@link CustomJobResultLevel} as informative.
      */
     INFO
 }
