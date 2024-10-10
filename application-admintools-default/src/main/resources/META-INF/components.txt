@@ -13,6 +13,7 @@ com.xwiki.admintools.internal.files.ImportantFilesManager
 com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
+com.xwiki.admintools.internal.AdminToolsUninstallListener
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationDatabaseHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationJavaHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOSHealthCheck
