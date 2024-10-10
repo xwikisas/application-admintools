@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.ExtensionId;
@@ -76,27 +77,30 @@ public class AdminToolsUninstallListener extends AbstractEventListener
         if (event instanceof ExtensionUninstalledEvent) {
             try {
                 ExtensionId uninstalledExtension = ((ExtensionUninstalledEvent) event).getExtensionId();
-                if (uninstalledExtension.getId().equals(getExtensionId("ui"))) {
+                if (uninstalledExtension.getId().equals(getAdminToolsExtensionId("ui"))) {
                     ExtensionId apiExtensionId =
-                        new ExtensionId(getExtensionId("api"), uninstalledExtension.getVersion());
+                        new ExtensionId(getAdminToolsExtensionId("api"), uninstalledExtension.getVersion());
                     ExtensionId defaultExtensionId =
-                        new ExtensionId(getExtensionId("default"), uninstalledExtension.getVersion());
+                        new ExtensionId(getAdminToolsExtensionId("default"), uninstalledExtension.getVersion());
 
                     InstalledExtension apiExtension = installedRepository.getInstalledExtension(apiExtensionId);
                     InstalledExtension defaultExtension = installedRepository.getInstalledExtension(defaultExtensionId);
                     String namespace = new WikiNamespace(wikiContextProvider.get().getWikiId()).serialize();
+                    logger.info("Attempting to uninstall Admin Tools default module...");
                     installedRepository.uninstallExtension(defaultExtension, namespace);
+                    logger.info("Attempting to uninstall Admin Tools API module...");
                     installedRepository.uninstallExtension(apiExtension, namespace);
                     logger.info("Successfully uninstalled all Admin Tools modules.");
                 }
             } catch (UninstallException e) {
-                logger.error("There was an error while uninstalling Admin Tools modules.");
+                logger.error("There was an error while uninstalling Admin Tools modules. Root cause is: [{}]",
+                    ExceptionUtils.getRootCauseMessage(e));
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private String getExtensionId(String module)
+    private String getAdminToolsExtensionId(String module)
     {
         return String.format("com.xwiki.admintools:application-admintools-%s", module);
     }
