@@ -192,7 +192,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
   const reinitialiseHealthCheckResources = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
       let progressBar = $(data).find('div.ui-progress');
-      $('#healthCheck').find('.health-check-result-message').replaceWith(progressBar);
+      $('#healthCheck').find('.job-result-message').replaceWith(progressBar);
       reinitializeJobJS()
     });
   };
@@ -293,6 +293,58 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     });
     $(event.currentTarget).closest('.modal').modal('toggle');
   });
+
+  $(function() {
+    // Since the associated liveData is refreshed on file upload, we don't need a response container.
+    const input = document.querySelector('#adminToolsAddPackage input[type=file]');
+    if (input &amp;&amp; XWiki.FileUploader) {
+      new XWiki.FileUploader(input, {
+        'progressAutohide': true,
+        'responseContainer' : document.createElement('div')
+      });
+    }
+  });
+
+  const runPackageUploadJob = function(targetURL) {
+    $.post(targetURL).done(function() {})
+      .fail(function(error) {
+        console.log('Failed to start upload job. Cause: ' + error.statusText);
+        new XWiki.widgets.Notification(l10n.get('error'), 'error');
+      });
+  };
+
+  $(document).on('click', '.admintools-start-upload', function (event) {
+    event.preventDefault();
+    let packageName = $(this).data('package-name');
+    let packageRef = $(this).data('package-ref');
+    let startTime = Date.now();
+    let referenceString = 'AdminTools.Packages.Package-' + packageName.replace('.', '\\.') + startTime;
+    let jobDocumentRef = XWiki.Model.resolve(referenceString, XWiki.EntityType.DOCUMENT,
+      XWiki.currentDocument.documentReference);
+    let jobDocument = new XWiki.Document(jobDocumentRef);
+    let targetURL = $(this).data('upload-url') + "&amp;startTime=" + startTime;
+    let pageData = {
+      "template": "AdminTools.Code.PackageUploadTemplate",
+      "AdminTools.Code.PackageUploadClass_0_package": packageRef,
+      "AdminTools.Code.PackageUploadClass_0_startTime": startTime,
+      parent: 'AdminTools.WebHome',
+      form_token: xwikiMeta.form_token,
+      title: packageName
+    };
+    $.ajax({
+      url: new XWiki.Document(jobDocumentRef).getURL('save'),
+      type: 'POST',
+      data: pageData,
+      success: function (response) {
+        runPackageUploadJob(targetURL);
+        window.location.href = new XWiki.Document(jobDocumentRef).getURL('view');
+      },
+      error: function (xhr, status, error) {
+        console.error("Failed to create the upload page:", error);
+        alert("An error occurred while creating the upload page.");
+      }
+    });
+  });
 });</code>
     </property>
     <property>
@@ -303,6 +355,160 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     </property>
     <property>
       <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>AdminTools.Code.AdminToolsJS</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>dbfe04bd-eebd-43ff-9290-237e98119410</guid>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <async_cached>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_cached</name>
+        <number>3</number>
+        <prettyName>Cached</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_cached>
+      <async_context>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>async_context</name>
+        <number>4</number>
+        <prettyName>Context elements</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>, </separator>
+        <separators>|, </separators>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </async_context>
+      <async_enabled>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_enabled</name>
+        <number>2</number>
+        <prettyName>Asynchronous rendering</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_enabled>
+      <content>
+        <disabled>0</disabled>
+        <editor>Text</editor>
+        <name>content</name>
+        <number>1</number>
+        <prettyName>Executed Content</prettyName>
+        <restricted>0</restricted>
+        <rows>25</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>5</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>6</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>parameters</name>
+        <number>7</number>
+        <prettyName>Extension Parameters</prettyName>
+        <restricted>0</restricted>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>8</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <async_cached>0</async_cached>
+    </property>
+    <property>
+      <async_context/>
+    </property>
+    <property>
+      <async_enabled>0</async_enabled>
+    </property>
+    <property>
+      <content>{{velocity}}
+{{html clean="false"}}
+#set ($isPackageStore = $doc.documentReference.equals($services.model.resolveDocument('AdminTools.Code.PackagesStore')))
+#set ($packageRef = $escapetool.xml($services.model.serialize($attachment.getReference(), 'default')))
+#if ($isPackageStore &amp;&amp; $services.security.authorization.hasAccess('admin', $xcontext.user) &amp;&amp; $attachment.getFilename().contains(".zip"))
+&lt;a class="admintools-start-upload action" data-upload-url="$request.getContextPath()/rest/admintools/import?attach=${packageRef}"
+  data-package-name="${escapetool.xml($attachment.getFilename())}" data-package-ref="${packageRef}"
+  title="$services.localization.render('confluencepro.migration.livetable._actions.select')" href="#"&gt;
+  &lt;span class="action-icon"&gt;$services.icon.renderHTML('play')&lt;/span&gt;&lt;span class="action-label"&gt;Upload package
+  &lt;/span&gt;
+&lt;/a&gt;
+#end
+{{/html}}
+{{/velocity}}</content>
+    </property>
+    <property>
+      <extensionPointId>org.xwiki.platform.attachment.actions</extensionPointId>
+    </property>
+    <property>
+      <name>admintools.package.attachment.actions</name>
+    </property>
+    <property>
+      <parameters/>
+    </property>
+    <property>
+      <scope>wiki</scope>
     </property>
   </object>
 </xwikidoc>

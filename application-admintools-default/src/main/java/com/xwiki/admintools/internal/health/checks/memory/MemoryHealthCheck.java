@@ -32,8 +32,8 @@ import org.xwiki.component.annotation.Component;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking instance memory performance.
@@ -57,7 +57,7 @@ public class MemoryHealthCheck implements HealthCheck
     private Logger logger;
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         XWiki wiki = xcontextProvider.get().getWiki();
         float maxMemory = wiki.maxMemory();
@@ -66,19 +66,19 @@ public class MemoryHealthCheck implements HealthCheck
         DecimalFormat format = new DecimalFormat("0.#");
         if (maxMemoryGB < 1) {
             logger.error("JVM memory is less than 1024MB. Currently: [{}]", maxMemoryGB * 1024);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
-                HealthCheckResultLevel.ERROR, (maxMemoryGB * 1024f));
+            return new CustomJobResult("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
+                CustomJobResultLevel.ERROR, (maxMemoryGB * 1024f));
         }
         if (totalFreeMemory < 512) {
             logger.error("JVM instance has only [{}]MB free memory left!", totalFreeMemory);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.error",
-                HealthCheckResultLevel.ERROR, totalFreeMemory);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.memory.free.error",
+                CustomJobResultLevel.ERROR, totalFreeMemory);
         } else if (totalFreeMemory < 1024) {
             logger.warn("Instance memory is running low. Currently only [{}]MB free left.", totalFreeMemory);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.free.warn",
-                HealthCheckResultLevel.WARN, totalFreeMemory);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.memory.free.warn",
+                CustomJobResultLevel.WARN, totalFreeMemory);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.info", HealthCheckResultLevel.INFO,
+        return new CustomJobResult("adminTools.dashboard.healthcheck.memory.info", CustomJobResultLevel.INFO,
             totalFreeMemory / 1024);
     }
 }

@@ -28,8 +28,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.configuration.ConfigurationSource;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking instance document cache performance.
@@ -54,21 +54,21 @@ public class CacheMemoryHealthCheck implements HealthCheck
     private Logger logger;
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         String storeCacheCapacity = configurationSource.getProperty("xwiki.store.cache.capacity");
         if (storeCacheCapacity == null) {
             logger.warn("Store cache capacity not defined. Set by default at 500.");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.null",
-                HealthCheckResultLevel.INFO);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.memory.cache.null",
+                CustomJobResultLevel.INFO);
         }
         int cacheCapacity = Integer.parseInt(storeCacheCapacity);
         if (cacheCapacity < 500) {
             logger.warn("Store cache capacity is set to [{}].", storeCacheCapacity);
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.low",
-                HealthCheckResultLevel.WARN, cacheCapacity);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.memory.cache.low",
+                CustomJobResultLevel.WARN, cacheCapacity);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.memory.cache.info",
-            HealthCheckResultLevel.INFO, cacheCapacity);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.memory.cache.info",
+            CustomJobResultLevel.INFO, cacheCapacity);
     }
 }
