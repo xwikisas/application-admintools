@@ -335,8 +335,7 @@
     </property>
     <property>
       <codeToExecute>#set ($adminToolsConfigClassName = 'AdminTools.Code.ConfigurationClass')
-#set ($classExists = $xwiki.exists($adminToolsConfigClassName))
-#if (!$classExists)
+#if (!$xwiki.exists($adminToolsConfigClassName))
 {{info}}
 {{html clean="false"}}
   &lt;p&gt;
