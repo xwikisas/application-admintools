@@ -27,8 +27,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking the OS configuration.
@@ -46,13 +46,13 @@ public class ConfigurationOSHealthCheck extends AbstractConfigurationHealthCheck
     public static final String HINT = "configurationOS";
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         Map<String, String> dataJSON = getConfigurationProviderJSON();
         if (dataJSON.get("osName") == null || dataJSON.get("osVersion") == null || dataJSON.get("osArch") == null) {
             logger.warn("There has been an error while gathering OS info!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.os.warn", HealthCheckResultLevel.WARN);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.os.warn", CustomJobResultLevel.WARN);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.os.info", HealthCheckResultLevel.INFO);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.os.info", CustomJobResultLevel.INFO);
     }
 }
