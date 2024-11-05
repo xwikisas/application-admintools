@@ -28,9 +28,6 @@ import org.xwiki.logging.LoggerManager;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.stability.Unstable;
 
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
-
 /**
  * The status of the health check job.
  *
@@ -40,7 +37,7 @@ import com.xwiki.admintools.health.HealthCheckResultLevel;
 @Unstable
 public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
 {
-    private final List<HealthCheckResult> healthCheckResults = new LinkedList<>();
+    private final List<CustomJobResult> customJobResults = new LinkedList<>();
 
     /**
      * Create a new health check job status.
@@ -60,11 +57,11 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
     /**
      * Get the list issues list from the job.
      *
-     * @return list with {@link HealthCheckResult} containing errors.
+     * @return list with {@link CustomJobResult} containing errors.
      */
-    public List<HealthCheckResult> getHealthCheckResults()
+    public List<CustomJobResult> getJobResults()
     {
-        return healthCheckResults;
+        return customJobResults;
     }
 
     /**
@@ -73,8 +70,8 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
      * @param level represents the searched level of severity.
      * @return {@code true} if there is any match for the given level, or {@code false} otherwise.
      */
-    public boolean hasLevel(HealthCheckResultLevel level)
+    public boolean hasLevel(CustomJobResultLevel level)
     {
-        return this.healthCheckResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
+        return this.customJobResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
     }
 }

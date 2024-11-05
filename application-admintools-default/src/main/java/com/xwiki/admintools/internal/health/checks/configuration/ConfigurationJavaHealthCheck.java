@@ -29,8 +29,8 @@ import org.xwiki.extension.version.Version;
 import org.xwiki.extension.version.internal.DefaultVersion;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 import com.xwiki.admintools.health.XWikiVersions;
 
 /**
@@ -51,22 +51,22 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     private static final String REGEX = "\\.";
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         Map<String, String> configurationJson = getConfigurationProviderJSON();
         String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
             logger.warn("Java version not found!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.warn", HealthCheckResultLevel.WARN);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.java.warn", CustomJobResultLevel.WARN);
         }
         String xwikiVersionString = configurationJson.get("xwikiVersion");
         float javaVersion = parseJavaVersionFloat(javaVersionString);
         if (!isJavaXWikiCompatible(xwikiVersionString, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.java.error", HealthCheckResultLevel.ERROR,
+            return new CustomJobResult("adminTools.dashboard.healthcheck.java.error", CustomJobResultLevel.ERROR,
                 javaVersionString, xwikiVersionString);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.java.info", HealthCheckResultLevel.INFO);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.java.info", CustomJobResultLevel.INFO);
     }
 
     private float parseJavaVersionFloat(String javaVersionString)

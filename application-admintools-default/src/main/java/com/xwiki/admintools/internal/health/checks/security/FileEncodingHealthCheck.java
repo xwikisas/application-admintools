@@ -25,8 +25,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking system file encoding.
@@ -44,20 +44,20 @@ public class FileEncodingHealthCheck extends AbstractSecurityHealthCheck
     public static final String HINT = "fileEncoding";
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         String fileEnc = getSecurityProviderJSON().get(HINT);
         if (fileEnc == null) {
             logger.warn("File encoding could not be detected!");
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.notFound",
-                HealthCheckResultLevel.WARN);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.file.notFound",
+                CustomJobResultLevel.WARN);
         }
         boolean isSafeFileEnc = isSafeEncoding(fileEnc, "System file");
         if (!isSafeFileEnc) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.warn",
-                HealthCheckResultLevel.WARN, fileEnc);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.file.warn",
+                CustomJobResultLevel.WARN, fileEnc);
         }
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.security.system.file.info",
-            HealthCheckResultLevel.INFO);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.file.info",
+            CustomJobResultLevel.INFO);
     }
 }

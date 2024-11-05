@@ -125,7 +125,6 @@ adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
 adminTools.dashboard.healthcheck.operations=Instance operations
-adminTools.dashboard.healthcheck.result=Health check results
 adminTools.dashboard.healthcheck.linkLabel=help links
 
 ##Instance usage
@@ -155,6 +154,10 @@ adminTools.dashboard.security.fileEncoding=File encoding
 adminTools.dashboard.security.lang=Used language
 adminTools.dashboard.security.pwd=Working directory
 adminTools.dashboard.security.title=Security
+
+
+## Jobs
+adminTools.jobs.result.hint=Job results
 
 
 ##Help links

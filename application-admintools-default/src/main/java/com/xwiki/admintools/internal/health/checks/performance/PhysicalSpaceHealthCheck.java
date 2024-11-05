@@ -32,8 +32,8 @@ import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -58,7 +58,7 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
     private Logger logger;
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         File diskPartition;
         ServerInfo server = currentServer.getCurrentServer();
@@ -77,12 +77,12 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
         float freeSpace = (float) freePartitionSpace / (1024 * 1024 * 1024);
 
         if (freeSpace > 16) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.info",
-                HealthCheckResultLevel.INFO);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.performance.space.info",
+                CustomJobResultLevel.INFO);
         }
         logger.warn("There is not enough free space for the XWiki installation! Current free space is [{}]",
             freeSpace);
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.space.warn",
-            HealthCheckResultLevel.WARN, freeSpace, diskPartition.getAbsolutePath());
+        return new CustomJobResult("adminTools.dashboard.healthcheck.performance.space.warn",
+            CustomJobResultLevel.WARN, freeSpace, diskPartition.getAbsolutePath());
     }
 }

@@ -27,8 +27,8 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.health.HealthCheckResult;
-import com.xwiki.admintools.health.HealthCheckResultLevel;
+import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.CustomJobResultLevel;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -53,7 +53,7 @@ public class CPUHealthCheck implements HealthCheck
     private Logger logger;
 
     @Override
-    public HealthCheckResult check()
+    public CustomJobResult check()
     {
         SystemInfo systemInfo = new SystemInfo();
         HardwareAbstractionLayer hardware = systemInfo.getHardware();
@@ -62,12 +62,12 @@ public class CPUHealthCheck implements HealthCheck
         int maxFreq = (int) (processor.getMaxFreq() / (1024 * 1024));
 
         if (cpuCores > 2 && maxFreq > 2048) {
-            return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.info",
-                HealthCheckResultLevel.INFO);
+            return new CustomJobResult("adminTools.dashboard.healthcheck.performance.cpu.info",
+                CustomJobResultLevel.INFO);
         }
         String cpuSpecifications = String.format("CPU cores %d - frequency %d", cpuCores, maxFreq);
         logger.warn("The CPU does not satisfy the minimum system requirements! [{}]", cpuSpecifications);
-        return new HealthCheckResult("adminTools.dashboard.healthcheck.performance.cpu.warn",
-            HealthCheckResultLevel.WARN, cpuCores, maxFreq);
+        return new CustomJobResult("adminTools.dashboard.healthcheck.performance.cpu.warn",
+            CustomJobResultLevel.WARN, cpuCores, maxFreq);
     }
 }
