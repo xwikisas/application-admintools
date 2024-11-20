@@ -192,7 +192,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
   const reinitialiseHealthCheckResources = function() {
     $.get(getHealthCheckActionPageURL(), function(data) {
       let progressBar = $(data).find('div.ui-progress');
-      $('#healthCheck').find('.health-check-result-message').replaceWith(progressBar);
+      $('#healthCheck').find('.job-result-message').replaceWith(progressBar);
       reinitializeJobJS()
     });
   };

@@ -20,29 +20,31 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.HealthCheckJob" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.JobOutput" locale="">
   <web>AdminTools.Code</web>
-  <name>HealthCheckJob</name>
+  <name>JobOutput</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>AdminTools.WebHome</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>HealthCheckJob</title>
+  <title>JobOutput</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="AdminTools.Code.JobCommonMacros" /}}
+
+{{velocity}}
 #template('job_macros.vm')
-#includeMacros("AdminTools.Code.HealthCheckMacros")
 #set($jobId = $request.getParameterValues('jobId'))
+#set($translationPrefix = $request.getParameter('translationPrefix'))
 #set($jobStatus = $services.job.getJobStatus($jobId))
 #if ($jobStatus)
-  #healthCheckOutputJobStatus($jobStatus)
+  #outputJobStatus($jobStatus, $translationPrefix)
 #else
   $response.setStatus(404)
   {{error}}{{translation key="admintools.job.notFound"/}}{{/error}}

@@ -22,6 +22,8 @@ package com.xwiki.admintools.health;
 import org.xwiki.component.annotation.Role;
 import org.xwiki.stability.Unstable;
 
+import com.xwiki.admintools.jobs.JobResult;
+
 /**
  * Check for issues in the current wiki.
  *
@@ -35,7 +37,7 @@ public interface HealthCheck
     /**
      * Execute the health check on the wiki instance.
      *
-     * @return a {@link HealthCheckResult} with the relevant info regarding the checked issue.
+     * @return a {@link JobResult} with the relevant info regarding the checked issue.
      */
-    HealthCheckResult check();
+    JobResult check();
 }
