@@ -33,7 +33,7 @@ import org.xwiki.job.JobGroupPath;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.CustomJobResult;
+import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
 
@@ -93,7 +93,7 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                 } else {
                     progressManager.startStep(this);
                     // We start the check for the current HealthCheck in the iterator.
-                    CustomJobResult checkResult = healthCheckIterator.next().check();
+                    JobResult checkResult = healthCheckIterator.next().check();
                     status.getJobResults().add(checkResult);
                     progressManager.endStep(this);
                     Thread.yield();

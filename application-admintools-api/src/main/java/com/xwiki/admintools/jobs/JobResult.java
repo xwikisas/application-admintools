@@ -25,18 +25,18 @@ import org.xwiki.stability.Unstable;
 
 /**
  * Result of a job. Stores a custom message for the summary of the result, the severity level represented by
- * {@link CustomJobResultLevel}. The result may also contain a {@link List} of additional parameters used if there is
+ * {@link JobResultLevel}. The result may also contain a {@link List} of additional parameters used if there is
  * need to store more information about the result.
  *
  * @version $Id$
  * @since 1.0
  */
 @Unstable
-public class CustomJobResult
+public class JobResult
 {
     private String message;
 
-    private CustomJobResultLevel level;
+    private JobResultLevel level;
 
     private List<?> parameters;
 
@@ -47,7 +47,7 @@ public class CustomJobResult
      * @param level severity level of a result.
      * @param parameters current value of the checked resource.
      */
-    public CustomJobResult(String message, CustomJobResultLevel level, Object... parameters)
+    public JobResult(String message, JobResultLevel level, Object... parameters)
     {
         this.message = message;
         this.level = level;
@@ -79,7 +79,7 @@ public class CustomJobResult
      *
      * @return the severity level of an error.
      */
-    public CustomJobResultLevel getLevel()
+    public JobResultLevel getLevel()
     {
         return level;
     }
