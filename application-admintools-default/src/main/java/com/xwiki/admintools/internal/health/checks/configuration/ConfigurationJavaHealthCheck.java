@@ -29,8 +29,8 @@ import org.xwiki.extension.version.Version;
 import org.xwiki.extension.version.internal.DefaultVersion;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.CustomJobResult;
-import com.xwiki.admintools.jobs.CustomJobResultLevel;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 import com.xwiki.admintools.health.XWikiVersions;
 
 /**
@@ -51,22 +51,22 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     private static final String REGEX = "\\.";
 
     @Override
-    public CustomJobResult check()
+    public JobResult check()
     {
         Map<String, String> configurationJson = getConfigurationProviderJSON();
         String javaVersionString = configurationJson.get("javaVersion");
         if (javaVersionString == null) {
             logger.warn("Java version not found!");
-            return new CustomJobResult("adminTools.dashboard.healthcheck.java.warn", CustomJobResultLevel.WARN);
+            return new JobResult("adminTools.dashboard.healthcheck.java.warn", JobResultLevel.WARN);
         }
         String xwikiVersionString = configurationJson.get("xwikiVersion");
         float javaVersion = parseJavaVersionFloat(javaVersionString);
         if (!isJavaXWikiCompatible(xwikiVersionString, javaVersion)) {
             logger.error("Java version is not compatible with the current XWiki installation!");
-            return new CustomJobResult("adminTools.dashboard.healthcheck.java.error", CustomJobResultLevel.ERROR,
+            return new JobResult("adminTools.dashboard.healthcheck.java.error", JobResultLevel.ERROR,
                 javaVersionString, xwikiVersionString);
         }
-        return new CustomJobResult("adminTools.dashboard.healthcheck.java.info", CustomJobResultLevel.INFO);
+        return new JobResult("adminTools.dashboard.healthcheck.java.info", JobResultLevel.INFO);
     }
 
     private float parseJavaVersionFloat(String javaVersionString)

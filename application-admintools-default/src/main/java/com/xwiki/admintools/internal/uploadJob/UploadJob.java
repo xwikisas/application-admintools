@@ -49,8 +49,8 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.jobs.CustomJobResult;
-import com.xwiki.admintools.jobs.CustomJobResultLevel;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 import com.xwiki.admintools.jobs.PackageUploadJobRequest;
 import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 import com.xwiki.admintools.uploadPackageJob.UploadPackageJobResource;
@@ -196,8 +196,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                     continue;
                 }
             }
-            CustomJobResult log =
-                new CustomJobResult("adminTools.jobs.upload.batch.backup.success", CustomJobResultLevel.INFO,
+            JobResult log =
+                new JobResult("adminTools.jobs.upload.batch.backup.success", JobResultLevel.INFO,
                     jobResource.getNewFileName());
             status.addLog(log);
             progressManager.endStep(this);
@@ -223,7 +223,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
     private void backupFailureMessage(String translation, String... parameters)
     {
         String translationHint = String.format("adminTools.jobs.upload.batch.backup.%s.fail", translation);
-        CustomJobResult log = new CustomJobResult(translationHint, CustomJobResultLevel.ERROR, parameters);
+        JobResult log = new JobResult(translationHint, JobResultLevel.ERROR, parameters);
         status.addLog(log);
     }
 
@@ -235,8 +235,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
             if (targetFile.exists()) {
                 String filePath = jobResource.getTargetFile().getParent();
                 if (!targetFile.delete()) {
-                    CustomJobResult log =
-                        new CustomJobResult("adminTools.jobs.upload.batch.save.fail", CustomJobResultLevel.ERROR,
+                    JobResult log =
+                        new JobResult("adminTools.jobs.upload.batch.save.fail", JobResultLevel.ERROR,
                             targetFile.getName());
                     status.addLog(log);
                     throw new RuntimeException(
@@ -248,8 +248,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                 Files.write(targetFile.toPath(), jobResource.getNewFileContent().toByteArray());
             }
             jobResource.setUploaded();
-            CustomJobResult log =
-                new CustomJobResult("adminTools.jobs.upload.batch.save.success", CustomJobResultLevel.INFO,
+            JobResult log =
+                new JobResult("adminTools.jobs.upload.batch.save.success", JobResultLevel.INFO,
                     jobResource.getNewFileName());
             status.addLog(log);
             progressManager.endStep(this);
@@ -273,8 +273,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                 String[] filesList = new File(directoryPath).list(
                     ((dir, name) -> name.startsWith(simpleFileName) && name.endsWith(extension)));
                 if (filesList == null || filesList.length > 1) {
-                    CustomJobResult log =
-                        new CustomJobResult("adminTools.jobs.upload.assessoriginal.fail", CustomJobResultLevel.ERROR,
+                    JobResult log =
+                        new JobResult("adminTools.jobs.upload.assessoriginal.fail", JobResultLevel.ERROR,
                             fileName);
                     status.addLog(log);
                     throw new RuntimeException(
@@ -298,13 +298,13 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
         try {
             Files.copy(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            CustomJobResult log = new CustomJobResult("adminTools.jobs.upload.backup.fail", CustomJobResultLevel.ERROR,
+            JobResult log = new JobResult("adminTools.jobs.upload.backup.fail", JobResultLevel.ERROR,
                 backupFile.getName(), fileName);
             status.addLog(log);
             throw new RuntimeException(e);
         }
         uploadPackageJobResource.setBackupFile(backupFile);
-        CustomJobResult log = new CustomJobResult("adminTools.jobs.upload.backup.success", CustomJobResultLevel.INFO,
+        JobResult log = new JobResult("adminTools.jobs.upload.backup.success", JobResultLevel.INFO,
             backupFile.getName(), fileName);
         status.addLog(log);
     }

@@ -37,7 +37,7 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobRequest>
 {
-    private List<CustomJobResult> uploadLogs = new LinkedList<>();
+    private List<JobResult> uploadLogs = new LinkedList<>();
 
     /**
      * Create a new import job status.
@@ -57,9 +57,9 @@ public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobReq
     /**
      * Get the list result list from the job.
      *
-     * @return list with {@link CustomJobResult} containing the results.
+     * @return list with {@link JobResult} containing the results.
      */
-    public List<CustomJobResult> getJobResults()
+    public List<JobResult> getJobResults()
     {
         return uploadLogs;
     }
@@ -69,7 +69,7 @@ public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobReq
      *
      * @param statusLog the new log result.
      */
-    public void addLog(CustomJobResult statusLog)
+    public void addLog(JobResult statusLog)
     {
         uploadLogs.add(statusLog);
     }
@@ -80,7 +80,7 @@ public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobReq
      * @param level represents the searched level of severity.
      * @return {@code true} if there is any match for the given level, or {@code false} otherwise.
      */
-    public boolean hasLevel(CustomJobResultLevel level)
+    public boolean hasLevel(JobResultLevel level)
     {
         return this.uploadLogs.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
     }

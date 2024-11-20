@@ -26,8 +26,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.CustomJobResult;
-import com.xwiki.admintools.jobs.CustomJobResultLevel;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
@@ -49,22 +49,22 @@ public class ConfigurationDatabaseHealthCheck extends AbstractConfigurationHealt
     private CurrentServer currentServer;
 
     @Override
-    public CustomJobResult check()
+    public JobResult check()
     {
         String usedDatabase = getConfigurationProviderJSON().get("databaseName");
         if (usedDatabase == null) {
             logger.warn("Database not found!");
-            return new CustomJobResult("adminTools.dashboard.healthcheck.database.warn",
-                CustomJobResultLevel.ERROR);
+            return new JobResult("adminTools.dashboard.healthcheck.database.warn",
+                JobResultLevel.ERROR);
         }
         if (currentServer.getSupportedDBs().stream()
             .anyMatch(d -> usedDatabase.toLowerCase().contains(d.toLowerCase())))
         {
-            return new CustomJobResult("adminTools.dashboard.healthcheck.database.info",
-                CustomJobResultLevel.INFO);
+            return new JobResult("adminTools.dashboard.healthcheck.database.info",
+                JobResultLevel.INFO);
         }
         logger.error("Used database is not supported!");
-        return new CustomJobResult("adminTools.dashboard.healthcheck.database.notSupported",
-            CustomJobResultLevel.ERROR, usedDatabase);
+        return new JobResult("adminTools.dashboard.healthcheck.database.notSupported",
+            JobResultLevel.ERROR, usedDatabase);
     }
 }

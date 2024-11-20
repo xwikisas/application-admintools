@@ -25,8 +25,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.CustomJobResult;
-import com.xwiki.admintools.jobs.CustomJobResultLevel;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking system language configuration.
@@ -44,20 +44,20 @@ public class LangEncodingHealthCheck extends AbstractSecurityHealthCheck
     public static final String HINT = "languageEncoding";
 
     @Override
-    public CustomJobResult check()
+    public JobResult check()
     {
         String langEnc = getSecurityProviderJSON().get("LANG");
         if (langEnc == null) {
             logger.warn("Language encoding could not be detected!");
-            return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.lang.notFound",
-                CustomJobResultLevel.WARN);
+            return new JobResult("adminTools.dashboard.healthcheck.security.system.lang.notFound",
+                JobResultLevel.WARN);
         }
         boolean isSafeLangEnc = isSafeEncoding(langEnc.split("\\.")[1], "System language");
         if (!isSafeLangEnc) {
-            return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.lang.warn",
-                CustomJobResultLevel.WARN, langEnc);
+            return new JobResult("adminTools.dashboard.healthcheck.security.system.lang.warn",
+                JobResultLevel.WARN, langEnc);
         }
-        return new CustomJobResult("adminTools.dashboard.healthcheck.security.system.lang.info",
-            CustomJobResultLevel.INFO);
+        return new JobResult("adminTools.dashboard.healthcheck.security.system.lang.info",
+            JobResultLevel.INFO);
     }
 }

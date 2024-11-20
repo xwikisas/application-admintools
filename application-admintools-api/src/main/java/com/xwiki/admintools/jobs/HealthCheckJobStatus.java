@@ -37,7 +37,7 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest>
 {
-    private final List<CustomJobResult> customJobResults = new LinkedList<>();
+    private final List<JobResult> jobResults = new LinkedList<>();
 
     /**
      * Create a new health check job status.
@@ -57,11 +57,11 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
     /**
      * Get the list issues list from the job.
      *
-     * @return list with {@link CustomJobResult} containing errors.
+     * @return list with {@link JobResult} containing errors.
      */
-    public List<CustomJobResult> getJobResults()
+    public List<JobResult> getJobResults()
     {
-        return customJobResults;
+        return jobResults;
     }
 
     /**
@@ -70,8 +70,8 @@ public class HealthCheckJobStatus extends DefaultJobStatus<HealthCheckJobRequest
      * @param level represents the searched level of severity.
      * @return {@code true} if there is any match for the given level, or {@code false} otherwise.
      */
-    public boolean hasLevel(CustomJobResultLevel level)
+    public boolean hasLevel(JobResultLevel level)
     {
-        return this.customJobResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
+        return this.jobResults.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
     }
 }

@@ -25,8 +25,8 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.CustomJobResult;
-import com.xwiki.admintools.jobs.CustomJobResultLevel;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 
 /**
  * Implementation of {@link HealthCheck} for checking XWiki active encoding.
@@ -44,20 +44,20 @@ public class ActiveEncodingHealthCheck extends AbstractSecurityHealthCheck
     public static final String HINT = "activeEncoding";
 
     @Override
-    public CustomJobResult check()
+    public JobResult check()
     {
         String activeEnc = getSecurityProviderJSON().get(HINT);
         if (activeEnc == null) {
             logger.warn("Active encoding could not be detected!");
-            return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.active.notFound",
-                CustomJobResultLevel.WARN);
+            return new JobResult("adminTools.dashboard.healthcheck.security.xwiki.active.notFound",
+                JobResultLevel.WARN);
         }
         boolean isActiveEncSafe = isSafeEncoding(activeEnc, "XWiki active");
         if (!isActiveEncSafe) {
-            return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.active.warn",
-                CustomJobResultLevel.WARN, activeEnc);
+            return new JobResult("adminTools.dashboard.healthcheck.security.xwiki.active.warn",
+                JobResultLevel.WARN, activeEnc);
         }
-        return new CustomJobResult("adminTools.dashboard.healthcheck.security.xwiki.active.info",
-            CustomJobResultLevel.INFO);
+        return new JobResult("adminTools.dashboard.healthcheck.security.xwiki.active.info",
+            JobResultLevel.INFO);
     }
 }

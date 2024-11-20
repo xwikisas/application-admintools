@@ -29,20 +29,20 @@ import org.xwiki.stability.Unstable;
  * @since 1.0
  */
 @Unstable
-public enum CustomJobResultLevel
+public enum JobResultLevel
 {
     /**
-     * Used to mark a {@link CustomJobResultLevel} as an error.
+     * Used to mark a {@link JobResultLevel} as an error.
      */
     ERROR,
 
     /**
-     * Used to mark a {@link CustomJobResultLevel} as a warning.
+     * Used to mark a {@link JobResultLevel} as a warning.
      */
     WARN,
 
     /**
-     * Used to mark a {@link CustomJobResultLevel} as informative.
+     * Used to mark a {@link JobResultLevel} as informative.
      */
     INFO
 }
