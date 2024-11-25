@@ -321,7 +321,7 @@
     <property>
       <content>{{velocity}}
 =$services.icon.render('drive') {{translation key='adminTools.dashboard.instanceUsage.title'/}}=
-{{html}}
+{{html clean='false', wiki='true'}}
   $services.admintools.getInstanceSizeSection()
 {{/html}}
 {{/velocity}}</content>
@@ -453,7 +453,7 @@
 .gadget-content {
   background-color: $theme.pageBackgroundColor;
   border-color: $theme.pageContentBackgroundColor;
-  padding: 1rem 1.1rem;
+  padding: 1rem 2rem;
 }
 
 .backend-section, .files-section {
@@ -489,11 +489,6 @@
 
 .health-check-wrapper button {
   margin-top: 2rem;
-}
-
-.wikis-size-info-list {
-  max-height: 20rem;
-  overflow-y: auto;
 }</code>
     </property>
     <property>

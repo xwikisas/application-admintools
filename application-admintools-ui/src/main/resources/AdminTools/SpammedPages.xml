@@ -20,32 +20,47 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.HealthCheckJob" locale="">
-  <web>AdminTools.Code</web>
-  <name>HealthCheckJob</name>
+<xwikidoc version="1.5" reference="AdminTools.SpammedPages" locale="">
+  <web>AdminTools</web>
+  <name>SpammedPages</name>
   <language/>
-  <defaultLanguage/>
+  <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>AdminTools.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>HealthCheckJob</title>
+  <title>Spammed pages</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
-  <hidden>true</hidden>
+  <hidden>false</hidden>
   <content>{{velocity}}
-#template('job_macros.vm')
-#includeMacros("AdminTools.Code.HealthCheckMacros")
-#set($jobId = $request.getParameterValues('jobId'))
-#set($jobStatus = $services.job.getJobStatus($jobId))
-#if ($jobStatus)
-  #healthCheckOutputJobStatus($jobStatus)
-#else
-  $response.setStatus(404)
-  {{error}}{{translation key="admintools.job.notFound"/}}{{/error}}
-#end
+{{html clean='false' wiki='true'}}
+  #set ($sourceParameters = $escapetool.url({
+    'resultPage': 'AdminTools.Code.SpammedPagesJSON',
+    'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
+  }))
+  #set ($liveDataConfig= {
+    'meta': {
+      'propertyDescriptors': [
+        {'id': 'wikiName', 'displayer': 'text'},
+        {'id': 'docName', 'displayer': 'html'},
+        {'id': 'commentsCount', 'displayer': 'number', 'filterable': false}
+      ],
+      'entryDescriptor': {
+        'idProperty': 'docName'
+      }
+    }
+  })
+  {{liveData
+    id='wikisSpammedPages'
+    properties="wikiName, docName, commentsCount"
+    source='liveTable'
+    sourceParameters="$sourceParameters"
+    sort='commentsCount:desc'
+  }}$jsontool.serialize($liveDataConfig){{/liveData}}
+{{/html}}
 {{/velocity}}</content>
 </xwikidoc>

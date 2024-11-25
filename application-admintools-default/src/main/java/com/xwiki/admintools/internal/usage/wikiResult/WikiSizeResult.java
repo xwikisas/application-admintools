@@ -17,9 +17,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools;
+package com.xwiki.admintools.internal.usage.wikiResult;
+
+import java.text.DecimalFormat;
+import java.util.List;
 
 import org.xwiki.stability.Unstable;
+
+import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
  * Stores info about the size of a wiki.
@@ -28,13 +33,13 @@ import org.xwiki.stability.Unstable;
  * @since 1.0
  */
 @Unstable
-public class WikiSizeResult
+public class WikiSizeResult implements WikiUsageResult
 {
-    private String name;
+    private String wikiName;
 
     private Long userCount;
 
-    private String attachmentsSize;
+    private Long attachmentsSize;
 
     private Long attachmentsCount;
 
@@ -47,62 +52,38 @@ public class WikiSizeResult
     {
     }
 
-    /**
-     * Get the name of the wiki.
-     *
-     * @return the name of the wiki.
-     */
-    public String getName()
+    @Override
+    public String getWikiName()
     {
-        return name;
+        return wikiName;
     }
 
-    /**
-     * Set the name of the wiki.
-     *
-     * @param name representing the name of the wiki.
-     */
-    public void setName(String name)
+    @Override
+    public void setWikiName(String wikiName)
     {
-        this.name = name;
+        this.wikiName = wikiName;
     }
 
-    /**
-     * Get the number of users registered in the wiki.
-     *
-     * @return {@link Long} representing the number of users in the wiki.
-     */
+    @Override
     public Long getUserCount()
     {
         return userCount;
     }
 
-    /**
-     * Set the number of users registered in the wiki.
-     *
-     * @param userCount the number of users in the wiki.
-     */
+    @Override
     public void setUserCount(Long userCount)
     {
         this.userCount = userCount;
     }
 
-    /**
-     * Get the total size of the attachments in the wiki.
-     *
-     * @return formatted {@link String} with the size of the attachments in the wiki and corresponding size unit.
-     */
-    public String getAttachmentsSize()
+    @Override
+    public Long getAttachmentsSize()
     {
         return attachmentsSize;
     }
 
-    /**
-     * Set the total size of the attachments in the wiki.
-     *
-     * @param attachmentsSize the size of the attachments in the wiki and corresponding size unit.
-     */
-    public void setAttachmentsSize(String attachmentsSize)
+    @Override
+    public void setAttachmentsSize(Long attachmentsSize)
     {
         this.attachmentsSize = attachmentsSize;
     }
@@ -145,5 +126,23 @@ public class WikiSizeResult
     public void setDocumentsCount(Long documentsCount)
     {
         this.documentsCount = documentsCount;
+    }
+
+    /**
+     * Get the size of the attachments in a readable format.
+     *
+     * @return a {@link String} with the size of the attachments converted to the corresponding unit of measurement.
+     */
+    public String getReadableAttachmentSize()
+    {
+        if (this.attachmentsSize == null || this.attachmentsSize <= 0) {
+            return "0";
+        }
+        List<String> units = List.of("B", "KB", "MB", "GB");
+        int digitGroup = (int) (Math.log10(this.attachmentsSize) / Math.log10(1024));
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0.#");
+        String resultedSize = decimalFormat.format(this.attachmentsSize / Math.pow(1024, digitGroup));
+
+        return String.format("%s %s", resultedSize, units.get(digitGroup));
     }
 }

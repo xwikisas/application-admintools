@@ -17,26 +17,26 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.health;
+package com.xwiki.admintools.jobs;
 
 import java.util.List;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * Result of a health check. Stores a custom message for the summary of the result, the severity level represented by
- * {@link HealthCheckResultLevel}. The result may also contain a {@link List} of additional parameters used if there
- * is need to store more information about the result.
+ * Result of a job. Stores a custom message for the summary of the result, the severity level represented by
+ * {@link JobResultLevel}. The result may also contain a {@link List} of additional parameters used if there is
+ * need to store more information about the result.
  *
  * @version $Id$
  * @since 1.0
  */
 @Unstable
-public class HealthCheckResult
+public class JobResult
 {
     private String message;
 
-    private HealthCheckResultLevel level;
+    private JobResultLevel level;
 
     private List<?> parameters;
 
@@ -47,7 +47,7 @@ public class HealthCheckResult
      * @param level severity level of a result.
      * @param parameters current value of the checked resource.
      */
-    public HealthCheckResult(String message, HealthCheckResultLevel level, Object... parameters)
+    public JobResult(String message, JobResultLevel level, Object... parameters)
     {
         this.message = message;
         this.level = level;
@@ -79,7 +79,7 @@ public class HealthCheckResult
      *
      * @return the severity level of an error.
      */
-    public HealthCheckResultLevel getLevel()
+    public JobResultLevel getLevel()
     {
         return level;
     }

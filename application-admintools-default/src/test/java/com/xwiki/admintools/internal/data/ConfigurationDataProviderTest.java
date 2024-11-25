@@ -45,7 +45,7 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
-import com.xwiki.admintools.internal.wikiUsage.UsageDataProvider;
+import com.xwiki.admintools.internal.usage.UsageDataProvider;
 import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

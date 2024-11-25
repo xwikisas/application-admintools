@@ -19,8 +19,8 @@
  */
 package com.xwiki.admintools.internal;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,17 +30,17 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.query.QueryException;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.manager.WikiManagerException;
+import org.xwiki.model.reference.DocumentReference;
 
-import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiAttachment;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xwiki.admintools.DataProvider;
-import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
-import com.xwiki.admintools.internal.wikiUsage.InstanceUsage;
-import com.xwiki.admintools.internal.wikiUsage.RecycleBinsManager;
+import com.xwiki.admintools.internal.usage.InstanceUsageManager;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 
 /**
  * Manages the data that needs to be used by the Admin Tools application.
@@ -67,14 +67,11 @@ public class AdminToolsManager
     private ImportantFilesManager importantFilesManager;
 
     @Inject
-    private InstanceUsage instanceUsage;
+    private InstanceUsageManager instanceUsageManager;
 
     @Inject
     @Named("context")
     private ComponentManager contextComponentManager;
-
-    @Inject
-    private RecycleBinsManager recycleBinsManager;
 
     /**
      * Get data generated in a specific format, using a template, by each provider and merge it.
@@ -141,34 +138,62 @@ public class AdminToolsManager
      */
     public String getInstanceSizeTemplate()
     {
-        return instanceUsage.renderTemplate();
+        return instanceUsageManager.renderTemplate();
     }
 
     /**
      * Retrieve the pages that have more than a given number of comments.
      *
      * @param maxComments maximum number of comments below which the page is ignored.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
      * @return a {@link List} with the documents that have more than the given number of comments.
-     * @throws QueryException if the query to retrieve the document fails.
-     * @throws XWikiException if a document is not found.
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments) throws QueryException, XWikiException
+    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String sortColumn, String order)
     {
-        return instanceUsage.getDocumentsOverGivenNumberOfComments(maxComments);
+        return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);
     }
 
     /**
-     * Get instance recycle bins info, like deleted documents and attachment.
+     * Get recycle bin info for all wikis in your instance with the options to sort and apply filters on it.
      *
-     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
-     *     the instance.
-     * @throws RuntimeException when there is an issue regarding the queries that retrieve the number of deleted
-     *     documents and attachments.
-     * @throws WikiManagerException for any exception while retrieving the {@link Collection} of
-     *     {@link WikiDescriptor}.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
+     *     info for wikis of the instance.
      */
-    public List<WikiRecycleBins> getWikisRecycleBinsSize() throws WikiManagerException
+    public List<WikiRecycleBins> getWikisRecycleBinsSize(Map<String, String> filters, String sortColumn, String order)
     {
-        return this.recycleBinsManager.getWikisRecycleBinsSize();
+        return this.instanceUsageManager.getWikisRecycleBinsData(filters, sortColumn, order);
+    }
+
+    /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     */
+    public List<WikiSizeResult> getWikiSizeResults(Map<String, String> filters, String sortColumn, String order)
+    {
+        return this.instanceUsageManager.getWikisSize(filters, sortColumn, order);
+    }
+
+    /**
+     * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
+     * or comments.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link DocumentReference}.
+     */
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    {
+        return this.instanceUsageManager.getEmptyDocuments(filters, sortColumn, order);
     }
 }

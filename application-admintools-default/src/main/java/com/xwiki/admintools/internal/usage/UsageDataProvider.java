@@ -17,12 +17,14 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.wikiUsage;
+package com.xwiki.admintools.internal.usage;
 
-import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -40,17 +42,19 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
+import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xwiki.admintools.WikiSizeResult;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
+import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
- * Retrieves {@link Ping} data from Active Installs 2.
+ * Retrieves info related to the wiki and instance.
  *
  * @version $Id$
  */
 @Component(roles = UsageDataProvider.class)
 @Singleton
-public class UsageDataProvider
+public class UsageDataProvider extends AbstractInstanceUsageProvider
 {
     private static final String METADATA_NAME = "name";
 
@@ -134,6 +138,36 @@ public class UsageDataProvider
     }
 
     /**
+     * Get instance wikis size info, like documents, attachments and users count.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn the column after which to be sorted.
+     * @param order the sort oder.
+     * @return a sorted and filtered {@link List} of {@link WikiSizeResult} objects containing size info for wikis in
+     *     instance.
+     */
+    public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
+        throws WikiManagerException
+    {
+        List<WikiUsageResult> results = new ArrayList<>();
+        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
+
+        searchedWikis.forEach(wikiDescriptor -> {
+            try {
+                WikiSizeResult wikiRecycleBinResult = getWikiSize(wikiDescriptor);
+                if (checkFilters(filters, wikiRecycleBinResult)) {
+                    results.add(wikiRecycleBinResult);
+                }
+            } catch (QueryException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        applySort(results, sortColumn, order);
+        return results.stream().filter(WikiSizeResult.class::isInstance).map(WikiSizeResult.class::cast)
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Retrieve info about the size of a given wiki.
      *
      * @param wikiDescriptor the wiki for which the data will be retrieved.
@@ -144,11 +178,11 @@ public class UsageDataProvider
     {
         WikiSizeResult wikiData = new WikiSizeResult();
         String wikiId = wikiDescriptor.getId();
-        wikiData.setName(wikiDescriptor.getPrettyName());
+        wikiData.setWikiName(wikiDescriptor.getPrettyName());
         wikiData.setUserCount(getWikiUserCount(wikiId));
         wikiData.setDocumentsCount(getWikiDocumentsCount(wikiId));
         wikiData.setAttachmentsCount(getWikiAttachmentsCount(wikiId));
-        wikiData.setAttachmentsSize(readableSize(getWikiAttachmentSize(wikiId)));
+        wikiData.setAttachmentsSize(getWikiAttachmentSize(wikiId));
 
         return wikiData;
     }
@@ -159,9 +193,9 @@ public class UsageDataProvider
         statement.append("where doc.fullName = obj.name and obj.className = 'XWiki.XWikiUsers' and ");
         statement.append("prop.id.id = obj.id and prop.id.name = 'active' and prop.value = '1'");
 
-        Query query = this.queryManager.createQuery(statement.toString(), Query.HQL);
-        query.addFilter(this.countFilter).setWiki(wikiId);
-        List<Long> results = query.execute();
+        List<Long> results =
+            this.queryManager.createQuery(statement.toString(), Query.HQL).addFilter(this.countFilter).setWiki(wikiId)
+                .execute();
         return results.get(0);
     }
 
@@ -174,30 +208,17 @@ public class UsageDataProvider
 
     private Long getWikiAttachmentSize(String wikiId) throws QueryException
     {
-        List<Long> results = this.queryManager.createQuery(
-            "select sum(attach.longSize) from XWikiAttachment attach",
-            Query.XWQL).setWiki(wikiId).execute();
+        List<Long> results =
+            this.queryManager.createQuery("select sum(attach.longSize) from XWikiAttachment attach", Query.XWQL)
+                .setWiki(wikiId).execute();
         return results.get(0);
     }
 
     private Long getWikiAttachmentsCount(String wikiId) throws QueryException
     {
-        List<Long> results = this.queryManager.createQuery(
-            "select count(attach) from XWikiAttachment attach",
-            Query.XWQL).setWiki(wikiId).execute();
+        List<Long> results =
+            this.queryManager.createQuery("select count(attach) from XWikiAttachment attach", Query.XWQL)
+                .setWiki(wikiId).execute();
         return results.get(0);
-    }
-
-    private String readableSize(Long number)
-    {
-        if (number == null || number <= 0) {
-            return "0";
-        }
-        List<String> units = List.of("B", "KB", "MB", "GB");
-
-        int digitGroup = (int) (Math.log10(number) / Math.log10(1024));
-        DecimalFormat decimalFormat = new DecimalFormat("#,##0.#");
-        String resultedSize = decimalFormat.format(number / Math.pow(1024, digitGroup));
-        return String.format("%s %s", resultedSize, units.get(digitGroup));
     }
 }

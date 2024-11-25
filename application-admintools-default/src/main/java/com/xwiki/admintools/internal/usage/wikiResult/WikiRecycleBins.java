@@ -17,9 +17,11 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.health;
+package com.xwiki.admintools.internal.usage.wikiResult;
 
 import org.xwiki.stability.Unstable;
+
+import com.xwiki.admintools.usage.WikiUsageResult;
 
 /**
  * Store info about deleted attachments and documents from a wiki.
@@ -28,15 +30,15 @@ import org.xwiki.stability.Unstable;
  * @since 1.0
  */
 @Unstable
-public class WikiRecycleBins
+public class WikiRecycleBins implements WikiUsageResult
 {
     private String wikiId;
 
     private String wikiName;
 
-    private long documentsCount;
+    private Long documentsCount;
 
-    private long attachmentsCount;
+    private Long attachmentsCount;
 
     /**
      * Initialise an empty {@link WikiRecycleBins}.
@@ -50,7 +52,8 @@ public class WikiRecycleBins
      *
      * @return number of deleted attachments in wiki.
      */
-    public long getAttachmentsCount()
+    @Override
+    public Long getAttachmentsCount()
     {
         return attachmentsCount;
     }
@@ -60,7 +63,8 @@ public class WikiRecycleBins
      *
      * @param attachmentsCount number of deleted attachments for wiki.
      */
-    public void setAttachmentsCount(long attachmentsCount)
+    @Override
+    public void setAttachmentsCount(Long attachmentsCount)
     {
         this.attachmentsCount = attachmentsCount;
     }
@@ -70,7 +74,8 @@ public class WikiRecycleBins
      *
      * @return number of deleted documents in wiki.
      */
-    public long getDocumentsCount()
+    @Override
+    public Long getDocumentsCount()
     {
         return documentsCount;
     }
@@ -80,29 +85,28 @@ public class WikiRecycleBins
      *
      * @param documentsCount number of deleted documents for wiki.
      */
-    public void setDocumentsCount(long documentsCount)
+    @Override
+    public void setDocumentsCount(Long documentsCount)
     {
         this.documentsCount = documentsCount;
     }
 
-    /**
-     * Get the pretty name of a wiki.
-     *
-     * @return the name of the wiki.
-     */
+    @Override
     public String getWikiName()
     {
         return wikiName;
     }
 
-    /**
-     * Set the name of the wiki.
-     *
-     * @param wikiName name of the wiki
-     */
+    @Override
     public void setWikiName(String wikiName)
     {
         this.wikiName = wikiName;
+    }
+
+    @Override
+    public Long getTotal()
+    {
+        return documentsCount + attachmentsCount;
     }
 
     /**

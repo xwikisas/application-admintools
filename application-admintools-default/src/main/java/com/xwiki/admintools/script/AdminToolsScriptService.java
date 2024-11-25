@@ -20,6 +20,7 @@
 package com.xwiki.admintools.script;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -31,7 +32,7 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
-import org.xwiki.query.QueryException;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -39,12 +40,12 @@ import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
-import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
-import com.xwiki.admintools.health.WikiRecycleBins;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
+import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 
 /**
@@ -83,7 +84,9 @@ public class AdminToolsScriptService implements ScriptService
      * providers.
      *
      * @return a {@link String} representing all templates.
+     * @since 1.0
      */
+    @Unstable
     public String getConfigurationData() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -91,11 +94,31 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
+     * Get a {@link List} of {@link WikiSizeResult} with the options to sort it and apply filters on it.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a filtered and sorted {@link List} of {@link WikiSizeResult}.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.0
+     */
+    @Unstable
+    public List<WikiSizeResult> getWikisSize(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return this.adminToolsManager.getWikiSizeResults(filters, sortColumn, order);
+    }
+
+    /**
      * Get a specific data provider information in a format given by the associated template.
      *
      * @param hint {@link String} representing the data provider
      * @return a {@link String} representing a specific template.
+     * @since 1.0
      */
+    @Unstable
     public String getConfigurationData(String hint) throws AccessDeniedException, ComponentLookupException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -106,7 +129,9 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the supported databases.
      *
      * @return inline list with supported databases separated by ",".
+     * @since 1.0
      */
+    @Unstable
     public List<String> getSupportedDatabases() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -117,7 +142,9 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the supported servers.
      *
      * @return inline list with supported servers separated by ",".
+     * @since 1.0
      */
+    @Unstable
     public List<String> getSupportedServers() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -128,7 +155,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the rendered template for accessing the downloads UI.
      *
      * @return a {@link String} representation of the template.
+     * @since 1.0
      */
+    @Unstable
     public String getFilesSection() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -139,7 +168,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the rendered template for viewing info about the size of the XWiki instance.
      *
      * @return a {@link String} representation of the template.
+     * @since 1.0
      */
+    @Unstable
     public String getInstanceSizeSection() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -150,21 +181,44 @@ public class AdminToolsScriptService implements ScriptService
      * Retrieve the pages that have more than a given number of comments.
      *
      * @param maxComments maximum number of comments below which the page is ignored.
-     * @return a {@link List} with the documents that have more than the given number of comments, or null if there are
-     *     any errors.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @since 1.0
      */
-    public List<String> getPagesOverGivenNumberOfComments(long maxComments)
-        throws AccessDeniedException, QueryException, XWikiException
+    @Unstable
+    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String sortColumn, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments);
+        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
+    }
+
+    /**
+     * Retrieve the empty documents from the XWiki instance.
+     *
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return a {@link List} with the empty documents.
+     * @since 1.1
+     */
+    @Unstable
+    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return adminToolsManager.getEmptyDocuments(filters, sortColumn, order);
     }
 
     /**
      * Retrieve the configuration settings for minimum spam size.
      *
      * @return an {@link Integer} representing the configured minimum spam size.
+     * @since 1.0
      */
+    @Unstable
     public int getMinimumSpamSize() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -176,7 +230,9 @@ public class AdminToolsScriptService implements ScriptService
      * the job instance, else create a new Admin Tools health check request for the given wiki and start the execution.
      *
      * @return the asynchronous background job that will execute the request.
+     * @since 1.0
      */
+    @Unstable
     public Job runHealthChecks() throws Exception
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -194,7 +250,9 @@ public class AdminToolsScriptService implements ScriptService
      * Get the Health Check job id for the current wiki.
      *
      * @return Health check job id.
+     * @since 1.0
      */
+    @Unstable
     public List<String> getHealthCheckJobId() throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
@@ -207,21 +265,29 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @return a {@code true} if the used server is compatible with the application installation, or {@code false}
      *     otherwise.
+     * @since 1.0
      */
+    @Unstable
     public boolean isUsedServerCompatible()
     {
         return currentServer.getCurrentServer() != null;
     }
 
     /**
-     * Get recycle bin info for all wikis in your instance.
+     * Get recycle bin info for all wikis in your instance with the options to sort and apply filters on it.
      *
-     * @return @return a {@link List} of {@link WikiRecycleBins} objects containing recycle bins info for each wiki of
-     *     the instance.
+     * @param filters {@link Map} of filters to be applied on the gathered list.
+     * @param sortColumn target column to apply the sort on.
+     * @param order the order of the sort.
+     * @return @return a sorted and filtered {@link List} of {@link WikiRecycleBins} objects containing recycle bins
+     *     info for wikis of the instance.
+     * @since 1.0
      */
-    public List<WikiRecycleBins> getWikisRecycleBinSize() throws AccessDeniedException, WikiManagerException
+    @Unstable
+    public List<WikiRecycleBins> getWikisRecycleBinSize(Map<String, String> filters, String sortColumn, String order)
+        throws AccessDeniedException, WikiManagerException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getWikisRecycleBinsSize();
+        return adminToolsManager.getWikisRecycleBinsSize(filters, sortColumn, order);
     }
 }
