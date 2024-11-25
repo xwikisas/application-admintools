@@ -21,6 +21,7 @@ package com.xwiki.admintools.test.ui;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,25 +30,31 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
 import com.xwiki.admintools.test.po.AdminToolsHomePage;
 import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
 import com.xwiki.admintools.test.po.DashboardFilesSectionView;
+import com.xwiki.admintools.test.po.DashboardHealthSectionView;
+import com.xwiki.admintools.test.po.DashboardUsageSectionView;
 import com.xwiki.admintools.test.po.DownloadArchiveModalView;
+import com.xwiki.admintools.test.po.FlushCacheModalView;
 import com.xwiki.admintools.test.po.LastNLinesModalView;
+import com.xwiki.admintools.test.po.WikisSizeModalView;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@UITest
+@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "8")
 class AdminToolsIT
 {
     private static final List<String> supportedServers = List.of("TOMCAT");
@@ -78,7 +85,7 @@ class AdminToolsIT
         // have given that Admin user the admin right directly but the solution we chose is closer to the XS
         // distribution.
         setup.loginAsSuperAdmin();
-        setup.setGlobalRights("XWiki.XWikiAdminGroup", "", "admin", true);
+        setup.setGlobalRights("XWiki.XWikiAdminGroup", "", "admin,programming", true);
         setup.createAdminUser();
         setup.loginAsAdmin();
     }
@@ -180,13 +187,65 @@ class AdminToolsIT
 
     @Test
     @Order(6)
+    void adminToolsHealthSection(TestUtils testUtils)
+    {
+        DashboardHealthSectionView healthSectionView = AdminToolsHomePage.getHealthSection();
+
+        WebElement healthJobButton = healthSectionView.getHealthJobStartButton();
+        healthJobButton.click();
+        assertFalse(healthJobButton.isEnabled());
+        testUtils.getDriver().waitUntilElementIsEnabled(healthJobButton);
+        AdminToolsHomePage.gotoPage();
+
+        // Because the health check result is inserted at runtime by a velocity script, the testUtils fails to select
+        // the result message element. Therefore, it's necessary to select the text from the entire content.
+        WebElement healthCheckResult = healthSectionView.getHealthContent();
+        List<String> messages = List.of("Critical issues were found, please consult the results below!",
+            "Some issues have been found, for more details please see the results below.", "No issue found!");
+
+        boolean rightResult = messages.stream().anyMatch(healthCheckResult.getText()::contains);
+        assertTrue(rightResult);
+
+        WebElement logs = healthSectionView.getLogs();
+        assertFalse(logs.isDisplayed());
+        healthSectionView.clickResultsToggle();
+        assertTrue(logs.isDisplayed());
+
+        FlushCacheModalView flushCacheModalView = healthSectionView.clickFlushCacheHyperlink();
+        assertTrue(flushCacheModalView.isDisplayed());
+        flushCacheModalView.clickConfirmButton();
+        testUtils.getDriver()
+            .waitUntilCondition(ExpectedConditions.visibilityOfElementLocated(By.className("xnotification-container")));
+        WebElement alert = testUtils.getDriver().findElement(By.className("xnotification-container"));
+        assertEquals("Cache flushed successfully.", alert.getText());
+        assertFalse(flushCacheModalView.isDisplayed());
+
+        flushCacheModalView = healthSectionView.clickFlushCacheHyperlink();
+        flushCacheModalView.clickCancelButton();
+        assertFalse(flushCacheModalView.isDisplayed());
+    }
+
+    @Test
+    @Order(7)
+    void adminToolsUsageSection(TestUtils testUtils)
+    {
+        DashboardUsageSectionView usageSectionView = AdminToolsHomePage.getInstanceUsageSection();
+        WikisSizeModalView sizeModalView = usageSectionView.getWikisSizeModal();
+        assertTrue(sizeModalView.isDisplayed());
+        List<WebElement> sizeRows = sizeModalView.getTableRows();
+        for (WebElement row : sizeRows) {
+            assertFalse(row.getText().contains("null"));
+        }
+    }
+
+    @Test
+    @Order(8)
     void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
     {
         testUtils.login(USER_NAME, PASSWORD);
 
         WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
-        assertTrue(filesSectionNonAdminView.getText().contains(
-            "Access denied due to missing admin rights!"));
+        assertTrue(filesSectionNonAdminView.getText().contains("Access denied due to missing admin rights!"));
     }
 
     /**

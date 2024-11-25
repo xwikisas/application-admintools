@@ -61,6 +61,18 @@ public class AdminToolsHomePage extends ViewPage
         return new DashboardFilesSectionView();
     }
 
+    public static DashboardHealthSectionView getHealthSection()
+    {
+        gotoPage();
+        return new DashboardHealthSectionView();
+    }
+
+    public static DashboardUsageSectionView getInstanceUsageSection()
+    {
+        gotoPage();
+        return new DashboardUsageSectionView();
+    }
+
     /**
      * Check if the page is the same as Admin Tools WebHome.
      */
