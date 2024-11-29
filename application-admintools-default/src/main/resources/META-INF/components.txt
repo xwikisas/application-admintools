@@ -34,3 +34,4 @@ com.xwiki.admintools.internal.usage.RecycleBinsProvider
 com.xwiki.admintools.internal.usage.UsageDataProvider
 com.xwiki.admintools.internal.usage.SpamPagesProvider
 com.xwiki.admintools.internal.usage.EmptyDocumentsProvider
+com.xwiki.admintools.internal.uploadJob.UploadJobFileProcessor
