@@ -19,40 +19,38 @@
  */
 package com.xwiki.admintools.test.po;
 
-import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the wikis size view modal.
+ * Represents actions that can be done on the spammed wikis modal.
  *
  * @version $Id$
  */
-public class WikisSizeModalView extends BaseModal
+public class CommentsSpamModalView extends BaseModal
 {
-    @FindBy(css = "div#viewWikisSizeModal")
+    @FindBy(css = "div#pagesOverNumberOfComments")
     public WebElement content;
 
-    public WikisSizeModalView(By selector)
+    public CommentsSpamModalView(By selector)
     {
         super(selector);
+    }
+
+    public WebElement getTableRow()
+    {
+        return content.findElement(By.cssSelector("table > tbody > tr"));
+    }
+
+    public String getTableTitle()
+    {
+        return content.findElement(By.id("pagesOverNumberOfCommentsLabel")).getText();
     }
 
     public void clickCancelButton()
     {
         content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
-    }
-
-    public String getUserCount()
-    {
-        return content.findElement(By.cssSelector("tr:nth-child(1) > td:nth-child(2)")).getText();
-    }
-
-    public List<WebElement> getTableRows()
-    {
-        return content.findElements(By.cssSelector("table > tbody > tr"));
     }
 }

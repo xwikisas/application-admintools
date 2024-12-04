@@ -24,6 +24,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
+/**
+ * Represents actions that can be done on the usage section from within the AdminTools application.
+ *
+ * @version $Id$
+ */
 public class DashboardUsageSectionView extends ViewPage
 {
     @FindBy(css = ".wiki-size-section")
@@ -32,9 +37,48 @@ public class DashboardUsageSectionView extends ViewPage
     @FindBy(css = "a[href='#viewWikisSizeModal']")
     private WebElement wikiSizeModalHyperlink;
 
+    @FindBy(css = "a[href='#pagesOverNumberOfComments']")
+    private WebElement wikiSpamModalHyperLink;
+
+    @FindBy(css = "a[href='#checkRecycleBinsModal']")
+    private WebElement wikisRecycleBinsModalHyperLink;
+
+    @FindBy(css = "a[href='#emptyPagesData']")
+    private WebElement emptyPagesModalHyperLink;
+
+    /**
+     * Open the wikis size modal.
+     */
     public WikisSizeModalView getWikisSizeModal()
     {
         wikiSizeModalHyperlink.click();
         return new WikisSizeModalView(By.id("viewWikisSizeModal"));
+    }
+
+    /**
+     * Open the wikis spam modal.
+     */
+    public CommentsSpamModalView getWikiSpamModal()
+    {
+        wikiSpamModalHyperLink.click();
+        return new CommentsSpamModalView(By.id("pagesOverNumberOfComments"));
+    }
+
+    /**
+     * Open the wikis recycle bins modal.
+     */
+    public RecycleBinsModalView getRecycleBinsModalView()
+    {
+        wikisRecycleBinsModalHyperLink.click();
+        return new RecycleBinsModalView(By.id("checkRecycleBinsModal"));
+    }
+
+    /**
+     * Open the wikis empty pages modal.
+     */
+    public EmptyPagesModalView getEmptyPagesModalView()
+    {
+        emptyPagesModalHyperLink.click();
+        return new EmptyPagesModalView(By.id("emptyPagesData"));
     }
 }

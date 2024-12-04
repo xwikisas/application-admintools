@@ -24,6 +24,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
+/**
+ * Represents actions that can be done on the health section from within the AdminTools application.
+ *
+ * @version $Id$
+ */
 public class DashboardHealthSectionView extends ViewPage
 {
     @FindBy(css = "#healthCheck")
@@ -32,31 +37,41 @@ public class DashboardHealthSectionView extends ViewPage
     @FindBy(css = "a[href='#confirmCacheFlushModal']")
     private WebElement flushCacheModalHyperlink;
 
+    /**
+     * Get the health check job start button.
+     */
     public WebElement getHealthJobStartButton()
     {
         return healthContent.findElement(By.id("healthCheckJobStart"));
     }
 
+    /**
+     * Get the health check job result.
+     */
     public WebElement getResult()
     {
         return healthContent.findElement(By.className("health-check-result-message"));
     }
 
-    public WebElement getHealthContent()
-    {
-        return healthContent;
-    }
-
+    /**
+     * Toggle the results logs.
+     */
     public void clickResultsToggle()
     {
         healthContent.findElement(By.className("collapse-toggle")).click();
     }
 
+    /**
+     * Get the health check job logs.
+     */
     public WebElement getLogs()
     {
         return healthContent.findElement(By.className("log"));
     }
 
+    /**
+     * Open the flush cache modal.
+     */
     public FlushCacheModalView clickFlushCacheHyperlink()
     {
         flushCacheModalHyperlink.click();

@@ -25,7 +25,7 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
- * Represents actions that can be done on the files section from within the AdminTools.WebHome page dashboard.
+ * Represents actions that can be done on the files section from within the AdminTools.
  *
  * @version $Id$
  */

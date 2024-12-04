@@ -24,6 +24,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
+/**
+ * Represents actions that can be done on the flush cache modal.
+ *
+ * @version $Id$
+ */
 public class FlushCacheModalView extends BaseModal
 {
     @FindBy(css = "div#confirmCacheFlushModal")
