@@ -214,11 +214,11 @@ class AdminToolsIT
 
         // Because the health check result is inserted at runtime by a velocity script, the testUtils fails to select
         // the result message element. Therefore, it's necessary to select the text from the entire content.
-        WebElement healthCheckResult = healthSectionView.getResult();
+        WebElement healthCheckResult = healthSectionView.getHealthContent();
         List<String> messages = List.of("Critical issues were found, please consult the results below!",
             "Some issues have been found, for more details please see the results below.", "No issue found!");
 
-        boolean rightResult = messages.stream().anyMatch(healthCheckResult.getText()::equals);
+        boolean rightResult = messages.stream().anyMatch(healthCheckResult.getText()::contains);
         assertTrue(rightResult);
 
         WebElement logs = healthSectionView.getLogs();

@@ -46,11 +46,11 @@ public class DashboardHealthSectionView extends ViewPage
     }
 
     /**
-     * Get the health check job result.
+     * Get the content of the health check dashboard.
      */
-    public WebElement getResult()
+    public WebElement getHealthContent()
     {
-        return healthContent.findElement(By.className("health-check-result-message"));
+        return healthContent;
     }
 
     /**
