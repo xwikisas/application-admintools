@@ -64,7 +64,7 @@ public class HeapAllocationCheck implements HealthCheck
         float initialMemoryAllocation =
             ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit() / (1024.0f * 1024);
         if (initialMemoryAllocation != maxMemory) {
-            logger.warn("To improve performance -Xms  and -Xmx memory allocation should be identical.");
+            logger.warn("To improve performance, -Xms  and -Xmx memory allocation should be identical.");
             return new JobResult("adminTools.dashboard.healthcheck.memory.allocation.warn", JobResultLevel.WARN);
         }
         return new JobResult("adminTools.dashboard.healthcheck.memory.allocation.info", JobResultLevel.INFO,
