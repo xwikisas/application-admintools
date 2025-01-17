@@ -38,6 +38,8 @@ public abstract class AbstractServerInfo implements ServerInfo
 
     protected String[] xwikiCfgPossiblePaths;
 
+    protected String[] xwikiInstallPossiblePaths;
+
     @Inject
     @Named("default")
     protected AdminToolsConfiguration adminToolsConfig;
@@ -70,6 +72,17 @@ public abstract class AbstractServerInfo implements ServerInfo
         for (String xwikiCfgFolderPath : this.xwikiCfgPossiblePaths) {
             if ((new File(xwikiCfgFolderPath + "xwiki.cfg")).exists()) {
                 return xwikiCfgFolderPath;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getXWikiInstallFolderPath()
+    {
+        for (String xwikiLibraryFolderPath : this.xwikiInstallPossiblePaths) {
+            if ((new File(xwikiLibraryFolderPath)).isDirectory()) {
+                return xwikiLibraryFolderPath;
             }
         }
         return null;
