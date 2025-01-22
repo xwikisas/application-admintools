@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -82,15 +83,15 @@ public class GroupsRightsProvider extends AbstractRightsProvider
                     addGlobalRights(groupsRightsList, filters, entityType);
                     break;
                 case "Space":
-                    addRights(groupsRightsList, filters, GLOBAL_RIGHTS_CLASS, "Space", "doc.space", entityType);
+                    addRights(groupsRightsList, filters, GLOBAL_RIGHTS_CLASS, "Space", "space", entityType);
                     break;
                 case "Page":
-                    addRights(groupsRightsList, filters, DOCUMENT_RIGHTS_CLASS, "Page", "doc.fullName", entityType);
+                    addRights(groupsRightsList, filters, DOCUMENT_RIGHTS_CLASS, "Page", "fullName", entityType);
                     break;
                 default:
                     addGlobalRights(groupsRightsList, filters, entityType);
-                    addRights(groupsRightsList, filters, GLOBAL_RIGHTS_CLASS, "Space", "doc.space", entityType);
-                    addRights(groupsRightsList, filters, DOCUMENT_RIGHTS_CLASS, "Page", "doc.fullName", entityType);
+                    addRights(groupsRightsList, filters, GLOBAL_RIGHTS_CLASS, "Space", "space", entityType);
+                    addRights(groupsRightsList, filters, DOCUMENT_RIGHTS_CLASS, "Page", "fullName", entityType);
                     break;
             }
             applySort(groupsRightsList, sortColumn, order);
@@ -129,12 +130,7 @@ public class GroupsRightsProvider extends AbstractRightsProvider
         XWiki wiki = wikiContext.getWiki();
         DocumentReference rightsClassRef = documentReferenceResolver.resolve(documentReferenceRepresentation);
         for (String docRefString : documentsReference) {
-            DocumentReference docRef;
-            if (type.equals("Space")) {
-                docRef = documentReferenceResolver.resolve(docRefString + ".WebPreferences");
-            } else {
-                docRef = documentReferenceResolver.resolve(docRefString);
-            }
+            DocumentReference docRef = documentReferenceResolver.resolve(docRefString);
             XWikiDocument document = wiki.getDocument(docRef, wikiContext);
             processDocumentRightsObjects(groupsRightsList, filters, type, document, rightsClassRef, entityType);
         }
@@ -179,13 +175,20 @@ public class GroupsRightsProvider extends AbstractRightsProvider
         if (searchedSpace != null && !searchedSpace.isEmpty()) {
             searchSpaceString = String.format("%%%s%%", searchedSpace);
         }
-        String query = ("select distinct :target from XWikiDocument as doc, BaseObject as globalrights "
+        String query = ("select distinct doc.fullName from XWikiDocument as doc, BaseObject as globalrights "
             + "where doc.fullName = globalrights.name and globalrights.className = :rightsClass "
             + "and lower(doc.title) like lower(:searchDocString) "
             + "and lower(doc.space) like lower(:searchSpaceString) "
-            + "and doc.fullName != 'XWiki.XWikiPreferences' order by :target").replace(":target", target);
-        return this.queryManager.createQuery(query, Query.HQL).setWiki(wikiId)
-            .bindValue("searchDocString", searchDocString).bindValue("searchSpaceString", searchSpaceString)
-            .bindValue("rightsClass", rightsClass).addFilter(hiddenDocumentFilter).execute();
+            + "and doc.fullName != 'XWiki.XWikiPreferences' order by doc.fullName");
+
+        if (Objects.equals(target, "space")) {
+            return this.queryManager.createQuery(query, Query.HQL).setWiki(wikiId)
+                .bindValue("searchDocString", searchDocString).bindValue("searchSpaceString", searchSpaceString)
+                .bindValue("rightsClass", rightsClass).execute();
+        } else {
+            return this.queryManager.createQuery(query, Query.HQL).setWiki(wikiId)
+                .bindValue("searchDocString", searchDocString).bindValue("searchSpaceString", searchSpaceString)
+                .bindValue("rightsClass", rightsClass).addFilter(hiddenDocumentFilter).execute();
+        }
     }
 }

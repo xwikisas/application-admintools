@@ -153,9 +153,12 @@ adminTools.dashboard.security.configurationEncoding=Configuration encoding
 adminTools.dashboard.security.description=See an overview of your security information.
 adminTools.dashboard.security.error=Error while gathering security information.
 adminTools.dashboard.security.fileEncoding=File encoding
-adminTools.dashboard.security.lang=Used language
-adminTools.dashboard.security.pwd=Working directory
+adminTools.dashboard.security.LANG=Used language
+adminTools.dashboard.security.PWD=Working directory
 adminTools.dashboard.security.title=Security
+adminTools.dashboard.security.detailed.title=Detailed security view
+adminTools.dashboard.security.detailed.groupsRights=View groups rights for this wiki
+adminTools.dashboard.security.detailed.usersRights=View users rights for this wiki
 
 
 ## Jobs
@@ -223,7 +226,9 @@ adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsSize=Total attachme
 adminTools.dashboard.instanceUsage.modal.wikiSize.documentsCount=Documents count
 adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Wiki name
 adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
-adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count</content>
+adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count
+adminTools.dashboard.security.modal.groupsRights.title=Groups rights
+adminTools.dashboard.security.modal.usersRights.title=Users rights</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
