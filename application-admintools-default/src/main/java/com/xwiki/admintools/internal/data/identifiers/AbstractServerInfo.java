@@ -20,6 +20,8 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,11 +36,11 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  */
 public abstract class AbstractServerInfo implements ServerInfo
 {
-    protected String[] serverCfgPossiblePaths;
+    protected List<String> serverCfgPossiblePaths = new ArrayList<>();
 
-    protected String[] xwikiCfgPossiblePaths;
+    protected List<String> xwikiCfgPossiblePaths = new ArrayList<>();
 
-    protected String[] xwikiInstallPossiblePaths;
+    protected List<String> xwikiInstallPossiblePaths = new ArrayList<>();
 
     @Inject
     @Named("default")

@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.ImportPackage" locale="">
+<xwikidoc version="1.5" reference="AdminTools.UploadPackage" locale="">
   <web>AdminTools</web>
-  <name>ImportPackage</name>
+  <name>UploadPackage</name>
   <language/>
   <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
@@ -31,7 +31,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>Import Package</title>
+  <title>Upload Package</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -83,7 +83,7 @@ $xwiki.jsfx.use('js/xwiki/viewers/attachments.js', {'forceSkinAction': true, 'la
 #end
 {{/velocity}}</content>
   <object>
-    <name>AdminTools.ImportPackage</name>
+    <name>AdminTools.UploadPackage</name>
     <number>0</number>
     <className>XWiki.StyleSheetExtension</className>
     <guid>ebae5d4f-793d-4c49-9c03-f5ecf01af55f</guid>
@@ -199,7 +199,7 @@ $xwiki.jsfx.use('js/xwiki/viewers/attachments.js', {'forceSkinAction': true, 'la
       <contentType>CSS</contentType>
     </property>
     <property>
-      <name>AdminTools_ImportPackage</name>
+      <name>AdminTools_UploadPackage</name>
     </property>
     <property>
       <parse>1</parse>

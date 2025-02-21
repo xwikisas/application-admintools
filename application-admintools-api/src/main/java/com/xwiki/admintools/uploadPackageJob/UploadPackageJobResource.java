@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.uploadPackageJob;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 import org.xwiki.stability.Unstable;
@@ -37,44 +36,20 @@ public class UploadPackageJobResource
 
     private File backupFile;
 
-    private ByteArrayOutputStream newFileContent;
-
-    private String newFileName;
-
-    private boolean uploaded;
+    private String newFilename;
 
     /**
      * Default constructor.
      */
     public UploadPackageJobResource()
     {
-        uploaded = false;
     }
 
     /**
-     * Get the content of the new file.
+     * The original file backup created before the uploading process began. Useful when restoring a failed upload
+     * process. Will be null if the target file does not replace any files.
      *
-     * @return the content of the new file.
-     */
-    public ByteArrayOutputStream getNewFileContent()
-    {
-        return newFileContent;
-    }
-
-    /**
-     * See {@link #getNewFileContent()}.
-     *
-     * @param newFileContent the new file content.
-     */
-    public void setNewFileContent(ByteArrayOutputStream newFileContent)
-    {
-        this.newFileContent = newFileContent;
-    }
-
-    /**
-     * Get the backup file.
-     *
-     * @return the backup file.
+     * @return the original file backup.
      */
     public File getBackupFile()
     {
@@ -84,7 +59,7 @@ public class UploadPackageJobResource
     /**
      * See {@link #getBackupFile()}.
      *
-     * @param backupFile the backup file.
+     * @param backupFile the original file backup.
      */
     public void setBackupFile(File backupFile)
     {
@@ -92,9 +67,11 @@ public class UploadPackageJobResource
     }
 
     /**
-     * Get the file that will be replaced or saved.
+     * Retrieves the file that serves as the target for the update process. If a file already exists at the intended
+     * location, this will return the original file. If no file exists at the location, this will return the new file
+     * being uploaded.
      *
-     * @return the update target file.
+     * @return the target file for the update process.
      */
     public File getTargetFile()
     {
@@ -116,36 +93,18 @@ public class UploadPackageJobResource
      *
      * @return the name of the new file.
      */
-    public String getNewFileName()
+    public String getNewFilename()
     {
-        return newFileName;
+        return newFilename;
     }
 
     /**
-     * See {@link #getNewFileName()}.
+     * See {@link #getNewFilename()}.
      *
-     * @param newFileName the name of the new file.
+     * @param newFilename the name of the new file.
      */
-    public void setNewFileName(String newFileName)
+    public void setNewFilename(String newFilename)
     {
-        this.newFileName = newFileName;
-    }
-
-    /**
-     * Set the upload flag to {@code true}.
-     */
-    public void setUploaded()
-    {
-        this.uploaded = true;
-    }
-
-    /**
-     * Get the upload flag.
-     *
-     * @return the upload flag.
-     */
-    public boolean isUploaded()
-    {
-        return uploaded;
+        this.newFilename = newFilename;
     }
 }

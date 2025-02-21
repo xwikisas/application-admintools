@@ -322,7 +322,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     let jobDocumentRef = XWiki.Model.resolve(referenceString, XWiki.EntityType.DOCUMENT,
       XWiki.currentDocument.documentReference);
     let jobDocument = new XWiki.Document(jobDocumentRef);
-    let targetURL = $(this).data('upload-url') + "&amp;startTime=" + startTime;
+    let targetURL = $(this).data('upload-url') + "&amp;jobId=" + startTime;
     let pageData = {
       "template": "AdminTools.Code.PackageUploadTemplate",
       "AdminTools.Code.PackageUploadClass_0_package": packageRef,
@@ -488,9 +488,9 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
 #set ($isPackageStore = $doc.documentReference.equals($services.model.resolveDocument('AdminTools.Code.PackagesStore')))
 #set ($packageRef = $escapetool.xml($services.model.serialize($attachment.getReference(), 'default')))
 #if ($isPackageStore &amp;&amp; $services.security.authorization.hasAccess('admin', $xcontext.user) &amp;&amp; $attachment.getFilename().contains(".zip"))
-&lt;a class="admintools-start-upload action" data-upload-url="$request.getContextPath()/rest/admintools/import?attach=${packageRef}"
+&lt;a class="admintools-start-upload action" data-upload-url="$request.getContextPath()/rest/admintools/upload?attach=${packageRef}"
   data-package-name="${escapetool.xml($attachment.getFilename())}" data-package-ref="${packageRef}"
-  title="$services.localization.render('confluencepro.migration.livetable._actions.select')" href="#"&gt;
+  title="$services.localization.render('adminTools.packages.livetable._actions.upload')" href="#"&gt;
   &lt;span class="action-icon"&gt;$services.icon.renderHTML('play')&lt;/span&gt;&lt;span class="action-label"&gt;Upload package
   &lt;/span&gt;
 &lt;/a&gt;

@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.inject.Named;
@@ -73,17 +74,16 @@ public class TomcatInfo extends AbstractServerInfo
     public void updatePossiblePaths()
     {
         this.serverCfgPossiblePaths =
-            new String[] { String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
+            List.of(String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
                 "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/server.xml", "/var/lib/tomcat9/conf/server.xml",
-                "/var/lib/tomcat/conf/server.xml" };
+                "/var/lib/tomcat/conf/server.xml");
 
-        this.xwikiCfgPossiblePaths = new String[] { "/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
+        this.xwikiCfgPossiblePaths = List.of("/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
-            String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath) };
+            String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath));
 
-        this.xwikiInstallPossiblePaths =
-            new String[] { "/etc/xwiki/lib/", "/usr/local/xwiki/", "/opt/xwiki/",
-                String.format("%s/webapps/xwiki/", this.serverPath) };
+        this.xwikiInstallPossiblePaths = List.of("/etc/xwiki/lib/", "/usr/local/xwiki/", "/opt/xwiki/",
+            String.format("%s/webapps/xwiki/", this.serverPath));
     }
 
     @Override

@@ -73,14 +73,17 @@ public interface AdminToolsResource extends XWikiRestComponent
      * Start a package upload job based on the attachment reference that was sent.
      *
      * @param attachReference the reference of the attachment.
-     * @param startTime the start time of the request.
-     * @return HTML status code 202 to hint that the upload job has started.
-     * @throws XWikiRestException if an error occurred while creating the job.
+     * @param jobId a unique id for the job.
+     * @return HTML status code 202 to hint that the upload job has started;
+     *      Return status code 102 if the job already exists and is in progress;
+     *      Return status code 401 if the user does not have admin rights;
+     *      Return status code 500 if there is any error.
+     * @throws XWikiRestException if an error occurred while creating the job, or if the user lacks admin rights.
      * @since 1.1
      */
     @POST
-    @Path("/import")
+    @Path("/upload")
     @Unstable
     Response uploadPackageArchive(@QueryParam("attach") String attachReference,
-        @QueryParam("startTime") String startTime) throws XWikiRestException;
+        @QueryParam("jobId") String jobId) throws XWikiRestException;
 }

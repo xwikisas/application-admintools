@@ -274,7 +274,7 @@ class DefaultAdminToolsResourceTest
     @Test
     void uploadPackageArchiveJobFound()
     {
-        List<String> jobId = List.of("adminTools", "import", "attachReference", "startTime");
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
         when(jobExecutor.getJob(jobId)).thenReturn(job);
 
         assertEquals(102, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
@@ -285,7 +285,7 @@ class DefaultAdminToolsResourceTest
     {
         when(logger.isWarnEnabled()).thenReturn(true);
         ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-        List<String> jobId = List.of("adminTools", "import", "attachReference", "startTime");
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
         when(jobExecutor.getJob(jobId)).thenReturn(null);
         when(jobExecutor.execute(UploadJob.JOB_TYPE, new PackageUploadJobRequest("attachReference", jobId))).thenThrow(
             new JobException("error when executing the job"));

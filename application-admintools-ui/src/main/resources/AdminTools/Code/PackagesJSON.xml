@@ -27,7 +27,7 @@
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>AdminTools.ImportPackage</parent>
+  <parent>AdminTools.UploadPackage</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
@@ -54,7 +54,7 @@
     #set ($rowDocRef = $services.model.resolveDocument($row.get('doc_fullName')))
     #set ($rowDoc = $xwiki.getDocument($rowDocRef))
     #set ($xobject = $rowDoc.getObject('AdminTools.Code.PackageUploadClass'))
-    #set ($uploadJobId = ['adminTools','import',"${xobject.get('package')}", "${xobject.get('startTime')}"])
+    #set ($uploadJobId = ['adminTools', 'upload', "${xobject.get('package')}", "${xobject.get('startTime')}"])
     #set ($uploadJobStatus = $services.job.getJobStatus($uploadJobId))
     #set ($jobState = $uploadJobStatus.state)
     #if ("$!jobState" == '' || $jobState == 'NONE')

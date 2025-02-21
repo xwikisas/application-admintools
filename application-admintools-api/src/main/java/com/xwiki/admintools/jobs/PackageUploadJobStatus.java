@@ -40,7 +40,7 @@ public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobReq
     private List<JobResult> uploadLogs = new LinkedList<>();
 
     /**
-     * Create a new import job status.
+     * Create a new upload job status.
      *
      * @param jobType the job type.
      * @param request the request provided when the job was started.
@@ -83,5 +83,15 @@ public class PackageUploadJobStatus extends DefaultJobStatus<PackageUploadJobReq
     public boolean hasLevel(JobResultLevel level)
     {
         return this.uploadLogs.stream().anyMatch(checkResult -> Objects.equals(level, checkResult.getLevel()));
+    }
+
+    /**
+     * Get the ID for the job.
+     *
+     * @return the job ID as a {@link List}.
+     */
+    public List<String> getJobID()
+    {
+        return getRequest().getId();
     }
 }

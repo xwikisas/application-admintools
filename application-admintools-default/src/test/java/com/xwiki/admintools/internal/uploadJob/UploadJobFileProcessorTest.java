@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.xwiki.environment.Environment;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.AttachmentReferenceResolver;
 import org.xwiki.model.reference.DocumentReference;
@@ -51,6 +53,8 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.admintools.ServerInfo;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.jobs.PackageUploadJobRequest;
 import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 import com.xwiki.admintools.uploadPackageJob.UploadPackageJobResource;
@@ -67,6 +71,8 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class UploadJobFileProcessorTest
 {
+    private final String SERVER_PATH = "path/to/xwiki/install";
+
     @InjectMockComponents
     private UploadJobFileProcessor fileProcessor;
 
@@ -97,6 +103,8 @@ class UploadJobFileProcessorTest
 
     @XWikiTempDir
     private File tmpDir;
+
+    private File permDir;
 
     private File testFile;
 
@@ -140,21 +148,35 @@ class UploadJobFileProcessorTest
 
     private PackageUploadJobStatus status;
 
+    @Mock
+    private UploadPackageJobResource resource;
+
+    @MockComponent
+    private CurrentServer currentServer;
+
+    @MockComponent
+    private ServerInfo serverInfo;
+
+    @MockComponent
+    private Environment environment;
+
     @BeforeComponent
     void setUp() throws IOException
     {
         tmpDir.mkdir();
         tmpDir.deleteOnExit();
 
-        targetDir = new File(tmpDir, "target_folder/");
-        archDir = new File(tmpDir, "resource_folder/");
-        jarArchDir = new File(tmpDir, "jar_target_folder/");
-        jarArchDirDuplicates = new File(tmpDir, "jar_target_folder2/");
+        targetDir = new File(tmpDir, "target_folder");
+        archDir = new File(tmpDir, "resource_folder");
+        jarArchDir = new File(tmpDir, "jar_target_folder");
+        jarArchDirDuplicates = new File(tmpDir, "jar_target_folder2");
+        permDir = new File(tmpDir, "permanent_directory");
 
         targetDir.mkdir();
         archDir.mkdir();
         jarArchDir.mkdir();
         jarArchDirDuplicates.mkdir();
+        permDir.mkdir();
 
         testFile = new File(archDir, "resource_file.txt");
         jarTestFile = new File(jarArchDir, "ant-launcher-1.10.11-client-development-special.jar");
@@ -192,12 +214,25 @@ class UploadJobFileProcessorTest
         zipFile(jarArchDirDuplicates, jarZipFile2);
         jarInputStream2 = new ZipInputStream(new FileInputStream(jarZipFile2.getAbsolutePath()));
         jarZipEntry2 = jarInputStream2.getNextEntry();
+
+        when(currentServer.getCurrentServer()).thenReturn(serverInfo);
+        when(serverInfo.getXWikiInstallFolderPath()).thenReturn(targetDir.getPath());
+        when(environment.getPermanentDirectory()).thenReturn(new File(tmpDir, "permanent_directory"));
     }
 
     @BeforeEach
     void beforeEach()
     {
         status = new PackageUploadJobStatus("admintools.uploadpackage", new PackageUploadJobRequest(), null, null);
+    }
+
+    @Test
+    @Order(1)
+    void initializeBackupFolder() throws IOException
+    {
+        fileProcessor.initializeBackupFolder(status.getJobID());
+        assertTrue(environment.getPermanentDirectory().toPath().resolve("adminTools").resolve("backup")
+            .resolve(String.join("_", status.getJobID())).toFile().exists());
     }
 
     @Test
@@ -220,35 +255,42 @@ class UploadJobFileProcessorTest
     @Order(2)
     void processFileContent() throws IOException
     {
-        UploadPackageJobResource resource = new UploadPackageJobResource();
-        fileProcessor.processFileContent(inputStream, resource);
-        assertEquals("test content", resource.getNewFileContent().toString());
+        when(resource.getTargetFile()).thenReturn(jarTargetFile);
+        when(resource.getNewFilename()).thenReturn(jarTestFile.getName());
+        fileProcessor.processFileContent(inputStream, resource, status);
+        assertFalse(jarTargetFile.exists());
+        File testResult = Paths.get(jarTargetFile.getParent()).resolve(jarTestFile.getName()).toFile();
+        assertTrue(testResult.exists());
+        testResult.deleteOnExit();
     }
 
     @Test
     @Order(3)
     void maybeBackupFile() throws IOException
     {
-        PackageUploadJobStatus status =
-            new PackageUploadJobStatus("admintools.uploadpackage", new PackageUploadJobRequest(), null, null);
-        fileProcessor.maybeBackupFile(targetDir.getPath() + "/", zipEntry.getName(), status);
+        fileProcessor.initializeBackupFolder(status.getJobID());
+        fileProcessor.maybeBackupFile(zipEntry.getName(), status);
         assertEquals(1, status.getJobResults().size());
-        assertTrue(new File(targetFile.getAbsolutePath() + ".bak").exists());
+
+        File backupFile = environment.getPermanentDirectory().toPath().resolve("adminTools").resolve("backup")
+            .resolve(String.join("_", status.getJobID()))
+            .resolve(targetFile.getName() + ".bak").toFile();
+        assertTrue(backupFile.exists());
         inputStream.closeEntry();
     }
 
     @Test
     @Order(4)
-    void maybeBackupFileJar()
+    void maybeBackupFileJar() throws IOException
     {
-        PackageUploadJobStatus status =
-            new PackageUploadJobStatus("admintools.uploadpackage", new PackageUploadJobRequest(), null, null);
-        fileProcessor.maybeBackupFile(targetDir.getPath() + "/", jarZipEntry.getName(), status);
+        fileProcessor.initializeBackupFolder(status.getJobID());
+        fileProcessor.maybeBackupFile(jarZipEntry.getName(), status);
+        File backupFile = environment.getPermanentDirectory().toPath().resolve("adminTools").resolve("backup")
+            .resolve(String.join("_", status.getJobID()))
+            .resolve(jarTargetFile.getName() + ".bak").toFile();
         assertEquals(1, status.getJobResults().size());
         assertEquals("adminTools.jobs.upload.backup.success", status.getJobResults().get(0).getMessage());
-        File backFile = new File(jarTargetFile.getAbsolutePath() + ".bak");
-        assertTrue(backFile.exists());
-        backFile.delete();
+        assertTrue(backupFile.exists());
     }
 
     @Test
@@ -256,7 +298,7 @@ class UploadJobFileProcessorTest
     void maybeBackupFileJarNotFound()
     {
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            fileProcessor.maybeBackupFile(targetDir.getPath() + "/", jarZipEntry2.getName(), status);
+            fileProcessor.maybeBackupFile(jarZipEntry2.getName(), status);
         });
         assertEquals(
             "Unable to correctly assess the original file for bcutil-jdk18on-1.72-client-development-special.jar.",
@@ -281,7 +323,7 @@ class UploadJobFileProcessorTest
                 zipFiles(rootFolder, file, zos);
             }
         } else {
-            // If file, add it to the ZIP
+            // If it is a file, add it to the ZIP
             try (FileInputStream fis = new FileInputStream(sourceFile)) {
                 // Create a relative path for the file within the ZIP
                 String zipEntryName = sourceFile.getAbsolutePath().substring(rootFolder.getAbsolutePath().length() + 1);

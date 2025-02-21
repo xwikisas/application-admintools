@@ -149,14 +149,14 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
         try {
             this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
 
-            List<String> jobId = List.of("adminTools", "import", attachReference, startTime);
+            List<String> jobId = List.of("adminTools", "upload", attachReference, startTime);
             Job job = this.jobExecutor.getJob(jobId);
             if (job == null) {
                 PackageUploadJobRequest packageUploadJobRequest = new PackageUploadJobRequest(attachReference, jobId);
                 this.jobExecutor.execute(UploadJob.JOB_TYPE, packageUploadJobRequest);
-                return Response.status(202).type(MediaType.TEXT_PLAIN_TYPE).build();
+                return Response.status(202).build();
             } else {
-                return Response.status(102).type(MediaType.TEXT_PLAIN_TYPE).build();
+                return Response.status(102).build();
             }
         } catch (AccessDeniedException deniedException) {
             logger.warn("Failed to begin the package upload due to insufficient rights.");

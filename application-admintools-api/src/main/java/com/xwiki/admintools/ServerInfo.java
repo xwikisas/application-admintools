@@ -22,13 +22,17 @@ package com.xwiki.admintools;
 import java.util.regex.Pattern;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.stability.Unstable;
 
 /**
  * Exposes methods for accessing server specific information, like configurations, logs or other XWiki and server
  * files.
  *
  * @version $Id$
+ * @since 1.1
  */
+
+@Unstable
 @Role
 public interface ServerInfo
 {

@@ -67,6 +67,6 @@ public class PackageUploadJobRequest extends AbstractRequest
 
     private void setDefaultId()
     {
-        setId(List.of("adminTools", "import"));
+        setId(List.of("adminTools", "upload"));
     }
 }
