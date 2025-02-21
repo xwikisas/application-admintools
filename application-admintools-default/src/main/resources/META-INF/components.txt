@@ -26,6 +26,7 @@ com.xwiki.admintools.internal.health.checks.performance.PhysicalMemoryHealthChec
 com.xwiki.admintools.internal.health.checks.performance.PhysicalSpaceHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.CacheMemoryHealthCheck
 com.xwiki.admintools.internal.health.checks.memory.MemoryHealthCheck
+com.xwiki.admintools.internal.health.checks.memory.HeapAllocationCheck
 com.xwiki.admintools.internal.health.job.HealthCheckJob
 com.xwiki.admintools.internal.uploadJob.UploadJob
 com.xwiki.admintools.internal.rest.DefaultAdminToolsResource
