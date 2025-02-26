@@ -33,14 +33,12 @@
         $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.description'))
         <ul>
           <li>
-            <a href="$adminToolsFilesPath/xwikiConfig"
-            target="_blank">
+            <a href="$adminToolsFilesPath/xwikiConfig" target="_blank">
               $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.configuration'))
             </a>
           </li>
           <li>
-            <a href="$adminToolsFilesPath/xwikiProperties"
-            target="_blank">
+            <a href="$adminToolsFilesPath/xwikiProperties" target="_blank">
               $escapetool.xml($services.localization.render('adminTools.dashboard.download.view.properties'))
             </a>
           </li>
@@ -49,6 +47,11 @@
               $escapetool.xml($services.localization.render('adminTools.dashboard.showLogs'))</a>
           </li>
         </ul>
+      </li>
+      <li>
+        #set ($packagesUploadURL = $xwiki.getDocument('AdminTools.UploadPackage').getURL('view'))
+        <a href="${packagesUploadURL}">
+          $escapetool.xml($services.localization.render('adminTools.packages.dashboard.uploadpackages'))</a>
       </li>
     </ul>
     #warning($escapetool.xml($services.localization.render('adminTools.dashboard.download.warning')))
