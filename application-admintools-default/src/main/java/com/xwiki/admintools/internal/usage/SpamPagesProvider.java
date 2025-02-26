@@ -28,14 +28,23 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
+import org.xwiki.search.solr.Solr;
+import org.xwiki.search.solr.SolrEntityMetadataExtractor;
+import org.xwiki.search.solr.SolrException;
+import org.xwiki.search.solr.SolrUtils;
 import org.xwiki.wiki.descriptor.WikiDescriptor;
 import org.xwiki.wiki.manager.WikiManagerException;
+
+import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Provide data for the documents that are spammed.
@@ -46,6 +55,9 @@ import org.xwiki.wiki.manager.WikiManagerException;
 @Singleton
 public class SpamPagesProvider extends AbstractInstanceUsageProvider
 {
+    @Inject
+    Solr solr;
+
     @Inject
     private QueryManager queryManager;
 
@@ -64,6 +76,9 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
     @Inject
     @Named("viewable")
     private QueryFilter viewableFilter;
+
+    @Inject
+    private SolrUtils solrUtils;
 
     /**
      * Retrieves the documents that have more than a given number of comments.
@@ -102,7 +117,7 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
     public List<DocumentReference> getCommentsForWiki(long maxComments, String searchedDocument, String wikiId)
-        throws QueryException
+        throws Exception
     {
         String searchString;
         if (searchedDocument == null || searchedDocument.isEmpty()) {
@@ -110,12 +125,27 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
         } else {
             searchString = String.format("%%%s%%", searchedDocument);
         }
-        return this.queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
-                + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
-                + "and lower(doc.title) like lower(:searchString) "
-                + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL).setWiki(wikiId)
-            .bindValue("maxComments", maxComments).bindValue("searchString", searchString)
-            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter)
-            .addFilter(viewableFilter).execute();
+
+        SolrQuery solrQuery = new SolrQuery();
+
+        // Search for documents where the title contains the search string and have comments
+        solrQuery.setQuery("title:* AND object:XWiki.XWikiComments" + searchString); //
+        // Apply filters
+        solrQuery.addFilterQuery("hidden:false");
+        solrQuery.addFilterQuery("docviewable:true");
+
+        //QueryResponse queryResponse = this.getSolrClient().query(solrQuery);
+        //SolrDocumentList solrDocuments = queryResponse.getResults();
+        // Sort results by the number of comments in descending order
+        return this.queryManager.createQuery(solrQuery.getQuery(), "solr").setWiki(wikiId).execute();
+        // Execute the query
+
+//        return this.queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
+//                + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
+//                + "and lower(doc.title) like lower(:searchString) "
+//                + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL).setWiki(wikiId)
+//            .bindValue("maxComments", maxComments).bindValue("searchString", searchString)
+//            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter)
+//            .addFilter(viewableFilter).execute();
     }
 }

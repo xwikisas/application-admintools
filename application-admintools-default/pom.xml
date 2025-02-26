@@ -85,5 +85,15 @@
       <artifactId>application-licensing-licensor-api</artifactId>
       <version>${licensing.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-search-solr-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>solrsecurity</artifactId>
+      <version>1.0.3</version>
+    </dependency>
   </dependencies>
 </project>

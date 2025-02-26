@@ -176,7 +176,7 @@ class SpamPagesProviderTest
     }
 
     @Test
-    void getCommentsForWiki() throws QueryException
+    void getCommentsForWiki() throws Exception
     {
         when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
         when(commentsQuery2.execute()).thenReturn(List.of(documentRef3));
