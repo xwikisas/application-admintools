@@ -72,6 +72,10 @@ public class SpamPagesProvider
         List<String> filterStatements = new ArrayList<>();
         filterStatements.add("type:DOCUMENT");
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
+        String searchedWiki = filters.get("wikiName");
+        if (searchedWiki != null && searchedWiki.isEmpty()) {
+            filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWiki)));
+        }
 
         Query query = this.secureQueryManager.createQuery(queryStatement, "solr");
         if (query instanceof SecureQuery) {

@@ -84,6 +84,8 @@ class SpamPagesProviderTest
 
     List<String> filterStatements = new ArrayList<>();
 
+    List<String> filterStatements2 = new ArrayList<>();
+
     @MockComponent
     private Provider<XWikiContext> xcontextProvider;
 
@@ -162,6 +164,12 @@ class SpamPagesProviderTest
     {
         filterStatements.add("type:DOCUMENT");
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
+        filterStatements2.addAll(filterStatements);
+
+        when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
+        when(solrUtils.toCompleteFilterQueryString("searchedWiki")).thenReturn("escapedSearchedWiki");
+
+        filterStatements2.add("wiki:escapedSearchedWiki");
 
         when(queryManager.createQuery("*", "solr")).thenReturn(commentsQuery);
 
@@ -172,8 +180,6 @@ class SpamPagesProviderTest
         when(commentsQuery.bindValue("sort",
             String.format("AdminTools.NumberOfComments_sortInt %s", "desc"))).thenReturn(commentsQuery);
         when(commentsQuery.setLimit(100)).thenReturn(commentsQuery);
-
-        when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
 
         when(queryManager.createQuery("title:escapedSearchDocument", "solr")).thenReturn(commentsQuery2);
         when(commentsQuery2.bindValue("searchString", "%")).thenReturn(commentsQuery3);
@@ -200,9 +206,8 @@ class SpamPagesProviderTest
     {
         assertEquals(2,
             spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", ""), "desc").size());
-        assertEquals(1,
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", "searchedDocument"),
-                "desc").size());
+        assertEquals(1, spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
+            Map.of("docName", "searchedDocument", "wikiName", "searchedWiki"), "desc").size());
     }
 
     @Test

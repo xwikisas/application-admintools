@@ -28,15 +28,16 @@ import javax.inject.Singleton;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * This extractor retrieves all comment objects associated with the given XWiki document
- * and stores their count in the Solr index under the field "AdminTools.NumberOfComments_sortInt".
+ * This extractor retrieves all comment objects associated with the given XWiki document and stores their count in the
+ * Solr index under the field "AdminTools.NumberOfComments_sortInt".
  *
  * @version $Id$
  * @since 1.0.2
@@ -46,19 +47,16 @@ import com.xpn.xwiki.objects.BaseObject;
 @Singleton
 public class SpamSolrEntityMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
-    @Inject
-    private Logger logger;
+    private static final EntityReference COMMENTSCLASS_REFERENCE = new LocalDocumentReference("XWiki", "XWikiComments");
 
     @Inject
-    @Named("current")
-    private DocumentReferenceResolver<String> documentReferenceResolver;
+    private Logger logger;
 
     @Override
     public boolean extract(XWikiDocument entity, SolrInputDocument solrDocument)
     {
         try {
-            List<BaseObject> results = entity.getXObjects(documentReferenceResolver.resolve("XWiki.XWikiComments",
-                entity.getDocumentReference().getWikiReference()));
+            List<BaseObject> results = entity.getXObjects(COMMENTSCLASS_REFERENCE);
             solrDocument.setField("AdminTools.NumberOfComments_sortInt", results.size());
         } catch (Exception e) {
             this.logger.error("Failed to index the right for document [{}]", entity.getDocumentReference(), e);
