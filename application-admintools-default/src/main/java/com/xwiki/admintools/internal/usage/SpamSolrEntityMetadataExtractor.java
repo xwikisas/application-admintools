@@ -19,23 +19,28 @@
  */
 package com.xwiki.admintools.internal.usage;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
-import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
-import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 
+/**
+ * This extractor retrieves all comment objects associated with the given XWiki document
+ * and stores their count in the Solr index under the field "AdminTools.NumberOfComments_sortInt".
+ *
+ * @version $Id$
+ * @since 1.0.3
+ */
 @Component
 @Named("spammed-doc")
 @Singleton
@@ -45,22 +50,16 @@ public class SpamSolrEntityMetadataExtractor implements SolrEntityMetadataExtrac
     private Logger logger;
 
     @Inject
-    private Provider<AdminToolsConfiguration> configurationProvider;
-
-    @Inject
-    private Provider<XWikiContext> wikiContextProvider;
+    @Named("current")
+    private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Override
     public boolean extract(XWikiDocument entity, SolrInputDocument solrDocument)
     {
         try {
-            Vector<BaseObject> results = entity.getObjects("XWiki.XWikiComments");
-            if (results != null && results.size() > configurationProvider.get().getSpamSize()) {
-                // add spammed field
-                solrDocument.addField("spammed", "true");
-            } else {
-                solrDocument.addField("spammed", "false");
-            }
+            List<BaseObject> results = entity.getXObjects(documentReferenceResolver.resolve("XWiki.XWikiComments",
+                entity.getDocumentReference().getWikiReference()));
+            solrDocument.setField("AdminTools.NumberOfComments_sortInt", results.size());
         } catch (Exception e) {
             this.logger.error("Failed to index the right for document [{}]", entity.getDocumentReference(), e);
         }
