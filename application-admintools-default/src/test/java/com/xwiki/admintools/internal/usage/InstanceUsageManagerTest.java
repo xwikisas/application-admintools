@@ -27,6 +27,8 @@ import java.util.Map;
 import javax.inject.Provider;
 import javax.script.ScriptContext;
 
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -130,6 +132,9 @@ class InstanceUsageManagerTest
 
     @Mock
     private Licensor licensor;
+
+    @Mock
+    private SolrDocument solrDocument;
 
     @Mock
     private DocumentReference document;
@@ -244,27 +249,28 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getSpammedPages() throws WikiManagerException
+    void getSpammedPages() throws Exception
     {
-        List<DocumentReference> docs = List.of(document);
-//        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN, SORT_ORDER)).thenReturn(
-//            docs);
+        SolrDocumentList docs = new SolrDocumentList();
+        docs.add(solrDocument);
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_ORDER)).thenReturn(
+            docs);
 
-//        assertArrayEquals(docs.toArray(),
-//            instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER).toArray());
+        assertEquals(docs.get(0),
+            instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER).get(0));
     }
 
     @Test
-    void getPagesOverGivenNumberOfCommentsError() throws WikiManagerException
+    void getPagesOverGivenNumberOfCommentsError() throws Exception
     {
-//        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
-//            new RuntimeException("Runtime error"));
-//        Exception exception = assertThrows(RuntimeException.class,
-//            () -> instanceUsageManager.getSpammedPages(2, filters, SORT_COLUMN, SORT_ORDER));
-//        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
-//        assertEquals(
-//            "There have been issues while gathering wikis spammed pages. Root cause is: [RuntimeException: Runtime error]",
-//            logCapture.getMessage(0));
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
+        Exception exception = assertThrows(RuntimeException.class,
+            () -> instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering wikis spammed pages. Root cause is: [RuntimeException: Runtime error]",
+            logCapture.getMessage(0));
     }
 
     @Test

@@ -39,7 +39,7 @@ import com.xpn.xwiki.objects.BaseObject;
  * and stores their count in the Solr index under the field "AdminTools.NumberOfComments_sortInt".
  *
  * @version $Id$
- * @since 1.0.3
+ * @since 1.0.2
  */
 @Component
 @Named("spammed-doc")

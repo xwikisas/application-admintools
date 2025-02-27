@@ -43,7 +43,7 @@ import org.xwiki.search.solr.SolrUtils;
  */
 @Component(roles = SpamPagesProvider.class)
 @Singleton
-public class SpamPagesProvider extends AbstractInstanceUsageProvider
+public class SpamPagesProvider
 {
     @Inject
     @Named("secure")
@@ -53,34 +53,18 @@ public class SpamPagesProvider extends AbstractInstanceUsageProvider
     private SolrUtils solrUtils;
 
     /**
-     * Retrieves the documents that have more than a given number of comments.
-     *
-     * @param maxComments maximum number of comments below which the document is ignored.
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param order the order of the sort.
-     * @return a {@link SolrDocumentList} with the needed fields set.
-     */
-    public SolrDocumentList getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String order)
-    {
-        try {
-            return getCommentsForWiki(maxComments, filters.get("docName"), order);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
      * Get a list of solr documents in wiki with comments above a given limit.
      *
      * @param maxComments maximum number of comments below which the document is ignored.
-     * @param searchedDocument document hint to be searched.
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
      * @return a {@link SolrDocumentList} with the needed fields set.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
-    public SolrDocumentList getCommentsForWiki(long maxComments, String searchedDocument, String order) throws Exception
+    public SolrDocumentList getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order) throws Exception
     {
+        String searchedDocument = filters.get("docName");
         String queryStatement = "*";
         if (searchedDocument != null && !searchedDocument.isEmpty()) {
             queryStatement = String.format("title:%s", solrUtils.toCompleteFilterQueryString(searchedDocument));
