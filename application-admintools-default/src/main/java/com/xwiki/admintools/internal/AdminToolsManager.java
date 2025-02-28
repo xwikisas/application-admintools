@@ -192,7 +192,7 @@ public class AdminToolsManager
      * @param order the order of the sort.
      * @return a filtered and sorted {@link List} of {@link DocumentReference}.
      */
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
     {
         return this.instanceUsageManager.getEmptyDocuments(filters, sortColumn, order);
     }

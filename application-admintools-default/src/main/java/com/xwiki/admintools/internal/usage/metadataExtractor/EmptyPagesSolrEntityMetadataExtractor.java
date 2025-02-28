@@ -17,9 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.usage;
-
-import java.util.List;
+package com.xwiki.admintools.internal.usage.metadataExtractor;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,27 +26,22 @@ import javax.inject.Singleton;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.EntityReference;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 
 /**
- * This extractor retrieves all comment objects associated with the given XWiki document and stores their count in the
- * Solr index under the field "AdminTools.NumberOfComments_sortInt".
+ * This extractor retrieves all objects, attachments and content associated with the given XWiki document and stores
+ * their count in the Solr index.
  *
  * @version $Id$
  * @since 1.0.2
  */
 @Component
-@Named("spammed-doc")
+@Named("empty-doc")
 @Singleton
-public class SpamSolrEntityMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
+public class EmptyPagesSolrEntityMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
-    private static final EntityReference COMMENTSCLASS_REFERENCE = new LocalDocumentReference("XWiki", "XWikiComments");
-
     @Inject
     private Logger logger;
 
@@ -56,8 +49,10 @@ public class SpamSolrEntityMetadataExtractor implements SolrEntityMetadataExtrac
     public boolean extract(XWikiDocument entity, SolrInputDocument solrDocument)
     {
         try {
-            List<BaseObject> results = entity.getXObjects(COMMENTSCLASS_REFERENCE);
-            solrDocument.setField("AdminTools.NumberOfComments_sortInt", results.size());
+            boolean isEmpty =
+                entity.getXObjects().isEmpty() && entity.getAttachmentList().isEmpty() && entity.getContent().trim()
+                    .isEmpty() && entity.getXClassXML().trim().isEmpty();
+            solrDocument.setField("AdminTools.DocumentContentEmpty_boolean", isEmpty);
         } catch (Exception e) {
             this.logger.error("Failed to index the right for document [{}]", entity.getDocumentReference(), e);
         }

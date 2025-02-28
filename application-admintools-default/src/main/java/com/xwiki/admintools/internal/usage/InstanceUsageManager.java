@@ -180,10 +180,10 @@ public class InstanceUsageManager
      * @param order the order of the sort.
      * @return a {@link List} with the {@link DocumentReference} of the empty documents.
      */
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
     {
         try {
-            return emptyDocumentsProvider.getEmptyDocuments(filters, sortColumn, order);
+            return emptyDocumentsProvider.getEmptyDocuments(order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis empty pages. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));

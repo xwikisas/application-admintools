@@ -34,4 +34,5 @@ com.xwiki.admintools.internal.usage.RecycleBinsProvider
 com.xwiki.admintools.internal.usage.UsageDataProvider
 com.xwiki.admintools.internal.usage.SpamPagesProvider
 com.xwiki.admintools.internal.usage.EmptyDocumentsProvider
-com.xwiki.admintools.internal.usage.SpamSolrEntityMetadataExtractor
+com.xwiki.admintools.internal.usage.metadataExtractor.SpamSolrEntityMetadataExtractor
+com.xwiki.admintools.internal.usage.metadataExtractor.EmptyPagesSolrEntityMetadataExtractor
