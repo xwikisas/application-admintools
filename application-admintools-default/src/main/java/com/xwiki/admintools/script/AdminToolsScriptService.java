@@ -205,7 +205,7 @@ public class AdminToolsScriptService implements ScriptService
      * @since 1.1
      */
     @Unstable
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
         throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);

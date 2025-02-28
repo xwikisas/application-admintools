@@ -19,30 +19,21 @@
  */
 package com.xwiki.admintools.internal.usage;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.manager.WikiManagerException;
-
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiAttachment;
-import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
-import com.xpn.xwiki.objects.classes.BaseClass;
+import org.xwiki.query.SecureQuery;
 
 /**
  * Retrieve data about wikis empty pages.
@@ -54,72 +45,36 @@ import com.xpn.xwiki.objects.classes.BaseClass;
 @Singleton
 public class EmptyDocumentsProvider extends AbstractInstanceUsageProvider
 {
-    @Inject
-    private QueryManager queryManager;
+    private static final String DESC = "desc";
+
+    private static final Set<String> VALID_SORT_ORDERS = Set.of(DESC, "asc");
 
     @Inject
-    @Named("hidden/document")
-    private QueryFilter hiddenDocumentFilter;
-
-    @Inject
-    @Named("document")
-    private QueryFilter documentFilter;
-
-    @Inject
-    @Named("viewable")
-    private QueryFilter viewableFilter;
-
-    /**
-     * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
-     * or comments.
-     *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
-     * @param order the order of the sort.
-     * @return a {@link List} with the {@link DocumentReference} of the empty documents.
-     */
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
-        throws WikiManagerException
-    {
-        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
-        List<DocumentReference> emptyDocuments = new ArrayList<>();
-        XWikiContext wikiContext = xcontextProvider.get();
-        XWiki wiki = wikiContext.getWiki();
-        searchedWikis.forEach(wikiDescriptor -> {
-            try {
-                List<DocumentReference> queryResults = getEmptyDocumentsForWiki(wikiDescriptor.getId());
-                for (DocumentReference docRef : queryResults) {
-                    XWikiDocument wikiDocument = wiki.getDocument(docRef, wikiContext);
-                    if (wikiDocument.getXClassXML().isEmpty() && !wikiDocument.isHidden()) {
-                        emptyDocuments.add(docRef);
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        applyDocumentsSort(emptyDocuments, sortColumn, order);
-        return emptyDocuments;
-    }
+    @Named("secure")
+    private QueryManager secureQueryManager;
 
     /**
      * Get the {@link DocumentReference} of empty documents in wiki.
      *
-     * @param wikiId the wiki for which the data will be retrieved.
      * @return a {@link List} with the {@link DocumentReference} of the empty documents.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
-    public List<DocumentReference> getEmptyDocumentsForWiki(String wikiId) throws QueryException
+    public SolrDocumentList getEmptyDocuments(String order) throws QueryException
     {
-        return this.queryManager.createQuery(
-                "select doc.fullName from XWikiDocument doc "
-                    + "where (doc.content = '' or trim(doc.content) = '') "
-                    + "and not exists (select obj from BaseObject obj where obj.name = doc.fullName) "
-                    + "and not exists (select att from XWikiAttachment att where att.docId = doc.id)", Query.HQL)
-            .setWiki(wikiId)
-            .addFilter(hiddenDocumentFilter)
-            .addFilter(documentFilter)
-            .addFilter(viewableFilter)
-            .execute();
+        List<String> filterStatements =
+            List.of("type:DOCUMENT", "AdminTools.DocumentContentEmpty_boolean:true", "hidden:false");
+
+        Query query = this.secureQueryManager.createQuery("*", "solr");
+        if (query instanceof SecureQuery) {
+            ((SecureQuery) query).checkCurrentAuthor(true);
+            ((SecureQuery) query).checkCurrentUser(true);
+        }
+
+        query.bindValue("fl",
+            "title_, reference, wiki, name, spaces, AdminTools.DocumentContentEmpty_boolean, hidden");
+        query.bindValue("fq", filterStatements);
+        query.bindValue("sort", String.format("wiki %s", VALID_SORT_ORDERS.contains(order) ? order : DESC));
+        query.setLimit(100);
+        return ((QueryResponse) query.execute().get(0)).getResults();
     }
 }
