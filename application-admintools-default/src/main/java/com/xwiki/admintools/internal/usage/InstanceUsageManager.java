@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import javax.script.ScriptContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
@@ -58,8 +59,6 @@ public class InstanceUsageManager
     private static final String ERROR_TEMPLATE = "licenseError.vm";
 
     private static final String TEMPLATE_NAME = "wikiSizeTemplate.vm";
-
-    private static final String WIKI_NAME_KEY = "wikiName";
 
     @Inject
     protected Provider<XWikiContext> xcontextProvider;
@@ -158,15 +157,13 @@ public class InstanceUsageManager
      *
      * @param maxComments maximum number of comments below which the document is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      */
-    public List<DocumentReference> getSpammedPages(long maxComments, Map<String, String> filters, String sortColumn,
-        String order)
+    public SolrDocumentList getSpammedPages(long maxComments, Map<String, String> filters, String order)
     {
         try {
-            return spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
+            return spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, filters, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis spammed pages. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));
