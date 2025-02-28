@@ -72,70 +72,11 @@ class SpamPagesProviderTest
     @Mock
     SecureQuery commentsQuery3;
 
-    @Mock
-    WikiDescriptor wikiDescriptor;
-
-    @Mock
-    WikiDescriptor wikiDescriptor2;
-
-    String wikiId1 = "wikiId1";
-
-    String wikiId2 = "wikiId2";
-
     List<String> filterStatements = new ArrayList<>();
 
     List<String> filterStatements2 = new ArrayList<>();
 
-    @MockComponent
-    private Provider<XWikiContext> xcontextProvider;
-
-    @Mock
-    private XWiki xWiki;
-
-    @Mock
-    private XWikiContext xContext;
-
-    @Mock
-    private XWikiDocument document;
-
-    @Mock
-    private XWikiDocument document2;
-
-    @Mock
-    private XWikiDocument document3;
-
-    @Mock
-    private DocumentReference documentRef;
-
-    @Mock
-    private DocumentReference documentRef2;
-
-    @Mock
-    private DocumentReference documentRef3;
-
-    @MockComponent
-    @Named("currentlanguage")
-    private QueryFilter currentLanguageFilter;
-
-    @MockComponent
-    @Named("hidden/document")
-    private QueryFilter hiddenFilter;
-
-    @MockComponent
-    @Named("document")
-    private QueryFilter documentFilter;
-
-    @MockComponent
-    @Named("viewable")
-    private QueryFilter viewableFilter;
-
     private long maxComments = 21L;
-
-    @MockComponent
-    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
-
-    @MockComponent
-    private WikiDescriptorManager wikiDescriptorManager;
 
     @MockComponent
     private SolrUtils solrUtils;
@@ -167,9 +108,6 @@ class SpamPagesProviderTest
         filterStatements2.addAll(filterStatements);
 
         when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
-        when(solrUtils.toCompleteFilterQueryString("searchedWiki")).thenReturn("escapedSearchedWiki");
-
-        filterStatements2.add("wiki:escapedSearchedWiki");
 
         when(queryManager.createQuery("*", "solr")).thenReturn(commentsQuery);
 
@@ -207,7 +145,7 @@ class SpamPagesProviderTest
         assertEquals(2,
             spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", ""), "desc").size());
         assertEquals(1, spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-            Map.of("docName", "searchedDocument", "wikiName", "searchedWiki"), "desc").size());
+            Map.of("docName", "searchedDocument"), "desc").size());
     }
 
     @Test
