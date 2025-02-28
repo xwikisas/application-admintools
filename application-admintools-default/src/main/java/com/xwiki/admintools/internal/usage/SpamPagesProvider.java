@@ -22,6 +22,7 @@ package com.xwiki.admintools.internal.usage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -45,6 +46,10 @@ import org.xwiki.search.solr.SolrUtils;
 @Singleton
 public class SpamPagesProvider
 {
+    private static final String DESC = "desc";
+
+    private static final Set<String> VALID_SORT_ORDERS = Set.of(DESC, "asc");
+
     @Inject
     @Named("secure")
     private QueryManager secureQueryManager;
@@ -79,9 +84,10 @@ public class SpamPagesProvider
             ((SecureQuery) query).checkCurrentUser(true);
         }
 
-        query.bindValue("fl", "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, links, name, spaces");
+        query.bindValue("fl", "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, name, spaces");
         query.bindValue("fq", filterStatements);
-        query.bindValue("sort", String.format("AdminTools.NumberOfComments_sortInt %s", order));
+        query.bindValue("sort",
+            String.format("AdminTools.NumberOfComments_sortInt %s", VALID_SORT_ORDERS.contains(order) ? order : DESC));
         query.setLimit(100);
         return ((QueryResponse) query.execute().get(0)).getResults();
     }

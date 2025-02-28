@@ -72,7 +72,7 @@
     })
     #foreach ($currentEntry in $resultList)
       #set ($docURL = $xwiki.getURL($services.solr.resolveDocument($currentEntry, 'DOCUMENT')))
-      #set ($docName = "&lt;a href='$docURL'&gt;$currentEntry.get('title_')&lt;/a&gt;")
+      #set ($docName = "&lt;a href='$docURL'&gt;$escapetool.xml($currentEntry.get('title_'))&lt;/a&gt;")
       #set ($wikiDescriptor = $services.wiki.getById($currentEntry.get('wiki')))
       #set ($discard = $results.rows.add({
         'wikiName' : $wikiDescriptor.getPrettyName(),
