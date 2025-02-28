@@ -81,7 +81,6 @@ public class SpamPagesProvider
         if (searchedWiki != null && !searchedWiki.isEmpty()) {
             filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWiki)));
         }
-
         Query query = this.secureQueryManager.createQuery(queryStatement, "solr");
         if (query instanceof SecureQuery) {
             ((SecureQuery) query).checkCurrentAuthor(true);
