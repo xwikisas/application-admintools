@@ -101,13 +101,16 @@ class SpamPagesProviderTest
     private SolrDocument solrDocument3;
 
     @BeforeEach
-    void beforeEach() throws QueryException, WikiManagerException
+    void beforeEach() throws QueryException
     {
         filterStatements.add("type:DOCUMENT");
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
         filterStatements2.addAll(filterStatements);
 
         when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
+        when(solrUtils.toCompleteFilterQueryString("searchedWiki")).thenReturn("escapedSearchedWiki");
+
+        filterStatements2.add("wiki:escapedSearchedWiki");
 
         when(queryManager.createQuery("*", "solr")).thenReturn(commentsQuery);
 
@@ -145,7 +148,7 @@ class SpamPagesProviderTest
         assertEquals(2,
             spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", ""), "desc").size());
         assertEquals(1, spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-            Map.of("docName", "searchedDocument"), "desc").size());
+            Map.of("docName", "searchedDocument", "wikiName", "searchedWiki"), "desc").size());
     }
 
     @Test
