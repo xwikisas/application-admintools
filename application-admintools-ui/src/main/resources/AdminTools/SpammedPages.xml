@@ -39,13 +39,14 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
+    'className': 'AdminTools.SpammedPages',
     'resultPage': 'AdminTools.Code.SpammedPagesJSON',
     'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
   }))
   #set ($liveDataConfig= {
     'meta': {
       'propertyDescriptors': [
-        {'id': 'wikiName', 'displayer': 'text', 'sortable': false, 'filterable': false},
+        {'id': 'wikiName', 'displayer': 'html', 'sortable': false},
         {'id': 'docName', 'displayer': 'html', 'sortable': false},
         {'id': 'commentsCount', 'displayer': 'number', 'filterable': false}
       ],
@@ -63,4 +64,42 @@
   }}$jsontool.serialize($liveDataConfig){{/liveData}}
 {{/html}}
 {{/velocity}}</content>
+  <class>
+    <name>AdminTools.SpammedPages</name>
+    <customClass/>
+    <customMapping/>
+    <defaultViewSheet/>
+    <defaultEditSheet/>
+    <defaultWeb/>
+    <nameField/>
+    <validationScript/>
+    <wikiName>
+      <cache>0</cache>
+      <classname>XWiki.XWikiServerClass</classname>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>discouraged</freeText>
+      <hint/>
+      <idField>wikiprettyname</idField>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>wikiName</name>
+      <number>1</number>
+      <picker>1</picker>
+      <prettyName>wikiName</prettyName>
+      <relationalStorage>1</relationalStorage>
+      <separator> </separator>
+      <separators/>
+      <size>1</size>
+      <sort>none</sort>
+      <sql/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <valueField/>
+      <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
+    </wikiName>
+  </class>
 </xwikidoc>
