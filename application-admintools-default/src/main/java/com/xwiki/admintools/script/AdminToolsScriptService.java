@@ -33,7 +33,6 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -198,18 +197,15 @@ public class AdminToolsScriptService implements ScriptService
     /**
      * Retrieve the empty documents from the XWiki instance.
      *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the empty documents.
+     * @return a {@link SolrDocumentList} with the empty documents.
      * @since 1.1
      */
     @Unstable
-    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
-        throws AccessDeniedException
+    public SolrDocumentList getEmptyDocuments(String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getEmptyDocuments(filters, sortColumn, order);
+        return adminToolsManager.getEmptyDocuments(order);
     }
 
     /**

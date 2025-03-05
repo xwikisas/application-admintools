@@ -60,7 +60,7 @@
       'wikiName' : $request.get('wikiName'),
       'docName' : $request.get('docName')
     })
-    #set ($emptyPages = $services.admintools.getEmptyDocuments($filters, $sort, $order))
+    #set ($emptyPages = $services.admintools.getEmptyDocuments($order))
     #if ($offset &lt; $emptyPages.size())
       #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $emptyPages.size()))
       #getSubset($emptyPages, $offset, $toIndex, $resultList)

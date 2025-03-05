@@ -31,11 +31,11 @@ import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * This extractor retrieves all objects, attachments and content associated with the given XWiki document and stores
- * their count in the Solr index.
+ * This extractor retrieves all objects and content from a XWiki document and if it's empty, it stores a flag with the
+ * value {@code true}, or {@code false} otherwise.
  *
  * @version $Id$
- * @since 1.0.2
+ * @since 1.1
  */
 @Component
 @Named("empty-doc")

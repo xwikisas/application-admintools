@@ -31,7 +31,6 @@ import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.objects.BaseObject;
@@ -187,13 +186,11 @@ public class AdminToolsManager
      * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
      * or comments.
      *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a filtered and sorted {@link List} of {@link DocumentReference}.
+     * @return a {@link SolrDocumentList} with the empty documents.
      */
-    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    public SolrDocumentList getEmptyDocuments(String order)
     {
-        return this.instanceUsageManager.getEmptyDocuments(filters, sortColumn, order);
+        return this.instanceUsageManager.getEmptyDocuments(order);
     }
 }

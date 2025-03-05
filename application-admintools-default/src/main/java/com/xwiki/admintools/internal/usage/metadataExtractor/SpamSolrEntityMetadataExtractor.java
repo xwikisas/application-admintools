@@ -40,7 +40,7 @@ import com.xpn.xwiki.objects.BaseObject;
  * Solr index under the field "AdminTools.NumberOfComments_sortInt".
  *
  * @version $Id$
- * @since 1.0.2
+ * @since 1.1
  */
 @Component
 @Named("spammed-doc")

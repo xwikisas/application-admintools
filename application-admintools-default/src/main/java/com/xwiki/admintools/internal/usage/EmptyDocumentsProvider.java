@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.usage;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,7 +28,6 @@ import javax.inject.Singleton;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
@@ -45,18 +43,17 @@ import org.xwiki.query.SecureQuery;
 @Singleton
 public class EmptyDocumentsProvider extends AbstractInstanceUsageProvider
 {
-    private static final String DESC = "desc";
-
-    private static final Set<String> VALID_SORT_ORDERS = Set.of(DESC, "asc");
+    private static final List<String> VALID_SORT_ORDERS = List.of("asc", "desc");
 
     @Inject
     @Named("secure")
     private QueryManager secureQueryManager;
 
     /**
-     * Get the {@link DocumentReference} of empty documents in wiki.
+     * Get the {@link SolrDocumentList} of empty documents in wiki.
      *
-     * @return a {@link List} with the {@link DocumentReference} of the empty documents.
+     * @param order the order of the sort.
+     * @return a {@link SolrDocumentList} with the empty documents.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
     public SolrDocumentList getEmptyDocuments(String order) throws QueryException
@@ -70,10 +67,10 @@ public class EmptyDocumentsProvider extends AbstractInstanceUsageProvider
             ((SecureQuery) query).checkCurrentUser(true);
         }
 
-        query.bindValue("fl",
-            "title_, reference, wiki, name, spaces, AdminTools.DocumentContentEmpty_boolean, hidden");
+        query.bindValue("fl", "title_, reference, wiki, name, spaces, AdminTools.DocumentContentEmpty_boolean, hidden");
         query.bindValue("fq", filterStatements);
-        query.bindValue("sort", String.format("wiki %s", VALID_SORT_ORDERS.contains(order) ? order : DESC));
+        query.bindValue("sort",
+            String.format("wiki %s", VALID_SORT_ORDERS.contains(order) ? order : VALID_SORT_ORDERS.get(0)));
         query.setLimit(100);
         return ((QueryResponse) query.execute().get(0)).getResults();
     }
