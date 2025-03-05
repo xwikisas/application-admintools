@@ -27,6 +27,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -146,14 +147,13 @@ public class AdminToolsManager
      *
      * @param maxComments maximum number of comments below which the page is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      */
-    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order)
+    public SolrDocumentList getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order)
     {
-        return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);
+        return instanceUsageManager.getSpammedPages(maxComments, filters, order);
     }
 
     /**
