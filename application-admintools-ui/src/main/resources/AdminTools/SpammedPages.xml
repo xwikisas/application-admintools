@@ -82,7 +82,7 @@
       <displayType>select</displayType>
       <freeText>discouraged</freeText>
       <hint/>
-      <idField>wikiprettyname</idField>
+      <idField>doc.name</idField>
       <largeStorage>0</largeStorage>
       <multiSelect>0</multiSelect>
       <name>wikiName</name>
@@ -98,7 +98,7 @@
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
       <validationRegExp/>
-      <valueField/>
+      <valueField>wikiprettyname</valueField>
       <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
     </wikiName>
   </class>
