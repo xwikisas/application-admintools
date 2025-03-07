@@ -19,7 +19,9 @@
  */
 package com.xwiki.admintools.internal.usage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,12 +34,13 @@ import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.query.SecureQuery;
+import org.xwiki.search.solr.SolrUtils;
 
 /**
  * Retrieve data about wikis empty pages.
  *
  * @version $Id$
- * @since 1.1
+ * @since 1.0.1
  */
 @Component(roles = EmptyDocumentsProvider.class)
 @Singleton
@@ -49,24 +52,36 @@ public class EmptyDocumentsProvider extends AbstractInstanceUsageProvider
     @Named("secure")
     private QueryManager secureQueryManager;
 
+    @Inject
+    private SolrUtils solrUtils;
+
     /**
      * Get the {@link SolrDocumentList} of empty documents in wiki.
      *
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
      * @return a {@link SolrDocumentList} with the empty documents.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
-    public SolrDocumentList getEmptyDocuments(String order) throws QueryException
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order) throws QueryException
     {
-        List<String> filterStatements =
-            List.of("type:DOCUMENT", "AdminTools.DocumentContentEmpty_boolean:true", "hidden:false");
+        List<String> filterStatements = new ArrayList<>();
+        filterStatements.add("type:DOCUMENT");
+        filterStatements.add("AdminTools.DocumentContentEmpty_boolean:true");
+        filterStatements.add("hidden:false");
 
         Query query = this.secureQueryManager.createQuery("*", "solr");
         if (query instanceof SecureQuery) {
             ((SecureQuery) query).checkCurrentAuthor(true);
             ((SecureQuery) query).checkCurrentUser(true);
         }
-
+        String searchedWiki = filters.get("wikiName");
+        if (searchedWiki != null && !searchedWiki.isEmpty() && !searchedWiki.equals("-")) {
+            // The XWikiServer document has a name format of "XWikiServer<wiki ID>". To select the wiki ID, we
+            // have to remove the first part of the name and set it to lowercase, as wiki IDs are always in lowercase.
+            String searchedWikiID = searchedWiki.replace("XWikiServer", "").toLowerCase();
+            filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWikiID)));
+        }
         query.bindValue("fl", "title_, reference, wiki, name, spaces, AdminTools.DocumentContentEmpty_boolean, hidden");
         query.bindValue("fq", filterStatements);
         query.bindValue("sort",

@@ -197,15 +197,16 @@ public class AdminToolsScriptService implements ScriptService
     /**
      * Retrieve the empty documents from the XWiki instance.
      *
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
      * @return a {@link SolrDocumentList} with the empty documents.
-     * @since 1.1
+     * @since 1.0.1
      */
     @Unstable
-    public SolrDocumentList getEmptyDocuments(String order) throws AccessDeniedException
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getEmptyDocuments(order);
+        return adminToolsManager.getEmptyDocuments(filters, order);
     }
 
     /**

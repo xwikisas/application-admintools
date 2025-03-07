@@ -76,8 +76,10 @@ public class SpamPagesProvider
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
         String searchedWiki = filters.get("wikiName");
         if (searchedWiki != null && !searchedWiki.isEmpty() && !searchedWiki.equals("-")) {
-            filterStatements.add(String.format("wiki:%s",
-                solrUtils.toCompleteFilterQueryString(searchedWiki.replace("XWikiServer", "").toLowerCase())));
+            // The XWikiServer document has a name format of "XWikiServer<wiki ID>". To select the wiki ID, we
+            // have to remove the first part of the name and set it to lowercase, as wiki IDs are always in lowercase.
+            String searchedWikiID = searchedWiki.replace("XWikiServer", "").toLowerCase();
+            filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWikiID)));
         }
         Query query = this.secureQueryManager.createQuery(queryStatement, "solr");
         if (query instanceof SecureQuery) {

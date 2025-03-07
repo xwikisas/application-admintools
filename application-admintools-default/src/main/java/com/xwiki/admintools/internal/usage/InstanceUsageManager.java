@@ -175,13 +175,14 @@ public class InstanceUsageManager
      * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
      * or comments.
      *
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
      * @return a {@link SolrDocumentList} with the empty documents.
      */
-    public SolrDocumentList getEmptyDocuments(String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order)
     {
         try {
-            return emptyDocumentsProvider.getEmptyDocuments(order);
+            return emptyDocumentsProvider.getEmptyDocuments(filters, order);
         } catch (Exception e) {
             logger.warn("There have been issues while gathering wikis empty pages. Root cause is: [{}]",
                 ExceptionUtils.getRootCauseMessage(e));

@@ -57,10 +57,9 @@
       #set ($order = $request.dir)
     #end
     #set ($filters = {
-      'wikiName' : $request.get('wikiName'),
-      'docName' : $request.get('docName')
+      'wikiName' : $request.get('wikiName')
     })
-    #set ($emptyPages = $services.admintools.getEmptyDocuments($order))
+    #set ($emptyPages = $services.admintools.getEmptyDocuments($filters, $order))
     #if ($offset &lt; $emptyPages.size())
       #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $emptyPages.size()))
       #getSubset($emptyPages, $offset, $toIndex, $resultList)
