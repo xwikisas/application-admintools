@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.usage;
+package com.xwiki.admintools.internal.usage.metadataExtractor;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ import com.xpn.xwiki.objects.BaseObject;
  * Solr index under the field "AdminTools.NumberOfComments_sortInt".
  *
  * @version $Id$
- * @since 1.0.2
+ * @since 1.1
  */
 @Component
 @Named("spammed-doc")
