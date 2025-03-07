@@ -39,7 +39,7 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
-    'className': 'AdminTools.SpammedPages',
+    'className': 'AdminTools.Code.LivedataCommonFilters',
     'resultPage': 'AdminTools.Code.EmptyPagesJSON',
     'translationPrefix': 'adminTools.dashboard.emptyPage.modal.header.'
   }))

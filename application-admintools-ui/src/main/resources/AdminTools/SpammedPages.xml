@@ -39,7 +39,7 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
-    'className': 'AdminTools.SpammedPages',
+    'className': 'AdminTools.Code.LivedataCommonFilters',
     'resultPage': 'AdminTools.Code.SpammedPagesJSON',
     'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
   }))
@@ -64,42 +64,4 @@
   }}$jsontool.serialize($liveDataConfig){{/liveData}}
 {{/html}}
 {{/velocity}}</content>
-  <class>
-    <name>AdminTools.SpammedPages</name>
-    <customClass/>
-    <customMapping/>
-    <defaultViewSheet/>
-    <defaultEditSheet/>
-    <defaultWeb/>
-    <nameField/>
-    <validationScript/>
-    <wikiName>
-      <cache>0</cache>
-      <classname>XWiki.XWikiServerClass</classname>
-      <customDisplay/>
-      <defaultValue/>
-      <disabled>0</disabled>
-      <displayType>select</displayType>
-      <freeText>discouraged</freeText>
-      <hint/>
-      <idField>doc.name</idField>
-      <largeStorage>0</largeStorage>
-      <multiSelect>0</multiSelect>
-      <name>wikiName</name>
-      <number>1</number>
-      <picker>1</picker>
-      <prettyName>wikiName</prettyName>
-      <relationalStorage>1</relationalStorage>
-      <separator> </separator>
-      <separators/>
-      <size>1</size>
-      <sort>none</sort>
-      <sql/>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <valueField>wikiprettyname</valueField>
-      <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
-    </wikiName>
-  </class>
 </xwikidoc>
