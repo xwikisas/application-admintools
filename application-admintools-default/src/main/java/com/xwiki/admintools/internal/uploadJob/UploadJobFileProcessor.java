@@ -19,10 +19,11 @@
  */
 package com.xwiki.admintools.internal.uploadJob;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -145,28 +146,27 @@ public class UploadJobFileProcessor
     public void processFileContent(ZipInputStream zis, UploadPackageJobResource jobResource,
         PackageUploadJobStatus status) throws IOException
     {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int len;
-        while ((len = zis.read(buffer)) > 0) {
-            baos.write(buffer, 0, len);
-        }
         File targetFile = jobResource.getTargetFile();
-        if (targetFile.exists()) {
-            String filePath = targetFile.getParent();
-            if (!targetFile.delete()) {
-                status.addLog(
-                    new JobResult("adminTools.jobs.upload.save.fail", JobResultLevel.ERROR, targetFile.getName()));
-                throw new RuntimeException(String.format("Failed to delete original file [%s].", targetFile.getName()));
+        try (OutputStream fos = new FileOutputStream(targetFile, false)) {
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = zis.read(buffer)) > 0) {
+                fos.write(buffer, 0, len);
             }
-            File newFile = Paths.get(filePath).resolve(jobResource.getNewFilename()).toFile();
-            Files.write(newFile.toPath(), baos.toByteArray());
-        } else {
-            Files.write(targetFile.toPath(), baos.toByteArray());
+            if (targetFile.exists()) {
+                String filePath = targetFile.getParent();
+                File newFile = Paths.get(filePath).resolve(jobResource.getNewFilename()).toFile();
+                if (!targetFile.renameTo(newFile)) {
+                    status.addLog(
+                        new JobResult("adminTools.jobs.upload.save.fail", JobResultLevel.ERROR, targetFile.getName()));
+                    throw new RuntimeException(
+                        String.format("Failed to rename original file [%s].", targetFile.getName()));
+                }
+            }
+            JobResult log =
+                new JobResult("adminTools.jobs.upload.save.success", JobResultLevel.INFO, jobResource.getNewFilename());
+            status.addLog(log);
         }
-        JobResult log =
-            new JobResult("adminTools.jobs.upload.save.success", JobResultLevel.INFO, jobResource.getNewFilename());
-        status.addLog(log);
     }
 
     /**
