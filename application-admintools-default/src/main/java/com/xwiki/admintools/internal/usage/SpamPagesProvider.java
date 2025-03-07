@@ -22,7 +22,6 @@ package com.xwiki.admintools.internal.usage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,9 +45,7 @@ import org.xwiki.search.solr.SolrUtils;
 @Singleton
 public class SpamPagesProvider
 {
-    private static final String DESC = "desc";
-
-    private static final Set<String> VALID_SORT_ORDERS = Set.of(DESC, "asc");
+    private static final List<String> VALID_SORT_ORDERS = List.of("desc", "asc");
 
     @Inject
     @Named("secure")
@@ -77,7 +74,13 @@ public class SpamPagesProvider
         List<String> filterStatements = new ArrayList<>();
         filterStatements.add("type:DOCUMENT");
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
-
+        String searchedWiki = filters.get("wikiName");
+        if (searchedWiki != null && !searchedWiki.isEmpty() && !searchedWiki.equals("-")) {
+            // The XWikiServer document has a name format of "XWikiServer<wiki ID>". To select the wiki ID, we
+            // have to remove the first part of the name and set it to lowercase, as wiki IDs are always in lowercase.
+            String searchedWikiID = searchedWiki.replace("XWikiServer", "").toLowerCase();
+            filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWikiID)));
+        }
         Query query = this.secureQueryManager.createQuery(queryStatement, "solr");
         if (query instanceof SecureQuery) {
             ((SecureQuery) query).checkCurrentAuthor(true);
@@ -86,8 +89,8 @@ public class SpamPagesProvider
 
         query.bindValue("fl", "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, name, spaces");
         query.bindValue("fq", filterStatements);
-        query.bindValue("sort",
-            String.format("AdminTools.NumberOfComments_sortInt %s", VALID_SORT_ORDERS.contains(order) ? order : DESC));
+        query.bindValue("sort", String.format("AdminTools.NumberOfComments_sortInt %s",
+            VALID_SORT_ORDERS.contains(order) ? order : VALID_SORT_ORDERS.get(0)));
         query.setLimit(100);
         return ((QueryResponse) query.execute().get(0)).getResults();
     }

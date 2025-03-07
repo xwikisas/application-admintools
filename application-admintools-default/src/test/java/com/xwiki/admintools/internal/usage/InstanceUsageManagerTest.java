@@ -253,11 +253,9 @@ class InstanceUsageManagerTest
     {
         SolrDocumentList docs = new SolrDocumentList();
         docs.add(solrDocument);
-        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_ORDER)).thenReturn(
-            docs);
+        when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_ORDER)).thenReturn(docs);
 
-        assertEquals(docs.get(0),
-            instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER).get(0));
+        assertEquals(docs.get(0), instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER).get(0));
     }
 
     @Test
@@ -265,8 +263,8 @@ class InstanceUsageManagerTest
     {
         when(spamPagesProvider.getDocumentsOverGivenNumberOfComments(2, filters, SORT_ORDER)).thenThrow(
             new RuntimeException("Runtime error"));
-        Exception exception = assertThrows(RuntimeException.class,
-            () -> instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER));
+        Exception exception =
+            assertThrows(RuntimeException.class, () -> instanceUsageManager.getSpammedPages(2, filters, SORT_ORDER));
         assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
         assertEquals(
             "There have been issues while gathering wikis spammed pages. Root cause is: [RuntimeException: Runtime error]",
@@ -274,26 +272,26 @@ class InstanceUsageManagerTest
     }
 
     @Test
-    void getEmptyPages() throws WikiManagerException
+    void getEmptyPages() throws QueryException
     {
-//        List<DocumentReference> docs = List.of(document);
-//        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER)).thenReturn(docs);
-//
-//        assertArrayEquals(docs.toArray(),
-//            instanceUsageManager.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER).toArray());
+        SolrDocumentList docs = new SolrDocumentList();
+        docs.add(solrDocument);
+        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_ORDER)).thenReturn(docs);
+
+        assertEquals(docs.get(0), instanceUsageManager.getEmptyDocuments(filters, SORT_ORDER).get(0));
     }
 
     @Test
-    void getEmptyPagesError() throws WikiManagerException
+    void getEmptyPagesError() throws QueryException
     {
-//        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER)).thenThrow(
-//            new RuntimeException("Runtime error"));
-//        Exception exception = assertThrows(RuntimeException.class,
-//            () -> instanceUsageManager.getEmptyDocuments(filters, SORT_COLUMN, SORT_ORDER));
-//        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
-//        assertEquals(
-//            "There have been issues while gathering wikis empty pages. Root cause is: [RuntimeException: Runtime "
-//                + "error]", logCapture.getMessage(0));
+        when(emptyDocumentsProvider.getEmptyDocuments(filters, SORT_ORDER)).thenThrow(
+            new RuntimeException("Runtime error"));
+        Exception exception =
+            assertThrows(RuntimeException.class, () -> instanceUsageManager.getEmptyDocuments(filters, SORT_ORDER));
+        assertEquals("java.lang.RuntimeException: Runtime error", exception.getMessage());
+        assertEquals(
+            "There have been issues while gathering wikis empty pages. Root cause is: [RuntimeException: Runtime "
+                + "error]", logCapture.getMessage(0));
     }
 
     @Test

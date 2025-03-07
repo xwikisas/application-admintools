@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
-import javax.inject.Provider;
 
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -32,22 +31,13 @@ import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
 import org.xwiki.query.SecureQuery;
 import org.xwiki.search.solr.SolrUtils;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
-import org.xwiki.wiki.manager.WikiManagerException;
-
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -101,13 +91,16 @@ class SpamPagesProviderTest
     private SolrDocument solrDocument3;
 
     @BeforeEach
-    void beforeEach() throws QueryException, WikiManagerException
+    void beforeEach() throws QueryException
     {
         filterStatements.add("type:DOCUMENT");
         filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
         filterStatements2.addAll(filterStatements);
 
         when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
+        when(solrUtils.toCompleteFilterQueryString("searchedWiki")).thenReturn("escapedSearchedWiki");
+
+        filterStatements2.add("wiki:escapedSearchedWiki");
 
         when(queryManager.createQuery("*", "solr")).thenReturn(commentsQuery);
 
@@ -145,7 +138,7 @@ class SpamPagesProviderTest
         assertEquals(2,
             spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", ""), "desc").size());
         assertEquals(1, spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-            Map.of("docName", "searchedDocument"), "desc").size());
+            Map.of("docName", "searchedDocument", "wikiName", "searchedWiki"), "desc").size());
     }
 
     @Test
