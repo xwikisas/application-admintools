@@ -186,11 +186,12 @@ public class AdminToolsManager
      * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
      * or comments.
      *
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
      * @return a {@link SolrDocumentList} with the empty documents.
      */
-    public SolrDocumentList getEmptyDocuments(String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order)
     {
-        return this.instanceUsageManager.getEmptyDocuments(order);
+        return this.instanceUsageManager.getEmptyDocuments(filters, order);
     }
 }
