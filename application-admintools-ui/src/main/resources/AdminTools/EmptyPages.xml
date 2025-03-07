@@ -45,8 +45,8 @@
   #set ($liveDataConfig= {
     'meta': {
       'propertyDescriptors': [
-        {'id': 'wikiName', 'displayer': 'text'},
-        {'id': 'docName', 'displayer': 'html', "filterable": false},
+        {'id': 'wikiName', 'displayer': 'text', 'filterable': false},
+        {'id': 'docName', 'displayer': 'html', 'sortable': false, 'filterable': false},
         {'id': 'actions', 'displayer': 'html', 'sortable': false, 'filterable': false}
       ],
       'entryDescriptor': {

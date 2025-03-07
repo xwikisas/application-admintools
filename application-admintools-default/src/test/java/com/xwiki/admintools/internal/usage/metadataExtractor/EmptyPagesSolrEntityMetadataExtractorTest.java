@@ -17,9 +17,10 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.usage;
+package com.xwiki.admintools.internal.usage.metadataExtractor;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,46 +43,56 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-public class SpamSolrEntityMetadataExtractorTest
+class EmptyPagesSolrEntityMetadataExtractorTest
 {
-    private static final EntityReference COMMENTSCLASS_REFERENCE = new LocalDocumentReference("XWiki", "XWikiComments");
-
     @InjectMockComponents
-    private SpamSolrEntityMetadataExtractor spamSolrEntityMetadataExtractor;
+    private EmptyPagesSolrEntityMetadataExtractor emptyPagesSolrEntityMetadataExtractor;
 
     @Mock
     private XWikiDocument entity;
 
     @Mock
+    private XWikiDocument entity2;
+
+    @Mock
     private SolrInputDocument solrDocument;
+
+    @Mock
+    private SolrInputDocument solrDocument2;
 
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
 
-    @Mock
-    private BaseObject baseObject;
-
     @BeforeEach
     void beforeEach()
     {
-        List<BaseObject> results = List.of(baseObject);
-        when(entity.getXObjects(COMMENTSCLASS_REFERENCE)).thenReturn(results);
+        when(entity.getXObjects()).thenReturn(new HashMap<>());
+        when(entity.getAttachmentList()).thenReturn(new ArrayList<>());
+        when(entity.getContent()).thenReturn("     ");
+        when(entity.getXClassXML()).thenReturn("");
+
+        when(entity2.getXObjects()).thenReturn(new HashMap<>());
+        when(entity2.getAttachmentList()).thenReturn(new ArrayList<>());
+        when(entity2.getContent()).thenReturn("");
+        when(entity2.getXClassXML()).thenReturn("this is a class");
     }
 
     @Test
     void extract()
     {
-        spamSolrEntityMetadataExtractor.extract(entity, solrDocument);
+        emptyPagesSolrEntityMetadataExtractor.extract(entity, solrDocument);
+        emptyPagesSolrEntityMetadataExtractor.extract(entity2, solrDocument2);
 
-        verify(solrDocument, Mockito.times(1)).setField("AdminTools.NumberOfComments_sortInt", 1);
+        verify(solrDocument, Mockito.times(1)).setField("AdminTools.DocumentContentEmpty_boolean", true);
+        verify(solrDocument2, Mockito.times(1)).setField("AdminTools.DocumentContentEmpty_boolean", false);
     }
 
     @Test
     void extractError()
     {
-        when(spamSolrEntityMetadataExtractor.extract(entity, solrDocument)).thenThrow(
+        when(emptyPagesSolrEntityMetadataExtractor.extract(entity, solrDocument)).thenThrow(
             new RuntimeException("extract error"));
-        spamSolrEntityMetadataExtractor.extract(entity, solrDocument);
+        emptyPagesSolrEntityMetadataExtractor.extract(entity, solrDocument);
 
         assertEquals("Failed to index the right for document [null]", logCapture.getMessage(0));
     }
