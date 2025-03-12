@@ -39,14 +39,15 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
+    'className': 'AdminTools.Code.LivedataCommonFilters',
     'resultPage': 'AdminTools.Code.SpammedPagesJSON',
     'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
   }))
   #set ($liveDataConfig= {
     'meta': {
       'propertyDescriptors': [
-        {'id': 'wikiName', 'displayer': 'text'},
-        {'id': 'docName', 'displayer': 'html'},
+        {'id': 'wikiName', 'displayer': 'html', 'sortable': false},
+        {'id': 'docName', 'displayer': 'html', 'sortable': false},
         {'id': 'commentsCount', 'displayer': 'number', 'filterable': false}
       ],
       'entryDescriptor': {

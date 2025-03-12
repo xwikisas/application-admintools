@@ -27,10 +27,10 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
-import org.xwiki.model.reference.DocumentReference;
 
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.objects.BaseObject;
@@ -146,14 +146,13 @@ public class AdminToolsManager
      *
      * @param maxComments maximum number of comments below which the page is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      */
-    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order)
+    public SolrDocumentList getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order)
     {
-        return instanceUsageManager.getSpammedPages(maxComments, filters, sortColumn, order);
+        return instanceUsageManager.getSpammedPages(maxComments, filters, order);
     }
 
     /**
@@ -187,13 +186,12 @@ public class AdminToolsManager
      * Retrieves those documents that have no content, {@link XWikiAttachment}, {@link BaseClass}, {@link BaseObject},
      * or comments.
      *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
-     * @return a filtered and sorted {@link List} of {@link DocumentReference}.
+     * @return a {@link SolrDocumentList} with the empty documents.
      */
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order)
     {
-        return this.instanceUsageManager.getEmptyDocuments(filters, sortColumn, order);
+        return this.instanceUsageManager.getEmptyDocuments(filters, order);
     }
 }

@@ -50,10 +50,8 @@
     #if (!$limit)
       #set ($limit = 15)
     #end
-    #set ($sort = 'wikiName')
     #set ($order = 'desc')
-    #if ($request.sort)
-      #set ($sort = $request.sort)
+    #if ($request.dir)
       #set ($order = $request.dir)
     #end
     #set ($filters = {
@@ -61,7 +59,7 @@
       'docName' : $request.get('docName')
     })
     #set ($spamLimit = $services.admintools.getMinimumSpamSize())
-    #set ($spammedPages = $services.admintools.getPagesOverGivenNumberOfComments($spamLimit, $filters, $sort, $order))
+    #set ($spammedPages = $services.admintools.getPagesOverGivenNumberOfComments($spamLimit, $filters, $order))
     #if ($offset &lt; $spammedPages.size())
       #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $spammedPages.size()))
       #getSubset($spammedPages, $offset, $toIndex, $resultList)
@@ -73,13 +71,13 @@
       "rows": []
     })
     #foreach ($currentEntry in $resultList)
-      #set ($currentEntryDoc = $xwiki.getDocument($currentEntry))
-      #set ($docURL = "&lt;a href='$xwiki.getURL($currentEntry)'&gt;$currentEntryDoc.getTitle()&lt;/a&gt;")
-      #set ($wikiDescriptor = $services.wiki.getById($currentEntry.getWikiReference().getName()))
+      #set ($docURL = $xwiki.getURL($services.solr.resolveDocument($currentEntry, 'DOCUMENT')))
+      #set ($docName = "&lt;a href='$docURL'&gt;$escapetool.xml($currentEntry.get('title_'))&lt;/a&gt;")
+      #set ($wikiDescriptor = $services.wiki.getById($currentEntry.get('wiki')))
       #set ($discard = $results.rows.add({
         'wikiName' : $wikiDescriptor.getPrettyName(),
-        'docName' : $docURL,
-        'commentsCount' : $currentEntryDoc.getComments().size()
+        'docName' : $docName,
+        'commentsCount' : $currentEntry.get('AdminTools.NumberOfComments_sortInt')
       }))
     #end
     #jsonResponse($results)

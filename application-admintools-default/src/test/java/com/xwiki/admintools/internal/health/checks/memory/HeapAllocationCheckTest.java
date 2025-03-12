@@ -90,7 +90,7 @@ class HeapAllocationCheckTest
 
         assertEquals("adminTools.dashboard.healthcheck.memory.allocation.warn",
             heapAllocationCheck.check().getMessage());
-        assertEquals("To improve performance -Xms  and -Xmx memory allocation should be identical.",
+        assertEquals("To improve performance, -Xms  and -Xmx memory allocation should be identical.",
             logCapture.getMessage(0));
     }
 }

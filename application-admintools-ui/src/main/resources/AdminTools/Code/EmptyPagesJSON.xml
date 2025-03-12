@@ -57,10 +57,9 @@
       #set ($order = $request.dir)
     #end
     #set ($filters = {
-      'wikiName' : $request.get('wikiName'),
-      'docName' : $request.get('docName')
+      'wikiName' : $request.get('wikiName')
     })
-    #set ($emptyPages = $services.admintools.getEmptyDocuments($filters, $sort, $order))
+    #set ($emptyPages = $services.admintools.getEmptyDocuments($filters, $order))
     #if ($offset &lt; $emptyPages.size())
       #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $emptyPages.size()))
       #getSubset($emptyPages, $offset, $toIndex, $resultList)
@@ -72,15 +71,17 @@
       'rows': []
     })
     #foreach ($currentEntry in $resultList)
-      #set ($docURL = "&lt;a href='$xwiki.getURL($currentEntry)'&gt;$xwiki.getDocument($currentEntry).getTitle()&lt;/a&gt;")
-      #set ($deleteURL = $xwiki.getURL($currentEntry, 'delete'))
+      #set ($entryReference = $services.solr.resolveDocument($currentEntry, 'DOCUMENT'))
+      #set ($docURL = $xwiki.getURL($entryReference))
+      #set ($deleteURL = $xwiki.getURL($entryReference, 'delete'))
+      #set ($docName = "&lt;a href='$docURL'&gt;$escapetool.xml($currentEntry.get('title_'))&lt;/a&gt;")
       #set ($deleteText = $services.icon.renderHTML('cross') + ' ' + $escapetool.xml($services.localization.render(
         'adminTools.dashboard.emptyPage.modal.action.delete')))
       #set ($deleteAction = "&lt;a href='$deleteURL'&gt;$deleteText&lt;/a&gt;")
-      #set ($wikiDescriptor = $services.wiki.getById($currentEntry.getWikiReference().getName()))
+      #set ($wikiDescriptor = $services.wiki.getById($currentEntry.get('wiki')))
       #set ($discard = $results.rows.add({
         'wikiName' : $wikiDescriptor.getPrettyName(),
-        'docName' : $docURL,
+        'docName' : $docName,
         'actions' : $deleteAction
       }))
     #end

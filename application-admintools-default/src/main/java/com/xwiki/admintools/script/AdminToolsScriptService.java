@@ -26,13 +26,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -192,34 +192,31 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @param maxComments maximum number of comments below which the page is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      * @since 1.0
      */
     @Unstable
-    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order) throws AccessDeniedException
+    public SolrDocumentList getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
+        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, order);
     }
 
     /**
      * Retrieve the empty documents from the XWiki instance.
      *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
-     * @return a {@link List} with the empty documents.
-     * @since 1.1
+     * @return a {@link SolrDocumentList} with the empty documents.
+     * @since 1.0.1
      */
     @Unstable
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
-        throws AccessDeniedException
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getEmptyDocuments(filters, sortColumn, order);
+        return adminToolsManager.getEmptyDocuments(filters, order);
     }
 
     /**

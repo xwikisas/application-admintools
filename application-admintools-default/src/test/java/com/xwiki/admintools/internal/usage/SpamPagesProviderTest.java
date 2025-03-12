@@ -20,36 +20,27 @@
 package com.xwiki.admintools.internal.usage;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import javax.inject.Named;
-import javax.inject.Provider;
 
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
+import org.xwiki.query.SecureQuery;
+import org.xwiki.search.solr.SolrUtils;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.descriptor.WikiDescriptorManager;
-import org.xwiki.wiki.manager.WikiManagerException;
-
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
@@ -59,184 +50,105 @@ class SpamPagesProviderTest
     SpamPagesProvider spamPagesProvider;
 
     @MockComponent
+    @Named("secure")
     QueryManager queryManager;
 
     @Mock
-    Query commentsQuery;
+    SecureQuery commentsQuery;
 
     @Mock
-    Query commentsQuery2;
+    SecureQuery commentsQuery2;
 
     @Mock
-    Query commentsQuery3;
+    SecureQuery commentsQuery3;
 
-    @Mock
-    WikiDescriptor wikiDescriptor;
+    List<String> filterStatements = new ArrayList<>();
 
-    @Mock
-    WikiDescriptor wikiDescriptor2;
-
-    String wikiId1 = "wikiId1";
-
-    String wikiId2 = "wikiId2";
-
-    @MockComponent
-    private Provider<XWikiContext> xcontextProvider;
-
-    @Mock
-    private XWiki xWiki;
-
-    @Mock
-    private XWikiContext xContext;
-
-    @Mock
-    private XWikiDocument document;
-
-    @Mock
-    private XWikiDocument document2;
-
-    @Mock
-    private XWikiDocument document3;
-
-    @Mock
-    private DocumentReference documentRef;
-
-    @Mock
-    private DocumentReference documentRef2;
-
-    @Mock
-    private DocumentReference documentRef3;
-
-    @MockComponent
-    @Named("currentlanguage")
-    private QueryFilter currentLanguageFilter;
-
-    @MockComponent
-    @Named("hidden/document")
-    private QueryFilter hiddenFilter;
-
-    @MockComponent
-    @Named("document")
-    private QueryFilter documentFilter;
-
-    @MockComponent
-    @Named("viewable")
-    private QueryFilter viewableFilter;
+    List<String> filterStatements2 = new ArrayList<>();
 
     private long maxComments = 21L;
 
     @MockComponent
-    private Provider<WikiDescriptorManager> wikiDescriptorManagerProvider;
+    private SolrUtils solrUtils;
 
     @MockComponent
-    private WikiDescriptorManager wikiDescriptorManager;
+    private QueryResponse queryResponse;
+
+    @MockComponent
+    private QueryResponse queryResponse2;
+
+    private SolrDocumentList solrDocuments = new SolrDocumentList();
+
+    private SolrDocumentList solrDocuments2 = new SolrDocumentList();
+
+    @Mock
+    private SolrDocument solrDocument1;
+
+    @Mock
+    private SolrDocument solrDocument2;
+
+    @Mock
+    private SolrDocument solrDocument3;
 
     @BeforeEach
-    void beforeEach() throws QueryException, WikiManagerException
+    void beforeEach() throws QueryException
     {
-        Collection<WikiDescriptor> wikiDescriptors = new ArrayList<>();
-        wikiDescriptors.add(wikiDescriptor);
-        wikiDescriptors.add(wikiDescriptor2);
-        when(wikiDescriptorManagerProvider.get()).thenReturn(wikiDescriptorManager);
-        when(wikiDescriptorManager.getAll()).thenReturn(wikiDescriptors);
+        filterStatements.add("type:DOCUMENT");
+        filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
+        filterStatements2.addAll(filterStatements);
 
-        when(wikiDescriptor.getId()).thenReturn(wikiId1);
-        when(wikiDescriptor2.getId()).thenReturn(wikiId2);
+        when(solrUtils.toCompleteFilterQueryString("searchedDocument")).thenReturn("escapedSearchDocument");
+        when(solrUtils.toCompleteFilterQueryString("searchedWiki")).thenReturn("escapedSearchedWiki");
 
-        when(queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
-            + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
-            + "and lower(doc.title) like lower(:searchString) "
-            + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL)).thenReturn(
+        filterStatements2.add("wiki:escapedSearchedWiki");
+
+        when(queryManager.createQuery("*", "solr")).thenReturn(commentsQuery);
+
+        when(commentsQuery.bindValue("fl",
+            "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, links, name, spaces")).thenReturn(
             commentsQuery);
+        when(commentsQuery.bindValue("fq", filterStatements)).thenReturn(commentsQuery);
+        when(commentsQuery.bindValue("sort",
+            String.format("AdminTools.NumberOfComments_sortInt %s", "desc"))).thenReturn(commentsQuery);
+        when(commentsQuery.setLimit(100)).thenReturn(commentsQuery);
 
-        when(commentsQuery.setWiki(wikiId1)).thenReturn(commentsQuery);
-        when(commentsQuery.bindValue("maxComments", maxComments)).thenReturn(commentsQuery);
-        when(commentsQuery.bindValue("searchString", "%")).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(currentLanguageFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(hiddenFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(documentFilter)).thenReturn(commentsQuery);
-        when(commentsQuery.addFilter(viewableFilter)).thenReturn(commentsQuery);
-
-        when(commentsQuery.setWiki(wikiId2)).thenReturn(commentsQuery2);
-        when(commentsQuery2.bindValue("maxComments", maxComments)).thenReturn(commentsQuery2);
-        when(commentsQuery2.bindValue("searchString", "%Anna%")).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(currentLanguageFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(hiddenFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(documentFilter)).thenReturn(commentsQuery2);
-        when(commentsQuery2.addFilter(viewableFilter)).thenReturn(commentsQuery2);
-
+        when(queryManager.createQuery("title:escapedSearchDocument", "solr")).thenReturn(commentsQuery2);
         when(commentsQuery2.bindValue("searchString", "%")).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(currentLanguageFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(hiddenFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(documentFilter)).thenReturn(commentsQuery3);
-        when(commentsQuery3.addFilter(viewableFilter)).thenReturn(commentsQuery3);
+        when(commentsQuery2.bindValue("fl",
+            "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, links, name, spaces")).thenReturn(
+            commentsQuery2);
+        when(commentsQuery2.bindValue("fq", filterStatements)).thenReturn(commentsQuery2);
+        when(commentsQuery2.bindValue("sort",
+            String.format("AdminTools.NumberOfComments_sortInt %s", "desc"))).thenReturn(commentsQuery2);
+        when(commentsQuery2.setLimit(100)).thenReturn(commentsQuery2);
 
-        when(xcontextProvider.get()).thenReturn(xContext);
-        when(xContext.getWiki()).thenReturn(xWiki);
+        solrDocuments.add(solrDocument1);
+        solrDocuments.add(solrDocument2);
+        when(queryResponse.getResults()).thenReturn(solrDocuments);
+        when(commentsQuery.execute()).thenReturn(List.of(queryResponse));
+
+        solrDocuments2.add(solrDocument3);
+        when(queryResponse2.getResults()).thenReturn(solrDocuments2);
+        when(commentsQuery2.execute()).thenReturn(List.of(queryResponse2));
     }
 
     @Test
-    void getCommentsForWiki() throws QueryException
+    void getDocumentsOverGivenNumberOfComments() throws Exception
     {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery2.execute()).thenReturn(List.of(documentRef3));
-
-        assertEquals(2, spamPagesProvider.getCommentsForWiki(maxComments, "", wikiId1).size());
-        assertEquals(1, spamPagesProvider.getCommentsForWiki(maxComments, "Anna", wikiId2).size());
+        assertEquals(2,
+            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments, Map.of("docName", ""), "desc").size());
+        assertEquals(1, spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
+            Map.of("docName", "searchedDocument", "wikiName", "searchedWiki"), "desc").size());
     }
 
     @Test
-    void getDocumentsOverGivenNumberOfComments() throws QueryException, WikiManagerException
+    void getDocumentsOverGivenNumberOfCommentsError() throws Exception
     {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery3.execute()).thenReturn(List.of());
-
-        List<DocumentReference> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "", "");
-        assertEquals(2, testResults.size());
-        assertEquals(documentRef, testResults.get(0));
-        assertEquals(documentRef2, testResults.get(1));
-    }
-
-    @Test
-    void getDocumentsOverGivenNumberOfCommentsError() throws QueryException
-    {
-        when(commentsQuery.execute()).thenReturn(List.of(documentRef, documentRef2));
-        when(commentsQuery3.execute()).thenThrow(new QueryException("Query error", commentsQuery3, new Exception()));
+        when(commentsQuery2.execute()).thenThrow(new RuntimeException("Query error"));
         Exception exception = assertThrows(RuntimeException.class,
             () -> spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "", ""));
+                Map.of("docName", "searchedDocument"), "desc").size());
 
-        assertEquals("org.xwiki.query.QueryException: Query error. Query statement = [null]", exception.getMessage());
-    }
-
-    @Test
-    void checkSort() throws QueryException, WikiManagerException, XWikiException
-    {
-        DocumentReference docRefA = new DocumentReference("bbb", "bbb", "bbb");
-        DocumentReference docRefB = new DocumentReference("bbb", "ccc", "ccc");
-        DocumentReference docRefC = new DocumentReference("aaa", "aaa", "aaa");
-
-        when(xWiki.getDocument(docRefA, xContext)).thenReturn(document);
-        when(xWiki.getDocument(docRefB, xContext)).thenReturn(document2);
-        when(xWiki.getDocument(docRefC, xContext)).thenReturn(document3);
-
-        when(document.getTitle()).thenReturn("bbb");
-        when(document2.getTitle()).thenReturn("ccc");
-        when(document3.getTitle()).thenReturn("aaa");
-
-        when(commentsQuery.execute()).thenReturn(List.of(docRefA, docRefB));
-        when(commentsQuery3.execute()).thenReturn(List.of(docRefC));
-        when(wikiDescriptor.getPrettyName()).thenReturn("wiki pretty name");
-        when(wikiDescriptor2.getPrettyName()).thenReturn("wiki2 pretty name");
-        List<DocumentReference> testResults =
-            spamPagesProvider.getDocumentsOverGivenNumberOfComments(maxComments,
-                Map.of("docName", ""), "docName", "asc");
-
-        assertEquals(3, testResults.size());
-        assertEquals(docRefC, testResults.get(0));
-        assertEquals(docRefA, testResults.get(1));
-        assertEquals(docRefB, testResults.get(2));
+        assertEquals("Query error", exception.getMessage());
     }
 }
