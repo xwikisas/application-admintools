@@ -41,7 +41,7 @@
   #set ($sourceParameters = $escapetool.url({
     'className': 'AdminTools.Code.RightsLivedataCommonFilters',
     'resultPage': 'AdminTools.Code.ViewRightsJson',
-    'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
+    'translationPrefix': 'adminTools.security.livedata.'
   }))
   #set ($liveDataConfig= {
     'meta': {
