@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.internal.security;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -32,21 +33,27 @@ import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.security.RightsResult;
 import com.xwiki.admintools.usage.WikiUsageResult;
 
-public class AbstractRightsProvider
+/**
+ * Implementations for rights provider classes to simplify code.
+ *
+ * @version $Id$
+ * @since 1.2
+ */
+public abstract class AbstractRightsProvider
 {
-    private static final String INTERVAL_SEPARATOR = "-";
+    static final String SEPARATOR = "-";
 
-    private static final String TYPE_KEY = "type";
+    static final String TYPE_KEY = "type";
 
-    private static final String SPACE_KEY = "space";
+    static final String SPACE_KEY = "space";
 
-    private static final String DOCUMENT_KEY = "docName";
+    static final String DOCUMENT_KEY = "docName";
 
-    private static final String LEVEL_KEY = "level";
+    static final String LEVEL_KEY = "level";
 
-    private static final String GROUP_KEY = "group";
+    static final String ENTITY_KEY = "entity";
 
-    private static final String POLICY_KEY = "policy";
+    static final String POLICY_KEY = "policy";
 
     private static final String DESCENDING_ORDER = "desc";
 
@@ -67,16 +74,18 @@ public class AbstractRightsProvider
     {
         return filters.entrySet().stream().filter(
             filter -> filter.getValue() != null && !filter.getValue().isEmpty() && !filter.getValue()
-                .equals(INTERVAL_SEPARATOR)).allMatch(filter -> {
-            switch (filter.getKey()) {
-                case POLICY_KEY:
-                    return wikiData.getPolicy().equalsIgnoreCase(filter.getValue());
-                case LEVEL_KEY:
-                    return wikiData.getLevel().contains(filter.getValue());
-                default:
-                    return true;
-            }
-        });
+                .equals(SEPARATOR)).allMatch(filter -> {
+                    switch (filter.getKey()) {
+                        case POLICY_KEY:
+                            return wikiData.getPolicy().equalsIgnoreCase(filter.getValue());
+                        case LEVEL_KEY:
+                            String[] levelArray = filter.getValue().split("\\|");
+                            return Arrays.stream(levelArray).filter(level -> !level.equals(SEPARATOR))
+                                .allMatch(wikiData.getLevel()::contains);
+                        default:
+                            return true;
+                    }
+                });
     }
 
     /**
@@ -103,9 +112,9 @@ public class AbstractRightsProvider
                 comparator = Comparator.comparing(RightsResult::getSpace);
                 break;
             case DOCUMENT_KEY:
-                comparator = Comparator.comparing(RightsResult::getDocName);
+                comparator = Comparator.comparing(RightsResult::getDocReference);
                 break;
-            case GROUP_KEY:
+            case ENTITY_KEY:
                 comparator = Comparator.comparing(RightsResult::getEntity);
                 break;
             default:

@@ -19,7 +19,6 @@
 ## ---------------------------------------------------------------------------
 #if($security['serverFound'] == 'true')
   #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
-  #includeMacros('AdminTools.Code.Macros')
   <div class="wiki-security-settings">
     <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
     <hr/>
@@ -47,17 +46,15 @@
     <div class="security-detailed">
       <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.title'))</h2>
       <ul>
-        <li><a href="#viewGroupsRightsModal" data-toggle="modal" data-target="#viewGroupsRightsModal">
+        <li><a href="$xwiki.getURL("AdminTools.ViewGroupsRights")" target="_blank">
             $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.groupsRights'))
           </a></li>
-        <li><a href="#viewUsersRightsModal" data-toggle="modal" data-target="#viewUsersRightsModal">
+        <li><a href="$xwiki.getURL("AdminTools.ViewUsersRights")" target="_blank">
             $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.usersRights'))
           </a></li>
       </ul>
     </div>
   </div>
-  #viewGroupsRights()
-  #viewUsersRights()
 #else
   #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
     [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))

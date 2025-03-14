@@ -39,17 +39,19 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
-    'resultPage': 'AdminTools.Code.ViewGroupsRightsJson',
+    'className': 'AdminTools.Code.RightsLivedataCommonFilters',
+    'resultPage': 'AdminTools.Code.ViewRightsJson',
     'translationPrefix': 'adminTools.dashboard.spamPage.modal.header.'
   }))
   #set ($liveDataConfig= {
     'meta': {
       'propertyDescriptors': [
+        {'id': 'wikiName', 'displayer': 'text', 'sortable': false},
         {'id': 'type', 'displayer': 'text'},
         {'id': 'space', 'displayer': 'text'},
         {'id': 'docName', 'displayer': 'html'},
         {'id': 'level', 'displayer': 'text'},
-        {'id': 'group', 'displayer': 'html'},
+        {'id': 'groups', 'displayer': 'html'},
         {'id': 'policy', 'displayer': 'html'}
       ],
       'entryDescriptor': {
@@ -59,7 +61,7 @@
   })
   {{liveData
     id='viewGroupsRights'
-    properties="type, space, docName, group, level, policy"
+    properties="wikiName, type, space, docName, groups, level, policy"
     source='liveTable'
     sourceParameters="$sourceParameters"
     sort='type:desc'

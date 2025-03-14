@@ -44,7 +44,7 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
-import com.xwiki.admintools.internal.security.GroupsRightsProvider;
+import com.xwiki.admintools.internal.security.EntityRightsProvider;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
@@ -79,14 +79,25 @@ public class AdminToolsScriptService implements ScriptService
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @Inject
-    private GroupsRightsProvider groupsRightsProvider;
+    private EntityRightsProvider entityRightsProvider;
 
     @Inject
     private CurrentServer currentServer;
 
-    public List<RightsResult> getGroupsRights(Map<String, String> filters, String sortColumn, String order,
-        String entityType) {
-        return groupsRightsProvider.getGroupsRights(filters, sortColumn, order, entityType);
+    /**
+     * Retrieves a filtered and sorted list of {@link RightsResult} representing the rights for the given parameters.
+     *
+     * @param filters a map of filters to apply.
+     * @param sortColumn the column used for sorting.
+     * @param order the sorting order (asc or desc).
+     * @param entityType the type of entity for which rights are retrieved.
+     * @return a filtered and sorted {@link List} of {@link RightsResult}.
+     * @since 1.2
+     */
+    public List<RightsResult> getEntityRights(Map<String, String> filters, String sortColumn, String order,
+        String entityType)
+    {
+        return entityRightsProvider.getEntityRights(filters, sortColumn, order, entityType);
     }
 
     /**

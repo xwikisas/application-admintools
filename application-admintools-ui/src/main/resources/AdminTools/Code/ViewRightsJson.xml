@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.ViewGroupsRightsJson" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.ViewRightsJson" locale="">
   <web>AdminTools.Code</web>
-  <name>ViewGroupsRightsJson</name>
+  <name>ViewRightsJson</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -31,7 +31,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>ViewGroupsRightsJson</title>
+  <title>ViewRightsJson</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
@@ -50,21 +50,25 @@
   #if (!$limit)
     #set ($limit = 15)
   #end
-  #set ($sort = 'wikiName')
+  #set ($sort = 'type')
   #set ($order = 'asc')
   #if ($request.sort)
     #set ($sort = $request.sort)
     #set ($order = $request.dir)
   #end
+  #set ($levelFilter = $request.getParameterValues('level'))
+  #set ($collist = $request.getParameterValues('collist')[0].split(','))
+  #set ($entityType = $collist[4])
   #set ($filters = {
+    'wikiName' : $request.get('wikiName'),
     'type' : $request.get('type'),
     'space' : $request.get('space'),
     'docName' : $request.get('docName'),
-    'level' : $request.get('level'),
-    'group' : $request.get('group'),
+    'level' : $stringtool.join($levelFilter, "|"),
+    'entity' : $request.get($entityType),
     'policy' : $request.get('policy')
   })
-  #set ($groupsRights = $services.admintools.getGroupsRights($filters, $sort, $order, 'groups'))
+  #set ($groupsRights = $services.admintools.getEntityRights($filters, $sort, $order, $entityType))
   #if ($offset &lt; $groupsRights.size())
     #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $groupsRights.size()))
     #getSubset($groupsRights, $offset, $toIndex, $resultList)
@@ -85,20 +89,24 @@
     #set ($entityDocument = $xwiki.getDocument($currentEntry.getEntity()))
     #set ($entityURL = $xwiki.getURL($entityDocument.getDocumentReference(), 'view'))
     #set ($entity = "&lt;a href='${entityURL}'&gt;$entityDocument.getDisplayTitle()&lt;/a&gt;")
-
-    #set ($pageDocument = $xwiki.getDocument($currentEntry.getDocName()))
+    #if ($entityType == 'users')
+      #set ($entity = $xwiki.getUserName($currentEntry.getEntity()))
+    #end
+    #set ($pageDocument = $xwiki.getDocument($currentEntry.getDocReference()))
+    #set ($wikiDescriptor = $services.wiki.getById($currentEntry.getDocReference().getWikiReference().getName()))
     #set ($pageURL = $xwiki.getURL($pageDocument.getDocumentReference(), 'view'))
     #set ($page = "&lt;a href='${pageURL}'&gt;$pageDocument.getDisplayTitle()&lt;/a&gt;")
     #set ($discard = $results.rows.add({
+      'wikiName' : $wikiDescriptor.getPrettyName(),
       'type' : $currentEntry.getType(),
       'space' :  $currentEntry.getSpace(),
       'docName' : $page,
       'level' : $currentEntry.getLevel(),
-      'group' : $entity,
+      $entityType : $entity,
       'policy' : $authorization
     }))
   #end
   #jsonResponse($results)
 #end
-{{/velocity}</content>
+{{/velocity}}</content>
 </xwikidoc>
