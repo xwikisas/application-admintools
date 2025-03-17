@@ -51,6 +51,7 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xpn.xwiki.objects.classes.StringClass;
+import com.xwiki.admintools.security.RightsResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -242,10 +243,10 @@ class EntityRightsProviderTest
         when(wiki.getDocument(docRef2, context)).thenReturn(doc2);
         when(wiki.getDocument(docRef3, context)).thenReturn(doc3);
         when(wiki.getDocument(docRefGlobal, context)).thenReturn(docGlobal);
-        when(doc1.getXObjects(DOCUMENT_RIGHTS_CLASS)).thenReturn(List.of(obj1, obj2));
+        when(doc1.getXObjects(DOCUMENT_RIGHTS_CLASS)).thenReturn(List.of(obj1, obj1));
         when(doc2.getXObjects(DOCUMENT_RIGHTS_CLASS)).thenReturn(List.of(obj3, obj4));
         when(doc3.getXObjects(GLOBAL_RIGHTS_CLASS)).thenReturn(List.of(obj5, obj6));
-        when(docGlobal.getXObjects(GLOBAL_RIGHTS_CLASS)).thenReturn(List.of(obj5, obj6, obj1));
+        when(docGlobal.getXObjects(GLOBAL_RIGHTS_CLASS)).thenReturn(List.of(obj5, obj6, obj2));
 
         when(doc1.getDocumentReference()).thenReturn(docRef1);
         when(doc2.getDocumentReference()).thenReturn(docRef2);
@@ -306,7 +307,13 @@ class EntityRightsProviderTest
         Map<String, String> filters =
             Map.of("wikiName", "searchedWiki", "space", "searchedSpace", "docName", "searchedDocument");
 
-        assertEquals(5, entityRightsProvider.getEntityRights(filters, "type", "desc", "groups").size());
+        List<RightsResult> results = entityRightsProvider.getEntityRights(filters, "level", "desc", "groups");
+        assertEquals(4, results.size());
+        assertEquals("stringClass6", results.get(0).getLevel());
+        assertEquals("xwiki:docSpace4.docTitle4", results.get(0).getEntity());
+        assertEquals("stringClass5", results.get(1).getLevel());
+        assertEquals("stringClass3", results.get(2).getLevel());
+        assertEquals("stringClass1", results.get(3).getLevel());
     }
 
     @Test

@@ -106,7 +106,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
         String entityType)
     {
         try {
-            List<RightsResult> rightsResults = new ArrayList<>();
+            Set<RightsResult> rightsResults = new HashSet<>();
             switch (filters.get(TYPE_KEY) == null ? "" : filters.get(TYPE_KEY)) {
                 case GLOBAL_TYPE:
                     addGlobalRights(rightsResults, filters, entityType);
@@ -123,14 +123,14 @@ public class EntityRightsProvider extends AbstractRightsProvider
                     addRights(rightsResults, filters, DOCUMENT_RIGHTS_CLASS, PAGE_TYPE, entityType);
                     break;
             }
-            applySort(rightsResults, sortColumn, order);
-            return rightsResults;
+
+            return applySort(rightsResults, sortColumn, order);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void addGlobalRights(List<RightsResult> rightsResults, Map<String, String> filters, String entityType)
+    private void addGlobalRights(Set<RightsResult> rightsResults, Map<String, String> filters, String entityType)
         throws XWikiException
     {
         String wikiName = filters.get(WIKI_KEY);
@@ -161,7 +161,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
         return filter == null || filter.isEmpty() || targetValue.toLowerCase().contains(filter.toLowerCase());
     }
 
-    private void addRights(List<RightsResult> rightsResults, Map<String, String> filters,
+    private void addRights(Set<RightsResult> rightsResults, Map<String, String> filters,
         LocalDocumentReference rightsClassReference, String type, String entityType)
         throws QueryException, XWikiException
     {
@@ -174,14 +174,13 @@ public class EntityRightsProvider extends AbstractRightsProvider
         }
     }
 
-    private void processDocumentRightsObjects(List<RightsResult> rightsResults, Map<String, String> filters,
+    private void processDocumentRightsObjects(Set<RightsResult> rightsResults, Map<String, String> filters,
         String type, DocumentReference docReference, LocalDocumentReference rightsClassReference, String entityType)
         throws XWikiException
     {
         XWikiContext wikiContext = xcontextProvider.get();
         XWiki wiki = wikiContext.getWiki();
         XWikiDocument document = wiki.getDocument(docReference, wikiContext);
-        Set<RightsResult> allResults = new HashSet<>();
 
         for (BaseObject object : document.getXObjects(rightsClassReference)) {
             if (object != null) {
@@ -199,11 +198,10 @@ public class EntityRightsProvider extends AbstractRightsProvider
                 result.setDocReference(document.getDocumentReference());
                 result.setPolicy(object.get("allow").toFormString().equals("1") ? "Allowed" : "Denied");
                 if (checkFilters(filters, result)) {
-                    allResults.add(result);
+                    rightsResults.add(result);
                 }
             }
         }
-        rightsResults.addAll(allResults);
     }
 
     private SolrDocumentList getRightsForWiki(String searchedDocument, String searchedSpace, String wikiName,
@@ -228,7 +226,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
             .map(wiki -> wiki.replace(XWIKI_SERVER_PREFIX, "").toLowerCase())
             .orElseGet(() -> xcontextProvider.get().getWikiId());
         filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWikiID)));
-        filterStatements.add(type.equals(SPACE_TYPE) ? "hidden:false" : "-name:XWikiPreferences");
+        filterStatements.add(type.equals(SPACE_TYPE) ? "-name:XWikiPreferences" : "hidden:false");
         query.bindValue("fl", "title_, reference, wiki, name, spaces");
         query.bindValue("fq", filterStatements);
         query.setLimit(200);

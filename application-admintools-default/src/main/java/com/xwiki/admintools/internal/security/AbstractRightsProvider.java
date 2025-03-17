@@ -19,10 +19,12 @@
  */
 package com.xwiki.admintools.internal.security;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -89,15 +91,17 @@ public abstract class AbstractRightsProvider
     }
 
     /**
-     * Sort the given {@link List} over a given column and in a given order.
+     * Sort the given {@link Set} over a given column and in a given order.
      *
-     * @param list the {@link List} to be sorted.
+     * @param list the {@link Set} to be sorted.
      * @param sortColumn the column after which to be sorted.
      * @param order the sort oder.
+     * @return a sorted {@link List} from the given parameters.
      */
-    public void applySort(List<RightsResult> list, String sortColumn, String order)
+    public List<RightsResult> applySort(Set<RightsResult> list, String sortColumn, String order)
     {
         Comparator<RightsResult> comparator = null;
+        List<RightsResult> unsortedList = new ArrayList<>(list);
         switch (sortColumn) {
             case POLICY_KEY:
                 comparator = Comparator.comparing(RightsResult::getPolicy);
@@ -124,7 +128,8 @@ public abstract class AbstractRightsProvider
             if (DESCENDING_ORDER.equals(order)) {
                 comparator = comparator.reversed();
             }
-            list.sort(comparator);
+            unsortedList.sort(comparator);
         }
+        return unsortedList;
     }
 }
