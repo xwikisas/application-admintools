@@ -43,7 +43,7 @@
 #set($jobId = $request.getParameterValues('jobId'))
 #set($translationPrefix = $request.getParameter('translationPrefix'))
 #set($jobStatus = $services.job.getJobStatus($jobId))
-#if ($jobStatus)
+#if ($jobStatus &amp;&amp; $jobStatus.getJobResults() &amp;&amp; $jobStatus.getJobResults().size() > 0)
   #outputJobStatus($jobStatus, $translationPrefix)
 #else
   $response.setStatus(404)
