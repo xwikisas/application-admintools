@@ -77,7 +77,8 @@
         &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
           #if ($healthJobStatus.state != 'FINISHED')
             #displayJobProgressBar($healthJobStatus)
-          #else
+          #elseif ($healthJobStatus &amp;&amp; $healthJobStatus.getJobResults() &amp;&amp;
+            $healthJobStatus.getJobResults().size() > 0)
             #customJobFinishedMessage($healthJobStatus, $translationPrefix)
           #end
           #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
