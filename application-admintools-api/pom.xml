@@ -23,7 +23,7 @@
   <parent>
     <groupId>com.xwiki.admintools</groupId>
     <artifactId>application-admintools</artifactId>
-    <version>1.1-rc-3</version>
+    <version>1.1-rc-4-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>application-admintools-api</artifactId>
