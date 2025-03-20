@@ -159,6 +159,7 @@ adminTools.dashboard.security.title=Security
 adminTools.dashboard.security.detailed.title=Detailed security view
 adminTools.dashboard.security.detailed.groupsRights=View given groups rights
 adminTools.dashboard.security.detailed.usersRights=View given users rights
+adminTools.dashboard.security.detailed.pageRights=View user rights on page
 adminTools.security.livedata.wikiName=Wiki name
 adminTools.security.livedata.type=Type of rights
 adminTools.security.livedata.space=Space
@@ -167,7 +168,7 @@ adminTools.security.livedata.users=User
 adminTools.security.livedata.groups=Group
 adminTools.security.livedata.level=Security levels
 adminTools.security.livedata.policy=Security policy
-adminTools.security.pageRights.description=View the rights a user have on a given document.
+adminTools.security.pageRights.description=View the rights a user has on a given document.
 adminTools.security.pageRights.wiki.title=Wiki
 adminTools.security.pageRights.wiki.description=Select the wiki from which to retrieve the users. If the field is empty, the current wiki will be used.
 adminTools.security.pageRights.wiki.placeholder=Select wiki
@@ -177,6 +178,7 @@ adminTools.security.pageRights.page.placeholder=Select a document
 adminTools.security.pageRights.user.title=User
 adminTools.security.pageRights.user.description=Choose a user from the selected wiki above.
 adminTools.security.pageRights.user.placeholder=Select a user
+adminTools.security.pageRights.button.check=Check
 adminTools.security.pageRights.results=Results
 
 

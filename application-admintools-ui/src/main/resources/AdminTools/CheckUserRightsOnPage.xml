@@ -47,12 +47,16 @@
 &lt;form class="xform" method="get" action="$doc.getURL('view')"&gt;
 &lt;dl&gt;
   &lt;dt&gt;
-    &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.description'))&lt;/span&gt;
+    &lt;label for="wikiName"&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.title'))&lt;/label&gt;
+    &lt;span class="xHint"&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;
     &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
-      &lt;option value=""&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.placeholder'))&lt;/option&gt;
+      &lt;option value=""&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.placeholder'))
+      &lt;/option&gt;
       #set($selectedWiki = $escapetool.xml($!request.wikiName))
       #foreach($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
         #set($isSelected = "")
@@ -64,19 +68,23 @@
     &lt;/select&gt;
   &lt;/dd&gt;
   &lt;dt&gt;
-    &lt;label for="page"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.page.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.page.description'))&lt;/span&gt;
+    &lt;label for="page"&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.title'))&lt;/label&gt;
+    &lt;span class="xHint"&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;&lt;input type="text" name="page" id="page" value="$escapetool.xml("$!request.page")" placeholder="
     $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.placeholder'))" /&gt;&lt;/dd&gt;
   &lt;dt&gt;
     &lt;label for="user"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.user.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.user.description'))&lt;/span&gt;
+    &lt;span class="xHint"&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.pageRights.user.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;&lt;input type="text" name="user" id="user" value="$escapetool.xml("$!request.user")" placeholder="
     $escapetool.xml($services.localization.render('adminTools.security.pageRights.user.placeholder'))"/&gt;&lt;/dd&gt;
 &lt;/dl&gt;
-  &lt;p&gt;&lt;span class="buttonwrapper"&gt;&lt;input class="button" type="submit" value="Check"/&gt;&lt;/span&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;span class="buttonwrapper"&gt;&lt;input class="button" type="submit"
+    value="$escapetool.xml($services.localization.render('adminTools.security.pageRights.button.check'))"/&gt;&lt;/span&gt;&lt;/p&gt;
 &lt;/form&gt;
 {{/html}}
 
@@ -87,7 +95,7 @@
   #set($wikiName =$request.wikiName)
   #set($user = $request.user)
   |=User|=Document|=View|=Edit|=Comment|=Delete|=Admin|=Programming
-  |[[$xwiki.getUserName($user, false)&gt;&gt;$wikiName:$user]]|[[$requestDoc.getTitle()&gt;&gt;$request.page]]|$requestDoc.hasAccessLevel('view', $user)|$requestDoc.hasAccessLevel('edit', $user)|$requestDoc.hasAccessLevel('comment', $user)|$requestDoc.hasAccessLevel('delete', $user)|$requestDoc.hasAccessLevel('admin', $user)|$requestDoc.hasAccessLevel('programming', $user)
+  |[[$xwiki.getUserName("${wikiName}:$user", false)&gt;&gt;$wikiName:$user]]|[[$requestDoc.getTitle()&gt;&gt;$request.page]]|$requestDoc.hasAccessLevel('view', $user)|$requestDoc.hasAccessLevel('edit', $user)|$requestDoc.hasAccessLevel('comment', $user)|$requestDoc.hasAccessLevel('delete', $user)|$requestDoc.hasAccessLevel('admin', $user)|$requestDoc.hasAccessLevel('programming', $user)
 #end
 {{/velocity}}</content>
   <object>
