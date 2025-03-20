@@ -1,0 +1,454 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.ChangeDocumentUser" locale="">
+  <web>AdminTools</web>
+  <name>ChangeDocumentUser</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.CheckUserRightsOnPage</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Change Document User</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+#set ($discard = $xwiki.jsx.use('XWikiProCommons.Pickers.WikiUserPicker'))
+#set ($discard = $xwiki.jsx.use('AdminTools.ChangeDocumentUser'))
+#set ($oldUser = "$!request.oldUser")
+#set ($newUser = "$!request.newUser")
+#set ($fields = $request.getParameterValues('field'))
+#set ($fields = $fields.subList(0, $fields.size()))
+#set ($wantSubWikis = ("$!request.subwikis" != ""))
+#set ($mainWikiId = $services.wiki.getMainWikiId())
+#set ($currentWikiId = $services.wiki.getCurrentWikiId())
+#set ($hasSubWikis = ($currentWikiId == $mainWikiId) &amp;&amp; $services.wiki.getAllIds().size() &gt; 1)
+##
+#if ($oldUser != '' &amp;&amp; $newUser != '' &amp;&amp; "$!fields" != '')
+  #set ($documentsPerWikiToUpdate = {})
+  #set ($documentsToUpdate = [])
+  #macro (getDocumentToUpdateFromWiki $oldUser $wikiId)
+    ## Build and run the query
+    #set ($documentsToUpdateQuery = "SELECT doc.fullName, doc.author, doc.contentAuthor, doc.creator FROM Document doc WHERE ")
+    #foreach ($field in $fields)
+      #if ($foreach.count &gt; 1)
+        #set ($documentsToUpdateQuery = "${documentsToUpdateQuery} OR ")
+      #end
+      #set ($documentsToUpdateQuery = "${documentsToUpdateQuery} doc.${field}=:oldUser")
+    #end
+    #set ($documentsToUpdateQuery = "${documentsToUpdateQuery} ORDER BY doc.fullName ASC")
+    #set ($documentsToUpdate = $services.query.xwql($documentsToUpdateQuery).setWiki($wikiId).bindValue('oldUser', $oldUser).execute())
+    #set ($discard = $documentsPerWikiToUpdate.put($wikiId, $documentsToUpdate))
+    #set ($docCount = $docCount + $documentsToUpdate.size())
+  #end
+  ##
+  #macro (getMatchedFields $queryResultRow $oldUser)
+    #set ($matchedFields = [])
+    #if ($queryResultRow[1] == $oldUser &amp;&amp; $fields.contains('author'))
+      #set ($discard = $matchedFields.add('author'))
+    #end
+    #if ($queryResultRow[2] == $oldUser &amp;&amp; $fields.contains('contentAuthor'))
+      #set ($discard = $matchedFields.add('contentAuthor'))
+    #end
+    #if ($queryResultRow[3] == $oldUser &amp;&amp; $fields.contains('creator'))
+      #set ($discard = $matchedFields.add('creator'))
+    #end
+  #end
+  ##
+  #set ($docCount = 0)
+  #set ($requestWikiId = $request.wikiName)
+  #if ($hasSubWikis &amp;&amp; $wantSubWikis &amp;&amp; $requestWikiId == '')
+    #foreach ($wikiId in $services.wiki.getAllIds())
+       #if ($wikiId == $mainWikiId)
+         #getDocumentToUpdateFromWiki($oldUser $wikiId)
+       #else
+         #getDocumentToUpdateFromWiki("${mainWikiId}:$oldUser" $wikiId)
+       #end
+       #set ($docCount = $docCount + $documentsToUpdate.size())
+    #end
+  #elseif ($requestWikiId != '')
+    #getDocumentToUpdateFromWiki($oldUser $requestWikiId)
+  #else
+    #getDocumentToUpdateFromWiki($oldUser $currentWikiId)
+  #end
+  #if ($xwiki.exists($newUser))
+    #set ($newUserReference = $services.model.resolveDocument($newUser))
+  #else
+    #set ($newUserReference = $services.model.resolveDocument("${requestWikiId}:$newUser"))
+  #end
+  ##
+  #if ($request.confirm == 'true')
+    #set ($oldUserRef = "${requestWikiId}:$oldUser")
+    #set ($oldUserURL =  $xwiki.getDocument($oldUserRef).getURL())
+    #set ($oldUserName = $xwiki.getUserName($oldUserRef, false))
+    #set ($newUserURL =  $xwiki.getDocument($newUserReference).getURL())
+    #set ($newUserName = $xwiki.getUserName($newUserReference, false))
+    #set ($oldUserEndTag = "'&gt;$oldUserName&lt;/a&gt;")
+    #set ($newUserEndTag = "'&gt;$newUserName&lt;/a&gt;")
+    #set ($startTag = "&lt;a target=_blank href='")
+    {{html}}
+      $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.apply.summary',
+        [$fields, $oldUserURL, $newUserURL])).replace('__URLSTART__', $startTag).replace('__URLEND__',
+        $oldUserEndTag).replace('__URLEND2__', $newUserEndTag)
+    {{/html}}
+    #foreach ($wikiId in $documentsPerWikiToUpdate.keySet())
+      #set ($documentsToUpdate = $documentsPerWikiToUpdate.get($wikiId))
+      #set ($prefixUser = "")
+      #set ($prefixPage = "${wikiId}:")
+      #if ($hasSubWikis &amp;&amp; $wikiId != $mainWikiId &amp;&amp; $requestWikiId == '')
+        #set ($prefixUser = "${mainWikiId}:")
+        #set ($discard = $xcontext.setDatabase($wikiId))
+      #end
+      #if ($documentsToUpdate.size() &gt; 0)
+        * $services.wiki.getById($wikiId).getPrettyName()
+      #end
+      #foreach ($documentToUpdate in $documentsToUpdate)
+        #getMatchedFields($documentToUpdate "${prefixUser}$oldUser")
+        ##
+        #set ($document = $xwiki.getDocument("$prefixPage$documentToUpdate[0]"))
+        #set ($protectedDocument = $document.document)
+        ## Update the requested document user fields with the new user reference.
+        #if ($matchedFields.contains('author'))
+          #set ($discard = $protectedDocument.setAuthorReference($newUserReference))
+        #end
+        #if ($matchedFields.contains('contentAuthor'))
+          #set ($discard = $protectedDocument.setContentAuthorReference($newUserReference))
+        #end
+        #if ($matchedFields.contains('creator'))
+          #set ($discard = $protectedDocument.setCreatorReference($newUserReference))
+        #end
+        ## Save the changes+
+        #set ($discard = $xwiki.xWiki.saveDocument($protectedDocument, "Replaced user [$oldUser] in fields $matchedFields to user [$newUser]", $xcontext.context))
+        #set ($docRef = "${prefixPage}$documentToUpdate[0]")
+        #set ($targetDoc = $xwiki.getDocument($docRef))
+        #set ($entryEndTag = "&gt;&gt;$docRef]]")
+        #set ($entrystartTag = "[[")
+        ** $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.preview.summary.entry',
+            [$targetDoc.getDisplayTitle(), $docRef, $matchedFields])).replace('__URLSTART__', $entrystartTag).replace('__URLEND__',
+            $entryEndTag) - (/)
+      #end
+      #if ($hasSubWikis &amp;&amp; $wikiId != $mainWikiId)
+        #set($discard = $xcontext.setDatabase($currentWikiId))
+      #end
+    #end
+
+    {{html}}
+      &lt;p&gt;Done.&lt;/p&gt;
+      &lt;a class='button' href="$doc.getURL()"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.button.back'))&lt;/a&gt;
+    {{/html}}
+  #else
+    #set ($oldUserRef = "${requestWikiId}:$oldUser")
+    #set ($oldUserURL =  $xwiki.getDocument($oldUserRef).getURL())
+    #set ($oldUserName = $xwiki.getUserName($oldUserRef, false))
+    #set ($newUserURL =  $xwiki.getDocument($newUserReference).getURL())
+    #set ($newUserName = $xwiki.getUserName($newUserReference, false))
+    #set ($oldUserEndTag = "'&gt;$oldUserName&lt;/a&gt;")
+    #set ($newUserEndTag = "'&gt;$newUserName&lt;/a&gt;")
+    #set ($startTag = "&lt;a target=_blank href='")
+    {{html}}
+    $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.preview.summary',
+      [$docCount, $oldUserURL, $newUserURL, $fields])).replace('__URLSTART__', $startTag).replace('__URLEND__',
+      $oldUserEndTag).replace('__URLEND2__', $newUserEndTag)
+    #foreach ($wikiId in $documentsPerWikiToUpdate.keySet())
+      &lt;ul&gt;
+      #set ($documentsToUpdate = $documentsPerWikiToUpdate.get($wikiId))
+      #set ($prefix = "${wikiId}:")
+      #set ($prefixUser = "")
+      #if ($hasSubWikis &amp;&amp; $wikiId != $mainWikiId &amp;&amp; $requestWikiId == '')
+        #set ($prefixUser = "${mainWikiId}:")
+      #end
+      #if ($documentsToUpdate.size() &gt; 0)
+        &lt;li&gt;$services.wiki.getById($wikiId).getPrettyName()&lt;/li&gt;
+      #end
+      #foreach ($documentToUpdate in $documentsToUpdate)
+        &lt;ul&gt;
+        #getMatchedFields($documentToUpdate, "${prefixUser}$oldUser")
+        #set ($docRef = "${prefix}$documentToUpdate[0]")
+        #set ($targetDoc = $xwiki.getDocument($docRef))
+        #set ($entryEndTag = "'&gt;$targetDoc.getDisplayTitle()&lt;/a&gt;")
+          &lt;li&gt;
+            $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.preview.summary.entry',
+              [$targetDoc.getURL(), $docRef, $matchedFields])).replace('__URLSTART__', $startTag).replace('__URLEND__',
+              $entryEndTag)
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      #end
+      &lt;/ul&gt;
+    #end
+
+    &lt;form class='xform'&gt;
+      &lt;dl&gt;
+        &lt;dt&gt;
+          &lt;input type='hidden' name='wikiName' value="$escapetool.xml($requestWikiId)" /&gt;
+          &lt;input type='hidden' name='oldUser' value="$escapetool.xml($oldUser)" /&gt;
+          &lt;input type='hidden' name='newUser' value="$escapetool.xml($newUser)" /&gt;
+          #foreach ($field in $fields)
+            &lt;input type='hidden' name='field' value="$escapetool.xml($field)" /&gt;
+          #end
+          #if($wantSubWikis)&lt;input type='hidden' name='subwikis' value='y' /&gt;#end
+          &lt;input type='hidden' name='confirm' value='true' /&gt;
+          #if ($docCount &gt; 0)
+            &lt;input class='button' type='submit' value="$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.button.confirm'))" /&gt;
+          #end
+          &lt;a class='button secondary' href="$doc.getURL()"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.button.cancel'))&lt;/a&gt;
+        &lt;/dt&gt;
+      &lt;/dl&gt;
+    &lt;/form&gt;
+    {{/html}}
+  #end
+#else
+  $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.description'))
+  * **contentAuthor**: $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.contentAuthor'))
+  * **author**: $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.author'))
+  * **creator**: $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.creator'))
+
+  The next step displays the list of documents that will be modified and will ask for confirmation.
+
+  $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.requirements'))
+
+  {{html}}
+  &lt;form class='xform'&gt;
+    &lt;dl&gt;
+      &lt;dt&gt;
+        &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.title'))&lt;/label&gt;
+        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.description'))&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
+          &lt;option value=""&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.placeholder'))&lt;/option&gt;
+          #set ($selectedWiki = $escapetool.xml($!request.wikiName))
+          #foreach ($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
+            #set ($isSelected = "")
+            #if ($db == $selectedWiki)
+              #set ($isSelected = "selected")
+            #end
+            &lt;option value="$db" $isSelected&gt;$services.wiki.getById($db).getPrettyName()&lt;/option&gt;
+          #end
+        &lt;/select&gt;
+      &lt;/dd&gt;
+      &lt;dt&gt;
+        &lt;label for='oldUser'&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.title'))&lt;/label&gt;
+        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.description'))&lt;/span&gt;
+      &lt;/dt&gt;
+      ## Can be existing or deleted user, so it makes sense to use a suggest widget.
+      &lt;dd&gt;&lt;input class='suggestUsers' type='text' name='oldUser' id='oldUser' #if ($oldUser != '')value="$escapetool.xml($oldUser)"#end placeholder="$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.placeholder'))"/&gt;&lt;/dd&gt;
+      &lt;dt&gt;&lt;label&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.fields.title'))&lt;/label&gt;&lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;label&gt;&lt;input type='checkbox' name='field' value='author' #if (!$request.askConfirmation || $fields.contains('author'))checked="checked"#end /&gt;author&lt;/label&gt;&lt;br/&gt;
+        &lt;label&gt;&lt;input type='checkbox' name='field' value='contentAuthor' #if (!$request.askConfirmation || $fields.contains('contentAuthor'))checked="checked"#end /&gt;contentAuthor&lt;/label&gt;&lt;br/&gt;
+        &lt;label&gt;&lt;input type='checkbox' name='field' value='creator' #if ($fields.contains('creator'))checked="checked"#end /&gt;creator&lt;/label&gt;
+      &lt;/dd&gt;
+
+#if ($hasSubWikis)
+      &lt;dt&gt;
+        &lt;label&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.subwikis.title'))&lt;/label&gt;
+        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.subwikis.description'))&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+        &lt;label for='subwikis'&gt;&lt;input type='checkbox' name='subwikis' id='subwikis' value='yes' #if ($wantSubWikis)checked="checked"#end /&gt;with subwikis&lt;/label&gt;
+      &lt;/dd&gt;
+#end
+      &lt;dt&gt;
+        &lt;label for='newUser&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.title'))&lt;/label&gt;
+        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.description'))&lt;/span&gt;
+      &lt;/dt&gt;
+      &lt;dd&gt;
+      &lt;input class='suggestUsers' type='text' name='newUser' id='newUser' #if ($newUser != '')value="$escapetool.xml($newUser)"#{else}value="$escapetool.xml(${xcontext.user})"#end placeholder="$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.placeholder'))"/&gt;&lt;/dd&gt;
+    &lt;/dl&gt;
+    &lt;div&gt;
+      &lt;input type='submit' name='askConfirmation' class='button' value="$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.button.preview'))" /&gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+  {{/html}}
+#end
+{{/velocity}}</content>
+  <object>
+    <name>AdminTools.ChangeDocumentUser</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>e95137df-1e6f-49f0-a9e7-a394f7304b97</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require.config({
+  paths: {
+    'xwiki-suggestWikiUsers': "$xwiki.getSkinFile('XWikiProCommons.Pickers.UserWikiPicker', true)?v=$escapetool.url($xwiki.version)"
+  }
+});
+
+// As there is no platform implementation to allow the user to dynamically select the page from where the attachments
+// are shown, a custom implementation was made to dynamically update the displyed attachments in corelation to the
+// selected page parameter. This can be removed after the implementation of:
+// XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
+require(['jquery', 'xwiki-meta', 'xwiki-suggestWikiUsers'], function($, xm) {
+  const removeSelectize = function(element) {
+    let selectize = element.siblings('.selectize-control');
+    if (selectize.length) {
+      selectize.remove();
+      element.removeAttr("class tabindex style").val('');
+      const clone = element.clone().appendTo(element.parent());
+      element.remove();
+      element = clone;
+    }
+    return element;
+  }
+
+  const initializePages = function(selectElement) {
+    var newUserElement = $('input[name="newUser"]');
+    var oldUserElement = $('input[name="oldUser"]');
+    if (newUserElement.length) {
+      newUserElement = removeSelectize(newUserElement)
+      oldUserElement = removeSelectize(oldUserElement)
+      const allowUpload = selectElement.val() == xm.document || !selectElement.val();
+      newUserElement.suggestWikiUsers({
+        maxItems: 1,
+        wikiId: selectElement.val(),
+        userScope: 'LOCAL_AND_GLOBAL'
+      });
+      oldUserElement.suggestWikiUsers({
+        maxItems: 1,
+        wikiId: selectElement.val(),
+      });
+    }
+  }
+
+  const changeSelectSubwikiState = function(selectElement) {
+    const subwikiCheckbox = $('#subwikis');
+    const currentWiki = new XWiki.Document(xm.documentReference).wiki
+    if (selectElement.val() !== currentWiki &amp;&amp; selectElement.val() !== '') {
+      subwikiCheckbox.prop('checked', false).prop('disabled', true);
+    } else {
+      subwikiCheckbox.prop('disabled', false);
+    }
+  }
+
+  $(document).ready(function () {
+    const selectElement = $('select[name="wikiName"]');
+    if (selectElement.length) {
+      const parentElement = selectElement.closest(".xform")[0];
+      if (parentElement) {
+        selectElement.off('change').on('change', function () {
+          changeSelectSubwikiState($(this))
+          initializePages($(this));
+        });
+        initializePages(selectElement);
+      }
+    }
+  });
+});</code>
+    </property>
+    <property>
+      <name>fieldsSelectize</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>currentPage</use>
+    </property>
+  </object>
+</xwikidoc>
