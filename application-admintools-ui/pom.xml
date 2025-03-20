@@ -101,6 +101,7 @@
             <contentPage>.*/AdminTools/WikisSize\.xml</contentPage>
             <contentPage>.*/AdminTools/SpammedPages\.xml</contentPage>
             <contentPage>.*/AdminTools/EmptyPages\.xml</contentPage>
+            <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>
