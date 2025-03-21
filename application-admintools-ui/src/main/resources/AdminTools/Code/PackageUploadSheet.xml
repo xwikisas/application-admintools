@@ -1,0 +1,91 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.PackageUploadSheet" locale="">
+  <web>AdminTools.Code</web>
+  <name>PackageUploadSheet</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.Code.PackageUploadClass</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="AdminTools.Code.JobCommonMacros" /}}
+
+{{velocity output='false'}}
+#template('job_macros.vm')
+#set ($discard = $xwiki.jsfx.use('uicomponents/job/job.js', true))
+#macro (uploadJobProgress)
+  #set ($xobject = $doc.getObject('AdminTools.Code.PackageUploadClass'))
+  #set ($uploadJobId = ['adminTools', 'upload', "${xobject.get('package')}", "${xobject.get('startTime')}"])
+  #set ($translationPrefix = 'adminTools.jobs.upload')
+  #set ($jobStatusURL = $xwiki.getURL('AdminTools.Code.JobOutput', 'get', $escapetool.url({
+          'jobId': $uploadJobId,
+          'translationPrefix': $translationPrefix,
+          'outputSyntax': 'plain'
+        })))
+  #set ($uploadJobStatus = $services.job.getJobStatus($uploadJobId))
+  &lt;div class="xcontent job-status" data-url="${jobStatusURL}"&gt;
+    #if ($uploadJobStatus)
+      #if ($uploadJobStatus.state != 'FINISHED')
+        #displayJobProgressBar($uploadJobStatus)
+      #else
+        #customJobFinishedMessage($uploadJobStatus, $translationPrefix)
+      #end
+      #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
+        #displayJobResults($uploadJobStatus false)
+      #end
+    #else
+      #error($escapetool.xml($services.localization.render('adminTools.jobs.upload.start.fail',
+        [${xobject.get('package')}, ${xobject.get('startTime')}])))
+    #end
+  &lt;/div&gt;
+  #set ($packagesUploadURL = $xwiki.getDocument('AdminTools.UploadPackage').getURL('view'))
+  &lt;a href="${packagesUploadURL}"&gt;
+    $escapetool.xml($services.localization.render('adminTools.packages.return'))&lt;/a&gt;
+#end
+{{/velocity}}
+
+{{velocity}}
+#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+#if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+  #if ($hasAdmin)
+    {{html clean='false' wiki='true'}}
+    #uploadJobProgress()
+    {{/html}}
+  #else
+    {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
+      $xwiki.currentContentSyntaxId){{/error}}
+  #end
+#else
+  {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
+#end
+{{/velocity}}
+</content>
+</xwikidoc>

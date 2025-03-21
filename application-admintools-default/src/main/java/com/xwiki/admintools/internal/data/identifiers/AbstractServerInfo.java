@@ -20,6 +20,8 @@
 package com.xwiki.admintools.internal.data.identifiers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,9 +36,11 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
  */
 public abstract class AbstractServerInfo implements ServerInfo
 {
-    protected String[] serverCfgPossiblePaths;
+    protected List<String> serverCfgPossiblePaths = new ArrayList<>();
 
-    protected String[] xwikiCfgPossiblePaths;
+    protected List<String> xwikiCfgPossiblePaths = new ArrayList<>();
+
+    protected List<String> xwikiInstallPossiblePaths = new ArrayList<>();
 
     @Inject
     @Named("default")
@@ -70,6 +74,17 @@ public abstract class AbstractServerInfo implements ServerInfo
         for (String xwikiCfgFolderPath : this.xwikiCfgPossiblePaths) {
             if ((new File(xwikiCfgFolderPath + "xwiki.cfg")).exists()) {
                 return xwikiCfgFolderPath;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getXWikiInstallFolderPath()
+    {
+        for (String xwikiLibraryFolderPath : this.xwikiInstallPossiblePaths) {
+            if ((new File(xwikiLibraryFolderPath)).isDirectory()) {
+                return xwikiLibraryFolderPath;
             }
         }
         return null;
