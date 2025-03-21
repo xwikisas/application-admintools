@@ -18,16 +18,59 @@
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
-#macro (renderTableRows $entries)
+#macro (processRuleEntry $ruleEntry)
+  <td>
+    #if($ruleEntry)
+      <ul>
+      #foreach ($rule in $ruleEntry.getRules())
+        <li>Rule:</li>
+        #set ($rightsList = [])
+        #foreach ($right in $rights)
+          #if ($rule.match($right))
+            #set ($discard = $rightsList.add($right))
+          #end
+        #end
+        #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
+        <ul>
+          <li>State: $rule.getState()</li>
+          <li>Rights: $stringtool.join($rightsList, ", ")</li>
+          #if (!$ruleUsersGroups.get('Users').isEmpty())
+            <li>Users: $ruleUsersGroups.get('Users')</li>
+          #end
+          #if (!$ruleUsersGroups.get('Groups').isEmpty())
+            <li>Groups: $ruleUsersGroups.get('Groups')</li>
+          #end
+        </ul>
+      #end
+      </ul>
+    #else
+      <p>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.empty'))</p>
+    #end
+  </td>
+#end
+#macro (renderRulesTableRows $cachedEntries $liveEntries)
   <table border="1">
     <tr>
       <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.entity'))</th>
-      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.rule'))</th>
+      <th>
+        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.cachedRule'))
+      </th>
+      <th>
+        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.liveRule'))
+      </th>
     </tr>
-    #foreach ($ruleEntry in $entries)
-      #if ($ruleEntry)
+    #set ($size = $liveEntries.size() - 1)
+    #foreach ($i in [0..$size])
+      #set ($liveEntry = $liveEntries.get($i))
+      #set ($cachedEntry = $cachedEntries.get($i))
+      #if ($liveEntry || $cachedEntry)
         <tr>
           <td>
+            #if ($liveEntry)
+              #set($ruleEntry = $liveEntry)
+            #else
+              #set($ruleEntry = $cachedEntry)
+            #end
             #if ($ruleEntry.getReference().getOriginalDocumentReference())
               #set($entityDoc = $xwiki.getDocument($ruleEntry.getReference().getOriginalDocumentReference()))
               Document <a href="$entityDoc.getURL()">$entityDoc.getDisplayTitle()</a>
@@ -35,30 +78,8 @@
               $ruleEntry.getReference().getOriginalReference()
             #end
           </td>
-          <td>
-            <ul>
-            #foreach ($rule in $ruleEntry.getRules())
-              <li>Rule:</li>
-              #set ($rightsList = [])
-              #foreach ($right in $rights)
-                #if ($rule.match($right))
-                  #set ($discard = $rightsList.add($right))
-                #end
-              #end
-              #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
-              <ul>
-                <li>State: $rule.getState()</li>
-                <li>Rights: $stringtool.join($rightsList, ", ")</li>
-                #if (!$ruleUsersGroups.get('Users').isEmpty())
-                  <li>Users: $ruleUsersGroups.get('Users')</li>
-                #end
-                #if (!$ruleUsersGroups.get('Groups').isEmpty())
-                  <li>Groups: $ruleUsersGroups.get('Groups')</li>
-                #end
-              </ul>
-            #end
-            </ul>
-          </td>
+          #processRuleEntry($cachedEntry)
+          #processRuleEntry($liveEntry)
         </tr>
       #end
     #end
@@ -112,13 +133,9 @@
     #end
   </table>
 #end
-#if ($cachedRuleEntries && !$cachedRuleEntries.isEmpty())
-  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.cached.title'))</h2>
-  #renderTableRows($cachedRuleEntries)
-#end
-#if ($ruleEntries && !$ruleEntries.isEmpty())
-  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.live.title'))</h2>
-  #renderTableRows($ruleEntries)
+#if (($cachedRuleEntries && !$cachedRuleEntries.isEmpty()) || ($ruleEntries && !$ruleEntries.isEmpty()))
+  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.title'))</h2>
+  #renderRulesTableRows($cachedRuleEntries, $ruleEntries)
 #end
 #if (!$cachedRuleEntries || $cachedRuleEntries.isEmpty()) && (!$cachedAccessEntries || $cachedAccessEntries.isEmpty()) && (!$ruleEntries || $ruleEntries.isEmpty())
   <p>No security entries found.</p>
