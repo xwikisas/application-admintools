@@ -102,6 +102,7 @@
             <contentPage>.*/AdminTools/SpammedPages\.xml</contentPage>
             <contentPage>.*/AdminTools/EmptyPages\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
+            <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>

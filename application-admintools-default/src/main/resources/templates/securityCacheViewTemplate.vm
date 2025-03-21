@@ -1,0 +1,125 @@
+## filepath: /home/sorin/work/my_repos/admin_tools_pro/2/application-admintools/application-admintools-default/src/main/resources/templates/securityCacheViewTemplate.vm
+## ---------------------------------------------------------------------------
+## See the NOTICE file distributed with this work for additional
+## information regarding copyright ownership.
+##
+## This is free software; you can redistribute it and/or modify it
+## under the terms of the GNU Lesser General Public License as
+## published by the Free Software Foundation; either version 2.1 of
+## the License, or (at your option) any later version.
+##
+## This software is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+## Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public
+## License along with this software; if not, write to the Free
+## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+## ---------------------------------------------------------------------------
+#macro (renderTableRows $entries)
+  <table border="1">
+    <tr>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.entity'))</th>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.rule'))</th>
+    </tr>
+    #foreach ($ruleEntry in $entries)
+      #if ($ruleEntry)
+        <tr>
+          <td>
+            #if ($ruleEntry.getReference().getOriginalDocumentReference())
+              #set($entityDoc = $xwiki.getDocument($ruleEntry.getReference().getOriginalDocumentReference()))
+              Document <a href="$entityDoc.getURL()">$entityDoc.getDisplayTitle()</a>
+            #else
+              $ruleEntry.getReference().getOriginalReference()
+            #end
+          </td>
+          <td>
+            <ul>
+            #foreach ($rule in $ruleEntry.getRules())
+              <li>Rule:</li>
+              #set ($rightsList = [])
+              #foreach ($right in $rights)
+                #if ($rule.match($right))
+                  #set ($discard = $rightsList.add($right))
+                #end
+              #end
+              #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
+              <ul>
+                <li>State: $rule.getState()</li>
+                <li>Rights: $stringtool.join($rightsList, ", ")</li>
+                #if (!$ruleUsersGroups.get('Users').isEmpty())
+                  <li>Users: $ruleUsersGroups.get('Users')</li>
+                #end
+                #if (!$ruleUsersGroups.get('Groups').isEmpty())
+                  <li>Groups: $ruleUsersGroups.get('Groups')</li>
+                #end
+              </ul>
+            #end
+            </ul>
+          </td>
+        </tr>
+      #end
+    #end
+  </table>
+#end
+#if ($cachedAccessEntries && !$cachedAccessEntries.isEmpty())
+  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.title'))</h2>
+  <table border="1">
+    <tr>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.th.ref'))</th>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.th.access'))</th>
+    </tr>
+    #foreach ($accessEntry in $cachedAccessEntries)
+      #if ($accessEntry)
+        <tr>
+          <td>
+            <ul>
+              <li>User: $xwiki.getUserName($accessEntry.getUserReference().getOriginalReference())</li>
+              #if ($accessEntry.getReference().getOriginalDocumentReference())
+                #set($entityDoc = $xwiki.getDocument($accessEntry.getReference().getOriginalDocumentReference()))
+                <li>
+                  Document <a href="$entityDoc.getURL()">$entityDoc.getDisplayTitle()</a>
+                </li>
+              #else
+                <li>$accessEntry.getReference().getOriginalReference()</li>
+              #end
+            </ul>
+          </td>
+          #set ($allow = [])
+          #set ($deny = [])
+          #foreach ($right in $rights)
+            #if ($accessEntry.getAccess().get($right) == 'DENY')
+              #set ($discard = $deny.add($right))
+            #else
+              #set ($discard = $allow.add($right))
+            #end
+          #end
+          <td>
+            <ul>
+              #if ($allow.size() > 0)
+                <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.allowed',
+                  [$stringtool.join($allow, ", ")]))</li>
+              #end
+              #if ($deny.size() > 0)
+                <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.denied',
+                  [$stringtool.join($deny, ", ")]))</li>
+              #end
+          </td>
+        </tr>
+      #end
+    #end
+  </table>
+#end
+#if ($cachedRuleEntries && !$cachedRuleEntries.isEmpty())
+  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.cached.title'))</h2>
+  #renderTableRows($cachedRuleEntries)
+#end
+#if ($ruleEntries && !$ruleEntries.isEmpty())
+  <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.live.title'))</h2>
+  #renderTableRows($ruleEntries)
+#end
+#if (!$cachedRuleEntries || $cachedRuleEntries.isEmpty()) && (!$cachedAccessEntries || $cachedAccessEntries.isEmpty()) && (!$ruleEntries || $ruleEntries.isEmpty())
+  <p>No security entries found.</p>
+#end
