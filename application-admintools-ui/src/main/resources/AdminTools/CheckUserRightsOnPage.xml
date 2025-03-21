@@ -38,7 +38,7 @@
   <hidden>false</hidden>
   <content>{{velocity output="false"}}
 #set ($discard = $xwiki.jsx.use('XWikiProCommons.Pickers.WikiUserPicker'))
-#set ($discard = $xwiki.jsx.use('AdminTools.CheckUserRightsOnPage'))
+#set ($discard = $xwiki.jsx.use('AdminTools.Code.UserPageSelectorPopulate'))
 {{/velocity}}
 
 {{velocity}}
@@ -48,14 +48,14 @@
 &lt;dl&gt;
   &lt;dt&gt;
     &lt;label for="wikiName"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.title'))&lt;/label&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.common.wiki.title'))&lt;/label&gt;
     &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.description'))&lt;/span&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.common.wiki.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;
     &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
       &lt;option value=""&gt;
-        $escapetool.xml($services.localization.render('adminTools.security.pageRights.wiki.placeholder'))
+        $escapetool.xml($services.localization.render('adminTools.security.common.wiki.placeholder'))
       &lt;/option&gt;
       #set($selectedWiki = $escapetool.xml($!request.wikiName))
       #foreach($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
@@ -69,19 +69,19 @@
   &lt;/dd&gt;
   &lt;dt&gt;
     &lt;label for="page"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.title'))&lt;/label&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.common.page.title'))&lt;/label&gt;
     &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.description'))&lt;/span&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.common.page.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;&lt;input type="text" name="page" id="page" value="$escapetool.xml("$!request.page")" placeholder="
-    $escapetool.xml($services.localization.render('adminTools.security.pageRights.page.placeholder'))" /&gt;&lt;/dd&gt;
+    $escapetool.xml($services.localization.render('adminTools.security.common.page.placeholder'))" /&gt;&lt;/dd&gt;
   &lt;dt&gt;
-    &lt;label for="user"&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.user.title'))&lt;/label&gt;
+    &lt;label for="user"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.user.title'))&lt;/label&gt;
     &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.pageRights.user.description'))&lt;/span&gt;
+      $escapetool.xml($services.localization.render('adminTools.security.common.user.description'))&lt;/span&gt;
   &lt;/dt&gt;
   &lt;dd&gt;&lt;input type="text" name="user" id="user" value="$escapetool.xml("$!request.user")" placeholder="
-    $escapetool.xml($services.localization.render('adminTools.security.pageRights.user.placeholder'))"/&gt;&lt;/dd&gt;
+    $escapetool.xml($services.localization.render('adminTools.security.common.user.placeholder'))"/&gt;&lt;/dd&gt;
 &lt;/dl&gt;
   &lt;p&gt;&lt;span class="buttonwrapper"&gt;&lt;input class="button" type="submit"
     value="$escapetool.xml($services.localization.render('adminTools.security.pageRights.button.check'))"/&gt;&lt;/span&gt;&lt;/p&gt;
@@ -98,166 +98,4 @@
   |[[$xwiki.getUserName("${wikiName}:$user", false)&gt;&gt;$wikiName:$user]]|[[$requestDoc.getTitle()&gt;&gt;$request.page]]|$requestDoc.hasAccessLevel('view', $user)|$requestDoc.hasAccessLevel('edit', $user)|$requestDoc.hasAccessLevel('comment', $user)|$requestDoc.hasAccessLevel('delete', $user)|$requestDoc.hasAccessLevel('admin', $user)|$requestDoc.hasAccessLevel('programming', $user)
 #end
 {{/velocity}}</content>
-  <object>
-    <name>AdminTools.CheckUserRightsOnPage</name>
-    <number>0</number>
-    <className>XWiki.JavaScriptExtension</className>
-    <guid>264d5718-2095-4f90-ac85-b1cf71eb5293</guid>
-    <class>
-      <name>XWiki.JavaScriptExtension</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <cache>
-        <cache>0</cache>
-        <defaultValue>long</defaultValue>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>cache</name>
-        <number>5</number>
-        <prettyName>Caching policy</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>long|short|default|forbid</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </cache>
-      <code>
-        <contenttype>PureText</contenttype>
-        <disabled>0</disabled>
-        <editor>PureText</editor>
-        <name>code</name>
-        <number>2</number>
-        <prettyName>Code</prettyName>
-        <restricted>0</restricted>
-        <rows>20</rows>
-        <size>50</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </code>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-      <parse>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>parse</name>
-        <number>4</number>
-        <prettyName>Parse content</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </parse>
-      <use>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>use</name>
-        <number>3</number>
-        <prettyName>Use this extension</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>currentPage|onDemand|always</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </use>
-    </class>
-    <property>
-      <cache>long</cache>
-    </property>
-    <property>
-      <code>require.config({
-  paths: {
-    'xwiki-suggestPages': "$xwiki.getSkinFile('uicomponents/suggest/suggestPages.js', true)?v=$escapetool.url($xwiki.version)",
-    'xwiki-suggestWikiUsers': "$xwiki.getSkinFile('XWikiProCommons.Pickers.UserWikiPicker', true)?v=$escapetool.url($xwiki.version)"
-  }
-});
-
-// As there is no platform implementation to allow the user to dynamically select the page from where the attachments
-// are shown, a custom implementation was made to dynamically update the displyed attachments in corelation to the
-// selected page parameter. This can be removed after the implementation of:
-// XWIKI-22850: Add an option in a macro parameter to select the page/space for attachment suggestions
-// XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
-require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers'], function($, xm) {
-  const removeSelectize = function(element) {
-    let selectize = element.siblings('.selectize-control');
-    if (selectize.length) {
-      selectize.remove();
-      element.removeAttr("class tabindex style").val('');
-      const clone = element.clone().appendTo(element.parent());
-      element.remove();
-      element = clone;
-    }
-    return element;
-  }
-
-  const initializePages = function(selectElement) {
-    let scope = "wiki:";
-    if (selectElement.val() != null) {
-      scope += selectElement.val();
-    }
-    var inputElement = $('input[name="page"]');
-    var usersElement = $('input[name="user"]');
-    if (inputElement.length) {
-      inputElement = removeSelectize(inputElement)
-      usersElement = removeSelectize(usersElement)
-      const allowUpload = selectElement.val() == xm.document || !selectElement.val();
-      inputElement.suggestPages({
-        maxItems: 1,
-        searchScope: scope
-      });
-      usersElement.suggestWikiUsers({
-        maxItems: 1,
-        wikiId: selectElement.val(),
-      });
-    }
-  }
-
-  $(document).ready(function () {
-    const selectElement = $('select[name="wikiName"]');
-
-    if (selectElement.length) {
-      const parentElement = selectElement.closest(".xform")[0];
-
-      if (parentElement) {
-        selectElement.off('change').on('change', function () {
-          initializePages($(this));
-        });
-
-        initializePages(selectElement);
-      }
-    }
-  });
-});</code>
-    </property>
-    <property>
-      <name>populateSelectors</name>
-    </property>
-    <property>
-      <parse>1</parse>
-    </property>
-    <property>
-      <use>currentPage</use>
-    </property>
-  </object>
 </xwikidoc>
