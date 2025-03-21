@@ -153,9 +153,33 @@ adminTools.dashboard.security.configurationEncoding=Configuration encoding
 adminTools.dashboard.security.description=See an overview of your security information.
 adminTools.dashboard.security.error=Error while gathering security information.
 adminTools.dashboard.security.fileEncoding=File encoding
-adminTools.dashboard.security.lang=Used language
-adminTools.dashboard.security.pwd=Working directory
+adminTools.dashboard.security.LANG=Used language
+adminTools.dashboard.security.PWD=Working directory
 adminTools.dashboard.security.title=Security
+adminTools.dashboard.security.detailed.title=Detailed security view
+adminTools.dashboard.security.detailed.groupsRights=View given groups rights
+adminTools.dashboard.security.detailed.usersRights=View given users rights
+adminTools.dashboard.security.detailed.pageRights=View user rights on page
+adminTools.security.livedata.wikiName=Wiki name
+adminTools.security.livedata.type=Type of rights
+adminTools.security.livedata.space=Space
+adminTools.security.livedata.docName=Document name
+adminTools.security.livedata.users=User
+adminTools.security.livedata.groups=Group
+adminTools.security.livedata.level=Security levels
+adminTools.security.livedata.policy=Security policy
+adminTools.security.common.wiki.title=Wiki
+adminTools.security.common.wiki.description=Select the wiki from which to retrieve the users. If the field is empty, the current wiki will be used.
+adminTools.security.common.wiki.placeholder=Select wiki
+adminTools.security.common.page.title=Page
+adminTools.security.common.page.description=Choose a document from the selected wiki above.
+adminTools.security.common.page.placeholder=Select a document
+adminTools.security.common.user.title=User
+adminTools.security.common.user.description=Choose a user from the selected wiki above.
+adminTools.security.common.user.placeholder=Select a user
+adminTools.security.pageRights.description=View the rights a user has on a given document.
+adminTools.security.pageRights.button.check=Check
+adminTools.security.pageRights.results=Results
 
 
 ## Jobs
@@ -223,7 +247,9 @@ adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsSize=Total attachme
 adminTools.dashboard.instanceUsage.modal.wikiSize.documentsCount=Documents count
 adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Wiki name
 adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
-adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count</content>
+adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count
+adminTools.dashboard.security.modal.groupsRights.title=Groups rights
+adminTools.dashboard.security.modal.usersRights.title=Users rights</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
