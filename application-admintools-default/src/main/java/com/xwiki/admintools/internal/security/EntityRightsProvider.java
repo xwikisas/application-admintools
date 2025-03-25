@@ -30,9 +30,11 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -93,6 +95,9 @@ public class EntityRightsProvider extends AbstractRightsProvider
     @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
+    @Inject
+    private Logger logger;
+
     /**
      * Retrieves a filtered and sorted list of {@link RightsResult} representing the rights for the given parameters.
      *
@@ -106,8 +111,11 @@ public class EntityRightsProvider extends AbstractRightsProvider
         String entityType)
     {
         try {
+            String rightsType = filters.get(TYPE_KEY);
+            logger.info("Getting the rights for entity [{}] and type [{}].", entityType, rightsType);
             Set<RightsResult> rightsResults = new HashSet<>();
-            switch (filters.get(TYPE_KEY) == null ? "" : filters.get(TYPE_KEY)) {
+            switch (rightsType == null ? "" : rightsType) {
+                // We check the rights set in the wiki administration.
                 case GLOBAL_TYPE:
                     addGlobalRights(rightsResults, filters, entityType);
                     break;
@@ -126,6 +134,8 @@ public class EntityRightsProvider extends AbstractRightsProvider
 
             return applySort(rightsResults, sortColumn, order);
         } catch (Exception e) {
+            logger.error("There was an error while processing the rights for entity [{}]: [{}]", entityType,
+                ExceptionUtils.getRootCauseMessage(e));
             throw new RuntimeException(e);
         }
     }
@@ -137,7 +147,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
         String docName = filters.get(DOCUMENT_KEY);
         String space = filters.get(SPACE_KEY);
 
-        DocumentReference docReference = resolveDocumentReference(wikiName);
+        DocumentReference docReference = getGlobalRightsDocumentReference(wikiName);
 
         boolean docNameMatches = isMatchingIgnoreCase(docName, docReference.getName());
         boolean spaceMatches = isMatchingIgnoreCase(space, docReference.getLastSpaceReference().getName());
@@ -148,8 +158,14 @@ public class EntityRightsProvider extends AbstractRightsProvider
         }
     }
 
-    private DocumentReference resolveDocumentReference(String wikiName)
+    /**
+     * Get the document that stores the global rights on a given wiki.
+     */
+    private DocumentReference getGlobalRightsDocumentReference(String wikiName)
     {
+        // We check if the given wikiName is not empty, in which case we try to extract the wiki ID and get the
+        // "XWiki.XWikiPreferences" from the corresponding wiki ID. Otherwise, we resolve "XWiki.XWikiPreferences"
+        // from the current wiki.
         return Optional.ofNullable(wikiName).filter(name -> !name.isEmpty() && !SEPARATOR.equals(name))
             .map(name -> name.replace(XWIKI_SERVER_PREFIX, "").toLowerCase())
             .map(id -> documentReferenceResolver.resolve(String.format("%s:XWiki.XWikiPreferences", id)))
@@ -174,14 +190,15 @@ public class EntityRightsProvider extends AbstractRightsProvider
         }
     }
 
-    private void processDocumentRightsObjects(Set<RightsResult> rightsResults, Map<String, String> filters,
-        String type, DocumentReference docReference, LocalDocumentReference rightsClassReference, String entityType)
+    private void processDocumentRightsObjects(Set<RightsResult> rightsResults, Map<String, String> filters, String type,
+        DocumentReference docReference, LocalDocumentReference rightsClassReference, String entityType)
         throws XWikiException
     {
         XWikiContext wikiContext = xcontextProvider.get();
         XWiki wiki = wikiContext.getWiki();
         XWikiDocument document = wiki.getDocument(docReference, wikiContext);
-
+        logger.info("Getting rights from document [{}] and rights class [{}], for entity [{}].",
+            document.getDocumentReference(), rightsClassReference, entityType);
         for (BaseObject object : document.getXObjects(rightsClassReference)) {
             if (object != null) {
                 String entity = object.get(entityType).toFormString();
