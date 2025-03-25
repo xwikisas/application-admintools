@@ -62,12 +62,13 @@
             &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
               &lt;dl&gt;
                 &lt;dt&gt;
-                  &lt;label for="noLines"&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.label')) &lt;/label&gt;
-                  &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
-                    'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span&gt;
+                  &lt;label for="${id}NoLines"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.dashboard.logs.modal.nLines.label'))
+                    &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+                      'adminTools.dashboard.logs.modal.nLines.hint'))&lt;/span&gt;
+                  &lt;/label&gt;
                 &lt;/dt&gt;
-                &lt;dd&gt;&lt;input type="number" name="noLines" placeholder="1000"&gt;&lt;/dd&gt;
+                &lt;dd&gt;&lt;input type="number" id="${id}NoLines" placeholder="1000"&gt;&lt;/dd&gt;
               &lt;/dl&gt;
             &lt;/form&gt;
           &lt;/div&gt;
@@ -278,6 +279,52 @@
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
           &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+#end
+#macro (viewGroupsRights)
+  &lt;div class="modal fade" id="viewGroupsRightsModal" tabindex="-1" role="dialog"
+    aria-labelledby="viewGroupsRightsModalLabel"&gt;
+    &lt;div class="modal-dialog modal-lg" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+          &lt;div id="viewGroupsRightsModalLabel" class="modal-title"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.security.modal.groupsRights.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          {{include reference="AdminTools.ViewGroupsRights" /}}
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+#end
+#macro (viewUsersRights)
+  &lt;div class="modal fade" id="viewUsersRightsModal" tabindex="-1" role="dialog"
+    aria-labelledby="viewUsersRightsModalLabel"&gt;
+    &lt;div class="modal-dialog modal-lg" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+          &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;&lt;/button&gt;
+          &lt;div id="viewUsersRightsModalLabel" class="modal-title"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.security.modal.usersRights.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          {{include reference="AdminTools.ViewUsersRights" /}}
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
