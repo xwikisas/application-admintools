@@ -37,6 +37,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 import org.xwiki.job.GroupedJob;
 import org.xwiki.job.JobGroupPath;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.jobs.JobResult;
@@ -70,6 +71,9 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
 
     private List<UploadPackageJobResource> jobResourceList = new ArrayList<>();
 
+    @Inject
+    private ContextualLocalizationManager contextLocalization;
+
     @Override
     public String getType()
     {
@@ -96,6 +100,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
     {
         try {
             if (!status.isCanceled()) {
+                logger.debug("Started upload job with ID: [{}]", this.status.getJobID());
                 this.progressManager.pushLevelProgress(this);
                 InputStream fileInputStream = fileProcessor.getArchiveInputStream(request.getFileRef());
                 try (ZipInputStream zis = new ZipInputStream(fileInputStream)) {
@@ -122,6 +127,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
             batchRestore();
         } finally {
             this.progressManager.popLevelProgress(this);
+            logger.debug("Finished upload job with ID: [{}]", this.status.getJobID());
         }
     }
 
@@ -153,18 +159,21 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                     continue;
                 }
             }
-            JobResult log = new JobResult("adminTools.jobs.upload.batch.backup.file.success", JobResultLevel.INFO,
+            logger.debug("Successfully restored backup and removed new file [{}].", jobResource.getNewFilename());
+            JobResult log = new JobResult("adminTools.jobs.upload.batch.restore.file.success", JobResultLevel.INFO,
                 jobResource.getNewFilename());
             status.addLog(log);
             progressManager.endStep(this);
         }
+        JobResult log;
         if (successful) {
-            JobResult log = new JobResult("adminTools.jobs.upload.batch.backup.success", JobResultLevel.INFO);
-            status.addLog(log);
+            logger.debug("Backup restored with success.");
+            log = new JobResult("adminTools.jobs.upload.batch.restore.success", JobResultLevel.INFO);
         } else {
-            JobResult log = new JobResult("adminTools.jobs.upload.batch.backup.fail", JobResultLevel.ERROR);
-            status.addLog(log);
+            logger.debug("There were issues while trying to restore the backup. Please consult the log.");
+            log = new JobResult("adminTools.jobs.upload.batch.restore.fail", JobResultLevel.ERROR);
         }
+        status.addLog(log);
     }
 
     private boolean handleFileDeletion(File file, String fileType)
@@ -183,7 +192,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
 
     private void backupFailureMessage(String translation, String... parameters)
     {
-        String translationHint = String.format("adminTools.jobs.upload.batch.backup.%s.fail", translation);
+        String translationHint = String.format("adminTools.jobs.upload.batch.restore.%s.fail", translation);
+        logger.warn(contextLocalization.getTranslationPlain(translationHint, parameters));
         JobResult log = new JobResult(translationHint, JobResultLevel.ERROR, parameters);
         status.addLog(log);
     }

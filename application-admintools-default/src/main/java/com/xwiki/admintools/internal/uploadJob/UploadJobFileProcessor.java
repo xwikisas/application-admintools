@@ -38,6 +38,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.environment.Environment;
 import org.xwiki.model.reference.AttachmentReference;
@@ -77,6 +78,9 @@ public class UploadJobFileProcessor
 
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private Logger logger;
 
     /**
      * Checks if a file with the same name or if a JAR file with a similar name exists at the processed target location
@@ -153,7 +157,7 @@ public class UploadJobFileProcessor
             while ((len = zis.read(buffer)) > 0) {
                 fos.write(buffer, 0, len);
             }
-            if (targetFile.exists()) {
+            if (!jobResource.getNewFilename().equals(targetFile.getName())) {
                 String filePath = targetFile.getParent();
                 File newFile = Paths.get(filePath).resolve(jobResource.getNewFilename()).toFile();
                 if (!targetFile.renameTo(newFile)) {
@@ -163,6 +167,7 @@ public class UploadJobFileProcessor
                         String.format("Failed to rename original file [%s].", targetFile.getName()));
                 }
             }
+            logger.debug("Successfully uploaded file [{}].", jobResource.getNewFilename());
             JobResult log =
                 new JobResult("adminTools.jobs.upload.save.success", JobResultLevel.INFO, jobResource.getNewFilename());
             status.addLog(log);
@@ -202,6 +207,7 @@ public class UploadJobFileProcessor
             status.addLog(log);
             throw new RuntimeException(e);
         }
+        logger.debug("Backup file [{}] created for file [{}].", backupFile.getName(), targetFile.getName());
         uploadPackageJobResource.setBackupFile(backupFile);
         status.addLog(new JobResult("adminTools.jobs.upload.backup.success", JobResultLevel.INFO, backupFile.getName(),
             targetFile.getName()));
