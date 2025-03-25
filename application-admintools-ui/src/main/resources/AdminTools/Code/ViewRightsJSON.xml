@@ -1,0 +1,112 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.ViewRightsJSON" locale="">
+  <web>AdminTools.Code</web>
+  <name>ViewRightsJSON</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>ViewRightsJSON</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="AdminTools.Code.Macros" /}}
+
+{{velocity}}
+#if ($xcontext.action == 'get')
+  #set ($offset = $numbertool.toNumber($request.offset).intValue())
+  ## The offset sent by the live table starts at 1.
+  #set ($offset = $offset - 1)
+  #if (!$offset || $offset &lt; 0)
+    #set ($offset = 0)
+  #end
+  #set ($limit = $numbertool.toNumber($request.limit).intValue())
+  #if (!$limit)
+    #set ($limit = 15)
+  #end
+  #set ($sort = 'type')
+  #set ($order = 'asc')
+  #if ($request.sort)
+    #set ($sort = $request.sort)
+    #set ($order = $request.dir)
+  #end
+  #set ($levelFilter = $request.getParameterValues('level'))
+  #set ($collist = $request.getParameterValues('collist')[0].split(','))
+  #set ($entityType = $collist[4])
+  #set ($filters = {
+    'wikiName' : $request.get('wikiName'),
+    'type' : $request.get('type'),
+    'space' : $request.get('space'),
+    'docName' : $request.get('docName'),
+    'level' : $stringtool.join($levelFilter, "|"),
+    'entity' : $request.get($entityType),
+    'policy' : $request.get('policy')
+  })
+  #set ($groupsRights = $services.admintools.getEntityRights($filters, $sort, $order, $entityType))
+  #if ($offset &lt; $groupsRights.size())
+    #set ($toIndex = $mathtool.min($mathtool.add($offset, $limit), $groupsRights.size()))
+    #getSubset($groupsRights, $offset, $toIndex, $resultList)
+  #end
+  #set ($results = {
+    "totalrows": $groupsRights.size(),
+    "returnedrows": $resultList.size(),
+    "offset": $mathtool.add($offset, 1),
+    "rows": []
+  })
+  #foreach ($currentEntry in $resultList)
+    #set ($policy = $currentEntry.getPolicy())
+    #if ($policy == 'Allowed')
+      #set ($authorization = "&lt;span class='box successmessage'&gt;${policy}&lt;/span&gt;")
+    #else
+      #set ($authorization = "&lt;span class='box errormessage'&gt;${policy}&lt;/span&gt;")
+    #end
+    #set ($entityDocument = $xwiki.getDocument($currentEntry.getEntity()))
+    #set ($entityURL = $xwiki.getURL($entityDocument.getDocumentReference(), 'view'))
+    #set ($entity = "&lt;a href='${entityURL}'&gt;$entityDocument.getDisplayTitle()&lt;/a&gt;")
+    #if ($entityType == 'users')
+      #set ($entity = $xwiki.getUserName($currentEntry.getEntity()))
+    #end
+    #set ($pageDocument = $xwiki.getDocument($currentEntry.getDocReference()))
+    #set ($wikiDescriptor = $services.wiki.getById($currentEntry.getDocReference().getWikiReference().getName()))
+    #set ($pageURL = $xwiki.getURL($pageDocument.getDocumentReference(), 'view'))
+    #set ($page = "&lt;a href='${pageURL}'&gt;$pageDocument.getDisplayTitle()&lt;/a&gt;")
+    #set ($discard = $results.rows.add({
+      'wikiName' : $wikiDescriptor.getPrettyName(),
+      'type' : $currentEntry.getType(),
+      'space' :  $currentEntry.getSpace(),
+      'docName' : $page,
+      'level' : $currentEntry.getLevel(),
+      $entityType : $entity,
+      'policy' : $authorization
+    }))
+  #end
+  #jsonResponse($results)
+#end
+{{/velocity}}</content>
+</xwikidoc>

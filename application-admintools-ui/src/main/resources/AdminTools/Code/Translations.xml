@@ -167,6 +167,7 @@ adminTools.security.livedata.docName=Document name
 adminTools.security.livedata.users=User
 adminTools.security.livedata.groups=Group
 adminTools.security.livedata.level=Security levels
+adminTools.security.livedata.policy=Security policy
 adminTools.security.changeDocumentUser.description=Replace all occurences of the old user with the new user for the selected fields of existing documents inside the current wiki. Based on the affected fields, this will also grant the affected documents the rights of the new user, instead of those of the old user.
 adminTools.security.changeDocumentUser.contentAuthor=Gives affected document Programming or Script rights, if the new user has them, allowing existing scripts or protected API calls inside that document to be executed when the document is viewed.
 adminTools.security.changeDocumentUser.author=Gives affected document Admin or Programming rights, if the new user has them, allowing special objects (wiki macros, wiki components, UIX, translations) to be registered at a wiki or global level. Also updates the value displayed on the documents [Last modified by] section with the new user.
