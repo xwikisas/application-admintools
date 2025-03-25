@@ -166,7 +166,7 @@ class UploadJobTest
         assertEquals("Error during the file upload job.", logCapture.getMessage(0));
         assertEquals(2, uploadJobStatus.getJobResults().size());
         assertEquals("adminTools.jobs.upload.fail", uploadJobStatus.getJobResults().get(0).getMessage());
-        assertEquals("adminTools.jobs.upload.batch.backup.success",
+        assertEquals("adminTools.jobs.upload.batch.restore.success",
             uploadJobStatus.getJobResults().get(1).getMessage());
     }
 

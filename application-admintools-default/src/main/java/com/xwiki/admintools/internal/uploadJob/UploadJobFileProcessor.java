@@ -167,7 +167,7 @@ public class UploadJobFileProcessor
                         String.format("Failed to rename original file [%s].", targetFile.getName()));
                 }
             }
-            logger.debug("Successfully uploaded file [{}].", jobResource.getNewFilename());
+            logger.info("Successfully uploaded file [{}].", jobResource.getNewFilename());
             JobResult log =
                 new JobResult("adminTools.jobs.upload.save.success", JobResultLevel.INFO, jobResource.getNewFilename());
             status.addLog(log);
@@ -207,7 +207,7 @@ public class UploadJobFileProcessor
             status.addLog(log);
             throw new RuntimeException(e);
         }
-        logger.debug("Backup file [{}] created for file [{}].", backupFile.getName(), targetFile.getName());
+        logger.info("Backup file [{}] created for file [{}].", backupFile.getName(), targetFile.getName());
         uploadPackageJobResource.setBackupFile(backupFile);
         status.addLog(new JobResult("adminTools.jobs.upload.backup.success", JobResultLevel.INFO, backupFile.getName(),
             targetFile.getName()));

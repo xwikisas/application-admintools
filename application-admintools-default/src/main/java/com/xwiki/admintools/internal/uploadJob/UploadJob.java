@@ -100,7 +100,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
     {
         try {
             if (!status.isCanceled()) {
-                logger.debug("Started upload job with ID: [{}]", this.status.getJobID());
+                logger.info("Started upload job with ID: [{}]", this.status.getJobID());
                 this.progressManager.pushLevelProgress(this);
                 InputStream fileInputStream = fileProcessor.getArchiveInputStream(request.getFileRef());
                 try (ZipInputStream zis = new ZipInputStream(fileInputStream)) {
@@ -127,7 +127,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
             batchRestore();
         } finally {
             this.progressManager.popLevelProgress(this);
-            logger.debug("Finished upload job with ID: [{}]", this.status.getJobID());
+            logger.info("Finished upload job with ID: [{}]", this.status.getJobID());
         }
     }
 
@@ -159,7 +159,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                     continue;
                 }
             }
-            logger.debug("Successfully restored backup and removed new file [{}].", jobResource.getNewFilename());
+            logger.info("Successfully restored backup and removed new file [{}].", jobResource.getNewFilename());
             JobResult log = new JobResult("adminTools.jobs.upload.batch.restore.file.success", JobResultLevel.INFO,
                 jobResource.getNewFilename());
             status.addLog(log);
@@ -167,10 +167,10 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
         }
         JobResult log;
         if (successful) {
-            logger.debug("Backup restored with success.");
+            logger.info("Backup restored with success.");
             log = new JobResult("adminTools.jobs.upload.batch.restore.success", JobResultLevel.INFO);
         } else {
-            logger.debug("There were issues while trying to restore the backup. Please consult the log.");
+            logger.info("There were issues while trying to restore the backup. Please consult the log.");
             log = new JobResult("adminTools.jobs.upload.batch.restore.fail", JobResultLevel.ERROR);
         }
         status.addLog(log);
