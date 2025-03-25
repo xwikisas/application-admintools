@@ -18,28 +18,43 @@
 ## 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 ## ---------------------------------------------------------------------------
 #if($security['serverFound'] == 'true')
-  <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
-  <hr/>
-  <ul>
-    <li>
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.activeEncoding')):
-      $security['activeEncoding']
-    </li>
-    <li>
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.configurationEncoding')):
-      $security['configurationEncoding']
-    </li>
-    <li>
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.PWD')): $security['PWD']
-    </li>
-    <li>
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.LANG')): $security['LANG']
-    </li>
-    <li>
-      $escapetool.xml($services.localization.render('adminTools.dashboard.section.security.fileEncoding')):
-      $security['fileEncoding']
-    </li>
-  </ul>
+  #set ($discard = $xwiki.jsx.use('AdminTools.Code.AdminToolsJS'))
+  <div class="wiki-security-settings">
+    <p>$escapetool.xml($services.localization.render('adminTools.dashboard.security.description'))</p>
+    <hr/>
+    <ul>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.activeEncoding')):
+        $security['activeEncoding']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.configurationEncoding')):
+        $security['configurationEncoding']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.PWD')): $security['PWD']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.LANG')): $security['LANG']
+      </li>
+      <li>
+        $escapetool.xml($services.localization.render('adminTools.dashboard.security.fileEncoding')):
+        $security['fileEncoding']
+      </li>
+    </ul>
+    <hr/>
+    <div class="security-detailed">
+      <h2>$escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.title'))</h2>
+      <ul>
+        <li><a href="$xwiki.getURL("AdminTools.ViewGroupsRights")" target="_blank">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.groupsRights'))
+          </a></li>
+        <li><a href="$xwiki.getURL("AdminTools.ViewUsersRights")" target="_blank">
+            $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.usersRights'))
+          </a></li>
+      </ul>
+    </div>
+  </div>
 #else
   #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
     [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))

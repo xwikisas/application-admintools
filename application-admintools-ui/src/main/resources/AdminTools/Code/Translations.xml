@@ -153,10 +153,20 @@ adminTools.dashboard.security.configurationEncoding=Configuration encoding
 adminTools.dashboard.security.description=See an overview of your security information.
 adminTools.dashboard.security.error=Error while gathering security information.
 adminTools.dashboard.security.fileEncoding=File encoding
-adminTools.dashboard.security.lang=Used language
-adminTools.dashboard.security.pwd=Working directory
+adminTools.dashboard.security.LANG=Used language
+adminTools.dashboard.security.PWD=Working directory
 adminTools.dashboard.security.title=Security
-
+adminTools.dashboard.security.detailed.title=Detailed security view
+adminTools.dashboard.security.detailed.groupsRights=View given groups rights
+adminTools.dashboard.security.detailed.usersRights=View given users rights
+adminTools.security.livedata.wikiName=Wiki name
+adminTools.security.livedata.type=Type of rights
+adminTools.security.livedata.space=Space
+adminTools.security.livedata.docName=Document name
+adminTools.security.livedata.users=User
+adminTools.security.livedata.groups=Group
+adminTools.security.livedata.level=Security levels
+adminTools.security.livedata.policy=Security policy
 
 ## Jobs
 adminTools.jobs.result.hint=Job results
@@ -223,7 +233,9 @@ adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsSize=Total attachme
 adminTools.dashboard.instanceUsage.modal.wikiSize.documentsCount=Documents count
 adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Wiki name
 adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
-adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count</content>
+adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count
+adminTools.dashboard.security.modal.groupsRights.title=Groups rights
+adminTools.dashboard.security.modal.usersRights.title=Users rights</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
