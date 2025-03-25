@@ -321,7 +321,12 @@ class EntityRightsProviderTest
     {
         Map<String, String> filters = Map.of("type", "Global");
 
-        assertEquals(3, entityRightsProvider.getEntityRights(filters, "type", "desc", "groups").size());
+        List<RightsResult> rightsResults =
+            entityRightsProvider.getEntityRights(filters, "level", "desc", "groups");
+        assertEquals(3, rightsResults.size());
+        assertEquals("stringClass6", rightsResults.get(0).getLevel());
+        assertEquals("stringClass5", rightsResults.get(1).getLevel());
+        assertEquals("stringClass2", rightsResults.get(2).getLevel());
     }
 
     @Test
