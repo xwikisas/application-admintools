@@ -40,7 +40,7 @@
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
     'className': 'AdminTools.Code.RightsLivedataCommonFilters',
-    'resultPage': 'AdminTools.Code.ViewRightsJson',
+    'resultPage': 'AdminTools.Code.ViewRightsJSON',
     'translationPrefix': 'adminTools.security.livedata.'
   }))
   #set ($liveDataConfig= {

@@ -108,6 +108,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
         try {
             Set<RightsResult> rightsResults = new HashSet<>();
             switch (filters.get(TYPE_KEY) == null ? "" : filters.get(TYPE_KEY)) {
+                // We check the rights set in the wiki administration.
                 case GLOBAL_TYPE:
                     addGlobalRights(rightsResults, filters, entityType);
                     break;
@@ -137,7 +138,7 @@ public class EntityRightsProvider extends AbstractRightsProvider
         String docName = filters.get(DOCUMENT_KEY);
         String space = filters.get(SPACE_KEY);
 
-        DocumentReference docReference = resolveDocumentReference(wikiName);
+        DocumentReference docReference = getGlobalRightsDocumentReference(wikiName);
 
         boolean docNameMatches = isMatchingIgnoreCase(docName, docReference.getName());
         boolean spaceMatches = isMatchingIgnoreCase(space, docReference.getLastSpaceReference().getName());
@@ -148,8 +149,14 @@ public class EntityRightsProvider extends AbstractRightsProvider
         }
     }
 
-    private DocumentReference resolveDocumentReference(String wikiName)
+    /**
+     * Get the document that stores the global rights on a given wiki.
+     */
+    private DocumentReference getGlobalRightsDocumentReference(String wikiName)
     {
+        // We check if the given wikiName is not empty, in which case we try to extract the wiki ID and get the
+        // "XWiki.XWikiPreferences" from the corresponding wiki ID. Otherwise, we resolve "XWiki.XWikiPreferences"
+        // from the current wiki.
         return Optional.ofNullable(wikiName).filter(name -> !name.isEmpty() && !SEPARATOR.equals(name))
             .map(name -> name.replace(XWIKI_SERVER_PREFIX, "").toLowerCase())
             .map(id -> documentReferenceResolver.resolve(String.format("%s:XWiki.XWikiPreferences", id)))
@@ -174,8 +181,8 @@ public class EntityRightsProvider extends AbstractRightsProvider
         }
     }
 
-    private void processDocumentRightsObjects(Set<RightsResult> rightsResults, Map<String, String> filters,
-        String type, DocumentReference docReference, LocalDocumentReference rightsClassReference, String entityType)
+    private void processDocumentRightsObjects(Set<RightsResult> rightsResults, Map<String, String> filters, String type,
+        DocumentReference docReference, LocalDocumentReference rightsClassReference, String entityType)
         throws XWikiException
     {
         XWikiContext wikiContext = xcontextProvider.get();
