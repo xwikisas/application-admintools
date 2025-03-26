@@ -193,6 +193,11 @@ $xwiki.jsfx.use('js/xwiki/viewers/attachments.js', {'forceSkinAction': true, 'la
   display: block;
   height: 1.4em;
   width: 16px;
+}
+
+a.disabled {
+  pointer-events: none;
+  color: #ccc;
 }</code>
     </property>
     <property>

@@ -35,6 +35,7 @@ import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
+import org.xwiki.job.JobGroupPath;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.authorization.AccessDeniedException;
@@ -51,12 +52,17 @@ import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.files.resources.logs.LogsDataResource;
 import com.xwiki.admintools.internal.uploadJob.UploadJob;
+import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.PackageUploadJobRequest;
+import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -104,6 +110,12 @@ class DefaultAdminToolsResourceTest
 
     @Mock
     private Job job;
+
+    @Mock
+    private UploadJob uploadJob;
+
+    @Mock
+    private PackageUploadJobStatus jobStatus;
 
     @BeforeComponent
     void beforeComponent()
@@ -263,12 +275,17 @@ class DefaultAdminToolsResourceTest
     }
 
     @Test
-    void uploadPackageArchiveNoJob()
+    void uploadPackageArchiveNoJob() throws JobException
     {
         List<String> jobId = List.of("adminTools", "import", "attachReference", "startTime");
         when(jobExecutor.getJob(jobId)).thenReturn(null);
-
+        when(jobExecutor.execute(eq(UploadJob.JOB_TYPE), any(PackageUploadJobRequest.class))).thenReturn(uploadJob);
+        JobGroupPath groupPath = new JobGroupPath(List.of("adminTools", "upload"));
+        when(uploadJob.getGroupPath()).thenReturn(groupPath);
+        when(this.jobExecutor.getCurrentJob(groupPath)).thenReturn(job);
+        when(uploadJob.getStatus()).thenReturn(jobStatus);
         assertEquals(202, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
+        verify(jobStatus, times(1)).addLog(any(JobResult.class));
     }
 
     @Test

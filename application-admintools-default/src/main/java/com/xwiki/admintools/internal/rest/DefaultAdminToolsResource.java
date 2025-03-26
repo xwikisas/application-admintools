@@ -47,6 +47,8 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.uploadJob.UploadJob;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 import com.xwiki.admintools.jobs.PackageUploadJobRequest;
 import com.xwiki.admintools.rest.AdminToolsResource;
 
@@ -153,7 +155,11 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             Job job = this.jobExecutor.getJob(jobId);
             if (job == null) {
                 PackageUploadJobRequest packageUploadJobRequest = new PackageUploadJobRequest(attachReference, jobId);
-                this.jobExecutor.execute(UploadJob.JOB_TYPE, packageUploadJobRequest);
+                UploadJob uploadJob = (UploadJob) this.jobExecutor.execute(UploadJob.JOB_TYPE, packageUploadJobRequest);
+                if (this.jobExecutor.getCurrentJob(uploadJob.getGroupPath()) != null) {
+                    uploadJob.getStatus()
+                        .addLog(new JobResult("adminTools.jobs.upload.start.waiting", JobResultLevel.INFO));
+                }
                 return Response.status(202).build();
             } else {
                 return Response.status(102).build();

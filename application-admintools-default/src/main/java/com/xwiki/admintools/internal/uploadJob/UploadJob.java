@@ -27,12 +27,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 import org.xwiki.job.GroupedJob;
@@ -83,7 +85,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
     @Override
     public JobGroupPath getGroupPath()
     {
-        return new JobGroupPath(List.of("adminTools", "upload", request.getFileRef()));
+        return new JobGroupPath(List.of("adminTools", "upload"));
     }
 
     @Override
@@ -154,7 +156,8 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
                         continue;
                     }
                 } catch (Exception e) {
-                    backupFailureMessage("copy", backupFile.getName(), targetFile.getName());
+                    backupFailureMessage("copy", backupFile.getName(), targetFile.getName(),
+                        ExceptionUtils.getRootCauseMessage(e));
                     successful = false;
                     continue;
                 }
@@ -182,7 +185,7 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
             try {
                 Files.deleteIfExists(file.toPath());
             } catch (IOException e) {
-                backupFailureMessage(fileType, file.getName());
+                backupFailureMessage(fileType, file.getName(), ExceptionUtils.getRootCauseMessage(e));
                 progressManager.endStep(this);
                 return false;
             }

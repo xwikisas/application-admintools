@@ -315,6 +315,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
 
   $(document).on('click', '.admintools-start-upload', function (event) {
     event.preventDefault();
+    $(this).addClass('disabled');
     let packageName = $(this).data('package-name');
     let packageRef = $(this).data('package-ref');
     let startTime = Date.now();
@@ -331,6 +332,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
       form_token: xwikiMeta.form_token,
       title: packageName
     };
+    const actionButton = $(this);
     $.ajax({
       url: new XWiki.Document(jobDocumentRef).getURL('save'),
       type: 'POST',
@@ -342,6 +344,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
       error: function (xhr, status, error) {
         console.error("Failed to create the upload page:", error);
         alert("An error occurred while creating the upload page.");
+        actionButton.removeClass('disabled');
       }
     });
   });
