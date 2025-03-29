@@ -54,4 +54,12 @@
     <module>application-admintools-ui</module>
     <module>application-admintools-xip</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <modules>
+        <module>application-admintools-test</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
