@@ -186,6 +186,7 @@ adminTools.security.changeDocumentUser.newUser.description=Choose the new user f
 adminTools.security.changeDocumentUser.newUser.placeholder=Select the new user
 adminTools.security.changeDocumentUser.fields.title=Fields to replace
 adminTools.security.changeDocumentUser.button.preview=Preview
+adminTools.security.changeDocumentUser.button.preview.hint=The next step displays the list of documents that will be modified and will ask for confirmation.
 adminTools.security.changeDocumentUser.button.confirm=Confirm
 adminTools.security.changeDocumentUser.button.cancel=Cancel
 adminTools.security.changeDocumentUser.button.back=Back to main screen
