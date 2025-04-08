@@ -33,10 +33,13 @@ import org.xwiki.job.Job;
 import org.xwiki.job.JobExecutor;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.ModelContext;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.security.authorization.SecurityRule;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
@@ -44,6 +47,7 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
+import com.xwiki.admintools.internal.security.CheckSecurityCache;
 import com.xwiki.admintools.internal.security.EntityRightsProvider;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
@@ -83,6 +87,37 @@ public class AdminToolsScriptService implements ScriptService
 
     @Inject
     private CurrentServer currentServer;
+
+    @Inject
+    private CheckSecurityCache checkSecurityCache;
+
+    /**
+     * Retrieve the cached and live security rules in a table format given by the associated template.
+     *
+     * @param userRef the user for which to check the access cache rules.
+     * @param docRef the document on which to check the security rules.
+     * @return the cached and live security rules in a table format given by the associated template.
+     * @throws AuthorizationException if any error occurs while accessing the security entry.
+     * @since 1.2
+     */
+    @Unstable
+    public String checkSecurityCache(DocumentReference userRef, DocumentReference docRef) throws AuthorizationException
+    {
+        return checkSecurityCache.displaySecurityCheck(userRef, docRef);
+    }
+
+    /**
+     * Extract the users and groups from the given {@link SecurityRule}.
+     *
+     * @param rule the rule from which to extract the data.
+     * @return a {@link Map} with the 'Users' and 'Groups' as keys and the extracted info from the rule as values.
+     * @since 1.2
+     */
+    @Unstable
+    public Map<String, String> extractRuleUsersGroups(SecurityRule rule)
+    {
+        return checkSecurityCache.extractRuleUsersGroups(rule);
+    }
 
     /**
      * Retrieves a filtered and sorted list of {@link RightsResult} representing the rights for the given parameters.
