@@ -78,7 +78,7 @@
           #if ($healthJobStatus.state != 'FINISHED')
             #displayJobProgressBar($healthJobStatus)
           #elseif ($healthJobStatus &amp;&amp; $healthJobStatus.getJobResults() &amp;&amp;
-            $healthJobStatus.getJobResults().size() > 0)
+            $healthJobStatus.getJobResults().size() &gt; 0)
             #customJobFinishedMessage($healthJobStatus, $translationPrefix)
           #end
           #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
