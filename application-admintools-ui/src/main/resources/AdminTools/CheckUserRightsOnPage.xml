@@ -121,8 +121,8 @@
       &lt;th&gt;
         $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.delete'))
       &lt;/th&gt;
-      &lt;th&gt;$
-        escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.admin'))
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.admin'))
       &lt;/th&gt;
       &lt;th&gt;
         $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.programming'))
