@@ -38,64 +38,112 @@
   <hidden>false</hidden>
   <content>{{velocity output="false"}}
 #set ($discard = $xwiki.jsx.use('XWikiProCommons.Pickers.WikiUserPicker'))
-#set ($discard = $xwiki.jsx.use('AdminTools.Code.UserPageSelectorPopulate'))
+#set ($discard = $xwiki.jsx.use('AdminTools.Code.RelativeUserAndPagePickers'))
 {{/velocity}}
 
 {{velocity}}
+#set ($targetPage = $request.rightsTargetPage)
+#set ($targetUser = $request.rightsTargetUser)
 {{html}}
 &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.description'))&lt;/p&gt;
 &lt;form class="xform" method="get" action="$doc.getURL('view')"&gt;
-&lt;dl&gt;
-  &lt;dt&gt;
-    &lt;label for="wikiName"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.common.wiki.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.common.wiki.description'))&lt;/span&gt;
-  &lt;/dt&gt;
-  &lt;dd&gt;
-    &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
-      &lt;option value=""&gt;
-        $escapetool.xml($services.localization.render('adminTools.security.common.wiki.placeholder'))
-      &lt;/option&gt;
-      #set($selectedWiki = $escapetool.xml($!request.wikiName))
-      #foreach($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
-        #set($isSelected = "")
-        #if($db == $selectedWiki)
-          #set($isSelected = "selected")
+  &lt;dl&gt;
+    &lt;dt&gt;
+      &lt;label for="wikiName"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.common.wiki.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.common.wiki.description'))&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;
+      &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
+        &lt;option value=""&gt;
+          $escapetool.xml($services.localization.render('adminTools.security.common.wiki.placeholder'))
+        &lt;/option&gt;
+        #set($selectedWiki = $escapetool.xml($!request.wikiName))
+        #foreach($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
+          #set($isSelected = "")
+          #if($db == $selectedWiki)
+            #set($isSelected = "selected")
+          #end
+          &lt;option value="$db" $isSelected&gt;$services.wiki.getById($db).getPrettyName()&lt;/option&gt;
         #end
-        &lt;option value="$db" $isSelected&gt;$services.wiki.getById($db).getPrettyName()&lt;/option&gt;
-      #end
-    &lt;/select&gt;
-  &lt;/dd&gt;
-  &lt;dt&gt;
-    &lt;label for="page"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.common.page.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.common.page.description'))&lt;/span&gt;
-  &lt;/dt&gt;
-  &lt;dd&gt;&lt;input type="text" name="page" id="page" value="$escapetool.xml("$!request.page")" placeholder="
-    $escapetool.xml($services.localization.render('adminTools.security.common.page.placeholder'))" /&gt;&lt;/dd&gt;
-  &lt;dt&gt;
-    &lt;label for="user"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.user.title'))&lt;/label&gt;
-    &lt;span class="xHint"&gt;
-      $escapetool.xml($services.localization.render('adminTools.security.common.user.description'))&lt;/span&gt;
-  &lt;/dt&gt;
-  &lt;dd&gt;&lt;input type="text" name="user" id="user" value="$escapetool.xml("$!request.user")" placeholder="
-    $escapetool.xml($services.localization.render('adminTools.security.common.user.placeholder'))"/&gt;&lt;/dd&gt;
-&lt;/dl&gt;
-  &lt;p&gt;&lt;span class="buttonwrapper"&gt;&lt;input class="button" type="submit"
-    value="$escapetool.xml($services.localization.render('adminTools.security.pageRights.button.check'))"/&gt;&lt;/span&gt;&lt;/p&gt;
+      &lt;/select&gt;
+    &lt;/dd&gt;
+    &lt;dt&gt;
+      &lt;label for="rightsTargetPage"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.common.page.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.common.page.description'))&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;&lt;input type="text" name="rightsTargetPage" id="rightsTargetPage" value="$escapetool.xml("$!targetPage")" placeholder="
+      $escapetool.xml($services.localization.render('adminTools.security.common.page.placeholder'))" /&gt;&lt;/dd&gt;
+    &lt;dt&gt;
+      &lt;label for="rightsTargetUser"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.user.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.common.user.description'))&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;&lt;input type="text" name="rightsTargetUser" id="rightsTargetUser" value="$escapetool.xml("$!targetUser")" placeholder="
+      $escapetool.xml($services.localization.render('adminTools.security.common.user.placeholder'))"/&gt;&lt;/dd&gt;
+  &lt;/dl&gt;
+  &lt;input class="button buttonwrapper" type="submit"
+    value="$escapetool.xml($services.localization.render('adminTools.security.pageRights.button.check'))"/&gt;
 &lt;/form&gt;
-{{/html}}
 
-#if($request.page &amp;&amp; $request.user)
-  = $escapetool.xml($services.localization.render('adminTools.security.pageRights.results')) =
-  #set($requestDoc = $xwiki.getDocument($request.page))
-  #set($docURL = $xwiki.getURL($request.page, 'view'))
-  #set($wikiName =$request.wikiName)
-  #set($user = $request.user)
-  |=User|=Document|=View|=Edit|=Comment|=Delete|=Admin|=Programming
-  |[[$xwiki.getUserName("${wikiName}:$user", false)&gt;&gt;$wikiName:$user]]|[[$requestDoc.getTitle()&gt;&gt;$request.page]]|$requestDoc.hasAccessLevel('view', $user)|$requestDoc.hasAccessLevel('edit', $user)|$requestDoc.hasAccessLevel('comment', $user)|$requestDoc.hasAccessLevel('delete', $user)|$requestDoc.hasAccessLevel('admin', $user)|$requestDoc.hasAccessLevel('programming', $user)
+#if($targetPage &amp;&amp; $targetUser)
+  #set ($targetDoc = $xwiki.getDocument($targetPage))
+  #set ($documentURL = $xwiki.getURL($targetPage, 'view'))
+  #set ($wikiName = $request.wikiName)
+  #set ($userReference = $targetUser)
+  #set ($userName = $xwiki.getUserName("${wikiName}:$userReference", false))
+  #set ($documentTitle = $targetDoc.getTitle())
+  #if ($documentTitle == '')
+    #set ($documentTitle = $targetDoc.getDocumentReference().getName())
+  #end
+&lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.security.pageRights.results'))&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.user'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.document'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.view'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.edit'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.comment'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.delete'))
+      &lt;/th&gt;
+      &lt;th&gt;$
+        escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.admin'))
+      &lt;/th&gt;
+      &lt;th&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.pageRights.table.header.programming'))
+      &lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href="$xwiki.getURL("${wikiName}:$userReference", 'view')"&gt;
+        $escapetool.xml($userName)&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href="$targetDoc.getURL()"&gt;$documentTitle&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('view', $userReference)&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('edit', $userReference)&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('comment', $userReference)&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('delete', $userReference)&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('admin', $userReference)&lt;/td&gt;
+      &lt;td&gt;$targetDoc.hasAccessLevel('programming', $userReference)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 #end
+{{/html}}
 {{/velocity}}</content>
 </xwikidoc>

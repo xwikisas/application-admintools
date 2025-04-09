@@ -180,6 +180,14 @@ adminTools.security.common.user.placeholder=Select a user
 adminTools.security.pageRights.description=View the rights a user has on a given document.
 adminTools.security.pageRights.button.check=Check
 adminTools.security.pageRights.results=Results
+adminTools.security.pageRights.table.header.user=User
+adminTools.security.pageRights.table.header.document=Document
+adminTools.security.pageRights.table.header.view=View
+adminTools.security.pageRights.table.header.edit=Edit
+adminTools.security.pageRights.table.header.comment=Comment
+adminTools.security.pageRights.table.header.delete=Delete
+adminTools.security.pageRights.table.header.admin=Admin
+adminTools.security.pageRights.table.header.programming=Programming
 
 
 ## Jobs

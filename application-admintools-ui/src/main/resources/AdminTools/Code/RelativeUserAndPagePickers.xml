@@ -20,9 +20,9 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.UserPageSelectorPopulate" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.RelativeUserAndPagePickers" locale="">
   <web>AdminTools.Code</web>
-  <name>UserGroupsSelectorPopulate</name>
+  <name>RelativeUserAndPagePickers</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
@@ -31,14 +31,14 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>UserPageSelectorPopulate</title>
+  <title>RelativeUserAndPagePickers</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>AdminTools.Code.UserPageSelectorPopulate</name>
+    <name>AdminTools.Code.RelativeUserAndPagePickers</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>264d5718-2095-4f90-ac85-b1cf71eb5293</guid>
@@ -132,9 +132,9 @@
   }
 });
 
-// As there is no platform implementation to allow the user to dynamically select the page from where the attachments
-// are shown, a custom implementation was made to dynamically update the displyed attachments in corelation to the
-// selected page parameter. This can be removed after the implementation of:
+// As there is no platform implementation to allow the user to dynamically select the page from where the users and
+// pages are shown, a custom implementation was made to dynamically update the displayed picker options in correlation
+// to the selected wiki parameter. This can be removed after the implementation of:
 // XWIKI-22850: Add an option in a macro parameter to select the page/space for attachment suggestions
 // XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
 require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers'], function($, xm) {
@@ -142,7 +142,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers']
     let selectize = element.siblings('.selectize-control');
     if (selectize.length) {
       selectize.remove();
-      element.removeAttr("class tabindex style").val('');
+      element.removeAttr('class tabindex style').val('');
       const clone = element.clone().appendTo(element.parent());
       element.remove();
       element = clone;
@@ -151,17 +151,17 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers']
   }
 
   const initializePages = function(selectElement) {
-    let scope = "wiki:";
+    let scope = 'wiki:';
     if (selectElement.val() != null) {
       scope += selectElement.val();
     }
-    var inputElement = $('input[name="page"]');
-    var usersElement = $('input[name="user"]');
-    if (inputElement.length) {
-      inputElement = removeSelectize(inputElement)
+    var pageElement = $('input[name="rightsTargetPage"]');
+    var usersElement = $('input[name="rightsTargetUser"]');
+    if (pageElement.length) {
+      pageElement = removeSelectize(pageElement)
       usersElement = removeSelectize(usersElement)
       const allowUpload = selectElement.val() == xm.document || !selectElement.val();
-      inputElement.suggestPages({
+      pageElement.suggestPages({
         maxItems: 1,
         searchScope: scope
       });
@@ -176,7 +176,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers']
     const selectElement = $('select[name="wikiName"]');
 
     if (selectElement.length) {
-      const parentElement = selectElement.closest(".xform")[0];
+      const parentElement = selectElement.closest('.xform')[0];
 
       if (parentElement) {
         selectElement.off('change').on('change', function () {
