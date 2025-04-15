@@ -38,7 +38,7 @@
   <hidden>false</hidden>
   <content>{{velocity}}
 #set ($discard = $xwiki.jsx.use('XWikiProCommons.Pickers.WikiUserPicker'))
-#set ($discard = $xwiki.jsx.use('AdminTools.Code.UserPageSelectorPopulate'))
+#set ($discard = $xwiki.jsx.use('AdminTools.Code.RelativeUserAndPagePickers'))
 $escapetool.xml($services.localization.render('adminTools.security.securityCache.description'))
 
 {{html clean='false'}}
