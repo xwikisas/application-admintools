@@ -101,6 +101,8 @@
             <contentPage>.*/AdminTools/WikisSize\.xml</contentPage>
             <contentPage>.*/AdminTools/SpammedPages\.xml</contentPage>
             <contentPage>.*/AdminTools/EmptyPages\.xml</contentPage>
+            <contentPage>.*/AdminTools/UploadPackage\.xml</contentPage>
+            <contentPage>.*/AdminTools/Packages/WebHome\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>
