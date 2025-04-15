@@ -159,6 +159,7 @@ adminTools.dashboard.security.title=Security
 adminTools.dashboard.security.detailed.title=Detailed security view
 adminTools.dashboard.security.detailed.groupsRights=View given groups rights
 adminTools.dashboard.security.detailed.usersRights=View given users rights
+adminTools.dashboard.security.detailed.pageRights=View user rights on page
 adminTools.security.livedata.wikiName=Wiki name
 adminTools.security.livedata.type=Type of rights
 adminTools.security.livedata.space=Space
@@ -167,6 +168,27 @@ adminTools.security.livedata.users=User
 adminTools.security.livedata.groups=Group
 adminTools.security.livedata.level=Security levels
 adminTools.security.livedata.policy=Security policy
+adminTools.security.common.wiki.title=Wiki
+adminTools.security.common.wiki.description=Select the wiki from which to retrieve the users. If the field is empty, the current wiki will be used.
+adminTools.security.common.wiki.placeholder=Select wiki
+adminTools.security.common.page.title=Page
+adminTools.security.common.page.description=Choose a document from the selected wiki above.
+adminTools.security.common.page.placeholder=Select a document
+adminTools.security.common.user.title=User
+adminTools.security.common.user.description=Choose a user from the selected wiki above.
+adminTools.security.common.user.placeholder=Select a user
+adminTools.security.pageRights.description=View the rights a user has on a given document.
+adminTools.security.pageRights.button.check=Check
+adminTools.security.pageRights.results=Results
+adminTools.security.pageRights.table.header.user=User
+adminTools.security.pageRights.table.header.document=Document
+adminTools.security.pageRights.table.header.view=View
+adminTools.security.pageRights.table.header.edit=Edit
+adminTools.security.pageRights.table.header.comment=Comment
+adminTools.security.pageRights.table.header.delete=Delete
+adminTools.security.pageRights.table.header.admin=Admin
+adminTools.security.pageRights.table.header.programming=Programming
+
 
 ## Upload job
 adminTools.jobs.result.hint=Job results

@@ -52,6 +52,9 @@
         <li><a href="$xwiki.getURL("AdminTools.ViewUsersRights")" target="_blank">
             $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.usersRights'))
           </a></li>
+        <li><a href="$xwiki.getURL("AdminTools.CheckUserRightsOnPage")" target="_blank">
+          $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.pageRights'))
+          </a></li>
       </ul>
     </div>
   </div>
