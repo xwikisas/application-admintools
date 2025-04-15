@@ -22,6 +22,7 @@ package com.xwiki.admintools.internal.rest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.job.Job;
+import org.xwiki.job.JobExecutor;
 import org.xwiki.rest.internal.resources.pages.ModifiablePageResource;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -43,6 +46,10 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.uploadJob.UploadJob;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
+import com.xwiki.admintools.jobs.PackageUploadJobRequest;
 import com.xwiki.admintools.rest.AdminToolsResource;
 
 /**
@@ -63,6 +70,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
      */
     @Inject
     private ImportantFilesManager importantFilesManager;
+
+    @Inject
+    private JobExecutor jobExecutor;
 
     @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
@@ -131,6 +141,34 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             logger.warn("Failed to flush instance cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response uploadPackageArchive(String attachReference, String startTime)
+    {
+        try {
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+
+            List<String> jobId = List.of("adminTools", "upload", attachReference, startTime);
+            Job job = this.jobExecutor.getJob(jobId);
+            if (job == null) {
+                PackageUploadJobRequest packageUploadJobRequest = new PackageUploadJobRequest(attachReference, jobId);
+                UploadJob uploadJob = (UploadJob) this.jobExecutor.execute(UploadJob.JOB_TYPE, packageUploadJobRequest);
+                if (this.jobExecutor.getCurrentJob(uploadJob.getGroupPath()) != null) {
+                    uploadJob.getStatus()
+                        .addLog(new JobResult("adminTools.jobs.upload.start.waiting", JobResultLevel.INFO));
+                }
+                return Response.status(202).build();
+            } else {
+                return Response.status(102).build();
+            }
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to begin the package upload due to insufficient rights.");
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        } catch (Exception e) {
+            logger.warn("Failed to begin package upload job. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
