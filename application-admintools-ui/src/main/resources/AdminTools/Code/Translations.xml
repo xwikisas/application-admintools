@@ -159,6 +159,7 @@ adminTools.dashboard.security.title=Security
 adminTools.dashboard.security.detailed.title=Detailed security view
 adminTools.dashboard.security.detailed.groupsRights=View given groups rights
 adminTools.dashboard.security.detailed.usersRights=View given users rights
+adminTools.dashboard.security.detailed.pageRights=View user rights on page
 adminTools.dashboard.security.detailed.documentUser=Change user fields from document
 adminTools.security.livedata.wikiName=Wiki name
 adminTools.security.livedata.type=Type of rights
@@ -168,6 +169,26 @@ adminTools.security.livedata.users=User
 adminTools.security.livedata.groups=Group
 adminTools.security.livedata.level=Security levels
 adminTools.security.livedata.policy=Security policy
+adminTools.security.common.wiki.title=Wiki
+adminTools.security.common.wiki.description=Select the wiki from which to retrieve the users. If the field is empty, the current wiki will be used.
+adminTools.security.common.wiki.placeholder=Select wiki
+adminTools.security.common.page.title=Page
+adminTools.security.common.page.description=Choose a document from the selected wiki above.
+adminTools.security.common.page.placeholder=Select a document
+adminTools.security.common.user.title=User
+adminTools.security.common.user.description=Choose a user from the selected wiki above.
+adminTools.security.common.user.placeholder=Select a user
+adminTools.security.pageRights.description=View the rights a user has on a given document.
+adminTools.security.pageRights.button.check=Check
+adminTools.security.pageRights.results=Results
+adminTools.security.pageRights.table.header.user=User
+adminTools.security.pageRights.table.header.document=Document
+adminTools.security.pageRights.table.header.view=View
+adminTools.security.pageRights.table.header.edit=Edit
+adminTools.security.pageRights.table.header.comment=Comment
+adminTools.security.pageRights.table.header.delete=Delete
+adminTools.security.pageRights.table.header.admin=Admin
+adminTools.security.pageRights.table.header.programming=Programming
 adminTools.security.changeDocumentUser.description=Replace all occurences of the old user with the new user for the selected fields of existing documents inside the current wiki. Based on the affected fields, this will also grant the affected documents the rights of the new user, instead of those of the old user.
 adminTools.security.changeDocumentUser.contentAuthor=Gives affected document Programming or Script rights, if the new user has them, allowing existing scripts or protected API calls inside that document to be executed when the document is viewed.
 adminTools.security.changeDocumentUser.author=Gives affected document Admin or Programming rights, if the new user has them, allowing special objects (wiki macros, wiki components, UIX, translations) to be registered at a wiki or global level. Also updates the value displayed on the documents [Last modified by] section with the new user.
@@ -196,8 +217,43 @@ adminTools.security.changeDocumentUser.apply.summary=Update fields {0} from user
 adminTools.security.changeDocumentUser.apply.status=Done
 
 
-## Jobs
+## Upload job
 adminTools.jobs.result.hint=Job results
+adminTools.jobs.upload.start.fail=Failed to start job for file [{0}] at time [{1}].
+adminTools.jobs.upload.start.waiting=Waiting for a similar job to finish...
+adminTools.jobs.upload.message.success=Upload was successful!
+adminTools.jobs.upload.backup.success=Backup file [{0}] created for file [{1}].
+adminTools.jobs.upload.backup.fail=Could not create backup file [{0}] for file [{1}].
+adminTools.jobs.upload.assessoriginal.fail=Unable to correctly assess the original file for [{0}].
+adminTools.jobs.upload.save.success=Successfully uploaded file [{0}].
+adminTools.jobs.upload.save.fail=Failed to upload [{0}]. Reason: failed to rename original file [{1}].
+adminTools.jobs.upload.batch.restore.backup.fail=Manual action required: failed to automatically remove backup file [{0}]. Root cause: [{1}]
+adminTools.jobs.upload.batch.restore.target.fail=Manual action required: failed to automatically remove new file [{0}]. Root cause: [{1}]
+adminTools.jobs.upload.batch.restore.copy.fail=Manual action required: failed to automatically restore backup file [{0}] for new file [{1}]. Root cause: [{2}]
+adminTools.jobs.upload.batch.restore.file.success=Successfully restored backup and removed new file [{0}].
+adminTools.jobs.upload.batch.restore.success=Backup restored with success.
+adminTools.jobs.upload.batch.restore.fail=There were issues while trying to restore the backup. Please consult the log.
+adminTools.jobs.upload.fail=There was an error while processing the archive. Attempting to restore backup...
+adminTools.jobs.upload.success=Upload finished with success.
+adminTools.jobs.upload.state.none=NO JOB FOUND
+adminTools.jobs.upload.state.waiting=WAITING
+adminTools.jobs.upload.state.running=RUNNING
+adminTools.jobs.upload.state.error=ERROR
+adminTools.jobs.upload.state.warn=WARNING
+adminTools.jobs.upload.state.success=DONE
+adminTools.jobs.upload.state.noinfo=NO INFO
+
+
+##Packages
+adminTools.packages.upload.livetable.doc.title=Package name
+adminTools.packages.upload.livetable.job_status=Upload status
+adminTools.packages.upload.livetable.doc.author=Initiator
+adminTools.packages.upload.livetable.doc.date=Upload date
+adminTools.packages.upload.livedata.title=Choose or load a package to upload
+adminTools.packages.started.livedata.title=Uploaded packages
+adminTools.packages.dashboard.uploadpackages=Upload a package
+adminTools.packages.return=Return to the upload overview
+adminTools.packages.livetable._actions.upload=Unzip and upload the selected package
 
 
 ##Help links

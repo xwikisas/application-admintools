@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal.rest;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Provider;
@@ -31,6 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.job.Job;
+import org.xwiki.job.JobException;
+import org.xwiki.job.JobExecutor;
+import org.xwiki.job.JobGroupPath;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.authorization.AccessDeniedException;
@@ -41,15 +46,23 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.files.resources.logs.LogsDataResource;
+import com.xwiki.admintools.internal.uploadJob.UploadJob;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.PackageUploadJobRequest;
+import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +93,9 @@ class DefaultAdminToolsResourceTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    private JobExecutor jobExecutor;
+
     @Mock
     private DocumentReference user;
 
@@ -88,6 +104,18 @@ class DefaultAdminToolsResourceTest
 
     @Mock
     private Logger logger;
+
+    @Mock
+    private XWiki xwiki;
+
+    @Mock
+    private Job job;
+
+    @Mock
+    private UploadJob uploadJob;
+
+    @Mock
+    private PackageUploadJobStatus jobStatus;
 
     @BeforeComponent
     void beforeComponent()
@@ -209,5 +237,81 @@ class DefaultAdminToolsResourceTest
         when(importantFilesManager.getFile(LogsDataResource.HINT, params)).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("");
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
+    }
+
+    @Test
+    void flushCacheNoRights() throws AccessDeniedException
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.flushCache();
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        verify(logger).warn("Failed to flush the cache due to restricted rights.");
+    }
+
+    @Test
+    void flushCache()
+    {
+        when(xWikiContext.getWiki()).thenReturn(xwiki);
+        assertEquals(200, defaultAdminToolsResource.flushCache().getStatus());
+    }
+
+    @Test
+    void uploadPackageArchiveNoRights() throws AccessDeniedException
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.uploadPackageArchive("", "");
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        verify(logger).warn("Failed to begin the package upload due to insufficient rights.");
+    }
+
+    @Test
+    void uploadPackageArchiveNoJob() throws JobException
+    {
+        List<String> jobId = List.of("adminTools", "import", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(null);
+        when(jobExecutor.execute(eq(UploadJob.JOB_TYPE), any(PackageUploadJobRequest.class))).thenReturn(uploadJob);
+        JobGroupPath groupPath = new JobGroupPath(List.of("adminTools", "upload"));
+        when(uploadJob.getGroupPath()).thenReturn(groupPath);
+        when(this.jobExecutor.getCurrentJob(groupPath)).thenReturn(job);
+        when(uploadJob.getStatus()).thenReturn(jobStatus);
+        assertEquals(202, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
+        verify(jobStatus, times(1)).addLog(any(JobResult.class));
+    }
+
+    @Test
+    void uploadPackageArchiveJobFound()
+    {
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(job);
+
+        assertEquals(102, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
+    }
+
+    @Test
+    void uploadPackageArchiveError() throws JobException
+    {
+        when(logger.isWarnEnabled()).thenReturn(true);
+        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(null);
+        when(jobExecutor.execute(UploadJob.JOB_TYPE, new PackageUploadJobRequest("attachReference", jobId))).thenThrow(
+            new JobException("error when executing the job"));
+
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime");
+        });
+        assertEquals(500, exception.getResponse().getStatus());
+        verify(logger).warn("Failed to begin package upload job. Root cause: [{}]",
+            "JobException: error when executing the job");
     }
 }
