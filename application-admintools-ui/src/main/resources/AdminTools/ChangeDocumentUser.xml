@@ -90,7 +90,7 @@
 #set ($hasSubWikis = ($currentWikiId == $mainWikiId) &amp;&amp; $services.wiki.getAllIds().size() &gt; 1)
 {{html}}
 #if ($oldUser != '' &amp;&amp; $newUser != '' &amp;&amp; "$!fields" != '')
-  #set ($requestWikiId = $request.wikiName)
+  #set ($requestWikiId = $request.targetWiki)
   #if ($xwiki.exists($newUser))
     #set ($newUserReference = $services.model.resolveDocument($newUser))
   #else
@@ -101,13 +101,13 @@
     #set ($requestFactory = $services.refactoring.getRequestFactory())
     #set ($request = $requestFactory.createReplaceUserRequest($oldUserRef, $newUserReference))
     #if ($fields.contains('author'))
-      #set($disccard = $request.setReplaceDocumentAuthor(true))
+      #set($discard = $request.setReplaceDocumentAuthor(true))
     #end
     #if ($fields.contains('contentAuthor'))
-      #set($disccard = $request.setReplaceDocumentContentAuthor(true))
+      #set($discard = $request.setReplaceDocumentContentAuthor(true))
     #end
     #if ($fields.contains('creator'))
-      #set($disccard = $request.setReplaceDocumentCreator(true))
+      #set($discard = $request.setReplaceDocumentCreator(true))
     #end
     #set ($job = $services.refactoring.replaceUser($request))
     #template('job_macros.vm')
@@ -138,7 +138,7 @@
       &lt;ul&gt;
       #set ($documentsToUpdate = $documentsPerWikiToUpdate.get($wikiId))
       #set ($prefix = "${wikiId}:")
-      #set ($prefixUser = "")
+      #set ($prefixUser = '')
       #if ($hasSubWikis &amp;&amp; $wikiId != $mainWikiId &amp;&amp; $requestWikiId == '')
         #set ($prefixUser = "${mainWikiId}:")
       #end
@@ -163,7 +163,7 @@
     &lt;form class='xform'&gt;
       &lt;dl&gt;
         &lt;dt&gt;
-          &lt;input type='hidden' name='wikiName' value="$escapetool.xml($requestWikiId)" /&gt;
+          &lt;input type='hidden' name='targetWiki' value="$escapetool.xml($requestWikiId)" /&gt;
           &lt;input type='hidden' name='oldUser' value="$escapetool.xml($oldUser)" /&gt;
           &lt;input type='hidden' name='newUser' value="$escapetool.xml($newUser)" /&gt;
           #foreach ($field in $fields)
@@ -191,71 +191,74 @@
       $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.creator'))&lt;/li&gt;
   &lt;/ul&gt;
   &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.requirements'))&lt;/p&gt;
-  &lt;form class='xform'&gt;
-    &lt;dl&gt;
-      &lt;dt&gt;
-        &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.wiki.title'))&lt;/label&gt;
-        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.wiki.description'))&lt;/span&gt;
-      &lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
-          &lt;option value=""&gt;$escapetool.xml($services.localization.render(
-            'adminTools.security.changeDocumentUser.wiki.placeholder'))&lt;/option&gt;
-          #set ($selectedWiki = $escapetool.xml($!request.wikiName))
-          #foreach ($db in $services.wiki.getAllIds())
-            #set ($isSelected = "")
-            #if ($db == $selectedWiki)
-              #set ($isSelected = "selected")
-            #end
-            &lt;option value="$db" $isSelected&gt;$services.wiki.getById($db).getPrettyName()&lt;/option&gt;
+  &lt;form class="xform"&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label for="targetWiki"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.title'))
+      &lt;/label&gt;
+      &lt;span id="targetWikiHint" class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.description'))
+      &lt;/span&gt;
+      &lt;select name="targetWiki" id="targetWiki" class="xwiki-selectize" aria-describedby="targetWikiHint"&gt;
+        &lt;option value=""&gt;
+          $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.wiki.placeholder'))
+        &lt;/option&gt;
+        #set ($selectedWiki = $escapetool.xml($!request.targetWiki))
+        #foreach ($db in $services.wiki.getAllIds())
+          #set ($isSelected = '')
+          #if ($db == $selectedWiki)
+            #set ($isSelected = 'selected')
           #end
-        &lt;/select&gt;
-      &lt;/dd&gt;
-      &lt;dt&gt;
-        &lt;label for='oldUser'&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.oldUser.title'))&lt;/label&gt;
-        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.oldUser.description'))&lt;/span&gt;
-      &lt;/dt&gt;
-      ## Can be existing or deleted user, so it makes sense to use a suggest widget.
-      &lt;dd&gt;&lt;input class='suggestUsers' type='text' name='oldUser' id='oldUser'
-        #if ($oldUser != '')value="$escapetool.xml($oldUser)"#end
-        placeholder=
-        "$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.placeholder'))"/&gt;
-      &lt;/dd&gt;
-      &lt;dt&gt;
-        &lt;label&gt;
-          $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.fields.title'))
-        &lt;/label&gt;
-      &lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;label&gt;&lt;input type='checkbox' name='field' value='author'
-          #if (!$request.askConfirmation || $fields.contains('author'))checked="checked"#end /&gt;author&lt;/label&gt;
-        &lt;br/&gt;
-        &lt;label&gt;&lt;input type='checkbox' name='field' value='contentAuthor'
-          #if (!$request.askConfirmation || $fields.contains('contentAuthor'))checked="checked"#end /&gt;contentAuthor
-        &lt;/label&gt;
-        &lt;br/&gt;
-        &lt;label&gt;&lt;input type='checkbox' name='field' value='creator'
-          #if ($fields.contains('creator'))checked="checked"#end /&gt;creator&lt;/label&gt;
-      &lt;/dd&gt;
-      &lt;dt&gt;
-        &lt;label for='newUser&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.newUser.title'))&lt;/label&gt;
-        &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
-          'adminTools.security.changeDocumentUser.newUser.description'))&lt;/span&gt;
-      &lt;/dt&gt;
-      &lt;dd&gt;
-        &lt;input class='suggestUsers' type='text' name='newUser' id='newUser'
-          #if ($newUser != '')value="$escapetool.xml($newUser)"#{else}value="$escapetool.xml(${xcontext.user})"#end
-          placeholder=
-          "$escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.placeholder'))"/&gt;
-      &lt;/dd&gt;
-    &lt;/dl&gt;
-    &lt;div&gt;
-      &lt;input type='submit' name='askConfirmation' class='button' value="$escapetool.xml($services.localization.render(
+          &lt;option value="$db" $isSelected&gt;$services.wiki.getById($db).getPrettyName()&lt;/option&gt;
+        #end
+      &lt;/select&gt;
+    &lt;/div&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label for="oldUser"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.title'))
+      &lt;/label&gt;
+      &lt;span id="oldUserHint" class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.description'))
+      &lt;/span&gt;
+      &lt;input class="suggestUsers" type="text" name="oldUser" id="oldUser"
+        #if ($oldUser != '')value="$escapetool.xml($oldUser)"#end aria-describedby="oldUserHint" placeholder="
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.oldUser.placeholder'))"/&gt;
+    &lt;/div&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.fields.title'))
+      &lt;/legend&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="field-author" name="field" value="author"
+          #if (!$request.askConfirmation || $fields.contains('author'))checked="checked"#end /&gt;
+        &lt;label for="field-author"&gt;author&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="field-contentAuthor" name="field" value="contentAuthor"
+          #if (!$request.askConfirmation || $fields.contains('contentAuthor'))checked="checked"#end /&gt;
+        &lt;label for="field-contentAuthor"&gt;contentAuthor&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="field-creator" name="field" value="creator"
+          #if ($fields.contains('creator'))checked="checked"#end /&gt;
+        &lt;label for="field-creator"&gt;creator&lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/fieldset&gt;
+    &lt;br&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label for="newUser"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.title'))
+      &lt;/label&gt;
+      &lt;span id="newUserHint" class="xHint"&gt;
+        $escapetool.xml($services.localization.render('adminTools.security.changeDocumentUser.newUser.description'))
+      &lt;/span&gt;
+      &lt;input class="suggestUsers" type="text" name="newUser" id="newUser"
+        #if ($newUser != '')value="$escapetool.xml($newUser)"#{else}value="$escapetool.xml(${xcontext.user})"#end
+        aria-describedby="newUserHint" placeholder="$escapetool.xml($services.localization.render(
+        'adminTools.security.changeDocumentUser.newUser.placeholder'))"/&gt;
+    &lt;/div&gt;
+    &lt;div class="form-actions"&gt;
+      &lt;input type="submit" name="askConfirmation" class="button" value="$escapetool.xml($services.localization.render(
         'adminTools.security.changeDocumentUser.button.preview'))" title="$escapetool.xml($services.localization.render(
         'adminTools.security.changeDocumentUser.button.preview.hint'))" /&gt;
     &lt;/div&gt;
@@ -358,9 +361,9 @@
   }
 });
 
-// As there is no platform implementation to allow the user to dynamically select the page from where the attachments
-// are shown, a custom implementation was made to dynamically update the displyed attachments in corelation to the
-// selected page parameter. This can be removed after the implementation of:
+// As there is no platform implementation to allow the user to dynamically select the page from where the users and
+// pages are shown, a custom implementation was made to dynamically update the displayed picker options in correlation
+// to the selected wiki parameter. This can be removed after the implementation of:
 // XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
 require(['jquery', 'xwiki-meta', 'xwiki-suggestWikiUsers'], function($, xm) {
   const removeSelectize = function(element) {
@@ -381,7 +384,6 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestWikiUsers'], function($, xm) {
     if (newUserElement.length) {
       newUserElement = removeSelectize(newUserElement)
       oldUserElement = removeSelectize(oldUserElement)
-      const allowUpload = selectElement.val() == xm.document || !selectElement.val();
       newUserElement.suggestWikiUsers({
         maxItems: 1,
         wikiId: selectElement.val(),
@@ -394,23 +396,12 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestWikiUsers'], function($, xm) {
     }
   }
 
-  const changeSelectSubwikiState = function(selectElement) {
-    const subwikiCheckbox = $('#subwikis');
-    const currentWiki = new XWiki.Document(xm.documentReference).wiki
-    if (selectElement.val() !== currentWiki &amp;&amp; selectElement.val() !== '') {
-      subwikiCheckbox.prop('checked', false).prop('disabled', true);
-    } else {
-      subwikiCheckbox.prop('disabled', false);
-    }
-  }
-
   $(document).ready(function () {
-    const selectElement = $('select[name="wikiName"]');
+    const selectElement = $('select[name="targetWiki"]');
     if (selectElement.length) {
       const parentElement = selectElement.closest(".xform")[0];
       if (parentElement) {
         selectElement.off('change').on('change', function () {
-          changeSelectSubwikiState($(this))
           initializePages($(this));
         });
         initializePages(selectElement);
