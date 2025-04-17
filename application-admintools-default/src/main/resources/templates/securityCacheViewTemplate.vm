@@ -23,7 +23,7 @@
     #if($ruleEntry)
       <ul>
       #foreach ($rule in $ruleEntry.getRules())
-        <li>Rule:</li>
+        <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.rule'))</li>
         #set ($rightsList = [])
         #foreach ($right in $rights)
           #if ($rule.match($right))
@@ -32,13 +32,17 @@
         #end
         #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
         <ul>
-          <li>State: $rule.getState()</li>
-          <li>Rights: $stringtool.join($rightsList, ", ")</li>
+          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.state',
+            [$rule.getState()]))</li>
+          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.rights',
+            [$stringtool.join($rightsList, ', ')]))</li>
           #if (!$ruleUsersGroups.get('Users').isEmpty())
-            <li>Users: $ruleUsersGroups.get('Users')</li>
+            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.users',
+              [$ruleUsersGroups.get('Users')]))</li>
           #end
           #if (!$ruleUsersGroups.get('Groups').isEmpty())
-            <li>Groups: $ruleUsersGroups.get('Groups')</li>
+            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.groups',
+              [$ruleUsersGroups.get('Groups')]))</li>
           #end
         </ul>
       #end
@@ -97,11 +101,15 @@
         <tr>
           <td>
             <ul>
-              <li>User: $xwiki.getUserName($accessEntry.getUserReference().getOriginalReference())</li>
+              <li>$xwiki.getUserName($accessEntry.getUserReference().getOriginalReference())</li>
               #if ($accessEntry.getReference().getOriginalDocumentReference())
                 #set($entityDoc = $xwiki.getDocument($accessEntry.getReference().getOriginalDocumentReference()))
                 <li>
-                  Document <a href="$entityDoc.getURL()">$entityDoc.getDisplayTitle()</a>
+                  #set ($translationParameter = "__linkStart__$entityDoc.getDisplayTitle()__linkEnd__")
+                  #set ($documentURL = $escapetool.xml($services.localization.render(
+                  'adminTools.security.securityCache.access.table.td.document', [$translationParameter])).replace(
+                  '__linkStart__', "<a href='$entityDoc.getURL()'>").replace('__linkEnd__', '</a>'))
+                  $documentURL
                 </li>
               #else
                 <li>$accessEntry.getReference().getOriginalReference()</li>

@@ -45,12 +45,15 @@ $escapetool.xml($services.localization.render('adminTools.security.securityCache
 &lt;form class='xform'&gt;
   &lt;dl&gt;
     &lt;dt&gt;
-      &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.wiki.title'))&lt;/label&gt;
-      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.wiki.description'))&lt;/span&gt;
+      &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.wiki.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.wiki.description'))&lt;/span&gt;
     &lt;/dt&gt;
     &lt;dd&gt;
       &lt;select name="wikiName" id="wikiName" class="xwiki-selectize"&gt;
-        &lt;option value=""&gt;$escapetool.xml($services.localization.render('adminTools.security.common.wiki.placeholder'))&lt;/option&gt;
+        &lt;option value=""&gt;$escapetool.xml($services.localization.render(
+          'adminTools.security.common.wiki.placeholder'))&lt;/option&gt;
         #set ($selectedWiki = $escapetool.xml($!request.wikiName))
         #foreach ($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
           &lt;option value="$db" #if("$db" == "$selectedWiki") selected #end&gt;
@@ -61,34 +64,37 @@ $escapetool.xml($services.localization.render('adminTools.security.securityCache
     &lt;/dd&gt;
 
     &lt;dt&gt;
-      &lt;label for="page"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.page.title'))&lt;/label&gt;
-      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.page.description'))&lt;/span&gt;
+      &lt;label for="rightsTargetPage"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.page.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.page.description'))&lt;/span&gt;
     &lt;/dt&gt;
     &lt;dd&gt;
-      &lt;input type="text" name="page" id="page" value="#if ($request.page)$request.page#{else}$doc.documentReference#end"
-        placeholder="$escapetool.xml($services.localization.render('adminTools.security.common.page.placeholder'))"/&gt;
+      &lt;input type="text" name="rightsTargetPage" id="rightsTargetPage" value="
+        #if ($request.rightsTargetPage)$request.rightsTargetPage#end" placeholder="$escapetool.xml(
+        $services.localization.render('adminTools.security.common.page.placeholder'))"/&gt;
     &lt;/dd&gt;
 
     &lt;dt&gt;
-      &lt;label for="user"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.user.title'))&lt;/label&gt;
-      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render('adminTools.security.common.user.description'))&lt;/span&gt;
+      &lt;label for="rightsTargetUser"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.user.title'))&lt;/label&gt;
+      &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
+        'adminTools.security.common.user.description'))&lt;/span&gt;
     &lt;/dt&gt;
     &lt;dd&gt;
-      &lt;input type="text" name="user" id="user" value="#if ($request.user)$request.user#{else}$xcontext.getUserReference()#end"
+      &lt;input type="text" name="rightsTargetUser" id="rightsTargetUser" value=
+        "#if ($request.rightsTargetUser)$request.rightsTargetUser#{else}$xcontext.getUserReference()#end"
         placeholder="$escapetool.xml($services.localization.render('adminTools.security.common.user.placeholder'))"/&gt;
     &lt;/dd&gt;
   &lt;/dl&gt;
-
-  &lt;span class="buttonwrapper"&gt;
-    &lt;input type="submit" class="button"
-      value="$escapetool.xml($services.localization.render('adminTools.security.pageRights.button.check'))"/&gt;
-  &lt;/span&gt;
+  &lt;input type="submit" class="button buttonwrapper" value="$escapetool.xml($services.localization.render(
+    'adminTools.security.pageRights.button.check'))"/&gt;
 &lt;/form&gt;
 
 
-#if ($request.page &amp;&amp; $request.user)
-  #set ($userRef = $services.model.resolveDocument($request.user))
-  #set ($docRef = $services.model.resolveDocument($request.page))
+#if ($request.rightsTargetPage &amp;&amp; $request.rightsTargetUser)
+  #set ($userRef = $services.model.resolveDocument($request.rightsTargetUser))
+  #set ($docRef = $services.model.resolveDocument($request.rightsTargetPage))
   $services.admintools.checkSecurityCache($userRef, $docRef)
 #end
 {{/html}}
