@@ -23,7 +23,7 @@
     #if($ruleEntry)
       <ul>
       #foreach ($rule in $ruleEntry.getRules())
-        <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.rule'))</li>
+        <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.rule'))</li>
         #set ($rightsList = [])
         #foreach ($right in $rights)
           #if ($rule.match($right))
@@ -32,16 +32,16 @@
         #end
         #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
         <ul>
-          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.state',
+          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table..state',
             [$rule.getState()]))</li>
-          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.rights',
+          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.rights',
             [$stringtool.join($rightsList, ', ')]))</li>
           #if (!$ruleUsersGroups.get('Users').isEmpty())
-            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.users',
+            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.users',
               [$ruleUsersGroups.get('Users')]))</li>
           #end
           #if (!$ruleUsersGroups.get('Groups').isEmpty())
-            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.td.groups',
+            <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.groups',
               [$ruleUsersGroups.get('Groups')]))</li>
           #end
         </ul>
@@ -55,12 +55,12 @@
 #macro (renderRulesTableRows $cachedEntries $liveEntries)
   <table border="1">
     <tr>
-      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.entity'))</th>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.entity'))</th>
       <th>
-        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.cachedRule'))
+        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.cachedRule'))
       </th>
       <th>
-        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.th.liveRule'))
+        $escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.liveRule'))
       </th>
     </tr>
     #set ($size = $liveEntries.size() - 1)
@@ -93,8 +93,8 @@
   <h2>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.title'))</h2>
   <table border="1">
     <tr>
-      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.th.ref'))</th>
-      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.th.access'))</th>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.ref'))</th>
+      <th>$escapetool.xml($services.localization.render('adminTools.security.securityCache.access.table.access'))</th>
     </tr>
     #foreach ($accessEntry in $cachedAccessEntries)
       #if ($accessEntry)

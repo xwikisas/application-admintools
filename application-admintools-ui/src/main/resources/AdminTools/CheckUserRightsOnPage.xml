@@ -49,17 +49,17 @@
 &lt;form class="xform" method="get" action="$doc.getURL('view')"&gt;
   &lt;dl&gt;
     &lt;dt&gt;
-      &lt;label for="wikiName"&gt;
+      &lt;label for="targetWikiName"&gt;
         $escapetool.xml($services.localization.render('adminTools.security.common.wiki.title'))&lt;/label&gt;
       &lt;span class="xHint"&gt;
         $escapetool.xml($services.localization.render('adminTools.security.common.wiki.description'))&lt;/span&gt;
     &lt;/dt&gt;
     &lt;dd&gt;
-      &lt;select name="wikiName" id="wikiName" class="xwiki-selectize" &gt;
+      &lt;select name="targetWikiName" id="targetWikiName" class="xwiki-selectize" &gt;
         &lt;option value=""&gt;
           $escapetool.xml($services.localization.render('adminTools.security.common.wiki.placeholder'))
         &lt;/option&gt;
-        #set($selectedWiki = $escapetool.xml($!request.wikiName))
+        #set($selectedWiki = $escapetool.xml($!request.targetWikiName))
         #foreach($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
           #set($isSelected = "")
           #if($db == $selectedWiki)
@@ -92,9 +92,9 @@
 #if($targetPage &amp;&amp; $targetUser)
   #set ($targetDoc = $xwiki.getDocument($targetPage))
   #set ($documentURL = $xwiki.getURL($targetPage, 'view'))
-  #set ($wikiName = $request.wikiName)
+  #set (targetWikiName = $request.targetWikiName)
   #set ($userReference = $targetUser)
-  #set ($userName = $xwiki.getUserName("${wikiName}:$userReference", false))
+  #set ($userName = $xwiki.getUserName("${targetWikiName}:$userReference", false))
   #set ($documentTitle = $targetDoc.getTitle())
   #if ($documentTitle == '')
     #set ($documentTitle = $targetDoc.getDocumentReference().getName())
@@ -131,7 +131,7 @@
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td&gt;&lt;a href="$xwiki.getURL("${wikiName}:$userReference", 'view')"&gt;
+      &lt;td&gt;&lt;a href="$xwiki.getURL("${targetWikiName}:$userReference", 'view')"&gt;
         $escapetool.xml($userName)&lt;/a&gt;&lt;/td&gt;
       &lt;td&gt;&lt;a href="$targetDoc.getURL()"&gt;$documentTitle&lt;/a&gt;&lt;/td&gt;
       &lt;td&gt;$targetDoc.hasAccessLevel('view', $userReference)&lt;/td&gt;

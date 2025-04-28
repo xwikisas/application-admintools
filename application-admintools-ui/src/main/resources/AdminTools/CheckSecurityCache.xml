@@ -45,16 +45,16 @@ $escapetool.xml($services.localization.render('adminTools.security.securityCache
 &lt;form class='xform'&gt;
   &lt;dl&gt;
     &lt;dt&gt;
-      &lt;label for="wikiName"&gt;$escapetool.xml($services.localization.render(
+      &lt;label for="targetWikiName"&gt;$escapetool.xml($services.localization.render(
         'adminTools.security.common.wiki.title'))&lt;/label&gt;
       &lt;span class="xHint"&gt;$escapetool.xml($services.localization.render(
         'adminTools.security.common.wiki.description'))&lt;/span&gt;
     &lt;/dt&gt;
     &lt;dd&gt;
-      &lt;select name="wikiName" id="wikiName" class="xwiki-selectize"&gt;
+      &lt;select name="targetWikiName" id="targetWikiName" class="xwiki-selectize"&gt;
         &lt;option value=""&gt;$escapetool.xml($services.localization.render(
           'adminTools.security.common.wiki.placeholder'))&lt;/option&gt;
-        #set ($selectedWiki = $escapetool.xml($!request.wikiName))
+        #set ($selectedWiki = $escapetool.xml($!request.targetWikiName))
         #foreach ($db in $xwiki.getXWiki().getVirtualWikisDatabaseNames($context.context))
           &lt;option value="$db" #if("$db" == "$selectedWiki") selected #end&gt;
             $services.wiki.getById($db).getPrettyName()
