@@ -354,57 +354,19 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require.config({
-  paths: {
-    'xwiki-suggestWikiUsers': "$xwiki.getSkinFile('XWikiProCommons.Pickers.UserWikiPicker', true)" +
-        "?v=$escapetool.url($xwiki.version)"
-  }
-});
-
-// As there is no platform implementation to allow the user to dynamically select the page from where the users and
-// pages are shown, a custom implementation was made to dynamically update the displayed picker options in correlation
-// to the selected wiki parameter. This can be removed after the implementation of:
-// XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
-require(['jquery', 'xwiki-meta', 'xwiki-suggestWikiUsers'], function($, xm) {
-  const removeSelectize = function(element) {
-    let selectize = element.siblings('.selectize-control');
-    if (selectize.length) {
-      selectize.remove();
-      element.removeAttr("class tabindex style").val('');
-      const clone = element.clone().appendTo(element.parent());
-      element.remove();
-      element = clone;
-    }
-    return element;
-  }
-
-  const initializePages = function(selectElement) {
-    var newUserElement = $('input[name="newUser"]');
-    var oldUserElement = $('input[name="oldUser"]');
-    if (newUserElement.length) {
-      newUserElement = removeSelectize(newUserElement)
-      oldUserElement = removeSelectize(oldUserElement)
-      newUserElement.suggestWikiUsers({
-        maxItems: 1,
-        wikiId: selectElement.val(),
-        userScope: 'LOCAL_AND_GLOBAL'
-      });
-      oldUserElement.suggestWikiUsers({
-        maxItems: 1,
-        wikiId: selectElement.val(),
-      });
-    }
-  }
-
+      <code>require(['jquery', "$services.webjars.url('com.xwiki.admintools:application-admintools-webjar',
+        'admintools-selector.js', {'evaluate': true})"], function($, sharedPickers) {
   $(document).ready(function () {
     const selectElement = $('select[name="targetWiki"]');
     if (selectElement.length) {
       const parentElement = selectElement.closest(".xform")[0];
       if (parentElement) {
         selectElement.off('change').on('change', function () {
-          initializePages($(this));
+          sharedPickers.initializeUsers($(this), 'oldUser', 'LOCAL');
+          sharedPickers.initializeUsers($(this), 'newUser', 'LOCAL_AND_GLOBAL');
         });
-        initializePages(selectElement);
+        sharedPickers.initializeUsers(selectElement, 'oldUser', 'LOCAL');
+        sharedPickers.initializeUsers(selectElement, 'newUser', 'LOCAL_AND_GLOBAL');
       }
     }
   });
