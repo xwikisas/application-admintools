@@ -39,3 +39,4 @@ com.xwiki.admintools.internal.usage.EmptyDocumentsProvider
 com.xwiki.admintools.internal.usage.metadataExtractor.SpamSolrEntityMetadataExtractor
 com.xwiki.admintools.internal.usage.metadataExtractor.EmptyPagesSolrEntityMetadataExtractor
 com.xwiki.admintools.internal.security.EntityRightsProvider
+com.xwiki.admintools.internal.security.CheckSecurityCache

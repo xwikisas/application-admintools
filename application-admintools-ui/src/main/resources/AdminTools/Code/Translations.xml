@@ -160,6 +160,7 @@ adminTools.dashboard.security.detailed.title=Detailed security view
 adminTools.dashboard.security.detailed.groupsRights=View given groups rights
 adminTools.dashboard.security.detailed.usersRights=View given users rights
 adminTools.dashboard.security.detailed.pageRights=View user rights on page
+adminTools.dashboard.security.detailed.securityCache=Check security cache
 adminTools.security.livedata.wikiName=Wiki name
 adminTools.security.livedata.type=Type of rights
 adminTools.security.livedata.space=Space
@@ -188,6 +189,23 @@ adminTools.security.pageRights.table.header.comment=Comment
 adminTools.security.pageRights.table.header.delete=Delete
 adminTools.security.pageRights.table.header.admin=Admin
 adminTools.security.pageRights.table.header.programming=Programming
+adminTools.security.securityCache.description=View both cached and live security rules for the specified document, its spaces, and the current wiki. Additionally, check the cached access rights for the user on the specified document, including its space and wiki levels.
+adminTools.security.securityCache.access.title=Cached Access Entries
+adminTools.security.securityCache.access.table.ref=References
+adminTools.security.securityCache.access.table.access=Access
+adminTools.security.securityCache.access.table.allowed=Allowed rights: {0}
+adminTools.security.securityCache.access.table.denied=Denied rights: {0}
+adminTools.security.securityCache.access.table.document=Document {0}
+adminTools.security.securityCache.rules.title=Rules Entries
+adminTools.security.securityCache.rules.table.entity=References
+adminTools.security.securityCache.rules.table.cachedRule=Cached Rule
+adminTools.security.securityCache.rules.table.liveRule=Live Rule
+adminTools.security.securityCache.rules.table.rule=Rule
+adminTools.security.securityCache.rules.table.state=State: {0}
+adminTools.security.securityCache.rules.table.rights=Rights: {0}
+adminTools.security.securityCache.rules.table.users=Users: {0}
+adminTools.security.securityCache.rules.table.groups=Groups: {0}
+adminTools.security.securityCache.rules.empty=No rules for this entity.
 
 
 ## Upload job

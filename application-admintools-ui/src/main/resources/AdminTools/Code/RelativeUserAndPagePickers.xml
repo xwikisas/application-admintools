@@ -173,7 +173,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers']
   }
 
   $(document).ready(function () {
-    const selectElement = $('select[name="wikiName"]');
+    const selectElement = $('select[name="targetWikiName"]');
 
     if (selectElement.length) {
       const parentElement = selectElement.closest('.xform')[0];
