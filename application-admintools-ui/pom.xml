@@ -117,6 +117,7 @@
             <contentPage>.*/AdminTools/Packages/WebHome\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
             <contentPage>.*/AdminTools/ChangeDocumentUser\.xml</contentPage>
+            <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>
