@@ -125,19 +125,18 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery', "$services.webjars.url('com.xwiki.admintools:application-admintools-webjar',
-        'admintools-selector.js', {'evaluate': true})"], function($, sharedPickers) {
+      <code>require(['jquery', 'custom-sharedPickers'], function($, sharedPickers) {
   $(document).ready(function () {
     const selectElement = $('select[name="targetWiki"]');
     if (selectElement.length) {
       const parentElement = selectElement.closest(".xform")[0];
       if (parentElement) {
         selectElement.off('change').on('change', function () {
-        sharedPickers.pageElement($(this), 'rightsTargetPage');
+        sharedPickers.initializePages($(this), 'rightsTargetPage');
         sharedPickers.initializeUsers($(this), 'rightsTargetUser', 'LOCAL');
       });
 
-      sharedPickers.pageElement(selectElement, 'rightsTargetPage');
+      sharedPickers.initializePages(selectElement, 'rightsTargetPage');
       sharedPickers.initializeUsers(selectElement, 'rightsTargetUser', 'LOCAL');
       }
     }

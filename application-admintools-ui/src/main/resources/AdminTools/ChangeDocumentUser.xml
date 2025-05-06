@@ -354,8 +354,7 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery', "$services.webjars.url('com.xwiki.admintools:application-admintools-webjar',
-        'admintools-selector.js', {'evaluate': true})"], function($, sharedPickers) {
+      <code>require(['jquery', 'custom-sharedPickers'], function($, sharedPickers) {
   $(document).ready(function () {
     const selectElement = $('select[name="targetWiki"]');
     if (selectElement.length) {

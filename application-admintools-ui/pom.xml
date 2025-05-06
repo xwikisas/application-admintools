@@ -115,6 +115,8 @@
             <contentPage>.*/AdminTools/EmptyPages\.xml</contentPage>
             <contentPage>.*/AdminTools/UploadPackage\.xml</contentPage>
             <contentPage>.*/AdminTools/Packages/WebHome\.xml</contentPage>
+            <contentPage>.*/AdminTools/ViewGroupsRights\.xml</contentPage>
+            <contentPage>.*/AdminTools/ViewUsersRights\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
             <contentPage>.*/AdminTools/ChangeDocumentUser\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
