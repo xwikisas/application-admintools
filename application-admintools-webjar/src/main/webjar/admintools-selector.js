@@ -18,15 +18,6 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-require.config({
-  paths: {
-    'xwiki-suggestPages': "$xwiki.getSkinFile('uicomponents/suggest/suggestPages.js', true)?" +
-    "v=$escapetool.url($xwiki.version)",
-    'xwiki-suggestWikiUsers': "$xwiki.getSkinFile('XWikiProCommons.Pickers.UserWikiPicker', true)?" +
-    "v=$escapetool.url($xwiki.version)"
-  }
-});
-
 // As there is no platform implementation to allow the user to dynamically select the page from where the users and
 // pages are shown, a custom implementation was made to dynamically update the displayed picker options in correlation
 // to the selected wiki parameter. This can be removed after the implementation of:
