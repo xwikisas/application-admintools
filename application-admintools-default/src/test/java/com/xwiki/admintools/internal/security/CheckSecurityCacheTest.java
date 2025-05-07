@@ -1,3 +1,22 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
 package com.xwiki.admintools.internal.security;
 
 import java.util.Arrays;
@@ -36,8 +55,8 @@ import com.xpn.xwiki.XWikiException;
 import com.xwiki.licensing.Licensor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +68,7 @@ class CheckSecurityCacheTest
     private static final DocumentReference MAIN_REF =
         new DocumentReference("testWiki", Arrays.asList("AdminTools", "Code"), "ConfigurationClass");
 
-    private final String templatePath = "configurationTemplate.vm";
+    private static final String SECURITY_CACHE_TEMPLATE = "securityCacheViewTemplate.vm";
 
     @InjectMockComponents
     private CheckSecurityCache checkSecurityCache;
@@ -173,7 +192,7 @@ class CheckSecurityCacheTest
         when(securityCache.get(userSecurityReference, wikiSecurityReference)).thenReturn(wikiCachedAccessEntry);
         when(securityEntryReader.read(wikiSecurityReference)).thenReturn(wikiSecurityRuleEntry);
 
-        when(templateManager.render("securityCacheViewTemplate.vm")).thenReturn("Rendered Template");
+        when(templateManager.render(SECURITY_CACHE_TEMPLATE)).thenReturn("Rendered Template");
 
         String result = checkSecurityCache.displaySecurityCheck(userRef, docRef);
 
@@ -194,9 +213,24 @@ class CheckSecurityCacheTest
         when(securityReferenceFactory.newEntityReference(spaceReference)).thenReturn(spaceSecurityReference);
         when(securityReferenceFactory.newEntityReference(wikiReference)).thenReturn(wikiSecurityReference);
         when(licensor.hasLicensure(MAIN_REF)).thenReturn(false);
-        when(templateManager.render("licenseError.vm")).thenReturn("render error");
+        when(templateManager.render(ERROR_TEMPLATE)).thenReturn("render error");
 
         assertEquals("render error", checkSecurityCache.displaySecurityCheck(userRef, docRef));
+    }
+
+    @Test
+    void displaySecurityCheck_renderError() throws Exception
+    {
+        when(securityReferenceFactory.newUserReference(userRef)).thenReturn(userSecurityReference);
+        when(securityReferenceFactory.newEntityReference(docRef)).thenReturn(docSecurityReference);
+        when(securityReferenceFactory.newEntityReference(spaceReference)).thenReturn(spaceSecurityReference);
+        when(securityReferenceFactory.newEntityReference(wikiReference)).thenReturn(wikiSecurityReference);
+        when(licensor.hasLicensure(MAIN_REF)).thenReturn(true);
+        when(templateManager.render(SECURITY_CACHE_TEMPLATE)).thenThrow(new RuntimeException("render error"));
+
+        assertNull(checkSecurityCache.displaySecurityCheck(userRef, docRef));
+        assertEquals("Failed to render custom template. Root cause is: [RuntimeException: render error]",
+            logCapture.getMessage(0));
     }
 
     @Test

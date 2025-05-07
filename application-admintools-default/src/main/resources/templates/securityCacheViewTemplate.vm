@@ -107,7 +107,7 @@
                 <li>
                   #set ($translationParameter = "__linkStart__$entityDoc.getDisplayTitle()__linkEnd__")
                   #set ($documentURL = $escapetool.xml($services.localization.render(
-                  'adminTools.security.securityCache.access.table.td.document', [$translationParameter])).replace(
+                  'adminTools.security.securityCache.access.table.document', [$translationParameter])).replace(
                   '__linkStart__', "<a href='$entityDoc.getURL()'>").replace('__linkEnd__', '</a>'))
                   $documentURL
                 </li>
