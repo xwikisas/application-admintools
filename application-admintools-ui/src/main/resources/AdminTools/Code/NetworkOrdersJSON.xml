@@ -1,0 +1,91 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.NetworkOrdersJSON" locale="">
+  <web>AdminTools.Code</web>
+  <name>NetworkOrdersJSON</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>NetworkOrdersJSON</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="AdminTools.Code.Macros" /}}
+{{velocity}}
+  #if ($xcontext.action == 'get')
+    #set ($targetPath = "xwiki/bin/get/XNCode/OrdersDataSource")
+      #set ($parameters = {
+      'accountReference' : 'Accounts.Account_11776.WebHome',
+      'outputSyntax' : 'plain',
+      'limit' : $request.limit,
+      'offset' : $request.offset,
+      'showActive' : $request.status,
+      'sort' : $request.sort,
+      'dir' : $request.dir,
+      'showActive' : $request.status,
+      'amount' : $request.amount
+    })
+    #set ($status = 'Completed')
+    #if ($request.status == 'true')
+      #set ($status = 'Active')
+    #end
+    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters))
+    #set ($results = {
+      'totalrows': $ordersResults.totalrows,
+      'returnedrows': $ordersResults.returnedrows,
+      'offset': $ordersResults.offset,
+      'rows': []
+    })
+    #getNetworkDomain($requestDomain)
+    #set ($customLimits = $services.limits.customLimits)
+    #checkNetworkAccessRights($hasRights $customLimits)
+    #foreach ($currentEntry in $ordersResults.rows)
+      #set ($keyValue = $stringtool.substringAfterLast($currentEntry.id_url, '/'))
+      #if ($hasRights)
+        #set ($keyURL =
+          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=${customLimits.expirationDate.time}&amp;target=${currentEntry.id_url}")
+        #set ($key = "&lt;a href='${keyURL}'&gt;${keyValue}&lt;/a&gt;")
+      #else
+        #set ($key = $keyValue)
+      #end
+      #set ($amount = $currentEntry.amount)
+      #if ($request.status == 'true')
+        #set ($amount = 'N/A')
+      #end
+      #set ($discard = $results.rows.add({
+        'title' : $key,
+        'date' : $currentEntry.date,
+        'amount' : $amount,
+        'status' : $status
+      }))
+    #end
+    #jsonResponse($results)
+  #end
+{{/velocity}}</content>
+</xwikidoc>

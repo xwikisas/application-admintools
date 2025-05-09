@@ -1,0 +1,86 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.NetworkIssuesJSON" locale="">
+  <web>AdminTools.Code</web>
+  <name>NetworkIssuesJSON</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>NetworkIssuesJSON</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="AdminTools.Code.Macros" /}}
+
+{{velocity}}
+  #if ($xcontext.action == 'get')
+    #set ($targetPath = "xwiki/bin/get/SupportCode/IssuesListLivetableResults")
+    #set ($parameters = {
+      'account' : 'Account_11776',
+      'instance' : 'Instance_1',
+      'outputSyntax' : 'plain',
+      'limit' : $request.limit,
+      'offset' : $request.offset,
+      'showActive' : 'true',
+      'sort' : $request.sort,
+      'dir' : $request.dir,
+      'key' : $request.key,
+      'summary' : $request.summary,
+      'status' : $request.status,
+      'priority' : $request.priority
+    })
+    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters))
+    #set ($results = {
+      'totalrows': $ordersResults.totalrows,
+      'returnedrows': $ordersResults.returnedrows,
+      'offset': $ordersResults.offset,
+      'rows': []
+    })
+    #getNetworkDomain($requestDomain)
+    #set ($customLimits = $services.limits.customLimits)
+    #foreach ($currentEntry in $ordersResults.rows)
+      #if (($user.isUserInGroup('XWiki.XWikiNetworkPaymentsGroup') || $user.isUserInGroup('XWiki.XWikiNetworkTicketsGroup')) &amp;&amp; !$customLimits.isEmpty())
+        #set ($keyURL =
+          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=${customLimits.expirationDate.time}&amp;target=${currentEntry.key_url}")
+        #set ($key = "&lt;a href='${keyURL}'&gt;${currentEntry.key}&lt;/a&gt;")
+      #else
+        #set ($key = $currentEntry.key)
+      #end
+      #set ($discard = $results.rows.add({
+        'key' : $key,
+        'summary' : $currentEntry.summary,
+        'priority' : $currentEntry.priority,
+        'status' : $currentEntry.status,
+        'updated' : $currentEntry.updated
+      }))
+    #end
+    #jsonResponse($results)
+  #end
+{{/velocity}}</content>
+</xwikidoc>
