@@ -63,13 +63,13 @@
       'rows': []
     })
     #getNetworkDomain($requestDomain)
-    #set ($customLimits = $services.limits.customLimits)
-    #checkNetworkAccessRights($hasRights $customLimits)
+    #checkNetworkAccessRights($hasRights)
     #foreach ($currentEntry in $ordersResults.rows)
       #set ($keyValue = $stringtool.substringAfterLast($currentEntry.id_url, '/'))
       #if ($hasRights)
         #set ($keyURL =
-          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=${customLimits.expirationDate.time}&amp;target=${currentEntry.id_url}")
+          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=" +
+          "${customLimits.expirationDate.time}&amp;target=${currentEntry.id_url}")
         #set ($key = "&lt;a href='${keyURL}'&gt;${keyValue}&lt;/a&gt;")
       #else
         #set ($key = $keyValue)

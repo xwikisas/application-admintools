@@ -456,10 +456,12 @@
     </class>
     <property>
       <content>{{velocity}}
-=$services.icon.render('cloud') {{translation key='adminTools.dashboard.cloud.title'/}}=
-{{html clean='false'}}
-  #cloudSectionUI()
-{{/html}}
+#if (!$services.limits.customLimits.isEmpty())
+  =$services.icon.render('cloud') {{translation key='adminTools.dashboard.cloud.title'/}}=
+  {{html clean='false'}}
+    #cloudSectionUI()
+  {{/html}}
+#end
 {{/velocity}}</content>
     </property>
     <property>

@@ -63,11 +63,12 @@
       'rows': []
     })
     #getNetworkDomain($requestDomain)
-    #set ($customLimits = $services.limits.customLimits)
+    #checkNetworkAccessRights($hasRights)
     #foreach ($currentEntry in $ordersResults.rows)
-      #if (($user.isUserInGroup('XWiki.XWikiNetworkPaymentsGroup') || $user.isUserInGroup('XWiki.XWikiNetworkTicketsGroup')) &amp;&amp; !$customLimits.isEmpty())
+      #if ($hasRights)
         #set ($keyURL =
-          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=${customLimits.expirationDate.time}&amp;target=${currentEntry.key_url}")
+          "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${customLimits.instanceReference}&amp;detail=" +
+          "${customLimits.expirationDate.time}&amp;target=${currentEntry.key_url}")
         #set ($key = "&lt;a href='${keyURL}'&gt;${currentEntry.key}&lt;/a&gt;")
       #else
         #set ($key = $currentEntry.key)

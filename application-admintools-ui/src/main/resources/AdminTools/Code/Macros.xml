@@ -345,8 +345,9 @@
   }
 }{{/liveData}}
 #end
-#macro (checkNetworkAccessRights $hasRights $customLimits)
-  #set ($hasRights = ($user.isUserInGroup('XWiki.XWikiNetworkPaymentsGroup') || $user.isUserInGroup('XWiki.XWikiNetworkTicketsGroup')) &amp;&amp; !$customLimits.isEmpty())
+#macro (checkNetworkAccessRights $hasRights)
+  #set ($user = $xwiki.getUser())
+  #set ($hasRights = ($user.isUserInGroup('XWiki.XWikiNetworkPaymentsGroup') || $user.isUserInGroup('XWiki.XWikiNetworkTicketsGroup')))
 #end
 #macro (getNetworkDomain $requestDomain)
   #set ($instanceURL = $stringtool.replace($request.requestURL, $request.requestURI, ''))
@@ -356,11 +357,10 @@
   #end
 #end
 #macro (getNetworkAccess)
-  #set ($user = $xwiki.getUser())
-  #set ($customLimits = $services.limits.customLimits)
-  #checkNetworkAccessRights($hasRights $customLimits)
+  #checkNetworkAccessRights($hasRights)
   #if ($hasRights)
     #getNetworkDomain($requestDomain)
+    #set ($customLimits = $services.limits.customLimits)
     #set ($id = $customLimits.instanceReference)
     #set ($detail = $customLimits.expirationDate.time)
     #set ($networkAccessPath = "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${id}&amp;detail=${detail}")
@@ -407,10 +407,10 @@
         &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.title'))&lt;/h2&gt;
         &lt;ul&gt;
           #getNetworkAccess()
-          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.XNNGOrders')" target="_blank"&gt;
+          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.NetworkOrders')" target="_blank"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.orders'))
           &lt;/li&gt;&lt;/a&gt;
-          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.XNNGIssues')" target="_blank"&gt;
+          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.NetworkIssues')" target="_blank"&gt;
             $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.issues'))
           &lt;/li&gt;&lt;/a&gt;
         &lt;/ul&gt;

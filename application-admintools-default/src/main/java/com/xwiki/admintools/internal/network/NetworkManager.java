@@ -45,16 +45,18 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 
 /**
- * Manages the data that needs to be used by the Admin Tools application.
+ * Manages the communication between the application and the XWiki networking server.
  *
  * @version $Id$
- * @since 1.2
+ * @since 1.3
  */
 @Component(roles = NetworkManager.class)
 @Singleton
 public class NetworkManager implements Initializable
 {
     private static final String COOKIE_ID = "xnngSessionId";
+
+    private static final String COOKIE_KEY = "Cookie";
 
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
@@ -64,7 +66,7 @@ public class NetworkManager implements Initializable
 
     private String requestDomain;
 
-    private String instanceReference;
+    private String instanceReference = "";
 
     private long detail;
 
@@ -74,7 +76,7 @@ public class NetworkManager implements Initializable
         XWikiRequest wikiRequest = wikiContextProvider.get().getRequest();
         String instanceDomain = wikiRequest.getRequestURL().toString().replace(wikiRequest.getRequestURI(), "");
         requestDomain = "xnng.xwiki.com";
-        if (!instanceDomain.endsWith("devxwiki.com")) {
+        if (instanceDomain.endsWith("devxwiki.com")) {
             requestDomain = "xnng-staging.devxwiki.com";
         }
         Map<String, Object> customLimits = limitsConfiguration.getCustomLimits();
@@ -82,10 +84,17 @@ public class NetworkManager implements Initializable
             instanceReference = customLimits.get("instanceReference").toString();
             detail = ((Date) customLimits.get("expirationDate")).getTime();
         }
-        instanceReference = "Accounts.Account_11776.Instances.Instance_1.WebHome";
-        detail = 1773784740000L;
     }
 
+    /**
+     * Retrieve JSON data from the given network endpoint.
+     *
+     * @param target the target endpoint.
+     * @param parameters parameters to be sent with the request.
+     * @return the JSON retrieved from the network, or null if the user has no access.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     */
     public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters)
         throws IOException, InterruptedException
     {
@@ -98,6 +107,13 @@ public class NetworkManager implements Initializable
         return hasAccess ? getJSON(target, parameters, client) : null;
     }
 
+    /**
+     * Get network limits for the current instance.
+     *
+     * @return A JSON with the instance limits.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     */
     public Map<String, Object> getLimits() throws IOException, InterruptedException
     {
         HttpClient client = HttpClient.newHttpClient();
@@ -120,7 +136,7 @@ public class NetworkManager implements Initializable
         String targetURL =
             String.format("https://%s/xwiki/bin/view/%s", requestDomain, instanceReference.replace(".", "/"));
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(targetURL))
-            .header("Cookie", (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).build();
+            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             return tryGetAccess(client);
@@ -134,7 +150,7 @@ public class NetworkManager implements Initializable
         XWikiContext wikiContext = wikiContextProvider.get();
         URI dataUri = getURI(target, parameters);
         HttpRequest dataRequest = HttpRequest.newBuilder().uri(dataUri)
-            .header("Cookie", (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).GET().build();
+            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).GET().build();
         HttpResponse<String> response = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 200) {
             ObjectMapper objectMapper = new ObjectMapper();

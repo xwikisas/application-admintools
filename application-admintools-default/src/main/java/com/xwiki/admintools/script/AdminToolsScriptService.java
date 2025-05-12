@@ -97,13 +97,15 @@ public class AdminToolsScriptService implements ScriptService
     private CheckSecurityCache checkSecurityCache;
 
     /**
+     * Retrieve JSON data from the given network endpoint.
      *
-     * @param target
-     * @param parameters
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws AccessDeniedException
+     * @param target the target endpoint.
+     * @param parameters parameters to be sent with the request.
+     * @return the JSON retrieved from the network, or null if the user has no access.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
      */
     @Unstable
     public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters)
@@ -114,11 +116,13 @@ public class AdminToolsScriptService implements ScriptService
     }
 
     /**
+     * Get network limits for the current instance.
      *
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws AccessDeniedException
+     * @return A JSON with the instance limits.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
      */
     @Unstable
     public Map<String, Object> getNetworkLimits() throws IOException, InterruptedException, AccessDeniedException
