@@ -40,4 +40,5 @@ com.xwiki.admintools.internal.usage.metadataExtractor.SpamSolrEntityMetadataExtr
 com.xwiki.admintools.internal.usage.metadataExtractor.EmptyPagesSolrEntityMetadataExtractor
 com.xwiki.admintools.internal.security.EntityRightsProvider
 com.xwiki.admintools.internal.network.NetworkManager
+com.xwiki.admintools.internal.network.HttpClientBuilderFactory
 com.xwiki.admintools.internal.security.CheckSecurityCache

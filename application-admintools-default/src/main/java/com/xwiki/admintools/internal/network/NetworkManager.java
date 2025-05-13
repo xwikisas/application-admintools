@@ -70,6 +70,9 @@ public class NetworkManager implements Initializable
 
     private long detail;
 
+    @Inject
+    private HttpClientBuilderFactory httpClientBuilderFactory;
+
     @Override
     public void initialize() throws InitializationException
     {
@@ -98,9 +101,8 @@ public class NetworkManager implements Initializable
     public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters)
         throws IOException, InterruptedException
     {
+        HttpClient client = httpClientBuilderFactory.getHttpClient();
         XWikiContext wikiContext = wikiContextProvider.get();
-        HttpClient client = HttpClient.newHttpClient();
-
         boolean hasSession = wikiContext.getRequest().getSession().getAttribute(COOKIE_ID) != null;
         boolean hasAccess = hasSession ? checkAccess(client) : tryGetAccess(client);
 
@@ -116,7 +118,7 @@ public class NetworkManager implements Initializable
      */
     public Map<String, Object> getLimits() throws IOException, InterruptedException
     {
-        HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = httpClientBuilderFactory.getHttpClient();
         String targetPath = "xwiki/rest/instance/limits";
         URI uri = getURI(targetPath, Map.of("instance", instanceReference, "detail", String.valueOf(detail)));
         HttpRequest request = HttpRequest.newBuilder().uri(uri).build();
