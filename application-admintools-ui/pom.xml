@@ -56,6 +56,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.xwiki.admintools</groupId>
+      <artifactId>application-admintools-webjar</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>com.xwiki.licensing</groupId>
       <artifactId>application-licensing-licensor-api</artifactId>
       <version>${licensing.version}</version>
@@ -90,7 +96,7 @@
     <dependency>
       <groupId>com.xwiki.commons</groupId>
       <artifactId>xwiki-pro-commons-pickers-ui</artifactId>
-      <version>1.1</version>
+      <version>1.1.1</version>
       <type>xar</type>
     </dependency>
   </dependencies>
@@ -109,7 +115,10 @@
             <contentPage>.*/AdminTools/EmptyPages\.xml</contentPage>
             <contentPage>.*/AdminTools/UploadPackage\.xml</contentPage>
             <contentPage>.*/AdminTools/Packages/WebHome\.xml</contentPage>
+            <contentPage>.*/AdminTools/ViewGroupsRights\.xml</contentPage>
+            <contentPage>.*/AdminTools/ViewUsersRights\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
+            <contentPage>.*/AdminTools/ChangeDocumentUser\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
             <contentPage>.*/AdminTools/NetworkOrders\.xml</contentPage>
             <contentPage>.*/AdminTools/NetworkIssues\.xml</contentPage>

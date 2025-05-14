@@ -125,65 +125,19 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require.config({
-  paths: {
-    'xwiki-suggestPages': "$xwiki.getSkinFile('uicomponents/suggest/suggestPages.js', true)?v=$escapetool.url($xwiki.version)",
-    'xwiki-suggestWikiUsers': "$xwiki.getSkinFile('XWikiProCommons.Pickers.UserWikiPicker', true)?v=$escapetool.url($xwiki.version)"
-  }
-});
-
-// As there is no platform implementation to allow the user to dynamically select the page from where the users and
-// pages are shown, a custom implementation was made to dynamically update the displayed picker options in correlation
-// to the selected wiki parameter. This can be removed after the implementation of:
-// XWIKI-22850: Add an option in a macro parameter to select the page/space for attachment suggestions
-// XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
-require(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers'], function($, xm) {
-  const removeSelectize = function(element) {
-    let selectize = element.siblings('.selectize-control');
-    if (selectize.length) {
-      selectize.remove();
-      element.removeAttr('class tabindex style').val('');
-      const clone = element.clone().appendTo(element.parent());
-      element.remove();
-      element = clone;
-    }
-    return element;
-  }
-
-  const initializePages = function(selectElement) {
-    let scope = 'wiki:';
-    if (selectElement.val() != null) {
-      scope += selectElement.val();
-    }
-    var pageElement = $('input[name="rightsTargetPage"]');
-    var usersElement = $('input[name="rightsTargetUser"]');
-    if (pageElement.length) {
-      pageElement = removeSelectize(pageElement)
-      usersElement = removeSelectize(usersElement)
-      const allowUpload = selectElement.val() == xm.document || !selectElement.val();
-      pageElement.suggestPages({
-        maxItems: 1,
-        searchScope: scope
-      });
-      usersElement.suggestWikiUsers({
-        maxItems: 1,
-        wikiId: selectElement.val(),
-      });
-    }
-  }
-
+      <code>require(['jquery', 'custom-sharedPickers'], function($, sharedPickers) {
   $(document).ready(function () {
-    const selectElement = $('select[name="targetWikiName"]');
-
+    const selectElement = $('select[name="targetWiki"]');
     if (selectElement.length) {
-      const parentElement = selectElement.closest('.xform')[0];
-
+      const parentElement = selectElement.closest(".xform")[0];
       if (parentElement) {
         selectElement.off('change').on('change', function () {
-          initializePages($(this));
-        });
+        sharedPickers.initializePages($(this), 'rightsTargetPage');
+        sharedPickers.initializeUsers($(this), 'rightsTargetUser', 'LOCAL');
+      });
 
-        initializePages(selectElement);
+      sharedPickers.initializePages(selectElement, 'rightsTargetPage');
+      sharedPickers.initializeUsers(selectElement, 'rightsTargetUser', 'LOCAL');
       }
     }
   });

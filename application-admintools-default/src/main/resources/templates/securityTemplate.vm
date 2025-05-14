@@ -55,6 +55,9 @@
         <li><a href="$xwiki.getURL("AdminTools.CheckUserRightsOnPage")" target="_blank">
           $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.pageRights'))
           </a></li>
+        <li><a href="$xwiki.getURL("AdminTools.ChangeDocumentUser")" target="_blank">
+          $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.documentUser'))
+          </a></li>
         <li><a href="$xwiki.getURL("AdminTools.CheckSecurityCache")" target="_blank">
             $escapetool.xml($services.localization.render('adminTools.dashboard.security.detailed.securityCache'))
           </a></li>
