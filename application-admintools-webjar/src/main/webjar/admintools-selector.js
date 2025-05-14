@@ -23,7 +23,7 @@
 // to the selected wiki parameter. This can be removed after the implementation of:
 // XWIKI-22850: Add an option in a macro parameter to select the page/space for attachment suggestions
 // XWIKI-23006: Add a data-search-scope for wiki selection for user/groups suggestion widget
-define(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwiki-suggestWikiUsers'], function ($, xm) {
+define(['jquery', 'xwiki-meta', 'xwiki-suggestPages', 'xwikiPro-suggestWikiUsers'], function ($, xm) {
   const sharedPickers = {
     removeSelectize: function (element) {
       let selectize = element.siblings('.selectize-control');
