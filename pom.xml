@@ -53,5 +53,6 @@
     <module>application-admintools-default</module>
     <module>application-admintools-ui</module>
     <module>application-admintools-xip</module>
+    <module>application-admintools-webjar</module>
   </modules>
 </project>
