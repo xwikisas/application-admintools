@@ -24,7 +24,7 @@
   <parent>
     <groupId>com.xwiki.admintools</groupId>
     <artifactId>application-admintools</artifactId>
-    <version>1.2-rc-1</version>
+    <version>1.2-rc-2-SNAPSHOT</version>
   </parent>
 
   <artifactId>application-admintools-webjar</artifactId>
