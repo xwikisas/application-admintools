@@ -30,13 +30,13 @@
   <groupId>com.xwiki.admintools</groupId>
   <artifactId>application-admintools</artifactId>
   <packaging>pom</packaging>
-  <version>1.1.1-SNAPSHOT</version>
+  <version>1.2-rc-2-SNAPSHOT</version>
   <name>Admin Tools Application (Pro) Parent POM</name>
   <description>The Admin Tools Pro application gives you full control and visibility over your XWiki instance.
     Use it to manage your XWiki installation. Easily generate configuration reports. Perform sanity checks and show
     logs history.</description>
   <properties>
-    <licensing.version>1.25</licensing.version>
+    <licensing.version>1.29</licensing.version>
   </properties>
   <issueManagement>
     <system>GitHub</system>
