@@ -1,0 +1,104 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.NetworkOrders" locale="">
+  <web>AdminTools</web>
+  <name>NetworkOrders</name>
+  <language/>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Network Orders</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+{{html clean='false' wiki='true'}}
+  #set ($sourceParameters = $escapetool.url({
+    'className': 'AdminTools.NetworkOrders',
+    'resultPage': 'AdminTools.Code.NetworkOrdersJSON',
+    'translationPrefix': 'adminTools.cloud.livedata.orders.header.'
+  }))
+  #set ($liveDataConfig= {
+    'meta': {
+      'propertyDescriptors': [
+        {'id': 'title', 'displayer': 'html', 'sortable': false, 'filterable': false},
+        {'id': 'date', 'displayer': 'text', 'filterable': false},
+        {'id': 'amount', 'displayer': 'number'},
+        {'id': 'status', 'displayer': 'text'}
+      ],
+      'entryDescriptor': {
+        'idProperty': 'title'
+      }
+    }
+  })
+
+  {{liveData
+    id='NetworkOrdersLiveData'
+    properties="title, date, amount, status"
+    source='liveTable'
+    sourceParameters="$sourceParameters"
+    sort='date:desc'
+  }}$jsontool.serialize($liveDataConfig){{/liveData}}
+{{/html}}
+{{/velocity}}</content>
+  <class>
+    <name>AdminTools.NetworkOrders</name>
+    <customClass/>
+    <customMapping/>
+    <defaultViewSheet/>
+    <defaultEditSheet/>
+    <defaultWeb/>
+    <nameField/>
+    <validationScript/>
+    <status>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText/>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>status</name>
+      <number>1</number>
+      <picker>1</picker>
+      <prettyName>status</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort/>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>false=Completed|true=Active</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </status>
+  </class>
+</xwikidoc>
