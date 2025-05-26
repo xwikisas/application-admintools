@@ -239,7 +239,7 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     let noLines = modal.find("input[name='noLines']").val();
 
     // If the input is empty, the default value of 1000 will be requested.
-    if (noLines == '') {
+    if (noLines == '' || noLines === undefined) {
       noLines = '1000';
     }
 
