@@ -20,6 +20,7 @@
 package com.xwiki.admintools.internal.data;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -58,6 +59,10 @@ public class SecurityDataProvider extends AbstractDataProvider
     @Inject
     @Named("xwikicfg")
     private ConfigurationSource configurationSource;
+
+    @Inject
+    @Named("xwikiproperties")
+    private ConfigurationSource properties;
 
     @Override
     public String getRenderedData()
@@ -122,11 +127,19 @@ public class SecurityDataProvider extends AbstractDataProvider
         Map<String, String> results = new HashMap<>();
         String workDirectory = System.getenv(WORK_DIRECTORY);
         String language = System.getenv(LANGUAGE);
+        if (workDirectory == null || language == null) {
+            this.logger.info("Failed to access language or work directory environment variables. Attempting to retrieve"
+                + " data from Locale and properties.");
+        }
+        if (language == null) {
+            language = Locale.getDefault().toString();
+        }
+        if (workDirectory == null) {
+            String permDir = properties.getProperty("environment.permanentDirectory");
+            workDirectory = permDir != null ? permDir : "N/A";
+        }
         results.put(WORK_DIRECTORY, workDirectory);
         results.put(LANGUAGE, language);
-        if (workDirectory == null || language == null) {
-            this.logger.warn("Failed to access language or work directory environment variables.");
-        }
         return results;
     }
 }
