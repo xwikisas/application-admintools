@@ -345,5 +345,84 @@
   }
 }{{/liveData}}
 #end
+#macro (checkNetworkAccessRights $hasRights)
+  #set ($user = $xwiki.getUser())
+  #set ($hasRights = ($user.isUserInGroup('XWiki.XWikiNetworkPaymentsGroup') || $user.isUserInGroup('XWiki.XWikiNetworkTicketsGroup')))
+#end
+#macro (getNetworkDomain $requestDomain)
+  #set ($instanceURL = $stringtool.replace($request.requestURL, $request.requestURI, ''))
+  #set ($requestDomain = 'xnng.xwiki.com')
+  #if ($instanceURL.endsWith('devxwiki.com'))
+    #set ($requestDomain = 'xnng-staging.devxwiki.com')
+  #end
+#end
+#macro (getNetworkAccess)
+  #checkNetworkAccessRights($hasRights)
+  #if ($hasRights)
+    #getNetworkDomain($requestDomain)
+    #set ($customLimits = $services.limits.customLimits)
+    #set ($id = $customLimits.instanceReference)
+    #set ($detail = $customLimits.expirationDate.time)
+    #set ($networkAccessPath = "https://${requestDomain}/xwiki/bin/view/Instances/GetAccess?id=${id}&amp;detail=${detail}")
+    &lt;li&gt;&lt;a href='${networkAccessPath}' target="_blank"&gt;
+      $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.access'))
+    &lt;/li&gt;&lt;/a&gt;
+  #end
+#end
+#macro (cloudSectionUI)
+  #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+  #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
+    #if ($services.admintools.isUsedServerCompatible())
+      &lt;div class="cloud-section"&gt;
+        &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.description'))&lt;/p&gt;
+        &lt;hr/&gt;
+        &lt;p&gt;Instance limits:&lt;/p&gt;
+        #set ($limits = $services.admintools.getNetworkLimits())
+        &lt;ul&gt;
+          #foreach($key in $limits.keySet())
+            #if ($key != 'usage')
+              &lt;li&gt;
+                #set ($usage = $!limits.get('usage').get($key))
+                #if ($usage)
+                  #set ($processedValue = "$usage / $limits.get($key)")
+                #else
+                  #set ($processedValue = $limits.get($key))
+                #end
+                $escapetool.xml($services.localization.render("adminTools.dashboard.cloud.limits.$key", [$processedValue]))
+              &lt;/li&gt;
+            #end
+          #end
+          #define ($timeLeft)
+            #if ($daysLeft &gt; 0)
+              $services.localization.render('com.xwiki.cloud.navigation.instance-status.daysLeft', [$daysLeft])
+            #elseif ($hoursLeft &gt; 0)
+              $services.localization.render('com.xwiki.cloud.navigation.instance-status.hoursLeft', [$hoursLeft])
+            #else
+              $services.localization.render('com.xwiki.cloud.navigation.instance-status.minutesLeft', [$minutesLeft])
+            #end
+          #end
+          &lt;li&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.limits.timeLeft', [$timeLeft]))&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;hr/&gt;
+        &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.title'))&lt;/h2&gt;
+        &lt;ul&gt;
+          #getNetworkAccess()
+          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.NetworkOrders')" target="_blank"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.orders'))
+          &lt;/li&gt;&lt;/a&gt;
+          &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.NetworkIssues')" target="_blank"&gt;
+            $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.issues'))
+          &lt;/li&gt;&lt;/a&gt;
+        &lt;/ul&gt;
+      &lt;/div&gt;
+    #else
+      #set($warningMessage = $escapetool.xml($services.localization.render('adminTools.dashboard.serverNotFound.error',
+        [$stringtool.join($services.admintools.getSupportedServers(), ', ')])))
+      #warning($warningMessage)
+    #end
+  #else
+    {{missingLicenseMessage extensionName="adminTools.extension.name"/}}
+  #end
+#end
 {{/velocity}}</content>
 </xwikidoc>
