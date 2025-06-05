@@ -123,7 +123,9 @@ public class UploadJob extends AbstractJob<PackageUploadJobRequest, PackageUploa
             }
         } catch (Exception e) {
             logger.error("Error during the file upload job.", e);
-            status.addLog(new JobResult("adminTools.jobs.upload.fail", JobResultLevel.ERROR));
+            status.addLog(new JobResult("adminTools.jobs.upload.fail", JobResultLevel.ERROR,
+                ExceptionUtils.getRootCauseMessage(e)));
+            status.addLog(new JobResult("adminTools.jobs.upload.batch.restore.start", JobResultLevel.INFO));
             progressManager.endStep(this);
             batchRestore();
         } finally {

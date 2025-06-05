@@ -164,10 +164,12 @@ class UploadJobTest
         PackageUploadJobStatus uploadJobStatus = uploadJob.getStatus();
 
         assertEquals("Error during the file upload job.", logCapture.getMessage(0));
-        assertEquals(2, uploadJobStatus.getJobResults().size());
+        assertEquals(3, uploadJobStatus.getJobResults().size());
         assertEquals("adminTools.jobs.upload.fail", uploadJobStatus.getJobResults().get(0).getMessage());
-        assertEquals("adminTools.jobs.upload.batch.restore.success",
+        assertEquals("adminTools.jobs.upload.batch.restore.start",
             uploadJobStatus.getJobResults().get(1).getMessage());
+        assertEquals("adminTools.jobs.upload.batch.restore.success",
+            uploadJobStatus.getJobResults().get(2).getMessage());
     }
 
     private static void zipFile(File sourceFolder, File outputZip) throws IOException
