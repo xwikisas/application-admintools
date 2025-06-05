@@ -45,6 +45,8 @@ public class TomcatInfo extends AbstractServerInfo
      */
     public static final String HINT = "tomcat";
 
+    private static final String ETC_XWIKI_INSTALL = "/etc/xwiki/";
+
     @Override
     public boolean foundServerPath()
     {
@@ -73,17 +75,19 @@ public class TomcatInfo extends AbstractServerInfo
     @Override
     public void updatePossiblePaths()
     {
-        this.serverCfgPossiblePaths =
-            List.of(String.format("%s/conf/server.xml", this.serverPath), "/usr/local/tomcat/conf/server.xml",
-                "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/server.xml", "/var/lib/tomcat9/conf/server.xml",
-                "/var/lib/tomcat/conf/server.xml");
+        this.serverCfgPossiblePaths = List.of(
+            String.format("%s/conf/server.xml", this.serverPath),
+            "/usr/local/tomcat/conf/server.xml", "/opt/tomcat/conf/server.xml", "/var/lib/tomcat8/conf/server.xml",
+            "/var/lib/tomcat9/conf/server.xml", "/var/lib/tomcat/conf/server.xml");
 
-        this.xwikiCfgPossiblePaths = List.of("/etc/xwiki/", "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/",
+        this.xwikiCfgPossiblePaths = List.of(
+            String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath),
             String.format("%s/webapps/ROOT/WEB-INF/", this.serverPath),
-            String.format("%s/webapps/xwiki/WEB-INF/", this.serverPath));
+            ETC_XWIKI_INSTALL, "/usr/local/xwiki/WEB-INF/", "/opt/xwiki/WEB-INF/");
 
-        this.xwikiInstallPossiblePaths = List.of("/etc/xwiki/lib/", "/usr/local/xwiki/", "/opt/xwiki/",
-            String.format("%s/webapps/xwiki/", this.serverPath));
+        this.xwikiInstallPossiblePaths = List.of(
+            String.format("%s/webapps/xwiki/", this.serverPath),
+            ETC_XWIKI_INSTALL, "/usr/local/xwiki/", "/opt/xwiki/");
     }
 
     @Override
