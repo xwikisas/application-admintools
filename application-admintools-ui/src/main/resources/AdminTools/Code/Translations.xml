@@ -43,6 +43,8 @@ AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 AdminTools.Code.ConfigurationClass_spamSize=Spam size
 AdminTools.Code.ConfigurationClass_spamSize.hint=Minimum number of comments that are considered to be spam
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation=XWiki folder location
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation.hint=Path to the XWiki folder location
 admin.admintools.description=Configure Admin Tools Application
 adminTools.extension.name=Admin Tools Application (Pro)
 adminTools.extension.title=Admin Tools
@@ -263,6 +265,7 @@ adminTools.jobs.upload.state.noinfo=NO INFO
 
 
 ##Packages
+adminTools.packages.upload.notavailable=Upload functionality is not available on cloud instances.
 adminTools.packages.upload.livetable.doc.title=Package name
 adminTools.packages.upload.livetable.job_status=Upload status
 adminTools.packages.upload.livetable.doc.author=Initiator
