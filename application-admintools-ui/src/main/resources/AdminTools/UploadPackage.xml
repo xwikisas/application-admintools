@@ -54,7 +54,7 @@ $xwiki.jsfx.use('js/xwiki/viewers/attachments.js', {'forceSkinAction': true, 'la
   #if ($hasAdmin)
     #if ($xwiki.exists($xwiki.getDocument('XWiki.CloudUIX')))
       {{info}}
-        $escapetool.xml($services.localization.render('adminTools.packages.upload.notavailable'))
+        $services.localization.render('adminTools.packages.upload.notavailable')
       {{/info}}
     #else
       =$services.icon.render('box') {{translation key='adminTools.packages.upload.livedata.title'/}}=
