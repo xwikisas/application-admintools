@@ -82,6 +82,10 @@ public abstract class AbstractServerInfo implements ServerInfo
     @Override
     public String getXWikiInstallFolderPath()
     {
+        String configurationPath = this.adminToolsConfig.getXWikiInstallLocation();
+        if (new File(configurationPath).isDirectory()) {
+            return configurationPath;
+        }
         for (String xwikiLibraryFolderPath : this.xwikiInstallPossiblePaths) {
             if ((new File(xwikiLibraryFolderPath)).isDirectory()) {
                 return xwikiLibraryFolderPath;

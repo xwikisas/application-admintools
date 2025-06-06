@@ -52,28 +52,35 @@ $xwiki.jsfx.use('js/xwiki/viewers/attachments.js', {'forceSkinAction': true, 'la
 #set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
   #if ($hasAdmin)
-    =$services.icon.render('box') {{translation key='adminTools.packages.upload.livedata.title'/}}=
-    #set ($storeDoc = $xwiki.getDocument('AdminTools.Code.PackagesStore'))
-    #showAttachmentsLiveData($storeDoc 'docAttachments')
+    #if ($xwiki.exists($xwiki.getDocument('XWiki.CloudUIX')))
+      {{info}}
+        $services.rendering.escape(
+          $services.localization.render('adminTools.packages.upload.notavailable'), 'xwiki/2.1')
+      {{/info}}
+    #else
+      =$services.icon.render('box') {{translation key='adminTools.packages.upload.livedata.title'/}}=
+      #set ($storeDoc = $xwiki.getDocument('AdminTools.Code.PackagesStore'))
+      #showAttachmentsLiveData($storeDoc 'docAttachments')
 
-    {{html clean='false'}}
-      &lt;form action="$storeDoc.getURL("upload")" enctype="multipart/form-data" method="post" id="adminToolsAddPackage"&gt;
-        &lt;div&gt;
-          ## CSRF prevention
-          &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
-          &lt;fieldset&gt;
-            &lt;div class="fileupload-field"&gt;
-              &lt;label class="sr-only" for="adminToolsUploadPackage"&gt;$escapetool.xml(
-                $services.localization.render('core.viewers.attachments.upload.file'))&lt;/label&gt;
-              &lt;input id="adminToolsUploadPackage" type="file" name="filepath" size=40 class="uploadFileInput noitems"
-                data-max-file-size=$!escapetool.xml($xwiki.getSpacePreference('upload_maxsize')) accept=".zip"/&gt;
-            &lt;/div&gt;
-          &lt;/fieldset&gt;
-        &lt;/div&gt;
-      &lt;/form&gt;
-      &lt;br/&gt;
-    {{/html}}
-    #displayUploadedPackagesLiveData
+      {{html clean='false'}}
+        &lt;form action="$storeDoc.getURL("upload")" enctype="multipart/form-data" method="post" id="adminToolsAddPackage"&gt;
+          &lt;div&gt;
+            ## CSRF prevention
+            &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
+            &lt;fieldset&gt;
+              &lt;div class="fileupload-field"&gt;
+                &lt;label class="sr-only" for="adminToolsUploadPackage"&gt;$escapetool.xml(
+                  $services.localization.render('core.viewers.attachments.upload.file'))&lt;/label&gt;
+                &lt;input id="adminToolsUploadPackage" type="file" name="filepath" size=40 class="uploadFileInput noitems"
+                  data-max-file-size=$!escapetool.xml($xwiki.getSpacePreference('upload_maxsize')) accept=".zip"/&gt;
+              &lt;/div&gt;
+            &lt;/fieldset&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+        &lt;br/&gt;
+      {{/html}}
+      #displayUploadedPackagesLiveData
+    #end
   #else
     {{error}}$services.rendering.escape($services.localization.render('adminTools.dashboard.missingRights'),
       $xwiki.currentContentSyntaxId){{/error}}
