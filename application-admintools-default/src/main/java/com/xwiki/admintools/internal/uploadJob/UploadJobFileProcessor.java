@@ -31,6 +31,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
 import javax.inject.Inject;
@@ -66,6 +67,8 @@ import com.xwiki.admintools.uploadPackageJob.UploadPackageJobResource;
 @Unstable
 public class UploadJobFileProcessor
 {
+    private static final String SEPARATOR_KEY = "_";
+
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -177,26 +180,28 @@ public class UploadJobFileProcessor
     /**
      * Create a unique folder for backups based on the given ID, inside the permanent directory of XWiki.
      *
-     * @param folderID the id of the backup folder.
+     * @param folderId the id of the backup folder.
      * @throws IOException if any error occurs during the creation of the directories.
      */
-    public void initializeBackupFolder(List<String> folderID) throws IOException
+    public void initializeBackupFolder(List<String> folderId) throws IOException
     {
-        Path backupFilePath = getBackupFolderPath(folderID);
+        Path backupFilePath = getBackupFolderPath(folderId);
         Files.createDirectories(backupFilePath);
     }
 
-    private Path getBackupFolderPath(List<String> jobID)
+    private Path getBackupFolderPath(List<String> jobId)
     {
+        String sanitizeJobId = jobId.stream()
+            .map(s -> s.replaceAll("\\p{Punct}", SEPARATOR_KEY))
+            .collect(Collectors.joining(SEPARATOR_KEY));
         return environment.getPermanentDirectory().toPath().resolve("adminTools").resolve("backup")
-            .resolve(String.join("_", jobID));
+            .resolve(sanitizeJobId);
     }
 
     private void createBackupFile(File targetFile, UploadPackageJobResource uploadPackageJobResource,
         PackageUploadJobStatus status)
     {
         Path backupFilePath = getBackupFolderPath(status.getJobID());
-
         File backupFile = backupFilePath.resolve(targetFile.getName() + ".bak").toFile();
         try {
             Files.copy(targetFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);

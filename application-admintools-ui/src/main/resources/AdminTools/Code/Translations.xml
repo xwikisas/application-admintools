@@ -43,6 +43,8 @@ AdminTools.Code.ConfigurationClass_serverLocation=Server location
 AdminTools.Code.ConfigurationClass_serverLocation.hint=Path to the server location
 AdminTools.Code.ConfigurationClass_spamSize=Spam size
 AdminTools.Code.ConfigurationClass_spamSize.hint=Minimum number of comments that are considered to be spam
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation=XWiki folder location
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation.hint=Path to the XWiki folder location
 admin.admintools.description=Configure Admin Tools Application
 adminTools.extension.name=Admin Tools Application (Pro)
 adminTools.extension.title=Admin Tools
@@ -262,6 +264,7 @@ adminTools.jobs.result.hint=Job results
 adminTools.jobs.upload.start.fail=Failed to start job for file [{0}] at time [{1}].
 adminTools.jobs.upload.start.waiting=Waiting for a similar job to finish...
 adminTools.jobs.upload.message.success=Upload was successful!
+adminTools.jobs.upload.message.error=There was an error during the upload.
 adminTools.jobs.upload.backup.success=Backup file [{0}] created for file [{1}].
 adminTools.jobs.upload.backup.fail=Could not create backup file [{0}] for file [{1}].
 adminTools.jobs.upload.assessoriginal.fail=Unable to correctly assess the original file for [{0}].
@@ -272,8 +275,9 @@ adminTools.jobs.upload.batch.restore.target.fail=Manual action required: failed 
 adminTools.jobs.upload.batch.restore.copy.fail=Manual action required: failed to automatically restore backup file [{0}] for new file [{1}]. Root cause: [{2}]
 adminTools.jobs.upload.batch.restore.file.success=Successfully restored backup and removed new file [{0}].
 adminTools.jobs.upload.batch.restore.success=Backup restored with success.
+adminTools.jobs.upload.batch.restore.start=Attempting to restore backup...
 adminTools.jobs.upload.batch.restore.fail=There were issues while trying to restore the backup. Please consult the log.
-adminTools.jobs.upload.fail=There was an error while processing the archive. Attempting to restore backup...
+adminTools.jobs.upload.fail=There was an error while processing the archive: [{0}]
 adminTools.jobs.upload.success=Upload finished with success.
 adminTools.jobs.upload.state.none=NO JOB FOUND
 adminTools.jobs.upload.state.waiting=WAITING
@@ -285,6 +289,7 @@ adminTools.jobs.upload.state.noinfo=NO INFO
 
 
 ##Packages
+adminTools.packages.upload.notavailable=Upload functionality is not available on cloud instances.
 adminTools.packages.upload.livetable.doc.title=Package name
 adminTools.packages.upload.livetable.job_status=Upload status
 adminTools.packages.upload.livetable.doc.author=Initiator

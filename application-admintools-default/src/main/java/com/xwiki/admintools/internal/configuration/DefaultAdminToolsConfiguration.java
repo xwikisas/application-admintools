@@ -46,6 +46,8 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
 
     private static final String SPAM_SIZE = "spamSize";
 
+    private static final String XWIKI_INSTALL_LOCATION = "xwikiInstallLocation";
+
     @Inject
     @Named(AdminToolsConfigurationSource.HINT)
     private ConfigurationSource mainConfiguration;
@@ -67,5 +69,11 @@ public class DefaultAdminToolsConfiguration implements AdminToolsConfiguration
     public int getSpamSize()
     {
         return Integer.parseInt(this.mainConfiguration.getProperty(SPAM_SIZE, "50"));
+    }
+
+    @Override
+    public String getXWikiInstallLocation()
+    {
+        return this.mainConfiguration.getProperty(XWIKI_INSTALL_LOCATION, "");
     }
 }
