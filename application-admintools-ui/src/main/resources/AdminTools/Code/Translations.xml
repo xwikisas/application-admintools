@@ -234,6 +234,30 @@ adminTools.security.securityCache.rules.table.users=Users: {0}
 adminTools.security.securityCache.rules.table.groups=Groups: {0}
 adminTools.security.securityCache.rules.empty=No rules for this entity.
 
+## Cloud
+adminTools.dashboard.cloud.title=Cloud instance info
+adminTools.dashboard.cloud.description=See stats related to your cloud instance.
+adminTools.dashboard.cloud.limits.numberOfUsersInNetworkGroup=Users in Network Group: {0}
+adminTools.dashboard.cloud.limits.numberOfWikis=Number of wikis: {0}
+adminTools.dashboard.cloud.limits.numberOfUsers=Number of users: {0}
+adminTools.dashboard.cloud.limits.numberOfUsersInPayingGroup=Users in Paying Group: {0}
+adminTools.dashboard.cloud.limits.storage=Storage (Mb): {0}
+adminTools.dashboard.cloud.limits.supportLevel=Support level: {0}
+adminTools.dashboard.cloud.limits.timeLeft=Subscription expires in: {0}
+adminTools.dashboard.cloud.subsection.title=Additional actions
+adminTools.dashboard.cloud.subsection.access=Get access
+adminTools.dashboard.cloud.subsection.orders=View account orders
+adminTools.dashboard.cloud.subsection.issues=View instance issues
+adminTools.cloud.livedata.orders.header.title=Order
+adminTools.cloud.livedata.orders.header.date=Date
+adminTools.cloud.livedata.orders.header.amount=Amount
+adminTools.cloud.livedata.orders.header.status=Status
+adminTools.cloud.livedata.issues.header.key=Issue
+adminTools.cloud.livedata.issues.header.summary=Summary
+adminTools.cloud.livedata.issues.header.priority=Priority
+adminTools.cloud.livedata.issues.header.status=Status
+adminTools.cloud.livedata.issues.header.updated=Last updated
+
 
 ## Upload job
 adminTools.jobs.result.hint=Job results

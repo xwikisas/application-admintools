@@ -91,5 +91,10 @@
       <artifactId>xwiki-platform-search-solr-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>application-limits-api</artifactId>
+      <version>2.1.6</version>
+    </dependency>
   </dependencies>
 </project>
