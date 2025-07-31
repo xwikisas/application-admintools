@@ -51,4 +51,12 @@ public interface AdminToolsConfiguration
      * @return {@link Integer} representing the spam size.
      */
     int getSpamSize();
+
+    /**
+     * Get the XWiki install path.
+     *
+     * @return {@link String} representing the XWiki install path.
+     * @since 1.2.1
+     */
+    String getXWikiInstallLocation();
 }

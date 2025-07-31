@@ -48,11 +48,13 @@
           </li>
         </ul>
       </li>
-      <li>
-        #set ($packagesUploadURL = $xwiki.getDocument('AdminTools.UploadPackage').getURL('view'))
-        <a href="${packagesUploadURL}">
-          $escapetool.xml($services.localization.render('adminTools.packages.dashboard.uploadpackages'))</a>
-      </li>
+      #if (!$xwiki.exists($xwiki.getDocument('XWiki.CloudUIX')))
+        <li>
+          #set ($packagesUploadURL = $xwiki.getDocument('AdminTools.UploadPackage').getURL('view'))
+          <a href="${packagesUploadURL}">
+            $escapetool.xml($services.localization.render('adminTools.packages.dashboard.uploadpackages'))</a>
+        </li>
+      #end
     </ul>
     #warning($escapetool.xml($services.localization.render('adminTools.dashboard.download.warning')))
   </div>
