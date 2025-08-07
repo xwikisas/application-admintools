@@ -32,7 +32,7 @@
         #end
         #set ($ruleUsersGroups = $services.admintools.extractRuleUsersGroups($rule))
         <ul>
-          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table..state',
+          <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.state',
             [$rule.getState()]))</li>
           <li>$escapetool.xml($services.localization.render('adminTools.security.securityCache.rules.table.rights',
             [$stringtool.join($rightsList, ', ')]))</li>
