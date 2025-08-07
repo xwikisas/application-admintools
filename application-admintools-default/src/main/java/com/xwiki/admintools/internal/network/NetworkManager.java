@@ -26,8 +26,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -68,6 +71,12 @@ public class NetworkManager implements Initializable
 
     private String instanceReference = "";
 
+    private String account;
+
+    private String accountRef;
+
+    private String instance;
+
     private long detail;
 
     @Inject
@@ -86,6 +95,7 @@ public class NetworkManager implements Initializable
         if (!customLimits.isEmpty()) {
             instanceReference = customLimits.get("instanceReference").toString();
             detail = ((Date) customLimits.get("expirationDate")).getTime();
+            getSpecificFields(instanceReference);
         }
     }
 
@@ -94,11 +104,13 @@ public class NetworkManager implements Initializable
      *
      * @param target the target endpoint.
      * @param parameters parameters to be sent with the request.
+     * @param useRef if {@code true}, the account reference will be added to the received parameters. If
+     *     {@code false}, the account and instance number will be added.
      * @return the JSON retrieved from the network, or null if the user has no access.
      * @throws IOException if an I/O error occurs when sending the request or receiving the response.
      * @throws InterruptedException if the operation is interrupted.
      */
-    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters)
+    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
         throws IOException, InterruptedException
     {
         HttpClient client = httpClientBuilderFactory.getHttpClient();
@@ -106,7 +118,7 @@ public class NetworkManager implements Initializable
         boolean hasSession = wikiContext.getRequest().getSession().getAttribute(COOKIE_ID) != null;
         boolean hasAccess = hasSession ? checkAccess(client) : tryGetAccess(client);
 
-        return hasAccess ? getJSON(target, parameters, client) : null;
+        return hasAccess ? getJSON(target, parameters, client, useRef) : null;
     }
 
     /**
@@ -132,6 +144,25 @@ public class NetworkManager implements Initializable
         return Collections.emptyMap();
     }
 
+    /**
+     * Extract the instance number, account number and account reference from the instance reference.
+     */
+    private void getSpecificFields(String instanceReference)
+    {
+        Pattern pattern = Pattern.compile("Account_\\d+|Instance_\\d+");
+        Matcher matcher = pattern.matcher(instanceReference);
+
+        while (matcher.find()) {
+            String match = matcher.group();
+            if (match.startsWith("Account_")) {
+                account = match;
+                accountRef = String.format("Accounts.%s.WebHome", match);
+            } else if (match.startsWith("Instance_")) {
+                instance = match;
+            }
+        }
+    }
+
     private boolean checkAccess(HttpClient client) throws IOException, InterruptedException
     {
         XWikiContext wikiContext = wikiContextProvider.get();
@@ -146,11 +177,18 @@ public class NetworkManager implements Initializable
         return true;
     }
 
-    private Map<String, Object> getJSON(String target, Map<String, String> parameters, HttpClient client)
-        throws IOException, InterruptedException
+    private Map<String, Object> getJSON(String target, Map<String, String> parameters, HttpClient client,
+        boolean useRef) throws IOException, InterruptedException
     {
+        Map<String, String> completeParameters = new HashMap<>(parameters);
+        if (useRef) {
+            completeParameters.put("accountReference", accountRef);
+        } else {
+            completeParameters.put("account", account);
+            completeParameters.put("instance", instance);
+        }
         XWikiContext wikiContext = wikiContextProvider.get();
-        URI dataUri = getURI(target, parameters);
+        URI dataUri = getURI(target, completeParameters);
         HttpRequest dataRequest = HttpRequest.newBuilder().uri(dataUri)
             .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).GET().build();
         HttpResponse<String> response = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());

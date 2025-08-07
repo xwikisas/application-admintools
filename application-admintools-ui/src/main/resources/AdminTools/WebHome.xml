@@ -458,9 +458,11 @@
       <content>{{velocity}}
 #if (!$services.limits.customLimits.isEmpty())
   =$services.icon.render('cloud') {{translation key='adminTools.dashboard.cloud.title'/}}=
+  {{async async="true" context="user"}}
   {{html clean='false'}}
     #cloudSectionUI()
   {{/html}}
+  {{/async}}
 #end
 {{/velocity}}</content>
     </property>

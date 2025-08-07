@@ -42,8 +42,6 @@
   #if ($xcontext.action == 'get')
     #set ($targetPath = "xwiki/bin/get/SupportCode/IssuesListLivetableResults")
     #set ($parameters = {
-      'account' : 'Account_11776',
-      'instance' : 'Instance_1',
       'outputSyntax' : 'plain',
       'limit' : $request.limit,
       'offset' : $request.offset,
@@ -55,7 +53,7 @@
       'status' : $request.status,
       'priority' : $request.priority
     })
-    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters))
+    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters, false))
     #set ($results = {
       'totalrows': $ordersResults.totalrows,
       'returnedrows': $ordersResults.returnedrows,

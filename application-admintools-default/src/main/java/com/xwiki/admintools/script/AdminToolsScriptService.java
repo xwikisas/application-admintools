@@ -101,6 +101,8 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @param target the target endpoint.
      * @param parameters parameters to be sent with the request.
+     * @param useRef if {@code true}, the account reference will be added to the received parameters. If
+     *     {@code false}, the account and instance number will be added.
      * @return the JSON retrieved from the network, or null if the user has no access.
      * @throws IOException if an I/O error occurs when sending the request or receiving the response.
      * @throws InterruptedException if the operation is interrupted.
@@ -108,11 +110,11 @@ public class AdminToolsScriptService implements ScriptService
      * @since 1.3
      */
     @Unstable
-    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters)
+    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
         throws IOException, InterruptedException, AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return networkManager.getJSONFromNetwork(target, parameters);
+        return networkManager.getJSONFromNetwork(target, parameters, useRef);
     }
 
     /**

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.limits.LimitsConfiguration;
 import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -93,8 +94,9 @@ class NetworkManagerTest
         StringBuffer stringBuffer = new StringBuffer("https://test-staging.devxwiki.com/some/xwiki/page/");
         when(wikiRequest.getRequestURL()).thenReturn(stringBuffer);
         when(wikiRequest.getRequestURI()).thenReturn("/some/xwiki/page/");
-        Map<String, Object> limits = Map.of("instanceReference", "instance.reference", "expirationDate",
-            new SimpleDateFormat("yyyy-MM-dd").parse("2024-04-16"));
+        Map<String, Object> limits =
+            Map.of("instanceReference", "Accounts.Account_1234.Instances.Instance_12.WebHome", "expirationDate",
+                new SimpleDateFormat("yyyy-MM-dd").parse("2024-04-16"));
         when(limitsConfiguration.getCustomLimits()).thenReturn(limits);
     }
 
@@ -122,7 +124,7 @@ class NetworkManagerTest
         when(httpResponse.statusCode()).thenReturn(200);
         when(httpResponse.body()).thenReturn("{\"key\":\"value\"}");
 
-        Map<String, Object> result = networkManager.getJSONFromNetwork("target", Map.of("param", "value"));
+        Map<String, Object> result = networkManager.getJSONFromNetwork("target", Map.of("param", "value"), true);
 
         assertNotNull(result);
         assertEquals("value", result.get("key"));
@@ -139,7 +141,7 @@ class NetworkManagerTest
 
         when(httpResponse.statusCode()).thenReturn(404);
 
-        Map<String, Object> result = networkManager.getJSONFromNetwork("target", Map.of("param", "value"));
+        Map<String, Object> result = networkManager.getJSONFromNetwork("target", Map.of("param", "value"), false);
 
         assertNull(result);
     }

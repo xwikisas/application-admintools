@@ -41,7 +41,6 @@
   #if ($xcontext.action == 'get')
     #set ($targetPath = "xwiki/bin/get/XNCode/OrdersDataSource")
       #set ($parameters = {
-      'accountReference' : 'Accounts.Account_11776.WebHome',
       'outputSyntax' : 'plain',
       'limit' : $request.limit,
       'offset' : $request.offset,
@@ -55,7 +54,7 @@
     #if ($request.status == 'true')
       #set ($status = 'Active')
     #end
-    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters))
+    #set ($ordersResults = $services.admintools.getJSONFromNetwork($targetPath, $parameters, true))
     #set ($results = {
       'totalrows': $ordersResults.totalrows,
       'returnedrows': $ordersResults.returnedrows,
