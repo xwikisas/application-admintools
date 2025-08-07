@@ -61,6 +61,8 @@ public class NetworkManager implements Initializable
 
     private static final String COOKIE_KEY = "Cookie";
 
+    private static final String INSTANCE_KEY = "instance";
+
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
 
@@ -132,7 +134,7 @@ public class NetworkManager implements Initializable
     {
         HttpClient client = httpClientBuilderFactory.getHttpClient();
         String targetPath = "xwiki/rest/instance/limits";
-        URI uri = getURI(targetPath, Map.of("instance", instanceReference, "detail", String.valueOf(detail)));
+        URI uri = getURI(targetPath, Map.of(INSTANCE_KEY, instanceReference, "detail", String.valueOf(detail)));
         HttpRequest request = HttpRequest.newBuilder().uri(uri).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 200) {
@@ -185,7 +187,7 @@ public class NetworkManager implements Initializable
             completeParameters.put("accountReference", accountRef);
         } else {
             completeParameters.put("account", account);
-            completeParameters.put("instance", instance);
+            completeParameters.put(INSTANCE_KEY, instance);
         }
         XWikiContext wikiContext = wikiContextProvider.get();
         URI dataUri = getURI(target, completeParameters);
