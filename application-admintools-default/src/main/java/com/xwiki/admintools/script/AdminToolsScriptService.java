@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.script;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ import com.xwiki.admintools.configuration.AdminToolsConfiguration;
 import com.xwiki.admintools.internal.AdminToolsManager;
 import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
+import com.xwiki.admintools.internal.network.NetworkManager;
 import com.xwiki.admintools.internal.security.CheckSecurityCache;
 import com.xwiki.admintools.internal.security.EntityRightsProvider;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
@@ -89,7 +91,47 @@ public class AdminToolsScriptService implements ScriptService
     private CurrentServer currentServer;
 
     @Inject
+    private NetworkManager networkManager;
+
+    @Inject
     private CheckSecurityCache checkSecurityCache;
+
+    /**
+     * Retrieve JSON data from the given network endpoint.
+     *
+     * @param target the target endpoint.
+     * @param parameters parameters to be sent with the request.
+     * @param useRef if {@code true}, the account reference will be added to the received parameters. If
+     *     {@code false}, the account and instance number will be added.
+     * @return the JSON retrieved from the network, or null if the user has no access.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
+        throws IOException, InterruptedException, AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return networkManager.getJSONFromNetwork(target, parameters, useRef);
+    }
+
+    /**
+     * Get network limits for the current instance.
+     *
+     * @return A JSON with the instance limits.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public Map<String, Object> getNetworkLimits() throws IOException, InterruptedException, AccessDeniedException
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return networkManager.getLimits();
+    }
 
     /**
      * Retrieve the cached and live security rules in a table format given by the associated template.
@@ -129,6 +171,7 @@ public class AdminToolsScriptService implements ScriptService
      * @return a filtered and sorted {@link List} of {@link RightsResult}.
      * @since 1.2
      */
+    @Unstable
     public List<RightsResult> getEntityRights(Map<String, String> filters, String sortColumn, String order,
         String entityType)
     {

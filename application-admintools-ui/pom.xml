@@ -120,6 +120,8 @@
             <contentPage>.*/AdminTools/CheckUserRightsOnPage\.xml</contentPage>
             <contentPage>.*/AdminTools/ChangeDocumentUser\.xml</contentPage>
             <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
+            <contentPage>.*/AdminTools/NetworkOrders\.xml</contentPage>
+            <contentPage>.*/AdminTools/NetworkIssues\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>
