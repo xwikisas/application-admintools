@@ -87,6 +87,9 @@
   &lt;div&gt;
     $escapetool.xml($services.localization.render($jobResult.getMessage(), $jobResult.getParameters()))
   &lt;/div&gt;
+  #if ($jobResult.getLevel().name() == 'FAIL')
+    #printThrowable($status.error)
+  #end
 #end
 #macro (printJobResults $status)
   #if ($status.state != 'FINISHED')
@@ -95,7 +98,10 @@
   #set($jobResults = $status.getJobResults())
   &lt;ul class="log"&gt;
   #foreach ($jobResult in $jobResults)
-    #set ($resultLevel = $jobResult.getLevel().name().toLowerCase())
+    #set ($resultLevel = 'error')
+    #if ($jobResult.getLevel().name() != 'CRITICAL')
+      #set ($resultLevel = $jobResult.getLevel().name().toLowerCase())
+    #end
     ## Display the last result item as loading if the associated task is not finished.
     &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
       #printResult($jobResult)

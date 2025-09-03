@@ -22,8 +22,8 @@ package com.xwiki.admintools.jobs;
 import org.xwiki.stability.Unstable;
 
 /**
- * Represents the severity level of a job, where "INFO" is for informative results, "WARN" for
- * warnings and "ERROR" for critical issues.
+ * Represents the severity level of a job, where "INFO" is for informative results, "WARN" for warnings, "ERROR"
+ * for severe issues and "FAIL" for job failures.
  *
  * @version $Id$
  * @since 1.0
@@ -31,6 +31,12 @@ import org.xwiki.stability.Unstable;
 @Unstable
 public enum JobResultLevel
 {
+    /**
+     * This is used to mark a job failure.
+     *
+     * @since 1.3
+     */
+    FAIL,
     /**
      * Used to mark a {@link JobResultLevel} as an error.
      */
