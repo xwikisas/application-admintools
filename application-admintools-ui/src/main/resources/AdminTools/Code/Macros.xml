@@ -73,7 +73,7 @@
             &lt;/form&gt;
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
-            &lt;button type="button" class="btn btn-primary"&gt;
+            &lt;button type="button" class="btn btn-primary" value="${id}NoLines"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
