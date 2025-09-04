@@ -102,8 +102,7 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                 }
             }
         } catch (Exception e) {
-            logger.error("An error occurred while running the health check. Root cause is: [{}]",
-                ExceptionUtils.getRootCauseMessage(e));
+            logger.error("An error occurred while running the health check.", e);
             status.getJobResults()
                 .add(new JobResult("adminTools.dashboard.healthcheck.execution.error", JobResultLevel.FAIL));
             throw new RuntimeException(e);
