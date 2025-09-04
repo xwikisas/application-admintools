@@ -199,7 +199,6 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
 
   $(document).ready(function() {
     removeBrokenTOCHeaders();
-
     if ($('#healthCheck').length) {
       initialiseJobJS();
       let jobState = $('.health-check-job-state').attr('data-job-state');
@@ -218,6 +217,10 @@ require(['jquery', 'xwiki-meta', 'xwiki-job-runner', 'xwiki-l10n!admin-tools-cac
     runHealthCheckJob();
     reinitialiseHealthCheckResources();
     $('#healthCheck .job-status').show();
+  });
+
+  $(document).on('click', '#healthCheck .log-item-error', function(event) {
+    $(this).children('.error-logs').toggle();
   });
 
   $(document).on('click', '#downloadFilesModal .btn-primary', function(event) {

@@ -111,7 +111,7 @@ adminTools.dashboard.healthcheck.security.system.file.info=System file encoding 
 adminTools.dashboard.healthcheck.security.system.file.notFound=File encoding could not be detected!
 adminTools.dashboard.healthcheck.security.system.lang.warn=System language encoding should be set to UTF-8! Currently using {0}.
 adminTools.dashboard.healthcheck.security.system.lang.info=System language encoding is set to UTF-8.
-adminTools.dashboard.healthcheck.security.system.lang.notFound=Language encoding could not be detected!
+adminTools.dashboard.healthcheck.security.system.lang.notFound=Language encoding could not be determined.
 adminTools.dashboard.healthcheck.security.system.recommendation=System encoding should be set to UTF-8! Please consult the help links page to get further instructions of how to configure the system encoding.
 adminTools.dashboard.healthcheck.security.xwiki.info=XWiki encoding OK.
 adminTools.dashboard.healthcheck.security.xwiki.active.warn=XWiki active encoding should be set to UTF-8! Currently using {0}.
@@ -128,6 +128,7 @@ adminTools.job.notFound=Health check job status not found
 adminTools.dashboard.healthcheck.message.success=No issue found!
 adminTools.dashboard.healthcheck.message.warning=Some issues have been found, for more details please see the results below.
 adminTools.dashboard.healthcheck.message.error=Critical issues were found, please consult the results below!
+adminTools.dashboard.healthcheck.execution.error=An error occurred while running the health check.
 adminTools.dashboard.healthcheck.operations=Instance operations
 adminTools.dashboard.healthcheck.linkLabel=help links
 
