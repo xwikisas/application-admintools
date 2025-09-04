@@ -37,11 +37,18 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output='false'}}
+#macro (getResultLevel $result)
+  #set ($resultLevel = 'error')
+  #if ($result.getLevel().name() != 'FAIL')
+    #set ($resultLevel = $result.getLevel().name().toLowerCase())
+  #end
+#end
 #macro (getCustomJobStatusJSON $status $json)
   #set ($results = [])
   #foreach ($result in $status.getJobResults())
+    #getResultLevel($result)
     #set ($discard = $results.add({
-      'level': $result.getLevel().name().toLowerCase(),
+      'level': $resultLevel,
       'renderedMessage': "#printResult($result)"
     }))
   #end
@@ -88,7 +95,9 @@
     $escapetool.xml($services.localization.render($jobResult.getMessage(), $jobResult.getParameters()))
   &lt;/div&gt;
   #if ($jobResult.getLevel().name() == 'FAIL')
-    #printThrowable($status.error)
+    &lt;div class='error-logs' style="cursor: pointer;"&gt;
+      $status.error.getStackTrace()
+    &lt;/div&gt;
   #end
 #end
 #macro (printJobResults $status)
@@ -98,10 +107,7 @@
   #set($jobResults = $status.getJobResults())
   &lt;ul class="log"&gt;
   #foreach ($jobResult in $jobResults)
-    #set ($resultLevel = 'error')
-    #if ($jobResult.getLevel().name() != 'CRITICAL')
-      #set ($resultLevel = $jobResult.getLevel().name().toLowerCase())
-    #end
+    #getResultLevel($jobResult)
     ## Display the last result item as loading if the associated task is not finished.
     &lt;li class="log-item log-item-${resultLevel}#if ($loading &amp;&amp; !$foreach.hasNext) log-item-loading#end"&gt;
       #printResult($jobResult)
