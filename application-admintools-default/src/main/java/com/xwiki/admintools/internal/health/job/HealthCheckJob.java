@@ -26,7 +26,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 import org.xwiki.job.GroupedJob;
