@@ -95,6 +95,7 @@
     $escapetool.xml($services.localization.render($jobResult.getMessage(), $jobResult.getParameters()))
   &lt;/div&gt;
   #if ($jobResult.getLevel().name() == 'FAIL')
+    ## We add the error stack trace in a div to be able to toggle it in the health check logs.
     &lt;div class='error-logs' style="cursor: pointer;"&gt;
       $status.error.getStackTrace()
     &lt;/div&gt;
