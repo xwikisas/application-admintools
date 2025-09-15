@@ -47,10 +47,12 @@ public class LangEncodingHealthCheck extends AbstractSecurityHealthCheck
     public JobResult check()
     {
         String langEnc = getSecurityProviderJSON().get("LANG");
-        if (langEnc == null) {
-            logger.warn("Language encoding could not be detected!");
+        // Check if the lang result contains the encoding part separated by ".", as on Windows machines it does not
+        // include the encoding and the regex bellow might break the regex.
+        if (langEnc == null || !langEnc.contains(".")) {
+            logger.info("Language encoding could not be detected.");
             return new JobResult("adminTools.dashboard.healthcheck.security.system.lang.notFound",
-                JobResultLevel.WARN);
+                JobResultLevel.INFO);
         }
         boolean isSafeLangEnc = isSafeEncoding(langEnc.split("\\.")[1], "System language");
         if (!isSafeLangEnc) {

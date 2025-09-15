@@ -49,7 +49,7 @@ class LangEncodingHealthCheckTest
     private DataProvider dataProvider;
 
     @RegisterExtension
-    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.INFO);
 
     @BeforeEach
     void beforeEach() throws Exception
@@ -75,7 +75,7 @@ class LangEncodingHealthCheckTest
             langEncodingHealthCheck.check().getMessage());
         assertEquals("Failed to generate the instance security data. Root cause is: [Exception: error while "
             + "generating the json]", logCapture.getMessage(0));
-        assertEquals("Language encoding could not be detected!", logCapture.getMessage(1));
+        assertEquals("Language encoding could not be detected.", logCapture.getMessage(1));
     }
 
     @Test
