@@ -194,4 +194,16 @@ public class AdminToolsManager
     {
         return this.instanceUsageManager.getEmptyDocuments(filters, order);
     }
+
+    /**
+     * Check if the used server is compatible with Admin tools installation.
+     *
+     * @return a {@code true} if the used server is compatible with the application installation, or {@code false}
+     *     otherwise.
+     * @since 1.0
+     */
+    public boolean isUsedServerCompatible()
+    {
+        return currentServer.getCurrentServer() != null;
+    }
 }

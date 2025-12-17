@@ -225,7 +225,7 @@
           &lt;div class="modal-footer"&gt;
             &lt;button type="button" class="btn btn-primary"
                 data-action="$request.getContextPath()/rest/admintools/flushCache"&gt;
-              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.modal.button'))
+              $escapetool.xml($services.localization.render('adminTools.button.confirm'))
             &lt;/button&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;

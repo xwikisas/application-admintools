@@ -17,39 +17,53 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.internal.network;
+package com.xwiki.admintools.internal.health.cache;
 
-import java.net.http.HttpClient;
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
 
 import javax.inject.Singleton;
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.stability.Unstable;
+
+import groovy.jmx.GroovyMBean;
 
 /**
- * Simple factory for creating a HttpClient to help testing.
+ * Utility class used to access JMX MBeans.
  *
  * @version $Id$
  * @since 1.3
  */
-@Component(roles = HttpClientBuilderFactory.class)
+@Component(roles = GroovyMBeanUtil.class)
 @Singleton
-@Unstable
-public class HttpClientBuilderFactory
+public class GroovyMBeanUtil
 {
-    private HttpClient httpClient;
+    private MBeanServer mBeanServer;
 
     /**
-     * Creates a HttpClient.
+     * Return {@link MBeanServer}.
      *
-     * @return a new HttpClient
+     * @return the platform MBean server
      */
-    public HttpClient getHttpClient()
+    public MBeanServer getMBeanServer()
     {
-        if (httpClient == null) {
-            httpClient = HttpClient.newHttpClient();
-            return httpClient;
+        if (mBeanServer == null) {
+            mBeanServer = ManagementFactory.getPlatformMBeanServer();
         }
-        return httpClient;
+        return mBeanServer;
+    }
+
+    /**
+     * Create a {@link GroovyMBean} wrapper for a given {@link ObjectName}.
+     *
+     * @param objectName the JMX object name identifying the MBean
+     * @return a {@link GroovyMBean} instance for the given object name
+     */
+    public GroovyMBean getGroovyMBean(ObjectName objectName) throws JMException, IOException
+    {
+        return new GroovyMBean(getMBeanServer(), objectName);
     }
 }

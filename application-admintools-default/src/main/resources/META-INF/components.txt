@@ -14,6 +14,11 @@ com.xwiki.admintools.internal.configuration.AdminToolsConfigurationSource
 com.xwiki.admintools.internal.configuration.DefaultAdminToolsConfiguration
 com.xwiki.admintools.internal.AdminToolsEventListener
 com.xwiki.admintools.internal.AdminToolsUninstallListener
+com.xwiki.admintools.internal.health.cache.CacheManager
+com.xwiki.admintools.internal.health.cache.data.CacheDataGenerator
+com.xwiki.admintools.internal.health.cache.data.CacheDataFlusher
+com.xwiki.admintools.internal.health.cache.data.CacheDataUtil
+com.xwiki.admintools.internal.health.cache.GroovyMBeanUtil
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationDatabaseHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationJavaHealthCheck
 com.xwiki.admintools.internal.health.checks.configuration.ConfigurationOSHealthCheck
