@@ -45,8 +45,9 @@ import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+import com.xwiki.admintools.health.cache.CacheInfo;
 import com.xwiki.admintools.internal.AdminToolsManager;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.health.cache.CacheManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
 import com.xwiki.admintools.internal.network.NetworkManager;
 import com.xwiki.admintools.internal.security.CheckSecurityCache;
@@ -88,13 +89,44 @@ public class AdminToolsScriptService implements ScriptService
     private EntityRightsProvider entityRightsProvider;
 
     @Inject
-    private CurrentServer currentServer;
-
-    @Inject
     private NetworkManager networkManager;
 
     @Inject
     private CheckSecurityCache checkSecurityCache;
+
+    @Inject
+    private CacheManager cacheManager;
+
+    /**
+     * Get a sorted and filtered {@code List} with the JMX managed caches.
+     *
+     * @param filter used to filter caches by name
+     * @param order the sort order applied to the result, based on the number of entries
+     * @return a sorted and filtered {@code List} with the JMX managed caches
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public List<CacheInfo> getJMXCache(String filter, String order) throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return cacheManager.getJMXCaches(filter, order);
+    }
+
+    /**
+     * Get detailed statistics for a specific cache.
+     *
+     * @param name cache name to be searched for
+     * @return a {@link Map} with the detailed statistics
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public Map<String, Object> getDetailedCacheData(String name) throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return cacheManager.getCacheDetailedView(name);
+    }
 
     /**
      * Retrieve JSON data from the given network endpoint.
@@ -366,7 +398,7 @@ public class AdminToolsScriptService implements ScriptService
     @Unstable
     public boolean isUsedServerCompatible()
     {
-        return currentServer.getCurrentServer() != null;
+        return adminToolsManager.isUsedServerCompatible();
     }
 
     /**

@@ -24,6 +24,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.xwiki.rest.XWikiRestComponent;
@@ -74,16 +75,49 @@ public interface AdminToolsResource extends XWikiRestComponent
      *
      * @param attachReference the reference of the attachment.
      * @param jobId a unique id for the job.
-     * @return HTML status code 202 to hint that the upload job has started;
-     *      Return status code 102 if the job already exists and is in progress;
-     *      Return status code 401 if the user does not have admin rights;
-     *      Return status code 500 if there is any error.
+     * @return HTML status code 202 to hint that the upload job has started; Return status code 102 if the job already
+     *     exists and is in progress; Return status code 401 if the user does not have admin rights; Return status code
+     *     500 if there is any error.
      * @throws XWikiRestException if an error occurred while creating the job, or if the user lacks admin rights.
      * @since 1.1
      */
     @POST
     @Path("/upload")
     @Unstable
-    Response uploadPackageArchive(@QueryParam("attach") String attachReference,
-        @QueryParam("jobId") String jobId) throws XWikiRestException;
+    default Response uploadPackageArchive(@QueryParam("attach") String attachReference,
+        @QueryParam("jobId") String jobId) throws XWikiRestException
+    {
+        throw new WebApplicationException(501);
+    }
+
+    /**
+     * Flush all JMX managed caches.
+     *
+     * @return the status of the operation
+     * @throws XWikiRestException if an error occurred while flushing the cache
+     * @since 1.3
+     */
+    @POST
+    @Path("/flushCache/jmx")
+    @Unstable
+    default Response flushJMXCache() throws XWikiRestException
+    {
+        throw new WebApplicationException(501);
+    }
+
+    /**
+     * Flush a single JMX managed cache identified by its name.
+     *
+     * @param cacheName the name of the cache to flush
+     * @return the status of the operation
+     * @throws XWikiRestException if an error occurred while flushing the cache
+     * @since 1.3
+     */
+    @POST
+    @Path("/flushCache/jmx/cache")
+    @Unstable
+    default Response flushJMXEntryCache(@QueryParam("cacheName") String cacheName) throws XWikiRestException
+    {
+        throw new WebApplicationException(501);
+    }
 }
