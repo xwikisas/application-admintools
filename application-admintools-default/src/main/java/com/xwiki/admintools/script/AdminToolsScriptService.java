@@ -143,7 +143,7 @@ public class AdminToolsScriptService implements ScriptService
      */
     @Unstable
     public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
-        throws IOException, InterruptedException, AccessDeniedException
+        throws Exception
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return networkManager.getJSONFromNetwork(target, parameters, useRef);
@@ -159,7 +159,7 @@ public class AdminToolsScriptService implements ScriptService
      * @since 1.3
      */
     @Unstable
-    public Map<String, Object> getNetworkLimits() throws IOException, InterruptedException, AccessDeniedException
+    public Map<String, Object> getNetworkLimits() throws Exception
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
         return networkManager.getLimits();
