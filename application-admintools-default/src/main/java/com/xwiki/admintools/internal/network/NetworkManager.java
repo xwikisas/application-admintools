@@ -37,6 +37,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -63,6 +64,8 @@ public class NetworkManager implements Initializable
 
     private static final String INSTANCE_KEY = "instance";
 
+    private static final String DETAIL_KEY = "detail";
+
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
 
@@ -79,10 +82,11 @@ public class NetworkManager implements Initializable
 
     private String instance;
 
-    private long detail;
-
     @Inject
     private HttpClientBuilderFactory httpClientBuilderFactory;
+
+    @Inject
+    private Logger logger;
 
     @Override
     public void initialize() throws InitializationException
@@ -96,7 +100,6 @@ public class NetworkManager implements Initializable
         Map<String, Object> customLimits = limitsConfiguration.getCustomLimits();
         if (!customLimits.isEmpty()) {
             instanceReference = customLimits.get("instanceReference").toString();
-            detail = ((Date) customLimits.get("expirationDate")).getTime();
             getSpecificFields(instanceReference);
         }
     }
@@ -113,7 +116,7 @@ public class NetworkManager implements Initializable
      * @throws InterruptedException if the operation is interrupted.
      */
     public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
-        throws IOException, InterruptedException
+        throws Exception
     {
         HttpClient client = httpClientBuilderFactory.getHttpClient();
         XWikiContext wikiContext = wikiContextProvider.get();
@@ -130,13 +133,17 @@ public class NetworkManager implements Initializable
      * @throws IOException if an I/O error occurs when sending the request or receiving the response.
      * @throws InterruptedException if the operation is interrupted.
      */
-    public Map<String, Object> getLimits() throws IOException, InterruptedException
+    public Map<String, Object> getLimits() throws Exception
     {
+        long detail = getDetail();
         HttpClient client = httpClientBuilderFactory.getHttpClient();
         String targetPath = "xwiki/rest/instance/limits";
-        URI uri = getURI(targetPath, Map.of(INSTANCE_KEY, instanceReference, "detail", String.valueOf(detail)));
+        URI uri = getURI(targetPath, Map.of(INSTANCE_KEY, instanceReference, DETAIL_KEY, String.valueOf(detail)));
+        logger.debug("Attempting to get instance limits. Target URI: [{}]", uri);
         HttpRequest request = HttpRequest.newBuilder().uri(uri).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        logger.debug("Instance get limits response: body: [{}], status code: [{}]", response.body(),
+            response.statusCode());
         if (response.statusCode() == 200) {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response.body(), new TypeReference<Map<String, Object>>()
@@ -144,6 +151,102 @@ public class NetworkManager implements Initializable
             });
         }
         return Collections.emptyMap();
+    }
+
+    private boolean checkAccess(HttpClient client) throws Exception
+    {
+        XWikiContext wikiContext = wikiContextProvider.get();
+        String targetURL =
+            String.format("https://%s/xwiki/bin/view/%s", requestDomain, instanceReference.replace(".", "/"));
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(targetURL))
+            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        logger.debug("Instance check access response: body: [{}], status code: [{}]", response.body(),
+            response.statusCode());
+        if (response.statusCode() != 200) {
+            return tryGetAccess(client);
+        }
+        return true;
+    }
+
+    private Map<String, Object> getJSON(String target, Map<String, String> parameters, HttpClient client,
+        boolean useRef) throws IOException, InterruptedException
+    {
+        Map<String, String> completeParameters = new HashMap<>(parameters);
+        if (useRef) {
+            completeParameters.put("accountReference", accountRef);
+        } else {
+            completeParameters.put("account", account);
+            completeParameters.put(INSTANCE_KEY, instance);
+        }
+        XWikiContext wikiContext = wikiContextProvider.get();
+        URI dataUri = getURI(target, completeParameters);
+        logger.debug("Attempting to get data json. Target URI: [{}]", dataUri);
+        HttpRequest dataRequest = HttpRequest.newBuilder().uri(dataUri)
+            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).GET().build();
+        HttpResponse<String> response = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
+        logger.debug("Instance get data json response: body: [{}], status code: [{}]", response.body(),
+            response.statusCode());
+        if (response.statusCode() == 200) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response.body(), new TypeReference<Map<String, Object>>()
+            {
+            });
+        }
+        return Collections.emptyMap();
+    }
+
+    private boolean tryGetAccess(HttpClient client) throws Exception
+    {
+        long detail = getDetail();
+        URI targetURL = getURI("xwiki/rest/user/instance/access",
+            Map.of(INSTANCE_KEY, instanceReference, DETAIL_KEY, String.valueOf(detail)));
+        logger.debug("Attempting to get access to instance. Target URI: [{}]", targetURL);
+        HttpRequest request = HttpRequest.newBuilder().uri(targetURL).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        logger.debug("Instance access response: body: [{}], status code: [{}]", response.body(), response.statusCode());
+        if (response.statusCode() == 200) {
+            XWikiContext wikiContext = wikiContextProvider.get();
+            List<String> setCookieHeaders = response.headers().map().get("set-cookie");
+            String sessionCookie = "";
+            if (setCookieHeaders != null) {
+                for (String cookie : setCookieHeaders) {
+                    if (cookie.startsWith("JSESSIONID=")) {
+                        sessionCookie = cookie.split(";", 2)[0];
+                        break;
+                    }
+                }
+            }
+            wikiContext.getRequest().getSession().setAttribute(COOKIE_ID, sessionCookie);
+            return true;
+        }
+        logger.warn("Failed to get access to instance [{}].", instanceReference);
+        return false;
+    }
+
+    private URI getURI(String target, Map<String, String> parameters)
+    {
+        String uri = String.format("https://%s/%s", requestDomain, target);
+        UriBuilder uriBuilder = UriBuilder.fromUri(uri);
+        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty() && !entry.getValue().equals("-")) {
+                uriBuilder.queryParam(entry.getKey(), entry.getValue());
+            }
+        }
+        return uriBuilder.build();
+    }
+
+    private long getDetail() throws Exception
+    {
+        // We reload the configuration to make sure that we get the right expiration date, in case the instance was
+        // extended.
+        limitsConfiguration.reload();
+        long detail = 0L;
+        Map<String, Object> customLimits = limitsConfiguration.getCustomLimits();
+        if (!customLimits.isEmpty()) {
+            detail = ((Date) customLimits.get("expirationDate")).getTime();
+        }
+        return detail;
     }
 
     /**
@@ -163,80 +266,5 @@ public class NetworkManager implements Initializable
                 instance = match;
             }
         }
-    }
-
-    private boolean checkAccess(HttpClient client) throws IOException, InterruptedException
-    {
-        XWikiContext wikiContext = wikiContextProvider.get();
-        String targetURL =
-            String.format("https://%s/xwiki/bin/view/%s", requestDomain, instanceReference.replace(".", "/"));
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(targetURL))
-            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            return tryGetAccess(client);
-        }
-        return true;
-    }
-
-    private Map<String, Object> getJSON(String target, Map<String, String> parameters, HttpClient client,
-        boolean useRef) throws IOException, InterruptedException
-    {
-        Map<String, String> completeParameters = new HashMap<>(parameters);
-        if (useRef) {
-            completeParameters.put("accountReference", accountRef);
-        } else {
-            completeParameters.put("account", account);
-            completeParameters.put(INSTANCE_KEY, instance);
-        }
-        XWikiContext wikiContext = wikiContextProvider.get();
-        URI dataUri = getURI(target, completeParameters);
-        HttpRequest dataRequest = HttpRequest.newBuilder().uri(dataUri)
-            .header(COOKIE_KEY, (String) wikiContext.getRequest().getSession().getAttribute(COOKIE_ID)).GET().build();
-        HttpResponse<String> response = client.send(dataRequest, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 200) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(response.body(), new TypeReference<Map<String, Object>>()
-            {
-            });
-        }
-        return Collections.emptyMap();
-    }
-
-    private URI getURI(String target, Map<String, String> parameters)
-    {
-        String uri = String.format("https://%s/%s", requestDomain, target);
-        UriBuilder uriBuilder = UriBuilder.fromUri(uri);
-        for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().isEmpty() && !entry.getValue().equals("-")) {
-                uriBuilder.queryParam(entry.getKey(), entry.getValue());
-            }
-        }
-        return uriBuilder.build();
-    }
-
-    private boolean tryGetAccess(HttpClient client) throws IOException, InterruptedException
-    {
-        String targetURL =
-            String.format("https://%s/xwiki/rest/user/instance/access?instance=%s&detail=%d", requestDomain,
-                instanceReference, detail);
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(targetURL)).build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 200) {
-            XWikiContext wikiContext = wikiContextProvider.get();
-            List<String> setCookieHeaders = response.headers().map().get("set-cookie");
-            String sessionCookie = "";
-            if (setCookieHeaders != null) {
-                for (String cookie : setCookieHeaders) {
-                    if (cookie.startsWith("JSESSIONID=")) {
-                        sessionCookie = cookie.split(";", 2)[0];
-                        break;
-                    }
-                }
-            }
-            wikiContext.getRequest().getSession().setAttribute(COOKIE_ID, sessionCookie);
-            return true;
-        }
-        return false;
     }
 }

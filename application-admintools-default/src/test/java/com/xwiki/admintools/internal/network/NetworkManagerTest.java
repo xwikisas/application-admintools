@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.internal.network;
 
-import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.contrib.limits.LimitsConfiguration;
 import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -49,6 +47,7 @@ import com.xpn.xwiki.web.XWikiRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,7 +68,7 @@ class NetworkManagerTest
     private XWikiRequest wikiRequest;
 
     @RegisterExtension
-    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.DEBUG);
 
     @MockComponent
     private LimitsConfiguration limitsConfiguration;
@@ -113,7 +112,7 @@ class NetworkManagerTest
     }
 
     @Test
-    void testGetJSONFromNetwork() throws IOException, InterruptedException
+    void testGetJSONFromNetwork() throws Exception
     {
         when(httpClientBuilderFactory.getHttpClient()).thenReturn(httpClient);
         when(wikiRequest.getSession()).thenReturn(httpSession);
@@ -128,10 +127,16 @@ class NetworkManagerTest
 
         assertNotNull(result);
         assertEquals("value", result.get("key"));
+        assertEquals("Instance check access response: body: [{\"key\":\"value\"}], status code: [200]",
+            logCapture.getMessage(0));
+        assertEquals("Attempting to get data json. Target URI: [https://xnng-staging.devxwiki.com/target?param=value&"
+            + "accountReference=Accounts.Account_1234.WebHome]", logCapture.getMessage(1));
+        assertEquals("Instance get data json response: body: [{\"key\":\"value\"}], status code: [200]",
+            logCapture.getMessage(2));
     }
 
     @Test
-    void testGetJSONFromNetworkNoStoredCookieError() throws IOException, InterruptedException
+    void testGetJSONFromNetworkNoStoredCookieError() throws Exception
     {
         when(httpClientBuilderFactory.getHttpClient()).thenReturn(httpClient);
         when(wikiRequest.getSession()).thenReturn(httpSession);
@@ -144,10 +149,15 @@ class NetworkManagerTest
         Map<String, Object> result = networkManager.getJSONFromNetwork("target", Map.of("param", "value"), false);
 
         assertNull(result);
+        assertTrue(logCapture.getMessage(0).contains("Attempting to get access to instance. Target URI: "
+            + "[https://xnng-staging.devxwiki.com/xwiki/rest/user/instance/access"));
+        assertEquals("Instance access response: body: [null], status code: [404]", logCapture.getMessage(1));
+        assertEquals("Failed to get access to instance [Accounts.Account_1234.Instances.Instance_12.WebHome].",
+            logCapture.getMessage(2));
     }
 
     @Test
-    void testGetLimits() throws IOException, InterruptedException
+    void testGetLimits() throws Exception
     {
         when(httpClientBuilderFactory.getHttpClient()).thenReturn(httpClient);
         when(wikiRequest.getSession()).thenReturn(httpSession);
@@ -162,5 +172,9 @@ class NetworkManagerTest
 
         assertNotNull(result);
         assertEquals("value", result.get("key"));
+        assertTrue(logCapture.getMessage(0).contains("Attempting to get instance limits. Target URI: "
+            + "[https://xnng-staging.devxwiki.com/xwiki/rest/instance/limits"));
+        assertEquals("Instance get limits response: body: [{\"key\":\"value\"}], status code: [200]",
+            logCapture.getMessage(1));
     }
 }
