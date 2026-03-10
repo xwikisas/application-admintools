@@ -392,16 +392,21 @@
               &lt;/li&gt;
             #end
           #end
-          #define ($timeLeft)
-            #if ($daysLeft &gt; 0)
-              $services.localization.render('com.xwiki.cloud.navigation.instance-status.daysLeft', [$daysLeft])
-            #elseif ($hoursLeft &gt; 0)
-              $services.localization.render('com.xwiki.cloud.navigation.instance-status.hoursLeft', [$hoursLeft])
-            #else
-              $services.localization.render('com.xwiki.cloud.navigation.instance-status.minutesLeft', [$minutesLeft])
+          #checkNetworkAccessRights($hasRights)
+          #if ($hasRights)
+            #define ($timeLeft)
+              #if ($daysLeft &gt; 0)
+                $services.localization.render('com.xwiki.cloud.navigation.instance-status.daysLeft', [$daysLeft])
+              #elseif ($hoursLeft &gt; 0)
+                $services.localization.render('com.xwiki.cloud.navigation.instance-status.hoursLeft', [$hoursLeft])
+              #else
+                $services.localization.render('com.xwiki.cloud.navigation.instance-status.minutesLeft', [$minutesLeft])
+              #end
             #end
+            &lt;li&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.cloud.limits.timeLeft', [$timeLeft]))
+            &lt;/li&gt;
           #end
-          &lt;li&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.limits.timeLeft', [$timeLeft]))&lt;/li&gt;
         &lt;/ul&gt;
         &lt;hr/&gt;
         &lt;h2&gt;$escapetool.xml($services.localization.render('adminTools.dashboard.cloud.subsection.title'))&lt;/h2&gt;
