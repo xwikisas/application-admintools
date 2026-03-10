@@ -90,7 +90,7 @@ adminTools.dashboard.healthcheck.java.info=Java status OK.
 adminTools.dashboard.healthcheck.java.warn=Java version could not be found! Please make sure you correctly installed and configured the paths for your Java installation. For further help, consult the help links.
 adminTools.dashboard.healthcheck.java.error=You are currently using Java version {0} which is not compatible with the XWiki installation version {1}. Please check the help links to view the compatibility.
 adminTools.dashboard.healthcheck.memory.allocation.info=Maximum memory allocation is equal to the initial size. Set value is {0}GB.
-adminTools.dashboard.healthcheck.memory.allocation.warn=To improve performance, -Xms  and -Xmx memory allocation should be identical.
+adminTools.dashboard.healthcheck.memory.allocation.warn=To improve performance, -Xms and -Xmx memory allocation should be identical.
 adminTools.dashboard.healthcheck.memory.cache.info=Document cache status OK. Current cache value is {0}.
 adminTools.dashboard.healthcheck.memory.cache.null=Document store cache capacity was not configured and is set by default to 500. See cache recommendations in help links above.
 adminTools.dashboard.healthcheck.memory.cache.low=Document cache capacity is set below 500 [{0}]. See cache recommendations in the help links page.
@@ -384,7 +384,8 @@ adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Wiki name
 adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
 adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count
 adminTools.dashboard.security.modal.groupsRights.title=Groups rights
-adminTools.dashboard.security.modal.usersRights.title=Users rights</content>
+adminTools.dashboard.security.modal.usersRights.title=Users rights
+</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
