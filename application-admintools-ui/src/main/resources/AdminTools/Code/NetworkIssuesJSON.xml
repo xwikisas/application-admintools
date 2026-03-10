@@ -62,6 +62,7 @@
     })
     #getNetworkDomain($requestDomain)
     #checkNetworkAccessRights($hasRights)
+    #set ($customLimits = $services.limits.customLimits)
     #foreach ($currentEntry in $ordersResults.rows)
       #if ($hasRights)
         #set ($keyURL =

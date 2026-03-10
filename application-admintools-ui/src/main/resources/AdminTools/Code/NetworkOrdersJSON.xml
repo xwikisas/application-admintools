@@ -63,6 +63,7 @@
     })
     #getNetworkDomain($requestDomain)
     #checkNetworkAccessRights($hasRights)
+    #set ($customLimits = $services.limits.customLimits)
     #foreach ($currentEntry in $ordersResults.rows)
       #set ($keyValue = $stringtool.substringAfterLast($currentEntry.id_url, '/'))
       #if ($hasRights)
