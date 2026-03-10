@@ -20,12 +20,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="">
+<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="fr">
   <web>AdminTools.Code</web>
   <name>Translations</name>
-  <language/>
+  <language>fr</language>
   <defaultLanguage>en</defaultLanguage>
-  <translation>0</translation>
+  <translation>1</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <parent>AdminTools.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
@@ -88,7 +88,7 @@ adminTools.dashboard.healthcheck.java.info=Statut de java valide.
 adminTools.dashboard.healthcheck.java.warn=La version de Java n'a pas pu être déterminée. Merci de vous assurer que vous l'avez correctement installé et configuré les chemins de votre installation de Java. Pour plus d'information, consultez les liens d'aide.
 adminTools.dashboard.healthcheck.java.error=Vous utilisez actuellement la version {0} de Java, qui n''est pas compatible avec cette installation de XWiki. Merci de consulter les liens d''aide pour connaitre la compatibilité.
 adminTools.dashboard.healthcheck.memory.allocation.info=L''allocation mémoire maximale est égale à la taille initiale. La valeur configurée est de {0} Go.
-### Missing: adminTools.dashboard.healthcheck.memory.allocation.warn=To improve performance, -Xms  and -Xmx memory allocation should be identical.
+adminTools.dashboard.healthcheck.memory.allocation.warn=Pour améliorer les performances, les allocations mémoire -Xms et -Xmx doivent être identiques.
 ### Missing: adminTools.dashboard.healthcheck.memory.cache.info=Document cache status OK. Current cache value is {0}.
 ### Missing: adminTools.dashboard.healthcheck.memory.cache.null=Document store cache capacity was not configured and is set by default to 500. See cache recommendations in help links above.
 ### Missing: adminTools.dashboard.healthcheck.memory.cache.low=Document cache capacity is set below 500 [{0}]. See cache recommendations in the help links page.
@@ -367,41 +367,4 @@ adminTools.dashboard.healthcheck.memory.allocation.info=L''allocation mémoire m
 ### Missing: adminTools.dashboard.security.modal.groupsRights.title=Groups rights
 ### Missing: adminTools.dashboard.security.modal.usersRights.title=Users rights
 </content>
-  <object>
-    <name>AdminTools.Code.Translations</name>
-    <number>0</number>
-    <className>XWiki.TranslationDocumentClass</className>
-    <guid>b9f3e077-6d36-45e6-9556-7dd8c4a90f2c</guid>
-    <class>
-      <name>XWiki.TranslationDocumentClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <scope>
-        <cache>0</cache>
-        <disabled>0</disabled>
-        <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
-        <multiSelect>0</multiSelect>
-        <name>scope</name>
-        <number>1</number>
-        <prettyName>Scope</prettyName>
-        <relationalStorage>0</relationalStorage>
-        <separator> </separator>
-        <separators>|, </separators>
-        <size>1</size>
-        <unmodifiable>0</unmodifiable>
-        <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </scope>
-    </class>
-    <property>
-      <scope>WIKI</scope>
-    </property>
-  </object>
 </xwikidoc>
