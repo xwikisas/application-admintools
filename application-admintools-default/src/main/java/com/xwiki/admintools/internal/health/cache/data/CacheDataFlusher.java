@@ -97,8 +97,8 @@ public class CacheDataFlusher
         Set<ObjectName> cacheSet = cacheDataUtil.getCacheSet(QUERY_CACHE_TARGET);
         for (ObjectName cache : cacheSet) {
             GroovyMBean groovyMBean = groovyMBeanUtil.getGroovyMBean(cache);
-            String name = cache.getKeyProperty(NAME_KEY).replace("\"", "");
-            if (name.equals(cacheName)) {
+            String name = cache.getKeyProperty(NAME_KEY);
+            if (name.contains(cacheName)) {
                 groovyMBean.invokeMethod(CLEAR_METHOD_KEY, new Object[0]);
                 return true;
             }
