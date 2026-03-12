@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class AdminToolsEventListenerTest
 {
-    private final List<String> SPACE = Arrays.asList("AdminTools", "Code");
+    private static final List<String> SPACE = Arrays.asList("AdminTools", "Code");
 
     @InjectMockComponents
     private AdminToolsEventListener adminToolsEventListener;
@@ -103,9 +103,9 @@ class AdminToolsEventListenerTest
     void onEventIsNotAdminToolsConfigObject()
     {
         Event event = new DocumentUpdatedEvent();
-        List<String> SPACE = Arrays.asList("other_page", "Code");
+        List<String> otherSpace = Arrays.asList("other_page", "Code");
         DocumentReference configReference =
-            new DocumentReference(new LocalDocumentReference(SPACE, "Configuration"), new WikiReference("mywiki"));
+            new DocumentReference(new LocalDocumentReference(otherSpace, "Configuration"), new WikiReference("mywiki"));
         when(xWikiDocument.getDocumentReference()).thenReturn(configReference);
         when(wikiDescriptorManager.getCurrentWikiId()).thenReturn("mywiki");
 

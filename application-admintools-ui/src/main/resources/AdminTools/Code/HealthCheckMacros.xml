@@ -92,6 +92,9 @@
             &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
             &lt;/li&gt;
+            &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.JMXManagedCache')" target="_blank"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.cache.jmx'))&lt;/a&gt;
+            &lt;/li&gt;
           &lt;/ul&gt;
           #cacheFlushModal()
         &lt;/div&gt;
