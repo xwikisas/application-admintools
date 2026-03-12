@@ -95,7 +95,7 @@ public interface AdminToolsResource extends XWikiRestComponent
      *
      * @return the status of the operation
      * @throws XWikiRestException if an error occurred while flushing the cache
-     * @since 1.3
+     * @since 1.4
      */
     @POST
     @Path("/flushCache/jmx")
@@ -111,12 +111,12 @@ public interface AdminToolsResource extends XWikiRestComponent
      * @param cacheName the name of the cache to flush
      * @return the status of the operation
      * @throws XWikiRestException if an error occurred while flushing the cache
-     * @since 1.3
+     * @since 1.4
      */
     @POST
-    @Path("/flushCache/jmx/cache")
+    @Path("/flushCache/jmx/{cacheName}")
     @Unstable
-    default Response flushJMXEntryCache(@QueryParam("cacheName") String cacheName) throws XWikiRestException
+    default Response flushJMXEntryCache(@PathParam("cacheName") String cacheName) throws XWikiRestException
     {
         throw new WebApplicationException(501);
     }

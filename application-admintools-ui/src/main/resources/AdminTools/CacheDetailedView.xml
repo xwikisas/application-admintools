@@ -54,7 +54,7 @@
       &lt;hr&gt;
       &lt;div&gt;
         #set ($tableUrl = $xwiki.getURL('AdminTools.JMXManagedCache'))
-        #set ($flushRef = "${request.getContextPath()}/rest/admintools/flushCache/jmx/cache?cacheName=${cacheName}")
+        #set ($flushRef = "${request.getContextPath()}/rest/admintools/flushCache/jmx/${cacheName}")
         &lt;a class='btn btn-default' href="${tableUrl}"&gt;
           $escapetool.xml($services.localization.render('adminTools.cache.jmx.button.return'))&lt;/a&gt;
         &lt;a class='btn btn-danger cache-flush-action' href="${flushRef}" data-cacheName="${cacheName}"&gt;

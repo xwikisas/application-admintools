@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
@@ -85,16 +86,23 @@ class CacheDataFlusherTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
 
-    @Test
-    void clearAllCacheTest() throws JMException, IOException
+    @BeforeEach
+    void setup() throws JMException, IOException
     {
         when(dataUtil.getCacheSet("Cache")).thenReturn(Set.of(objectName1, objectName2, objectName3));
         when(groovyMBeanUtil.getGroovyMBean(objectName1)).thenReturn(groovyMBean1);
         when(groovyMBeanUtil.getGroovyMBean(objectName2)).thenReturn(groovyMBean2);
         when(groovyMBeanUtil.getGroovyMBean(objectName3)).thenReturn(groovyMBean3);
 
-        when(groovyMBean2.invokeMethod(eq("clear"), any(Object.class))).thenThrow(new RuntimeException("failed"));
+        when(objectName1.getKeyProperty("name")).thenReturn("name 1");
         when(objectName2.getKeyProperty("name")).thenReturn("name 2");
+        when(objectName3.getKeyProperty("name")).thenReturn("name 3");
+    }
+
+    @Test
+    void clearAllCacheTest() throws JMException, IOException
+    {
+        when(groovyMBean2.invokeMethod(eq("clear"), any(Object.class))).thenThrow(new RuntimeException("failed"));
 
         assertFalse(cacheDataFlusher.clearAllCache());
         verify(groovyMBean1, times(1)).invokeMethod(eq("clear"), any(Object.class));
@@ -105,15 +113,6 @@ class CacheDataFlusherTest
     @Test
     void clearCacheFound() throws JMException, IOException
     {
-        when(dataUtil.getCacheSet("Cache")).thenReturn(Set.of(objectName1, objectName2, objectName3));
-        when(groovyMBeanUtil.getGroovyMBean(objectName1)).thenReturn(groovyMBean1);
-        when(groovyMBeanUtil.getGroovyMBean(objectName2)).thenReturn(groovyMBean2);
-        when(groovyMBeanUtil.getGroovyMBean(objectName3)).thenReturn(groovyMBean3);
-
-        when(objectName1.getKeyProperty("name")).thenReturn("name 1");
-        when(objectName2.getKeyProperty("name")).thenReturn("name 2");
-        when(objectName3.getKeyProperty("name")).thenReturn("name 3");
-
         assertTrue(cacheDataFlusher.clearCache("name 2"));
         verify(groovyMBean1, times(0)).invokeMethod(eq("clear"), any(Object.class));
         verify(groovyMBean2, times(1)).invokeMethod(eq("clear"), any(Object.class));
@@ -123,15 +122,6 @@ class CacheDataFlusherTest
     @Test
     void clearCacheNotFound() throws JMException, IOException
     {
-        when(dataUtil.getCacheSet("Cache")).thenReturn(Set.of(objectName1, objectName2, objectName3));
-        when(groovyMBeanUtil.getGroovyMBean(objectName1)).thenReturn(groovyMBean1);
-        when(groovyMBeanUtil.getGroovyMBean(objectName2)).thenReturn(groovyMBean2);
-        when(groovyMBeanUtil.getGroovyMBean(objectName3)).thenReturn(groovyMBean3);
-
-        when(objectName1.getKeyProperty("name")).thenReturn("name 1");
-        when(objectName2.getKeyProperty("name")).thenReturn("name 2");
-        when(objectName3.getKeyProperty("name")).thenReturn("name 3");
-
         assertFalse(cacheDataFlusher.clearCache("name 4"));
         verify(groovyMBean1, times(0)).invokeMethod(eq("clear"), any(Object.class));
         verify(groovyMBean2, times(0)).invokeMethod(eq("clear"), any(Object.class));

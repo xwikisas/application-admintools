@@ -104,7 +104,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param order the sort order applied to the result, based on the number of entries
      * @return a sorted and filtered {@code List} with the JMX managed caches
      * @throws AccessDeniedException if the requesting user lacks admin rights.
-     * @since 1.3
+     * @since 1.4
      */
     @Unstable
     public List<CacheInfo> getJMXCache(String filter, String order) throws Exception
@@ -119,7 +119,7 @@ public class AdminToolsScriptService implements ScriptService
      * @param name cache name to be searched for
      * @return a {@link Map} with the detailed statistics
      * @throws AccessDeniedException if the requesting user lacks admin rights.
-     * @since 1.3
+     * @since 1.4
      */
     @Unstable
     public Map<String, Object> getDetailedCacheData(String name) throws Exception

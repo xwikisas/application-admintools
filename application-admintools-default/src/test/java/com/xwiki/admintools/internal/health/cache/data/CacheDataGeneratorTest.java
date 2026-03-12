@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.management.JMException;
 import javax.management.ObjectName;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
@@ -101,6 +102,19 @@ class CacheDataGeneratorTest
     @RegisterExtension
     private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
+    @BeforeEach
+    void setup() throws JMException, IOException
+    {
+        when(dataUtil.getCacheSet("Statistics")).thenReturn(Set.of(objectStats1, objectStats2, objectStats3));
+        when(objectStats1.getKeyProperty("name")).thenReturn("\"filter key 1\"");
+        when(objectStats2.getKeyProperty("name")).thenReturn("\"filter key\"");
+        when(objectStats3.getKeyProperty("name")).thenReturn("\"key 3\"");
+
+        when(groovyMBeanUtil.getGroovyMBean(objectStats1)).thenReturn(groovyMBean4);
+        when(groovyMBeanUtil.getGroovyMBean(objectStats2)).thenReturn(groovyMBean5);
+        when(groovyMBeanUtil.getGroovyMBean(objectStats3)).thenReturn(groovyMBean6);
+    }
+
     @Test
     void getCacheEntriesTest() throws JMException, IOException
     {
@@ -109,7 +123,6 @@ class CacheDataGeneratorTest
         configs.add(objectName2);
         configs.add(objectName3);
         when(dataUtil.getCacheSet("Configuration")).thenReturn(configs);
-        when(dataUtil.getCacheSet("Statistics")).thenReturn(Set.of(objectStats1, objectStats2, objectStats3));
 
         when(objectName1.getKeyProperty("name")).thenReturn("\"filter key 1\"");
         when(objectName2.getKeyProperty("name")).thenReturn("\"filter key 2\"");
@@ -117,13 +130,6 @@ class CacheDataGeneratorTest
         when(groovyMBeanUtil.getGroovyMBean(objectName1)).thenReturn(groovyMBean1);
         when(groovyMBeanUtil.getGroovyMBean(objectName2)).thenReturn(groovyMBean2);
         when(groovyMBeanUtil.getGroovyMBean(objectName3)).thenReturn(groovyMBean3);
-
-        when(objectStats1.getKeyProperty("name")).thenReturn("\"filter key 1\"");
-        when(objectStats2.getKeyProperty("name")).thenReturn("\"filter key\"");
-        when(objectStats3.getKeyProperty("name")).thenReturn("\"key 3\"");
-        when(groovyMBeanUtil.getGroovyMBean(objectStats1)).thenReturn(groovyMBean4);
-        when(groovyMBeanUtil.getGroovyMBean(objectStats2)).thenReturn(groovyMBean5);
-        when(groovyMBeanUtil.getGroovyMBean(objectStats3)).thenReturn(groovyMBean6);
 
         when(groovyMBean1.getProperty("evictionSize")).thenReturn(20L);
         when(groovyMBean2.getProperty("evictionSize")).thenReturn(50L);
@@ -134,7 +140,7 @@ class CacheDataGeneratorTest
         when(groovyMBean6.getProperty("numberOfEntries")).thenReturn(-1L);
         when(groovyMBean6.getProperty("approximateEntries")).thenReturn(28L);
 
-        List<CacheInfo> results = cacheDataGenerator.getCacheEntries("ilter");
+        List<CacheInfo> results = cacheDataGenerator.getCacheEntries("filter");
         assertEquals("Failed to retrieve number of entries for cache [\"filter key\"].", logCapture.getMessage(0));
         assertEquals(2, results.size());
         assertEquals("filter key 1", results.get(0).getCacheName());
@@ -147,14 +153,6 @@ class CacheDataGeneratorTest
     @Test
     void getDetailedCacheEntry() throws JMException, IOException
     {
-        when(dataUtil.getCacheSet("Statistics")).thenReturn(Set.of(objectStats1, objectStats2, objectStats3));
-        when(groovyMBeanUtil.getGroovyMBean(objectStats1)).thenReturn(groovyMBean4);
-        when(groovyMBeanUtil.getGroovyMBean(objectStats2)).thenReturn(groovyMBean5);
-        when(groovyMBeanUtil.getGroovyMBean(objectStats3)).thenReturn(groovyMBean6);
-
-        when(objectStats1.getKeyProperty("name")).thenReturn("\"filter key 1\"");
-        when(objectStats2.getKeyProperty("name")).thenReturn("\"filter key\"");
-        when(objectStats3.getKeyProperty("name")).thenReturn("\"key 3\"");
         when(groovyMBean5.listAttributeNames()).thenReturn(
             List.of("approximateEntries", "numberOfEntries", "evictionSize"));
 

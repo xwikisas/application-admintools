@@ -156,7 +156,9 @@
     'done',
     'cache',
     'error',
-    'notFound'
+    'notFound',
+    'warning',
+    'start'
   ]
 });
 
@@ -168,18 +170,24 @@ require(['jquery', 'xwiki-l10n!admin-tools-cache-flush-jmx'], function($, l10n) 
 
   const sendFlushRequest = function(relatedTarget) {
     const cacheName = $(relatedTarget).data('cachename');
-    $.post($(relatedTarget).attr('href')).done(function() {
+    const notification = new XWiki.widgets.Notification(l10n.get('start'), 'info');
+    $.post($(relatedTarget).attr('href')).done(function(response) {
+      console.log(response)
       if (cacheName &amp;&amp; cacheName != '') {
         redirectToDetailedView(cacheName)
       } else {
-        $("#jmxCacheLivedata").data("liveData").updateEntries();
-        new XWiki.widgets.Notification(l10n.get('done'), 'done');
+        $('#jmxCacheLivedata').data('liveData').updateEntries();
+        if (response) {
+          notification.replace(new XWiki.widgets.Notification(l10n.get('done'), 'done'));
+        } else {
+          notification.replace(new XWiki.widgets.Notification(l10n.get('warning'), 'warning'));
+        }
       }
     }).fail(function(error) {
       if (error.status == 404) {
-        new XWiki.widgets.Notification(l10n.get('notFound'), 'error');
+        notification.replace(new XWiki.widgets.Notification(l10n.get('notFound'), 'error'));
       } else {
-        new XWiki.widgets.Notification(l10n.get('error'), 'error');
+        notification.replace(new XWiki.widgets.Notification(l10n.get('error'), 'error'));
       }
     });
   }

@@ -22,10 +22,10 @@ package com.xwiki.admintools.health.cache;
 import org.xwiki.stability.Unstable;
 
 /**
- * Holds JMX exposed information of name, eviction limit and size for a single cache.
+ * Holds JMX-exposed information regarding the name, eviction limit, and size for a single cache.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Unstable
 public class CacheInfo

@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.inject.Provider;
 import javax.management.JMException;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,9 @@ import com.xwiki.admintools.jobs.PackageUploadJobRequest;
 import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -321,15 +324,18 @@ class DefaultAdminToolsResourceTest
     void flushJMXCache() throws JMException, IOException
     {
         when(cacheDataFlusher.clearAllCache()).thenReturn(true);
-        assertEquals(200, defaultAdminToolsResource.flushJMXCache().getStatus());
+        Response response = defaultAdminToolsResource.flushJMXCache();
+        assertEquals(200, response.getStatus());
+        assertTrue((Boolean) response.getEntity());
     }
 
     @Test
     void flushJMXCacheErrors() throws JMException, IOException
     {
         when(cacheDataFlusher.clearAllCache()).thenReturn(false);
-        assertEquals(200, defaultAdminToolsResource.flushJMXCache().getStatus());
-        assertEquals("There were some errors while flushing the JMX cache.", logCapture.getMessage(0));
+        Response response = defaultAdminToolsResource.flushJMXCache();
+        assertEquals(200, response.getStatus());
+        assertFalse((Boolean) response.getEntity());
     }
 
     @Test

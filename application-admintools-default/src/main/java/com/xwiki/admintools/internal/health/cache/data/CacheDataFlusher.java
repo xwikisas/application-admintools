@@ -35,12 +35,13 @@ import com.xwiki.admintools.internal.health.cache.GroovyMBeanUtil;
 import groovy.jmx.GroovyMBean;
 
 import static com.xwiki.admintools.internal.health.cache.data.CacheDataUtil.NAME_KEY;
+import static com.xwiki.admintools.internal.health.cache.data.CacheDataUtil.STARTING_ENDING_QUOTES_REGEX;
 
 /**
  * Handles the flush of JMX managed cache.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component(roles = CacheDataFlusher.class)
 @Singleton
@@ -71,13 +72,11 @@ public class CacheDataFlusher
         Set<ObjectName> cacheSet = cacheDataUtil.getCacheSet(QUERY_CACHE_TARGET);
         boolean noError = true;
         for (ObjectName cache : cacheSet) {
-            GroovyMBean groovyMBean = groovyMBeanUtil.getGroovyMBean(cache);
             try {
+                GroovyMBean groovyMBean = groovyMBeanUtil.getGroovyMBean(cache);
                 groovyMBean.invokeMethod(CLEAR_METHOD_KEY, new Object[0]);
             } catch (Exception e) {
-                String errMessage = String.format("There was an error while flushing the cache for [%s]",
-                    cache.getKeyProperty(NAME_KEY));
-                logger.error(errMessage, e);
+                logger.error("There was an error while flushing the cache for [{}]", cache.getKeyProperty(NAME_KEY), e);
                 noError = false;
             }
         }
@@ -98,7 +97,7 @@ public class CacheDataFlusher
         for (ObjectName cache : cacheSet) {
             GroovyMBean groovyMBean = groovyMBeanUtil.getGroovyMBean(cache);
             String name = cache.getKeyProperty(NAME_KEY);
-            if (name.contains(cacheName)) {
+            if (name.replaceAll(STARTING_ENDING_QUOTES_REGEX, "").equals(cacheName)) {
                 groovyMBean.invokeMethod(CLEAR_METHOD_KEY, new Object[0]);
                 return true;
             }

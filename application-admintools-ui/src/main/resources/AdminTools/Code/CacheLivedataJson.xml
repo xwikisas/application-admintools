@@ -60,16 +60,16 @@
       #getSubset($jmxCache, $offset, $toIndex, $resultList)
     #end
     #set ($results = {
-      "totalrows": $jmxCache.size(),
-      "returnedrows": $resultList.size(),
-      "offset": $mathtool.add($offset, 1),
-      "rows": []
+      'totalrows': $jmxCache.size(),
+      'returnedrows': $resultList.size(),
+      'offset': $mathtool.add($offset, 1),
+      'rows': []
     })
     #foreach ($currentCache in $resultList)
       #set ($cacheName = $escapetool.xml($currentCache.getCacheName()))
       #set ($docUrl = $xwiki.getURL('AdminTools.CacheDetailedView', 'view', "cacheName=${cacheName}"))
       #set ($docName = "&lt;a href='${docUrl}'&gt;${cacheName}&lt;/a&gt;")
-      #set ($flushRef = "${request.getContextPath()}/rest/admintools/flushCache/jmx/cache?cacheName=${cacheName}")
+      #set ($flushRef = "${request.getContextPath()}/rest/admintools/flushCache/jmx/${cacheName}")
       #set ($flush = "&lt;a class='cache-flush-action' href='${flushRef}' data-cacheName='${cacheName}'&gt;" +
         "${escapetool.xml($services.localization.render('adminTools.cache.jmx.button.flush.cache'))}&lt;/a&gt;")
       #set ($discard = $results.rows.add({

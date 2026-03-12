@@ -40,12 +40,13 @@ import com.xwiki.admintools.internal.health.cache.GroovyMBeanUtil;
 import groovy.jmx.GroovyMBean;
 
 import static com.xwiki.admintools.internal.health.cache.data.CacheDataUtil.NAME_KEY;
+import static com.xwiki.admintools.internal.health.cache.data.CacheDataUtil.STARTING_ENDING_QUOTES_REGEX;
 
 /**
  * Handles the retrieval of cache info.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component(roles = CacheDataGenerator.class)
 @Singleton
@@ -54,8 +55,6 @@ public class CacheDataGenerator
     private static final String QUERY_CONFIGURATION_TARGET = "Configuration";
 
     private static final String QUERY_STATISTICS_TARGET = "Statistics";
-
-    private static final String REGEX = "\"";
 
     @Inject
     private Logger logger;
@@ -90,7 +89,7 @@ public class CacheDataGenerator
                 long numberOfEntries = statsMap.getOrDefault(cacheName, -1L);
 
                 CacheInfo cacheInfo = new CacheInfo();
-                cacheInfo.setCacheName(cacheName.replace(REGEX, ""));
+                cacheInfo.setCacheName(cacheName.replaceAll(STARTING_ENDING_QUOTES_REGEX, ""));
                 cacheInfo.setEvictionSize(evictionSize);
                 cacheInfo.setNumberOfEntries(numberOfEntries);
                 cacheEntries.add(cacheInfo);
@@ -114,14 +113,13 @@ public class CacheDataGenerator
         for (ObjectName statsCache : statsCacheSet) {
             GroovyMBean bean = groovyMBeanUtil.getGroovyMBean(statsCache);
             String cacheName = statsCache.getKeyProperty(NAME_KEY);
-            if (cacheName.replace(REGEX, "").equals(name)) {
+            if (cacheName.replaceAll(STARTING_ENDING_QUOTES_REGEX, "").equals(name)) {
                 for (String attribute : bean.listAttributeNames()) {
                     try {
                         Object propertyValue = bean.getProperty(attribute);
                         detailedEntryMap.put(attribute, propertyValue);
                     } catch (Exception e) {
-                        logger.warn(String.format("Failed to retrieve attribute [%s] for cache [%s].", attribute, name),
-                            e);
+                        logger.warn("Failed to retrieve attribute [{}] for cache [{}].", attribute, name, e);
                     }
                 }
                 break;
@@ -145,7 +143,7 @@ public class CacheDataGenerator
                 }
                 statsMap.put(name, count);
             } catch (Exception e) {
-                logger.warn(String.format("Failed to retrieve number of entries for cache [%s].", name), e);
+                logger.warn("Failed to retrieve number of entries for cache [{}].", name, e);
             }
         }
         return statsMap;

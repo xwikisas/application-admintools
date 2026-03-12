@@ -35,7 +35,7 @@ import com.xwiki.admintools.internal.health.cache.GroovyMBeanUtil;
  * Abstract class for common code needed in JMX managed cache data handling.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component(roles = CacheDataUtil.class)
 @Singleton
@@ -46,13 +46,18 @@ public class CacheDataUtil
      */
     public static final String NAME_KEY = "name";
 
+    /**
+     * Regex to remove starting and ending double quotes.
+     */
+    public static final String STARTING_ENDING_QUOTES_REGEX = "(^\")|(\"$)";
+
     @Inject
     private GroovyMBeanUtil groovyMBeanUtil;
 
     /**
      * Get the cache for a given component.
      *
-     * @param target target component for which to retrieve the cache
+     * @param target component for which to retrieve the cache
      * @return a {@link Set} with the cache objects for the given target component
      * @throws MalformedObjectNameException if the string passed as a parameter does not have the right format
      */

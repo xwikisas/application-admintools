@@ -63,6 +63,8 @@ import com.xwiki.admintools.rest.AdminToolsResource;
 @Singleton
 public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
+    private static final String JMX_CACHE_ERROR = "There were some errors while flushing the JMX cache.";
+
     @Inject
     private Logger logger;
 
@@ -156,17 +158,12 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
             this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
             boolean success = cacheDataFlusher.clearAllCache();
-            if (success) {
-                return Response.ok().build();
-            } else {
-                logger.warn("There were some errors while flushing the JMX cache.");
-                return Response.ok().type(MediaType.TEXT_PLAIN_TYPE).build();
-            }
+            return Response.ok(success).type(MediaType.APPLICATION_JSON_TYPE).build();
         } catch (AccessDeniedException deniedException) {
             logger.warn("Failed to flush JMX caches due to restricted rights.", deniedException);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
-            logger.warn("Failed to flush JMX caches. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to flush JMX caches.", e);
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -188,7 +185,7 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             logger.warn("Failed to flush JMX cache due to restricted rights.", deniedException);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
-            logger.warn("Failed to flush JMX cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            logger.error("Failed to flush JMX cache [{}].", entryName, e);
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
