@@ -1,0 +1,370 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="fr">
+  <web>AdminTools.Code</web>
+  <name>Translations</name>
+  <language>fr</language>
+  <defaultLanguage>en</defaultLanguage>
+  <translation>1</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Translations</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>plain/1.0</syntaxId>
+  <hidden>true</hidden>
+  <content>##Admin section
+AdminTools.Code.ConfigurationClass_excludedLines=Lignes exclues
+AdminTools.Code.ConfigurationClass_excludedLines.hint=Lignes contenant des informations sensibles dans les fichiers xwiki.cfg et xwiki.properties
+AdminTools.Code.ConfigurationClass_serverLocation=Emplacement du serveur
+AdminTools.Code.ConfigurationClass_serverLocation.hint=Chemin de l'emplacement du serveur
+AdminTools.Code.ConfigurationClass_spamSize=Taille du spam
+AdminTools.Code.ConfigurationClass_spamSize.hint=Nombre minimal de lignes considérées comme spam
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation=Emplacement du dossier XWiki
+AdminTools.Code.ConfigurationClass_xwikiInstallLocation.hint=Chemin vers l'emplacement du dossier XWiki
+admin.admintools.description=Configurer l'application Admin Tools
+adminTools.extension.name=Application Admin Tools (Pro)
+adminTools.extension.title=Admin Tools
+
+## Dashboard sections
+adminTools.dashboard.toc.title=Table du contenu
+adminTools.dashboard.serverNotFound.error=Le chemin du serveur n''a pas été trouvé ou n''est actuellement pas supporté par cette version d''Admin Tools Pro. Merci d''ajouter manuellement le chemin vers le serveur sur la page de configuration d''Admin Tools. Serveur actuellement supporté : {0}
+adminTools.dashboard.missingRights=Accès refusé pour absence de droits administrateur !
+
+## Config
+adminTools.dashboard.backend.description=Obtenez des infos sur votre back-end.
+adminTools.dashboard.backend.java=Version de java détectée : {0}
+adminTools.dashboard.backend.os.architecture=Architecture du système d''exploitation : {0}
+adminTools.dashboard.backend.os.legend=Infos du système d'exploitation
+adminTools.dashboard.backend.os.name=Nom du système d''exploitation : {0}
+adminTools.dashboard.backend.os.version=Version du système d''exploitation : {0}
+adminTools.dashboard.backend.supportedDB.error=Base de données non trouvée. Bases de données supportées actuellement : {0}
+adminTools.dashboard.backend.title=Back-end
+adminTools.dashboard.backend.usedDB=Base de données utilisée : {0}, version {1}
+adminTools.dashboard.backend.usedServer=Serveur utilisé : {0}, version {1}
+adminTools.dashboard.backend.xwiki.version=Version de XWiki installée : {0}
+
+## Files
+adminTools.dashboard.download.description=Obtenez les fichiers dont vous avez besoin. Consultez-les directement dans le navigateur ou téléchargez-les en tant qu'archive.
+adminTools.dashboard.download.label=Exportez les fichiers nécessaires pour obtenir du support
+adminTools.dashboard.download.title=Fichiers
+adminTools.dashboard.download.view.configuration=Fichier de configuration de XWiki
+adminTools.dashboard.download.view.description=Voir le contenu du fichier
+adminTools.dashboard.download.view.properties=Fichier des propriétés de XWiki
+adminTools.dashboard.download.warning=Avant de télécharger et envoyer les fichiers, merci de vous assurer que vous avez configuré les lignes qui sont susceptibles de contenir des données sensibles dans la page de configuration d'Admin Tools !
+
+## Health check
+adminTools.dashboard.healthcheck.database.info=État de la base de données valide.
+adminTools.dashboard.healthcheck.database.warn=Base de données non trouvée !
+adminTools.dashboard.healthcheck.database.notSupported=La base de connées en cours d''utilisation est {0}, et n''est pas supportée par XWiki. Consultez les liens vers l''aide pour trouver les pré-requis de compatibilité de la base de données.
+adminTools.dashboard.healthcheck.description=Vérifiez que votre instance est configurée correctement et s''exécute correctement. Pour tout problème, consultez {0}.
+adminTools.dashboard.healthcheck.flushCache=Vider le cache de l'instance
+adminTools.dashboard.healthcheck.flushCache.error=Il s'est produit une erreur pendant le nettoyage du cache de l'instance.
+adminTools.dashboard.healthcheck.flushCache.success=Cache vidé avec succès.
+adminTools.dashboard.healthcheck.java.info=Statut de java valide.
+adminTools.dashboard.healthcheck.java.warn=La version de Java n'a pas pu être déterminée. Merci de vous assurer que vous l'avez correctement installé et configuré les chemins de votre installation de Java. Pour plus d'information, consultez les liens d'aide.
+adminTools.dashboard.healthcheck.java.error=Vous utilisez actuellement la version {0} de Java, qui n''est pas compatible avec cette installation de XWiki. Merci de consulter les liens d''aide pour connaitre la compatibilité.
+adminTools.dashboard.healthcheck.memory.allocation.info=L''allocation mémoire maximale est égale à la taille initiale. La valeur configurée est de {0} Go.
+adminTools.dashboard.healthcheck.memory.allocation.warn=Pour améliorer les performances, les allocations mémoire -Xms et -Xmx doivent être identiques.
+adminTools.dashboard.healthcheck.memory.cache.info=Statut du cache des documents OK. La valeur actuelle du cache est {0}.
+adminTools.dashboard.healthcheck.memory.cache.null=La capacité du cache des documents n'a pas été configurée et est définie par défaut à 500. Consultez les recommandations du lien d'aide ci-dessus.
+adminTools.dashboard.healthcheck.memory.cache.low=La capacité du cache de documents est inférieure à 500 [{0}]. Consultez les recommandations dans le lien d''aide.
+adminTools.dashboard.healthcheck.memory.free.error=Votre JVM dispose de moins de 512 Mo de mémoire disponible, actuellement {0] Mo. Dédiez plus de ressources à votre machine virtuelle Java ! Consultez les liens d'aide pour plus d'informations.
+adminTools.dashboard.healthcheck.memory.free.warn=La quantité de mémoire vive disponible pour votre instance est basse. Actuellement, il reste {0} Mo disponible.
+adminTools.dashboard.healthcheck.memory.info=Statut de la mémoire OK. Il y a actuellement {0} Go de mémoire disponible.
+adminTools.dashboard.healthcheck.memory.maxcapacity.error=La mémoire de la JVM est inférieure à 1 024 Mo, actuellement à {0} Mo. Allouez plus de mémoire à votre machine virtuelle Java ! Consultez le lien d''aide pour plus d''informations.
+adminTools.dashboard.healthcheck.os.info=Collecte des infos de l'OS OK.
+adminTools.dashboard.healthcheck.os.warn=Il s'est produit une erreur lors de la collecte ds informations de l'OS !
+adminTools.dashboard.healthcheck.performance.cpu.warn=Le processeur ne respecte pas les préconisations système minimum de 2 cœurs, 2 800 MHz et 2 048 Ko de cache. Spécifications du CPU trouvées : {0} cœurs et une fréquence de {1} MHz
+adminTools.dashboard.healthcheck.performance.cpu.info=Performances du CPU OK.
+adminTools.dashboard.healthcheck.performance.info=Performances du système OK.
+adminTools.dashboard.healthcheck.performance.memory.warn=Pour exécuter convenablement une installation de XWiki, il est recommandé d''avoir au moins 2 Go de RAM. Actuellement alloué(s) : {0} Go.
+adminTools.dashboard.healthcheck.performance.memory.info=Capacité mémoire du système OK.
+adminTools.dashboard.healthcheck.performance.space.warn=Pour exécuter correctement XWiki, l''instance doit au moins disposer de 16 Go d''espace disque disponible. Actuellement disponible : {0} Go d''espace sur la partition : {1}
+adminTools.dashboard.healthcheck.performance.space.info=Le système a suffisamment d'espace disque disponible pour l'installation de XWiki.
+adminTools.dashboard.healthcheck.security.system.info=Encodage système OK.
+adminTools.dashboard.healthcheck.security.system.file.warn=Le codage des fichiers système doit être défini sur UTF-8 ! Actuellement {0} est utilisé.
+adminTools.dashboard.healthcheck.security.system.file.info=Le codage des fichiers système est configuré en UTF-8.
+adminTools.dashboard.healthcheck.security.system.file.notFound=L'encodage des fichiers n'a pas pu être détecté !
+adminTools.dashboard.healthcheck.security.system.lang.warn=L''encodage du système de fichier devrait être configuré à UTF-8 ! Actuellement {0} configuré.
+adminTools.dashboard.healthcheck.security.system.lang.info=L'encodage du système est configuré en UTF-8.
+adminTools.dashboard.healthcheck.security.system.lang.notFound=L'encodage n'a pas pu être déterminé.
+adminTools.dashboard.healthcheck.security.system.recommendation=L'encodage système devrait être effectué en UTF-8 ! Merci de consulter la page des liens d'aide pour obtenir des instructions complémentaires sur comment configurer l'encodage.
+adminTools.dashboard.healthcheck.security.xwiki.info=Encodage de XWiki OK.
+adminTools.dashboard.healthcheck.security.xwiki.active.warn=L''encodage actif de XWiki devrait être configuré en UTF-8 ! Actuellement {0} est utilisé.
+adminTools.dashboard.healthcheck.security.xwiki.active.info=Encodage actif de XWiki configuré en UTF-8.
+adminTools.dashboard.healthcheck.security.xwiki.active.notFound=L'encodage actif n'a pas pu être détecté !
+adminTools.dashboard.healthcheck.security.xwiki.config.warn=L''encodage de la configuration de XWiki devrait être configuré en UTF-8 ! Actuellement {0} est utilisé.
+adminTools.dashboard.healthcheck.security.xwiki.config.info=L'encodage de la configuration de XWiki est configuré en UTF-8.
+adminTools.dashboard.healthcheck.security.xwiki.config.notFound=L'encodage de la configuration n'a pas pu être détecté !
+adminTools.dashboard.healthcheck.title=Bilan de santé
+adminTools.dashboard.healthcheck.time=Temps écoulé depuis le dernier bilan de santé : {0}
+adminTools.dashboard.healthcheck.start=Démarrer le bilan de santé
+adminTools.dashboard.healthcheck.currentValue=Valeur actuelle :
+adminTools.job.notFound=État du processus de vérification de l'état de santé introuvable
+adminTools.dashboard.healthcheck.message.success=Aucun problème trouvé !
+adminTools.dashboard.healthcheck.message.warning=Des problèmes ont été découverts, pour plus de détails merci de consulter les résultats ci-dessous.
+adminTools.dashboard.healthcheck.message.error=Des problèmes critiques ont été découverts, merci de consulter les résultats ci-dessous !
+adminTools.dashboard.healthcheck.execution.error=Une erreur s'est produite pendant l'exécution du bilan de santé.
+adminTools.dashboard.healthcheck.operations=Opérations sur l'instance
+adminTools.dashboard.healthcheck.linkLabel=Liens d'aide
+
+##Instance usage
+adminTools.dashboard.instanceUsage.description=Consultez les statistiques d'usage de l'instance.
+adminTools.dashboard.instanceUsage.title=Usages de l'instance
+adminTools.dashboard.instanceUsage.total.extensions=Il y a {0} extension(s) installée(s).
+adminTools.dashboard.instanceUsage.total.users=Il y a un total de {0} utilisateur(s) enregistré(s) dans cette instance.
+adminTools.dashboard.instanceUsage.wiki.attachments=Nombre de pièces jointes : {0} ({1})
+adminTools.dashboard.instanceUsage.wiki.documents=Nombre de documents : {0}
+adminTools.dashboard.instanceUsage.wiki.name=Infos de volumes pour le wiki {0}
+adminTools.dashboard.instanceUsage.wiki.users=Nombre d''utilisateurs : {0}
+adminTools.dashboard.instanceUsage.wiki.viewAll=Voir les infos d'utilisation pour tous les wikis
+adminTools.dashboard.instanceUsage.specific=Statistiques spécifiques
+adminTools.dashboard.instanceUsage.specific.comments=Voir les pages avec plus de {0} commentaires
+adminTools.dashboard.instanceUsage.specific.comments.hint=Voir une liste de toutes les pages qui ont plus de {0} commentaires
+adminTools.dashboard.instanceUsage.specific.recycleBins=Consulter les pages et pièces jointes dans la corbeille
+adminTools.dashboard.instanceUsage.specific.recycleBins.hint=Voir la taille de la corbeille pour tous les wikis de cette instance
+adminTools.dashboard.instanceUsage.specific.emptyPages=Voir les pages vides
+adminTools.dashboard.instanceUsage.specific.emptyPages.hint=Voir les pages vides de tous les wikis
+
+## Security
+adminTools.dashboard.security.activeEncoding=Encodage actif
+adminTools.dashboard.security.configurationEncoding=Encodage de la configuration
+adminTools.dashboard.security.description=Voir un récapitulatif de vos informations de sécurité.
+adminTools.dashboard.security.error=Erreur lors de la collecte des informations de sécurité.
+adminTools.dashboard.security.fileEncoding=Encodage des fichiers
+adminTools.dashboard.security.LANG=Langue utilisée
+adminTools.dashboard.security.PWD=Dossier de travail
+adminTools.dashboard.security.title=Sécurité
+adminTools.dashboard.security.detailed.title=Vue détaillée de la sécurité
+adminTools.dashboard.security.detailed.groupsRights=Voir les droits d'un groupe donné
+adminTools.dashboard.security.detailed.usersRights=Voir les droits d'un utilisateur donné
+adminTools.dashboard.security.detailed.pageRights=Voir les droits d'un utilisateur sur une page
+adminTools.dashboard.security.detailed.documentUser=Changer le champ utilisateur d'un document
+adminTools.dashboard.security.detailed.securityCache=Vérifier le cache de sécurité
+adminTools.security.livedata.wikiName=Nom du wiki
+adminTools.security.livedata.type=Type de droit
+adminTools.security.livedata.space=Espace
+adminTools.security.livedata.docName=Nom du document
+adminTools.security.livedata.users=Utilisateur
+adminTools.security.livedata.groups=Groupe
+adminTools.security.livedata.level=Niveaux de sécurité
+adminTools.security.livedata.policy=Politique de sécurité
+adminTools.security.common.wiki.title=Wiki
+adminTools.security.common.wiki.description=Sélectionnez le wiki duquel lister les utilisateurs. Si le champ est vide, le wiki actuel sera utilisé.
+adminTools.security.common.wiki.placeholder=Sélectionner le wiki
+adminTools.security.common.page.title=Page
+adminTools.security.common.page.description=Sélectionnez un document dans la liste ci-dessus. Si aucun document n'est sélectionné, les règles de la page courante seront montrées.
+adminTools.security.common.page.placeholder=Sélectionner un document
+adminTools.security.common.user.title=Utilisateur
+adminTools.security.common.user.description=Choisissez un utilisateur depuis la liste ci-dessus.
+adminTools.security.common.user.placeholder=Sélectionner un utilisateur
+adminTools.security.pageRights.description=Voir les droits dont dispose un utilisateur sur une page donnée.
+adminTools.security.pageRights.button.check=Vérifier
+adminTools.security.pageRights.results=Résultats
+adminTools.security.pageRights.table.header.user=Utilisateur
+adminTools.security.pageRights.table.header.document=Document
+adminTools.security.pageRights.table.header.view=Voir
+adminTools.security.pageRights.table.header.edit=Éditer
+adminTools.security.pageRights.table.header.comment=Commenter
+adminTools.security.pageRights.table.header.delete=Supprimer
+adminTools.security.pageRights.table.header.admin=Admin
+adminTools.security.pageRights.table.header.programming=Programmer
+adminTools.security.changeDocumentUser.description=Remplacer toutes les occurrences de l'ancien utilisateur avec le nouveau, pour les champs sélectionnés du document existant dans le wiki actuel. Sur la base des champs affectés, cela appliquera également les droits du nouvel utilisateur sur les documents concernés, plutôt que ceux de l'ancien utilisateur.
+adminTools.security.changeDocumentUser.contentAuthor=Fourni les droits de Programmer ou de Script au document concerné, si le nouvel utilisateur en dispose, permettant aux scripts existants ou aux appels aux API protégées d'être exécutés lorsque le document est consulté.
+adminTools.security.changeDocumentUser.author=Fourni les droits de Programmer ou de Script au document concerné, si le nouvel utilisateur en dispose, permettant aux objets spéciaux (macros wiki, composant wiki, éléments d'interface, traductions) d'être enregistrés au niveau du wiki global. Met également à jour les valeurs [modifié par] affichées sur les documents avec le nouvel utilisateur.
+adminTools.security.changeDocumentUser.creator=Donne les droits de suppression pour le document au nouvel utilisateur. Met également à jour la valeur affichée pour la section [Créé par] sur le document avec le nouvel utilisateur.
+adminTools.security.changeDocumentUser.requirements=Cette page requiert les droits de programmation pour fonctionner.
+adminTools.security.changeDocumentUser.wiki.title=Wiki
+adminTools.security.changeDocumentUser.wiki.description=Sélectionnez le wiki pour lequel lister les utilisateurs.
+adminTools.security.changeDocumentUser.wiki.placeholder=Sélectionner le wiki
+adminTools.security.changeDocumentUser.oldUser.title=Ancien utilisateur à remplacer
+adminTools.security.changeDocumentUser.oldUser.description=Sélectionnez l'utilisateur que vous voulez remplacer. Vous pouvez sélectionner des utilisateurs locaux uniquement, appartenant au wiki sélectionné ci-dessus.
+adminTools.security.changeDocumentUser.oldUser.placeholder=Sélectionner l'utilisateur à remplacer
+adminTools.security.changeDocumentUser.newUser.title=Nouvel utilisateur par lequel remplacer
+adminTools.security.changeDocumentUser.newUser.description=Sélectionner le nouvel utilisateur, local ou global, appartenant au wiki sélectionné ci-dessus.
+adminTools.security.changeDocumentUser.newUser.placeholder=Sélectionner le nouvel utilisateur
+adminTools.security.changeDocumentUser.fields.title=Champs à remplacer
+adminTools.security.changeDocumentUser.button.preview=Prévisualisation
+adminTools.security.changeDocumentUser.button.preview.hint=L'étape suivante affiche la liste des documents qui seront modifiés et demandera une confirmation.
+adminTools.security.changeDocumentUser.button.confirm=Confirmer
+adminTools.security.changeDocumentUser.button.cancel=Annuler
+adminTools.security.changeDocumentUser.button.back=Retour à l'écran principal
+adminTools.security.changeDocumentUser.preview.summary=Documents à mettre à jour ({0} au total) de __URLSTART__{1}__URLEND__ à __URLSTART__{2}__URLEND2__ pour les champs {3} :
+adminTools.security.changeDocumentUser.preview.summary.entry=__URLSTART__{0}__URLEND__ ({1}) champs {2}
+adminTools.security.changeDocumentUser.apply.summary=Mettre à jour les champs {0} de l''utilisateur __URLSTART__{1}__URLEND__ à __URLSTART__{2}__URLEND2__ :
+adminTools.security.changeDocumentUser.apply.status=Fait
+adminTools.security.securityCache.description=Voir à la fois les règles réelles et en cache pour le document spécifié, ses espaces, et le wiki courant. De plus, vérifier les droits d'accès en cache pour l'utilisateur sur le document spécifié, y compris au niveau de l'espace et du wiki.
+adminTools.security.securityCache.access.title=Liste des accès en cache
+adminTools.security.securityCache.access.table.ref=Références
+adminTools.security.securityCache.access.table.access=Accès
+adminTools.security.securityCache.access.table.allowed=Droits donnés : {0}
+adminTools.security.securityCache.access.table.denied=Droits refusés : {0}
+adminTools.security.securityCache.access.table.document=Document {0}
+adminTools.security.securityCache.rules.title=Liste des règles
+adminTools.security.securityCache.rules.table.entity=Références
+adminTools.security.securityCache.rules.table.cachedRule=Règles en cache
+adminTools.security.securityCache.rules.table.liveRule=Règles en vigueur
+adminTools.security.securityCache.rules.table.rule=Règle
+adminTools.security.securityCache.rules.table.state=État : {0}
+adminTools.security.securityCache.rules.table.rights=Droits : {0}
+adminTools.security.securityCache.rules.table.users=Utilisateurs : {0}
+adminTools.security.securityCache.rules.table.groups=Groupes : {0}
+adminTools.security.securityCache.rules.empty=Aucune règle pour cette entité.
+
+## Cloud
+adminTools.dashboard.cloud.title=Infos sur l'instance Cloud
+adminTools.dashboard.cloud.description=Voir les stats sur votre instance Cloud.
+adminTools.dashboard.cloud.limits.numberOfUsersInNetworkGroup=Utilisateurs dans le groupe Network : {0}
+adminTools.dashboard.cloud.limits.numberOfWikis=Nombre de wikis : {0}
+adminTools.dashboard.cloud.limits.numberOfUsers=Nombre d''utilisateurs : {0}
+adminTools.dashboard.cloud.limits.numberOfUsersInPayingGroup=Utilisateurs dans le groupe XWikiNetworkPayments : {0}
+adminTools.dashboard.cloud.limits.storage=Stockage (Mo) : {0}
+adminTools.dashboard.cloud.limits.supportLevel=Niveau de support : {0}
+adminTools.dashboard.cloud.limits.timeLeft=Le contrat expire le : {0}
+adminTools.dashboard.cloud.subsection.title=Actions supplémentaires
+adminTools.dashboard.cloud.subsection.access=Obtenir l'accès
+adminTools.dashboard.cloud.subsection.orders=Voir les commandes du compte
+adminTools.dashboard.cloud.subsection.issues=Voir les tickets de l'instance
+adminTools.cloud.livedata.orders.header.title=Commande
+adminTools.cloud.livedata.orders.header.date=Date
+adminTools.cloud.livedata.orders.header.amount=Montant
+adminTools.cloud.livedata.orders.header.status=Statut
+adminTools.cloud.livedata.issues.header.key=Ticket
+adminTools.cloud.livedata.issues.header.summary=Résumé
+adminTools.cloud.livedata.issues.header.priority=Priorité
+adminTools.cloud.livedata.issues.header.status=Statut
+adminTools.cloud.livedata.issues.header.updated=Dernière mise à jour
+
+
+## Upload job
+adminTools.jobs.result.hint=Résultats des vérifications
+adminTools.jobs.upload.start.fail=Échec du démarrage de l''action pour le fichier [{0}] à [{0}].
+adminTools.jobs.upload.start.waiting=En attente de la fin d'une action similaire…
+adminTools.jobs.upload.message.success=Téléchargement réussi !
+adminTools.jobs.upload.message.error=Il y a eu une erreur durant l'envoi.
+adminTools.jobs.upload.backup.success=Fichier de sauvegarde [{0}] créé pour le fichier [{1}].
+adminTools.jobs.upload.backup.fail=Impossible de créer le fichier de sauvegarde [{0}] pour le fichier [{1}].
+adminTools.jobs.upload.assessoriginal.fail=Impossible d''évaluer correctement le fichier d''origine pour [{0}].
+adminTools.jobs.upload.save.success=Envoi réussi du fichier [{0}].
+adminTools.jobs.upload.save.fail=Échec de l''envoi de [{0}]. Raison : échec du renommage du fichier original [{1}].
+adminTools.jobs.upload.batch.restore.backup.fail=Action manuelle requise : échec de la suppression automatique du fichier de sauvegarde [{0}]. Cause d''origine : [{1}]
+adminTools.jobs.upload.batch.restore.target.fail=Action manuelle requise : échec de la suppression du nouveau fichier [{0}]. Cause d''origine : [{1}]
+adminTools.jobs.upload.batch.restore.copy.fail=Action manuelle requise : échec de la restauration automatique du fichier de sauvegarde [{0}] pour le nouveau fichier [{1}]. Cause d''origine : [{2}]
+adminTools.jobs.upload.batch.restore.file.success=Sauvegarde restaurée avec succès et nouveau fichier [{0}] supprimé.
+adminTools.jobs.upload.batch.restore.success=Succès de la restauration de la sauvegarde.
+adminTools.jobs.upload.batch.restore.start=Tentative de restauration de la sauvegarde…
+adminTools.jobs.upload.batch.restore.fail=Il y a eu des problèmes pendant la restauration de la sauvegarde. Merci de consulter l'historique.
+adminTools.jobs.upload.fail=Il y a eu une erreur dans le traitement de l''archive : [{0}]
+adminTools.jobs.upload.success=Envoi terminé avec succès.
+adminTools.jobs.upload.state.none=PAS D'ACTIONS TROUVÉES
+adminTools.jobs.upload.state.waiting=EN ATTENTE
+adminTools.jobs.upload.state.running=EN COURS
+adminTools.jobs.upload.state.error=ERREUR
+adminTools.jobs.upload.state.warn=AVERTISSEMENT
+adminTools.jobs.upload.state.success=FAIT
+adminTools.jobs.upload.state.noinfo=PAS D'INFOS
+
+
+##Packages
+adminTools.packages.upload.notavailable=La fonctionnalité d'envoi n'est pas disponible sur les instances cloud.
+adminTools.packages.upload.livetable.doc.title=Nom du paquet
+adminTools.packages.upload.livetable.job_status=Statut de l'envoi
+adminTools.packages.upload.livetable.doc.author=Créateur
+adminTools.packages.upload.livetable.doc.date=Date d'envoi
+adminTools.packages.upload.livedata.title=Choisir ou charger un paquet pour envoi
+adminTools.packages.started.livedata.title=Paquets chargés
+adminTools.packages.dashboard.uploadpackages=Charger un paquet
+adminTools.packages.return=Revenir à l'aperçu des envois
+adminTools.packages.livetable._actions.upload=Décompresser et charger le paquet sélectionné
+
+
+##Help links
+adminTools.helpPage.browser.support=Navigateurs supportés
+adminTools.helpPage.browser.title=Navigateur
+adminTools.helpPage.database.instructions=Instructions pour des bases de données spécifiques
+adminTools.helpPage.database.supported=Bases de données supportées
+adminTools.helpPage.database.title=Problèmes avec les bases de données
+adminTools.helpPage.java.memory=Mémoire Java
+adminTools.helpPage.java.support=Version de Java supportées
+adminTools.helpPage.java.title=Java
+adminTools.helpPage.other.title=Autres problèmes
+adminTools.helpPage.performance.cache=Recommandations pour le cache
+adminTools.helpPage.performance.hardware=Prérequis matériel
+adminTools.helpPage.performance.memory=Recommandations pour la mémoire
+adminTools.helpPage.performance.title=Problèmes de performance
+adminTools.helpPage.server.encoding=Configuration de l'encodage
+adminTools.helpPage.server.supported=Serveurs supportés
+adminTools.helpPage.server.title=Problèmes de serveur
+adminTools.helpPage.server.tomcat=Recommandations pour Tomcat
+
+
+## Modals
+adminTools.dashboard.download.modal.button=Télécharger
+adminTools.dashboard.download.modal.date.from=Du
+adminTools.dashboard.download.modal.date.to=Au
+adminTools.dashboard.download.modal.logs.filter.placeholder.from=Journal depuis cette date…
+adminTools.dashboard.download.modal.logs.filter.placeholder.to=Journal jusqu'à cette date…
+adminTools.dashboard.download.modal.logs.title=Journal
+adminTools.dashboard.download.modal.provided=Infos de configuration
+adminTools.dashboard.download.modal.title=Obtenir les fichiers nécessaires au support
+adminTools.dashboard.download.modal.xwikiConfig.title=xwiki.cfg
+adminTools.dashboard.download.modal.xwikiProperties.title=xwiki.properties
+adminTools.dashboard.emptyPage.modal.title=Pages sans contenu
+adminTools.dashboard.emptyPage.modal.header.actions=Actions
+adminTools.dashboard.emptyPage.modal.header.docName=Page
+adminTools.dashboard.emptyPage.modal.header.wikiName=Nom du wiki
+adminTools.dashboard.emptyPage.modal.action.delete=Supprimer
+adminTools.dashboard.logs.modal.nLines.hint=Le nombre maximum de lignes est de 50 000, autrement le journal complet peut être téléchargé. Si aucune valeur n'est définie, 1 000 sera utilisé comme valeur par défaut.
+adminTools.dashboard.logs.modal.nLines.label=Nombre de lignes extraites
+adminTools.dashboard.logs.modal.submit=Voir
+adminTools.dashboard.logs.modal.title=Affichés les n dernières lignes du journal
+adminTools.dashboard.showLogs=Voir les n dernières lignes du journal…
+adminTools.dashboard.spamPage.modal.title=Pages avec plus de {0} commentaires
+adminTools.dashboard.spamPage.modal.notFound=Il n''y a aucune page avec plus de {0} commentaires.
+adminTools.dashboard.spamPage.modal.header.commentsCount=Compteur de commentaires
+adminTools.dashboard.spamPage.modal.header.docName=Page
+adminTools.dashboard.spamPage.modal.header.wikiName=Nom du wiki
+adminTools.dashboard.healthcheck.modal.content=Êtes-vous certain de vouloir vider le cache de l'instance ?
+adminTools.dashboard.healthcheck.modal.button=Confirmer
+adminTools.dashboard.healthcheck.modal.wikiBins.title=Taille de la corbeille pour tous les wikis
+adminTools.dashboard.healthcheck.modal.wikiBins.error=Il y a eu des erreurs lors de la collecte de la taille des corbeilles pour tous les wikis.
+adminTools.dashboard.healthcheck.modal.wikiBins.header.wikiName=Nom du wiki
+adminTools.dashboard.healthcheck.modal.wikiBins.header.documentsCount=Pages supprimées
+adminTools.dashboard.healthcheck.modal.wikiBins.header.attachmentsCount=Pièces jointes supprimées
+adminTools.dashboard.healthcheck.modal.wikiBins.header.totalCount=Total
+adminTools.dashboard.healthcheck.modal.wikiBins.documents=Voir les pages supprimées
+adminTools.dashboard.healthcheck.modal.wikiBins.attachments=Voir les pièces jointes supprimées
+adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsCount=Compteur de pièces jointes
+adminTools.dashboard.instanceUsage.modal.wikiSize.attachmentsSize=Taille totale des pièces jointes
+adminTools.dashboard.instanceUsage.modal.wikiSize.documentsCount=Compteur de documents
+adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Nom du wiki
+adminTools.dashboard.instanceUsage.modal.wikiSize.title=Taille des wikis
+adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=Compteur des utilisateurs
+adminTools.dashboard.security.modal.groupsRights.title=Droits des groupes
+adminTools.dashboard.security.modal.usersRights.title=Droits des utilisateurs
+</content>
+</xwikidoc>

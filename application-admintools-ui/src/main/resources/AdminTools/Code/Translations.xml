@@ -88,7 +88,7 @@ adminTools.dashboard.healthcheck.java.info=Java status OK.
 adminTools.dashboard.healthcheck.java.warn=Java version could not be found! Please make sure you correctly installed and configured the paths for your Java installation. For further help, consult the help links.
 adminTools.dashboard.healthcheck.java.error=You are currently using Java version {0} which is not compatible with the XWiki installation version {1}. Please check the help links to view the compatibility.
 adminTools.dashboard.healthcheck.memory.allocation.info=Maximum memory allocation is equal to the initial size. Set value is {0}GB.
-adminTools.dashboard.healthcheck.memory.allocation.warn=To improve performance, -Xms  and -Xmx memory allocation should be identical.
+adminTools.dashboard.healthcheck.memory.allocation.warn=To improve performance, -Xms and -Xmx memory allocation should be identical.
 adminTools.dashboard.healthcheck.memory.cache.info=Document cache status OK. Current cache value is {0}.
 adminTools.dashboard.healthcheck.memory.cache.null=Document store cache capacity was not configured and is set by default to 500. See cache recommendations in help links above.
 adminTools.dashboard.healthcheck.memory.cache.low=Document cache capacity is set below 500 [{0}]. See cache recommendations in the help links page.
@@ -263,7 +263,7 @@ adminTools.cloud.livedata.issues.header.updated=Last updated
 ## Upload job
 adminTools.jobs.result.hint=Job results
 adminTools.jobs.upload.start.fail=Failed to start job for file [{0}] at time [{1}].
-adminTools.jobs.upload.start.waiting=Waiting for a similar job to finish...
+adminTools.jobs.upload.start.waiting=Waiting for a similar job to finish…
 adminTools.jobs.upload.message.success=Upload was successful!
 adminTools.jobs.upload.message.error=There was an error during the upload.
 adminTools.jobs.upload.backup.success=Backup file [{0}] created for file [{1}].
@@ -276,7 +276,7 @@ adminTools.jobs.upload.batch.restore.target.fail=Manual action required: failed 
 adminTools.jobs.upload.batch.restore.copy.fail=Manual action required: failed to automatically restore backup file [{0}] for new file [{1}]. Root cause: [{2}]
 adminTools.jobs.upload.batch.restore.file.success=Successfully restored backup and removed new file [{0}].
 adminTools.jobs.upload.batch.restore.success=Backup restored with success.
-adminTools.jobs.upload.batch.restore.start=Attempting to restore backup...
+adminTools.jobs.upload.batch.restore.start=Attempting to restore backup…
 adminTools.jobs.upload.batch.restore.fail=There were issues while trying to restore the backup. Please consult the log.
 adminTools.jobs.upload.fail=There was an error while processing the archive: [{0}]
 adminTools.jobs.upload.success=Upload finished with success.
@@ -326,8 +326,8 @@ adminTools.helpPage.server.tomcat=Tomcat recommendations
 adminTools.dashboard.download.modal.button=Download
 adminTools.dashboard.download.modal.date.from=From
 adminTools.dashboard.download.modal.date.to=To
-adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date...
-adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date...
+adminTools.dashboard.download.modal.logs.filter.placeholder.from=Logs from date…
+adminTools.dashboard.download.modal.logs.filter.placeholder.to=Logs to date…
 adminTools.dashboard.download.modal.logs.title=Logs
 adminTools.dashboard.download.modal.provided=Configuration info
 adminTools.dashboard.download.modal.title=Get support files
@@ -342,7 +342,7 @@ adminTools.dashboard.logs.modal.nLines.hint=The maximum number of lines is 50000
 adminTools.dashboard.logs.modal.nLines.label=Number of extracted lines
 adminTools.dashboard.logs.modal.submit=View
 adminTools.dashboard.logs.modal.title=Show last n lines of log
-adminTools.dashboard.showLogs=View last n lines of log...
+adminTools.dashboard.showLogs=View last n lines of log…
 adminTools.dashboard.spamPage.modal.title=Pages with more than {0} comments
 adminTools.dashboard.spamPage.modal.notFound=There are no pages with more than {0} comments.
 adminTools.dashboard.spamPage.modal.header.commentsCount=Comments count
@@ -365,7 +365,8 @@ adminTools.dashboard.instanceUsage.modal.wikiSize.wikiName=Wiki name
 adminTools.dashboard.instanceUsage.modal.wikiSize.title=Wikis size
 adminTools.dashboard.instanceUsage.modal.wikiSize.userCount=User count
 adminTools.dashboard.security.modal.groupsRights.title=Groups rights
-adminTools.dashboard.security.modal.usersRights.title=Users rights</content>
+adminTools.dashboard.security.modal.usersRights.title=Users rights
+</content>
   <object>
     <name>AdminTools.Code.Translations</name>
     <number>0</number>
