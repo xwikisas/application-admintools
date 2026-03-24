@@ -35,7 +35,7 @@ import groovy.jmx.GroovyMBean;
  * Utility class used to access JMX MBeans.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component(roles = GroovyMBeanUtil.class)
 @Singleton

@@ -31,6 +31,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -41,6 +42,8 @@ import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.query.SecureQuery;
 import org.xwiki.search.solr.SolrUtils;
+import org.xwiki.test.LogLevel;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -91,8 +94,8 @@ class EntityRightsProviderTest
     DocumentReference docRef3 =
         new DocumentReference(new LocalDocumentReference("docSpace3", "docTitle3"), new WikiReference("xwiki"));
 
-    DocumentReference docRef4 = new DocumentReference(new LocalDocumentReference("docSpace4", "docTitle4"),
-        new WikiReference("xwiki"));
+    DocumentReference docRef4 =
+        new DocumentReference(new LocalDocumentReference("docSpace4", "docTitle4"), new WikiReference("xwiki"));
 
     DocumentReference docRefGlobal =
         new DocumentReference(new LocalDocumentReference("XWiki", "XWikiPreferences"), new WikiReference("xwiki"));
@@ -198,6 +201,9 @@ class EntityRightsProviderTest
 
     @Mock
     private BaseObject obj6;
+
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.ERROR);
 
     @BeforeEach
     void setUp() throws QueryException, XWikiException
@@ -321,8 +327,7 @@ class EntityRightsProviderTest
     {
         Map<String, String> filters = Map.of("type", "Global");
 
-        List<RightsResult> rightsResults =
-            entityRightsProvider.getEntityRights(filters, "level", "desc", "groups");
+        List<RightsResult> rightsResults = entityRightsProvider.getEntityRights(filters, "level", "desc", "groups");
         assertEquals(3, rightsResults.size());
         assertEquals("stringClass6", rightsResults.get(0).getLevel());
         assertEquals("stringClass5", rightsResults.get(1).getLevel());
@@ -338,5 +343,8 @@ class EntityRightsProviderTest
             () -> entityRightsProvider.getEntityRights(filters, "type", "desc", "groups"));
 
         assertEquals("java.lang.RuntimeException: Query error", exception.getMessage());
+        assertEquals(
+            "There was an error while processing the rights for entity [groups]: [RuntimeException: Query error]",
+            logCapture.getMessage(0));
     }
 }
