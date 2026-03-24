@@ -172,7 +172,7 @@
           &lt;input type='hidden' name='confirm' value='true' /&gt;
           #if ($docCount &gt; 0)
             &lt;input class='button' type='submit' value="$escapetool.xml($services.localization.render(
-              'adminTools.security.changeDocumentUser.button.confirm'))" /&gt;
+              'adminTools.button.confirm'))" /&gt;
           #end
           &lt;a class='button secondary' href="$doc.getURL()"&gt;$escapetool.xml($services.localization.render(
             'adminTools.security.changeDocumentUser.button.cancel'))&lt;/a&gt;

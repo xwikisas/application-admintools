@@ -46,6 +46,7 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
+import com.xwiki.admintools.internal.health.cache.data.CacheDataFlusher;
 import com.xwiki.admintools.internal.uploadJob.UploadJob;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
@@ -62,6 +63,8 @@ import com.xwiki.admintools.rest.AdminToolsResource;
 @Singleton
 public class DefaultAdminToolsResource extends ModifiablePageResource implements AdminToolsResource
 {
+    private static final String JMX_CACHE_ERROR = "There were some errors while flushing the JMX cache.";
+
     @Inject
     private Logger logger;
 
@@ -76,6 +79,9 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
 
     @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
+
+    @Inject
+    private CacheDataFlusher cacheDataFlusher;
 
     @Override
     public Response getFile(String hint)
@@ -141,6 +147,45 @@ public class DefaultAdminToolsResource extends ModifiablePageResource implements
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         } catch (Exception e) {
             logger.warn("Failed to flush instance cache. Root cause: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response flushJMXCache()
+    {
+        try {
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+            this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+            boolean success = cacheDataFlusher.clearAllCache();
+            return Response.ok(success).type(MediaType.APPLICATION_JSON_TYPE).build();
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to flush JMX caches due to restricted rights.", deniedException);
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        } catch (Exception e) {
+            logger.warn("Failed to flush JMX caches.", e);
+            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public Response flushJMXEntryCache(String entryName)
+    {
+        try {
+            this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+            this.contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+            boolean found = cacheDataFlusher.clearCache(entryName);
+            if (found) {
+                return Response.ok().build();
+            } else {
+                logger.warn("[{}] JMX cache not found.", entryName);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        } catch (AccessDeniedException deniedException) {
+            logger.warn("Failed to flush JMX cache due to restricted rights.", deniedException);
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        } catch (Exception e) {
+            logger.error("Failed to flush JMX cache [{}].", entryName, e);
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
