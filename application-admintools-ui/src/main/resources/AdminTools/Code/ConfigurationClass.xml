@@ -59,7 +59,7 @@
       <editor>PureText</editor>
       <hint/>
       <name>excludedLines</name>
-      <number>2</number>
+      <number>3</number>
       <picker>1</picker>
       <prettyName>excludedLines</prettyName>
       <restricted>0</restricted>
@@ -89,7 +89,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>spamSize</name>
-      <number>3</number>
+      <number>4</number>
       <numberType>long</numberType>
       <prettyName>spamSize</prettyName>
       <size>30</size>
@@ -98,6 +98,20 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </spamSize>
+    <xwikiInstallLocation>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>xwikiInstallLocation</name>
+      <number>2</number>
+      <picker>1</picker>
+      <prettyName>xwikiInstallLocation</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </xwikiInstallLocation>
   </class>
   <object>
     <name>AdminTools.Code.ConfigurationClass</name>

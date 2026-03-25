@@ -124,6 +124,9 @@ class ConfigurationDataProviderTest
         defaultJson.put("usedServerVersion", "test_server_version");
         defaultJson.put("osName", "test_os_name");
         defaultJson.put("xwikiVersion", "xwiki_version");
+        defaultJson.put("xwikiInstallPath", "xwiki_install_path");
+        defaultJson.put("serverPath", "server_path");
+        defaultJson.put("logsFolderPath", "logs_folder_path");
 
         // Set system properties that will be used.
         System.setProperty("java.version", "used_java_version");
@@ -154,6 +157,9 @@ class ConfigurationDataProviderTest
         when(currentServer.getCurrentServer()).thenReturn(serverInfo);
         when(serverInfo.getXwikiCfgFolderPath()).thenReturn("xwiki_config_folder_path");
         when(serverInfo.getServerCfgPath()).thenReturn("server_config_folder_path");
+        when(serverInfo.getServerPath()).thenReturn("server_path");
+        when(serverInfo.getXWikiInstallFolderPath()).thenReturn("xwiki_install_path");
+        when(serverInfo.getLogsFolderPath()).thenReturn("logs_folder_path");
         when(usageDataProvider.getServerMetadata()).thenReturn(
             Map.of("name", "test_server_name", "version", "test_server_version"));
         when(usageDataProvider.getDatabaseMetadata()).thenReturn(Map.of("name", "MySQL", "version", "x.y.z"));

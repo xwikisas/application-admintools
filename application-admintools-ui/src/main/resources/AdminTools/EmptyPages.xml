@@ -39,6 +39,7 @@
   <content>{{velocity}}
 {{html clean='false' wiki='true'}}
   #set ($sourceParameters = $escapetool.url({
+    'className': 'AdminTools.Code.LivedataCommonFilters',
     'resultPage': 'AdminTools.Code.EmptyPagesJSON',
     'translationPrefix': 'adminTools.dashboard.emptyPage.modal.header.'
   }))
@@ -46,7 +47,7 @@
     'meta': {
       'propertyDescriptors': [
         {'id': 'wikiName', 'displayer': 'text'},
-        {'id': 'docName', 'displayer': 'html', "filterable": false},
+        {'id': 'docName', 'displayer': 'html', 'sortable': false, 'filterable': false},
         {'id': 'actions', 'displayer': 'html', 'sortable': false, 'filterable': false}
       ],
       'entryDescriptor': {

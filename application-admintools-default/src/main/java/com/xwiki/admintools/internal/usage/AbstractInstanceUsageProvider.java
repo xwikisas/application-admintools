@@ -82,11 +82,7 @@ public abstract class AbstractInstanceUsageProvider
                         case USER_COUNT_KEY:
                             return wikiData.getUserCount().equals(Long.parseLong(filter.getValue()));
                         case ATTACHMENTS_SIZE_KEY:
-                            String[] interval = filter.getValue().split(INTERVAL_SEPARATOR);
-                            long attachmentsSize = wikiData.getAttachmentsSize();
-                            long lowerBound = Long.parseLong(interval[0]);
-                            long upperBound = "x".equals(interval[1]) ? Long.MAX_VALUE : Long.parseLong(interval[1]);
-                            return attachmentsSize > lowerBound && attachmentsSize < upperBound;
+                            return checkAttachmentSize(wikiData, filter.getValue());
                         case ATTACHMENTS_COUNT_KEY:
                             return wikiData.getAttachmentsCount().equals(Long.parseLong(filter.getValue()));
                         case DOCUMENTS_COUNT_KEY:
@@ -207,5 +203,14 @@ public abstract class AbstractInstanceUsageProvider
             filters.remove(WIKI_NAME_KEY);
         }
         return wikisDescriptors;
+    }
+
+    private boolean checkAttachmentSize(WikiUsageResult wikiData, String filter)
+    {
+        String[] interval = filter.split(INTERVAL_SEPARATOR);
+        long attachmentsSize = wikiData.getAttachmentsSize() == null ? 1 : wikiData.getAttachmentsSize();
+        long lowerBound = Long.parseLong(interval[0]);
+        long upperBound = "x".equals(interval[1]) ? Long.MAX_VALUE : Long.parseLong(interval[1]);
+        return attachmentsSize > lowerBound && attachmentsSize < upperBound;
     }
 }

@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.script;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.job.Job;
@@ -35,18 +37,25 @@ import org.xwiki.model.ModelContext;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.AccessDeniedException;
+import org.xwiki.security.authorization.AuthorizationException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.security.authorization.SecurityRule;
 import org.xwiki.stability.Unstable;
 import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xwiki.admintools.configuration.AdminToolsConfiguration;
+import com.xwiki.admintools.health.cache.CacheInfo;
 import com.xwiki.admintools.internal.AdminToolsManager;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.health.cache.CacheManager;
 import com.xwiki.admintools.internal.health.job.HealthCheckJob;
+import com.xwiki.admintools.internal.network.NetworkManager;
+import com.xwiki.admintools.internal.security.CheckSecurityCache;
+import com.xwiki.admintools.internal.security.EntityRightsProvider;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiRecycleBins;
 import com.xwiki.admintools.internal.usage.wikiResult.WikiSizeResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
+import com.xwiki.admintools.security.RightsResult;
 
 /**
  * Admin Tools script services.
@@ -77,7 +86,129 @@ public class AdminToolsScriptService implements ScriptService
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @Inject
-    private CurrentServer currentServer;
+    private EntityRightsProvider entityRightsProvider;
+
+    @Inject
+    private NetworkManager networkManager;
+
+    @Inject
+    private CheckSecurityCache checkSecurityCache;
+
+    @Inject
+    private CacheManager cacheManager;
+
+    /**
+     * Get a sorted and filtered {@code List} with the JMX managed caches.
+     *
+     * @param filter used to filter caches by name
+     * @param order the sort order applied to the result, based on the number of entries
+     * @return a sorted and filtered {@code List} with the JMX managed caches
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.4
+     */
+    @Unstable
+    public List<CacheInfo> getJMXCache(String filter, String order) throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return cacheManager.getJMXCaches(filter, order);
+    }
+
+    /**
+     * Get detailed statistics for a specific cache.
+     *
+     * @param name cache name to be searched for
+     * @return a {@link Map} with the detailed statistics
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.4
+     */
+    @Unstable
+    public Map<String, Object> getDetailedCacheData(String name) throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return cacheManager.getCacheDetailedView(name);
+    }
+
+    /**
+     * Retrieve JSON data from the given network endpoint.
+     *
+     * @param target the target endpoint.
+     * @param parameters parameters to be sent with the request.
+     * @param useRef if {@code true}, the account reference will be added to the received parameters. If
+     *     {@code false}, the account and instance number will be added.
+     * @return the JSON retrieved from the network, or null if the user has no access.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public Map<String, Object> getJSONFromNetwork(String target, Map<String, String> parameters, boolean useRef)
+        throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return networkManager.getJSONFromNetwork(target, parameters, useRef);
+    }
+
+    /**
+     * Get network limits for the current instance.
+     *
+     * @return A JSON with the instance limits.
+     * @throws IOException if an I/O error occurs when sending the request or receiving the response.
+     * @throws InterruptedException if the operation is interrupted.
+     * @throws AccessDeniedException if the requesting user lacks admin rights.
+     * @since 1.3
+     */
+    @Unstable
+    public Map<String, Object> getNetworkLimits() throws Exception
+    {
+        this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
+        return networkManager.getLimits();
+    }
+
+    /**
+     * Retrieve the cached and live security rules in a table format given by the associated template.
+     *
+     * @param userRef the user for which to check the access cache rules.
+     * @param docRef the document on which to check the security rules.
+     * @return the cached and live security rules in a table format given by the associated template.
+     * @throws AuthorizationException if any error occurs while accessing the security entry.
+     * @since 1.2
+     */
+    @Unstable
+    public String checkSecurityCache(DocumentReference userRef, DocumentReference docRef) throws AuthorizationException
+    {
+        return checkSecurityCache.displaySecurityCheck(userRef, docRef);
+    }
+
+    /**
+     * Extract the users and groups from the given {@link SecurityRule}.
+     *
+     * @param rule the rule from which to extract the data.
+     * @return a {@link Map} with the 'Users' and 'Groups' as keys and the extracted info from the rule as values.
+     * @since 1.2
+     */
+    @Unstable
+    public Map<String, String> extractRuleUsersGroups(SecurityRule rule)
+    {
+        return checkSecurityCache.extractRuleUsersGroups(rule);
+    }
+
+    /**
+     * Retrieves a filtered and sorted list of {@link RightsResult} representing the rights for the given parameters.
+     *
+     * @param filters a map of filters to apply.
+     * @param sortColumn the column used for sorting.
+     * @param order the sorting order (asc or desc).
+     * @param entityType the type of entity for which rights are retrieved.
+     * @return a filtered and sorted {@link List} of {@link RightsResult}.
+     * @since 1.2
+     */
+    @Unstable
+    public List<RightsResult> getEntityRights(Map<String, String> filters, String sortColumn, String order,
+        String entityType)
+    {
+        return entityRightsProvider.getEntityRights(filters, sortColumn, order, entityType);
+    }
 
     /**
      * Retrieve all the configuration information in a format given by the associated templates generated by the data
@@ -182,34 +313,31 @@ public class AdminToolsScriptService implements ScriptService
      *
      * @param maxComments maximum number of comments below which the page is ignored.
      * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      * @since 1.0
      */
     @Unstable
-    public List<DocumentReference> getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order) throws AccessDeniedException
+    public SolrDocumentList getPagesOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, sortColumn, order);
+        return adminToolsManager.getPagesOverGivenNumberOfComments(maxComments, filters, order);
     }
 
     /**
      * Retrieve the empty documents from the XWiki instance.
      *
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
-     * @return a {@link List} with the empty documents.
-     * @since 1.1
+     * @return a {@link SolrDocumentList} with the empty documents.
+     * @since 1.0.1
      */
     @Unstable
-    public List<DocumentReference> getEmptyDocuments(Map<String, String> filters, String sortColumn, String order)
-        throws AccessDeniedException
+    public SolrDocumentList getEmptyDocuments(Map<String, String> filters, String order) throws AccessDeniedException
     {
         this.contextualAuthorizationManager.checkAccess(Right.ADMIN);
-        return adminToolsManager.getEmptyDocuments(filters, sortColumn, order);
+        return adminToolsManager.getEmptyDocuments(filters, order);
     }
 
     /**
@@ -270,7 +398,7 @@ public class AdminToolsScriptService implements ScriptService
     @Unstable
     public boolean isUsedServerCompatible()
     {
-        return currentServer.getCurrentServer() != null;
+        return adminToolsManager.isUsedServerCompatible();
     }
 
     /**

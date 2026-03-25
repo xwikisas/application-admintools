@@ -26,7 +26,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
@@ -92,6 +92,9 @@ public class ConfigurationDataProvider extends AbstractDataProvider
             systemInfo.put("databaseName", dbMetadata.get(METADATA_NAME));
             systemInfo.put("databaseVersion", dbMetadata.get(METADATA_VERSION));
             systemInfo.put("xwikiCfgPath", getCurrentServer().getXwikiCfgFolderPath());
+            systemInfo.put("xwikiInstallPath", getCurrentServer().getXWikiInstallFolderPath());
+            systemInfo.put("serverPath", getCurrentServer().getServerPath());
+            systemInfo.put("logsFolderPath", getCurrentServer().getLogsFolderPath());
             systemInfo.put("tomcatConfPath", this.getCurrentServer().getServerCfgPath());
             systemInfo.put("javaVersion", this.getJavaVersion());
             Map<String, String> serverMetadata = this.usageDataProvider.getServerMetadata();

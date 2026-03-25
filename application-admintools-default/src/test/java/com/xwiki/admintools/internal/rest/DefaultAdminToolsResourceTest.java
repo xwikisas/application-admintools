@@ -21,35 +21,54 @@ package com.xwiki.admintools.internal.rest;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Provider;
+import javax.management.JMException;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.xwiki.component.util.ReflectionUtils;
+import org.xwiki.job.Job;
+import org.xwiki.job.JobException;
+import org.xwiki.job.JobExecutor;
+import org.xwiki.job.JobGroupPath;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.test.LogLevel;
 import org.xwiki.test.annotation.BeforeComponent;
+import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
+import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.internal.files.ImportantFilesManager;
 import com.xwiki.admintools.internal.files.resources.logs.LogsDataResource;
+import com.xwiki.admintools.internal.health.cache.data.CacheDataFlusher;
+import com.xwiki.admintools.internal.uploadJob.UploadJob;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.PackageUploadJobRequest;
+import com.xwiki.admintools.jobs.PackageUploadJobStatus;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,14 +99,32 @@ class DefaultAdminToolsResourceTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    private JobExecutor jobExecutor;
+
+    @MockComponent
+    private CacheDataFlusher cacheDataFlusher;
+
     @Mock
     private DocumentReference user;
 
     @Mock
     private WikiReference wikiReference;
 
+    @RegisterExtension
+    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+
     @Mock
-    private Logger logger;
+    private XWiki xwiki;
+
+    @Mock
+    private Job job;
+
+    @Mock
+    private UploadJob uploadJob;
+
+    @Mock
+    private PackageUploadJobStatus jobStatus;
 
     @BeforeComponent
     void beforeComponent()
@@ -117,42 +154,36 @@ class DefaultAdminToolsResourceTest
     @Test
     void getFileNotFound() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
         when(importantFilesManager.getFile("resource_hint", params)).thenThrow(new IOException("FILE NOT FOUND"));
 
         assertEquals(404, defaultAdminToolsResource.getFile("resource_hint").getStatus());
-        verify(logger).warn("Error while handling file from DataResource [{}]. Root cause: [{}]", "resource_hint",
-            "IOException: FILE NOT FOUND");
+        assertEquals(
+            "Error while handling file from DataResource [resource_hint]. Root cause: [IOException: FILE NOT FOUND]",
+            logCapture.getMessage(0));
     }
 
     @Test
     void getFileDownloadManagerError()
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFile("resource_hint");
         });
         assertEquals(500, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to get data from DataResource [{}]. Root cause: [{}]", "resource_hint",
-            "NullPointerException: ");
+        assertEquals("Failed to get data from DataResource [resource_hint]. Root cause: [NullPointerException: ]",
+            logCapture.getMessage(0));
     }
 
     @Test
     void getFileNotAdmin() throws AccessDeniedException
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
         doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
             .checkAccess(Right.ADMIN);
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFile("resource_hint");
         });
         assertEquals(401, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to get file from DataResource [{}] due to restricted rights.", "resource_hint");
+        assertEquals("Failed to get file from DataResource [resource_hint] due to restricted rights.",
+            logCapture.getMessage(0));
     }
 
     @Test
@@ -168,9 +199,6 @@ class DefaultAdminToolsResourceTest
     @Test
     void getFilesDownloadManagerError() throws Exception
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
-
         Map<String, String[]> formParameters = new HashMap<>();
         when(xWikiRequest.getParameterMap()).thenReturn(formParameters);
         when(importantFilesManager.getFilesArchive(formParameters)).thenThrow(
@@ -179,21 +207,20 @@ class DefaultAdminToolsResourceTest
             defaultAdminToolsResource.getFiles();
         });
         assertEquals(500, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to get zip archive. Root cause: [{}]", "Exception: DOWNLOAD MANAGER EXCEPTION");
+        assertEquals("Failed to get zip archive. Root cause: [Exception: DOWNLOAD MANAGER EXCEPTION]",
+            logCapture.getMessage(0));
     }
 
     @Test
     void getFilesNotAdmin() throws AccessDeniedException
     {
-        when(logger.isWarnEnabled()).thenReturn(true);
-        ReflectionUtils.setFieldValue(defaultAdminToolsResource, "logger", this.logger);
         doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
             .checkAccess(Right.ADMIN);
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             this.defaultAdminToolsResource.getFiles();
         });
         assertEquals(401, exception.getResponse().getStatus());
-        verify(logger).warn("Failed to get files due to restricted rights.");
+        assertEquals("Failed to get files due to restricted rights.", logCapture.getMessage(0));
     }
 
     @Test
@@ -209,5 +236,132 @@ class DefaultAdminToolsResourceTest
         when(importantFilesManager.getFile(LogsDataResource.HINT, params)).thenReturn(new byte[] { 2 });
         when(xWikiRequest.getParameter("noLines")).thenReturn("");
         assertEquals(200, defaultAdminToolsResource.getFile(LogsDataResource.HINT).getStatus());
+    }
+
+    @Test
+    void flushCacheNoRights() throws AccessDeniedException
+    {
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.flushCache();
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        assertEquals("Failed to flush the cache due to restricted rights.", logCapture.getMessage(0));
+    }
+
+    @Test
+    void flushCache()
+    {
+        when(xWikiContext.getWiki()).thenReturn(xwiki);
+        assertEquals(200, defaultAdminToolsResource.flushCache().getStatus());
+    }
+
+    @Test
+    void uploadPackageArchiveNoRights() throws AccessDeniedException
+    {
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.uploadPackageArchive("", "");
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        assertEquals("Failed to begin the package upload due to insufficient rights.", logCapture.getMessage(0));
+    }
+
+    @Test
+    void uploadPackageArchiveNoJob() throws JobException
+    {
+        List<String> jobId = List.of("adminTools", "import", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(null);
+        when(jobExecutor.execute(eq(UploadJob.JOB_TYPE), any(PackageUploadJobRequest.class))).thenReturn(uploadJob);
+        JobGroupPath groupPath = new JobGroupPath(List.of("adminTools", "upload"));
+        when(uploadJob.getGroupPath()).thenReturn(groupPath);
+        when(this.jobExecutor.getCurrentJob(groupPath)).thenReturn(job);
+        when(uploadJob.getStatus()).thenReturn(jobStatus);
+        assertEquals(202, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
+        verify(jobStatus, times(1)).addLog(any(JobResult.class));
+    }
+
+    @Test
+    void uploadPackageArchiveJobFound()
+    {
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(job);
+
+        assertEquals(102, defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime").getStatus());
+    }
+
+    @Test
+    void uploadPackageArchiveError() throws JobException
+    {
+        List<String> jobId = List.of("adminTools", "upload", "attachReference", "startTime");
+        when(jobExecutor.getJob(jobId)).thenReturn(null);
+        when(jobExecutor.execute(UploadJob.JOB_TYPE, new PackageUploadJobRequest("attachReference", jobId))).thenThrow(
+            new JobException("error when executing the job"));
+
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            defaultAdminToolsResource.uploadPackageArchive("attachReference", "startTime");
+        });
+        assertEquals(500, exception.getResponse().getStatus());
+        assertEquals("Failed to begin package upload job. Root cause: [JobException: error when executing the job]",
+            logCapture.getMessage(0));
+    }
+
+    @Test
+    void flushJMXCacheNoRights() throws AccessDeniedException
+    {
+        doThrow(new AccessDeniedException(Right.ADMIN, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.flushJMXCache();
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        assertEquals("Failed to flush JMX caches due to restricted rights.", logCapture.getMessage(0));
+    }
+
+    @Test
+    void flushJMXCache() throws JMException, IOException
+    {
+        when(cacheDataFlusher.clearAllCache()).thenReturn(true);
+        Response response = defaultAdminToolsResource.flushJMXCache();
+        assertEquals(200, response.getStatus());
+        assertTrue((Boolean) response.getEntity());
+    }
+
+    @Test
+    void flushJMXCacheErrors() throws JMException, IOException
+    {
+        when(cacheDataFlusher.clearAllCache()).thenReturn(false);
+        Response response = defaultAdminToolsResource.flushJMXCache();
+        assertEquals(200, response.getStatus());
+        assertFalse((Boolean) response.getEntity());
+    }
+
+    @Test
+    void flushJMXEntryCacheNoRights() throws AccessDeniedException
+    {
+        doThrow(new AccessDeniedException(Right.PROGRAM, user, null)).when(contextualAuthorizationManager)
+            .checkAccess(Right.PROGRAM);
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            this.defaultAdminToolsResource.flushJMXEntryCache("test");
+        });
+        assertEquals(401, exception.getResponse().getStatus());
+        assertEquals("Failed to flush JMX cache due to restricted rights.", logCapture.getMessage(0));
+    }
+
+    @Test
+    void flushJMXEntryCache() throws JMException, IOException
+    {
+        when(cacheDataFlusher.clearCache("test")).thenReturn(true);
+        assertEquals(200, defaultAdminToolsResource.flushJMXEntryCache("test").getStatus());
+    }
+
+    @Test
+    void flushJMXEntryCacheNotFound() throws JMException, IOException
+    {
+        when(cacheDataFlusher.clearCache("test")).thenReturn(false);
+        assertEquals(404, defaultAdminToolsResource.flushJMXEntryCache("test").getStatus());
+        assertEquals("[test] JMX cache not found.", logCapture.getMessage(0));
     }
 }

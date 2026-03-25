@@ -77,7 +77,8 @@
         &lt;div hidden class="xcontent job-status" data-url="${healthJobStatusURL}"&gt;
           #if ($healthJobStatus.state != 'FINISHED')
             #displayJobProgressBar($healthJobStatus)
-          #else
+          #elseif ($healthJobStatus &amp;&amp; $healthJobStatus.getJobResults() &amp;&amp;
+            $healthJobStatus.getJobResults().size() &gt; 0)
             #customJobFinishedMessage($healthJobStatus, $translationPrefix)
           #end
           #if ($showLogs || $isAdvancedUser || $isSuperAdmin || $hasAdmin)
@@ -90,6 +91,9 @@
           &lt;ul&gt;
             &lt;li&gt;&lt;a href="#confirmCacheFlushModal" data-toggle="modal" data-target="#confirmCacheFlushModal"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.flushCache'))&lt;/a&gt;
+            &lt;/li&gt;
+            &lt;li&gt;&lt;a href="$xwiki.getURL('AdminTools.JMXManagedCache')" target="_blank"&gt;
+              $escapetool.xml($services.localization.render('adminTools.dashboard.healthcheck.cache.jmx'))&lt;/a&gt;
             &lt;/li&gt;
           &lt;/ul&gt;
           #cacheFlushModal()

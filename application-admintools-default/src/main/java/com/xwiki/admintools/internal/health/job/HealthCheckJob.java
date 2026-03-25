@@ -33,9 +33,10 @@ import org.xwiki.job.JobGroupPath;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
-import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.HealthCheckJobRequest;
 import com.xwiki.admintools.jobs.HealthCheckJobStatus;
+import com.xwiki.admintools.jobs.JobResult;
+import com.xwiki.admintools.jobs.JobResultLevel;
 
 /**
  * The Admin Tools health check job.
@@ -99,6 +100,11 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                     Thread.yield();
                 }
             }
+        } catch (Exception e) {
+            logger.error("An error occurred while running the health check.", e);
+            status.getJobResults()
+                .add(new JobResult("adminTools.dashboard.healthcheck.execution.error", JobResultLevel.FAIL));
+            throw new RuntimeException(e);
         } finally {
             this.progressManager.popLevelProgress(this);
         }

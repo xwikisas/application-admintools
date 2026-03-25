@@ -20,7 +20,6 @@
 package com.xwiki.admintools.internal.usage;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,14 +27,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryFilter;
 import org.xwiki.query.QueryManager;
-import org.xwiki.wiki.descriptor.WikiDescriptor;
-import org.xwiki.wiki.manager.WikiManagerException;
+import org.xwiki.query.SecureQuery;
+import org.xwiki.search.solr.SolrUtils;
 
 /**
  * Provide data for the documents that are spammed.
@@ -44,78 +43,55 @@ import org.xwiki.wiki.manager.WikiManagerException;
  */
 @Component(roles = SpamPagesProvider.class)
 @Singleton
-public class SpamPagesProvider extends AbstractInstanceUsageProvider
+public class SpamPagesProvider
 {
-    @Inject
-    private QueryManager queryManager;
+    private static final List<String> VALID_SORT_ORDERS = List.of("desc", "asc");
 
     @Inject
-    @Named("currentlanguage")
-    private QueryFilter currentLanguageFilter;
+    @Named("secure")
+    private QueryManager secureQueryManager;
 
     @Inject
-    @Named("hidden/document")
-    private QueryFilter hiddenDocumentFilter;
-
-    @Inject
-    @Named("document")
-    private QueryFilter documentFilter;
-
-    @Inject
-    @Named("viewable")
-    private QueryFilter viewableFilter;
+    private SolrUtils solrUtils;
 
     /**
-     * Retrieves the documents that have more than a given number of comments.
+     * Get a list of solr documents in wiki with comments above a given limit.
      *
      * @param maxComments maximum number of comments below which the document is ignored.
-     * @param filters {@link Map} of filters to be applied on the gathered list.
-     * @param sortColumn target column to apply the sort on.
+     * @param filters {@link Map} of filters to be applied on the results list.
      * @param order the order of the sort.
-     * @return a {@link List} with the documents that have more than the given number of comments.
-     */
-    public List<DocumentReference> getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
-        String sortColumn, String order) throws WikiManagerException
-    {
-        Collection<WikiDescriptor> searchedWikis = getRequestedWikis(filters);
-        List<DocumentReference> spammedDocuments = new ArrayList<>();
-        searchedWikis.forEach(wikiDescriptor -> {
-            try {
-                List<DocumentReference> queryResults =
-                    getCommentsForWiki(maxComments, filters.get("docName"), wikiDescriptor.getId());
-                spammedDocuments.addAll(queryResults);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        applyDocumentsSort(spammedDocuments, sortColumn, order);
-        return spammedDocuments;
-    }
-
-    /**
-     * Get the references of documents in wiki with comments above a given limit.
-     *
-     * @param maxComments maximum number of comments below which the document is ignored.
-     * @param searchedDocument document hint to be searched.
-     * @param wikiId the wiki for which the data will be retrieved.
-     * @return a {@link List} with the {@link DocumentReference} of the documents with comments above a given limit.
+     * @return a {@link SolrDocumentList} with the needed fields set.
      * @throws QueryException if there are any exceptions while running the queries for data retrieval.
      */
-    public List<DocumentReference> getCommentsForWiki(long maxComments, String searchedDocument, String wikiId)
-        throws QueryException
+    public SolrDocumentList getDocumentsOverGivenNumberOfComments(long maxComments, Map<String, String> filters,
+        String order) throws Exception
     {
-        String searchString;
-        if (searchedDocument == null || searchedDocument.isEmpty()) {
-            searchString = "%";
-        } else {
-            searchString = String.format("%%%s%%", searchedDocument);
+        String searchedDocument = filters.get("docName");
+        String queryStatement = "*";
+        if (searchedDocument != null && !searchedDocument.isEmpty()) {
+            queryStatement = String.format("title:%s", solrUtils.toCompleteFilterQueryString(searchedDocument));
         }
-        return this.queryManager.createQuery("select obj.name from XWikiDocument as doc, BaseObject as obj "
-                + "where doc.fullName = obj.name and obj.className = 'XWiki.XWikiComments' "
-                + "and lower(doc.title) like lower(:searchString) "
-                + "group by obj.name having count(*) > :maxComments order by count(*) desc", Query.HQL).setWiki(wikiId)
-            .bindValue("maxComments", maxComments).bindValue("searchString", searchString)
-            .addFilter(currentLanguageFilter).addFilter(hiddenDocumentFilter).addFilter(documentFilter)
-            .addFilter(viewableFilter).execute();
+        List<String> filterStatements = new ArrayList<>();
+        filterStatements.add("type:DOCUMENT");
+        filterStatements.add(String.format("AdminTools.NumberOfComments_sortInt:[%d TO *]", maxComments));
+        String searchedWiki = filters.get("wikiName");
+        if (searchedWiki != null && !searchedWiki.isEmpty() && !searchedWiki.equals("-")) {
+            // The XWikiServer document has a name format of "XWikiServer<wiki ID>". To select the wiki ID, we
+            // have to remove the first part of the name and set it to lowercase, as wiki IDs are always in lowercase.
+            String searchedWikiID = searchedWiki.replace("XWikiServer", "").toLowerCase();
+            filterStatements.add(String.format("wiki:%s", solrUtils.toCompleteFilterQueryString(searchedWikiID)));
+        }
+        Query query = this.secureQueryManager.createQuery(queryStatement, "solr");
+        if (query instanceof SecureQuery) {
+            ((SecureQuery) query).checkCurrentAuthor(true);
+            ((SecureQuery) query).checkCurrentUser(true);
+        }
+
+        query.bindValue("fl", "title_, reference, wiki, AdminTools.NumberOfComments_sortInt, name, spaces");
+        query.bindValue("fq", filterStatements);
+        query.bindValue("sort", String.format("AdminTools.NumberOfComments_sortInt %s",
+            VALID_SORT_ORDERS.contains(order) ? order : VALID_SORT_ORDERS.get(0)));
+        query.setLimit(100);
+        return ((QueryResponse) query.execute().get(0)).getResults();
     }
 }
