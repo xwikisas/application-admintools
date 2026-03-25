@@ -59,9 +59,9 @@ public class CPUHealthCheck implements HealthCheck
         HardwareAbstractionLayer hardware = systemInfo.getHardware();
         CentralProcessor processor = hardware.getProcessor();
         int cpuCores = processor.getPhysicalProcessorCount();
-        int maxFreq = (int) (processor.getMaxFreq() / (1024 * 1024));
+        int maxFreq = (int) (processor.getMaxFreq() / (1000 * 1000));
 
-        if (cpuCores > 2 && maxFreq > 2048) {
+        if (cpuCores > 2 && maxFreq > 2000) {
             return new JobResult("adminTools.dashboard.healthcheck.performance.cpu.info",
                 JobResultLevel.INFO);
         }
