@@ -57,6 +57,7 @@ public class DashboardConfigurationSectionView extends ViewPage
     public LastNLinesModalView clickViewLastLogsModal()
     {
         backendLogsHyperlink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("configurationViewLastNLinesModal"));
         return new LastNLinesModalView(By.id("configurationViewLastNLinesModal"),
             BACKEND_SECTION_VIEW_LAST_LOGS_MODAL_ID);
     }

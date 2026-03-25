@@ -43,6 +43,7 @@ public class DashboardFilesSectionView extends ViewPage
     public DownloadArchiveModalView clickDownloadModalHyperlink()
     {
         downloadFilesModalHyperlink.click();
+        getDriver().waitUntilElementIsVisible(By.id("downloadFilesModal"));
         return new DownloadArchiveModalView(By.id("downloadFilesModal"));
     }
 

@@ -52,6 +52,7 @@ public class DashboardUsageSectionView extends ViewPage
     public WikisSizeModalView getWikisSizeModal()
     {
         wikiSizeModalHyperlink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("viewWikisSizeModal"));
         return new WikisSizeModalView(By.id("viewWikisSizeModal"));
     }
 
@@ -61,6 +62,7 @@ public class DashboardUsageSectionView extends ViewPage
     public CommentsSpamModalView getWikiSpamModal()
     {
         wikiSpamModalHyperLink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("pagesOverNumberOfComments"));
         return new CommentsSpamModalView(By.id("pagesOverNumberOfComments"));
     }
 
@@ -70,6 +72,7 @@ public class DashboardUsageSectionView extends ViewPage
     public RecycleBinsModalView getRecycleBinsModalView()
     {
         wikisRecycleBinsModalHyperLink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("checkRecycleBinsModal"));
         return new RecycleBinsModalView(By.id("checkRecycleBinsModal"));
     }
 
@@ -79,6 +82,7 @@ public class DashboardUsageSectionView extends ViewPage
     public EmptyPagesModalView getEmptyPagesModalView()
     {
         emptyPagesModalHyperLink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("emptyPagesData"));
         return new EmptyPagesModalView(By.id("emptyPagesData"));
     }
 }

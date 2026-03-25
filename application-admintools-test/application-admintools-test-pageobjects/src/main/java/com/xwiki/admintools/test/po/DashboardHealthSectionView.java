@@ -75,6 +75,7 @@ public class DashboardHealthSectionView extends ViewPage
     public FlushCacheModalView clickFlushCacheHyperlink()
     {
         flushCacheModalHyperlink.click();
+        this.getDriver().waitUntilElementIsVisible(By.id("confirmCacheFlushModal"));
         return new FlushCacheModalView(By.id("confirmCacheFlushModal"));
     }
 }

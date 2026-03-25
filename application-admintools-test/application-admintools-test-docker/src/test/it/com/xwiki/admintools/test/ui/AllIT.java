@@ -28,10 +28,11 @@ import org.xwiki.test.docker.junit5.UITest;
  * All UI tests for the Admin Tools application.
  *
  * @version $Id$
+ * @since 1.4
  */
 @UITest
 @ExtendWith(AdminToolsExecutionCondition.class)
-class AllITs
+class AllIT
 {
     @Nested
     @DisplayName("Admin Tools UI")

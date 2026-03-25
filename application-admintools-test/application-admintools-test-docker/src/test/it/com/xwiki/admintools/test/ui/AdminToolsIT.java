@@ -225,7 +225,7 @@ class AdminToolsIT
         assertFalse(logs.isDisplayed());
         healthSectionView.clickResultsToggle();
         assertTrue(logs.isDisplayed());
-        assertEquals(12, logs.findElements(By.className("log-item")).size());
+        assertEquals(13, logs.findElements(By.className("log-item")).size());
 
         FlushCacheModalView flushCacheModalView = healthSectionView.clickFlushCacheHyperlink();
         assertTrue(flushCacheModalView.isDisplayed());
@@ -258,7 +258,7 @@ class AdminToolsIT
         for (WebElement row : sizeRows) {
             assertFalse(row.getText().contains("null"));
         }
-        assertEquals(2, Integer.parseInt(sizeModalView.getUserCount()));
+        assertEquals(1, Integer.parseInt(sizeModalView.getUserCount()));
         sizeModalView.clickCancelButton();
         assertFalse(sizeModalView.isDisplayed());
 
@@ -268,7 +268,7 @@ class AdminToolsIT
         assertEquals("Pages with more than 2 comments", spamModalView.getTableTitle());
         WebElement spamRow = spamModalView.getTableRow();
         assertEquals("Home", spamRow.findElement(By.cssSelector("td:nth-child(1)")).getText());
-        assertEquals("$services.localization.render(\"adminTools.extension.title\")",
+        assertEquals("Admin Tools",
             spamRow.findElement(By.cssSelector("td:nth-child(2)")).getText());
         assertEquals("3", spamRow.findElement(By.cssSelector("td:nth-child(3)")).getText());
         spamModalView.clickCancelButton();
@@ -309,7 +309,8 @@ class AdminToolsIT
         testUtils.login(USER_NAME, PASSWORD);
 
         WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
-        assertTrue(filesSectionNonAdminView.getText().contains("Access denied due to missing admin rights!"));
+        assertTrue(filesSectionNonAdminView.getText()
+            .contains("You are not allowed to view this page or perform this action."));
     }
 
     /**

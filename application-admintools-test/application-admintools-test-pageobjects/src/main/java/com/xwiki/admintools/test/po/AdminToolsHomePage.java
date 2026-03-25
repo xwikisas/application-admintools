@@ -87,7 +87,7 @@ public class AdminToolsHomePage extends ViewPage
      */
     public WebElement getNonAdminUserView()
     {
-        return this.getDriver().findElement(By.cssSelector(".errormessage"));
+        return this.getDriver().findElement(By.cssSelector(".panel-body"));
     }
 }
 

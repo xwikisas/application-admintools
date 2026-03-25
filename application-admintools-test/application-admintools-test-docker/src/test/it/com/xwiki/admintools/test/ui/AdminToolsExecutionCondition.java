@@ -29,11 +29,11 @@ import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 
 /**
- * Prevent the execution of the PDF export tests from inside a Docker container (such as {@code xwiki-build}) when
+ * Prevent the execution of Admin tools tests from inside a Docker container (such as {@code xwiki-build}) when
  * {@link ServletEngine#JETTY_STANDALONE} is used.
  *
  * @version $Id$
- * @since 1.0
+ * @since 1.4
  */
 public class AdminToolsExecutionCondition implements ExecutionCondition
 {
