@@ -41,7 +41,7 @@ import groovy.jmx.GroovyMBean;
  * Manager class that handles JMX managed cache operations.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component(roles = CacheManager.class)
 @Singleton
