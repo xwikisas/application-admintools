@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.modals;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -25,52 +25,27 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the download files archive modal.
+ * Represents actions that can be done on the flush cache modal.
  *
  * @version $Id$
  */
-public class DownloadArchiveModalView extends BaseModal
+public class FlushCacheModalView extends BaseModal
 {
-    @FindBy(css = "div#downloadFilesModal")
+    @FindBy(css = "div#confirmCacheFlushModal")
     public WebElement content;
 
-    public DownloadArchiveModalView(By selector)
+    public FlushCacheModalView(By selector)
     {
         super(selector);
     }
 
-    public WebElement getXWikiConfigCheckbox()
+    public void clickConfirmButton()
     {
-        return content.findElement(By.cssSelector("input[value='xwikiConfig']"));
-    }
-
-    public WebElement getXWikiPropertiesCheckBox()
-    {
-        return content.findElement(By.cssSelector("input[value='xwikiProperties']"));
-    }
-
-    public WebElement getProviderCheckBox()
-    {
-        return content.findElement(By.cssSelector("input[value='dataProvider']"));
-    }
-
-    public WebElement getLogsCheckBox()
-    {
-        return content.findElement(By.cssSelector("input[value='logs']"));
-    }
-
-    public WebElement getDateFilters()
-    {
-        return content.findElement(By.className("download-logs-date-fields"));
-    }
-
-    public void clickDownloadButton()
-    {
-        content.findElement(By.cssSelector("#downloadFilesModal .btn-primary")).click();
+        content.findElement(By.cssSelector("#confirmCacheFlushModal .btn-primary")).click();
     }
 
     public void clickCancelButton()
     {
-        content.findElement(By.cssSelector("#downloadFilesModal .btn-default")).click();
+        content.findElement(By.cssSelector("#confirmCacheFlushModal .btn-default")).click();
     }
 }

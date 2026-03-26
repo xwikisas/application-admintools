@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.modals;
 
 import java.util.List;
 
@@ -27,32 +27,27 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the wikis size view modal.
+ * Represents actions that can be done on the wikis empty pages modal.
  *
  * @version $Id$
  */
-public class WikisSizeModalView extends BaseModal
+public class EmptyPagesModalView extends BaseModal
 {
-    @FindBy(css = "div#viewWikisSizeModal")
+    @FindBy(css = "div#emptyPagesData")
     public WebElement content;
 
-    public WikisSizeModalView(By selector)
+    public EmptyPagesModalView(By selector)
     {
         super(selector);
-    }
-
-    public void clickCancelButton()
-    {
-        content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
-    }
-
-    public String getUserCount()
-    {
-        return content.findElement(By.cssSelector("tr:nth-child(1) > td:nth-child(2)")).getText();
     }
 
     public List<WebElement> getTableRows()
     {
         return content.findElements(By.cssSelector("table > tbody > tr"));
+    }
+
+    public void clickCancelButton()
+    {
+        content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
     }
 }

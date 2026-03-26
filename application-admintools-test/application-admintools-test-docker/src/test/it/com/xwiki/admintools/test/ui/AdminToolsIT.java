@@ -32,6 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.xwiki.livedata.test.po.LiveDataElement;
+import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
@@ -40,18 +42,20 @@ import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
-import com.xwiki.admintools.test.po.AdminToolsHomePage;
-import com.xwiki.admintools.test.po.CommentsSpamModalView;
-import com.xwiki.admintools.test.po.DashboardConfigurationSectionView;
-import com.xwiki.admintools.test.po.DashboardFilesSectionView;
-import com.xwiki.admintools.test.po.DashboardHealthSectionView;
-import com.xwiki.admintools.test.po.DashboardUsageSectionView;
-import com.xwiki.admintools.test.po.DownloadArchiveModalView;
-import com.xwiki.admintools.test.po.EmptyPagesModalView;
-import com.xwiki.admintools.test.po.FlushCacheModalView;
-import com.xwiki.admintools.test.po.LastNLinesModalView;
-import com.xwiki.admintools.test.po.RecycleBinsModalView;
-import com.xwiki.admintools.test.po.WikisSizeModalView;
+import com.xwiki.admintools.test.po.modals.CommentsSpamModalView;
+import com.xwiki.admintools.test.po.modals.DownloadArchiveModalView;
+import com.xwiki.admintools.test.po.modals.EmptyPagesModalView;
+import com.xwiki.admintools.test.po.modals.FlushCacheModalView;
+import com.xwiki.admintools.test.po.modals.LastNLinesModalView;
+import com.xwiki.admintools.test.po.modals.RecycleBinsModalView;
+import com.xwiki.admintools.test.po.modals.WikisSizeModalView;
+import com.xwiki.admintools.test.po.pages.AdminToolsHomePage;
+import com.xwiki.admintools.test.po.pages.CheckUserRightsPage;
+import com.xwiki.admintools.test.po.sections.DashboardConfigurationSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardFilesSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardHealthSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardSecuritySectionView;
+import com.xwiki.admintools.test.po.sections.DashboardUsageSectionView;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -92,6 +96,7 @@ class AdminToolsIT
     @BeforeAll
     static void setUp(TestUtils setup)
     {
+        setup.loginAsSuperAdmin();
         setup.createUser(USER_NAME, PASSWORD, setup.getURLToNonExistentPage(), "first_name", "Jon", "last_name",
             "Snow");
 
@@ -99,7 +104,6 @@ class AdminToolsIT
         // user part of the Admin Group and make sure that this Admin Group has admin rights in the wiki. We could also
         // have given that Admin user the admin right directly but the solution we chose is closer to the XS
         // distribution.
-        setup.loginAsSuperAdmin();
         setup.setGlobalRights("XWiki.XWikiAdminGroup", "", "admin,programming", true);
         setup.createAdminUser();
         setup.loginAsAdmin();
@@ -122,7 +126,7 @@ class AdminToolsIT
 
     @Test
     @Order(2)
-    void adminToolsHomePageBackend(TestConfiguration testConfiguration)
+    void backendSectionTest(TestConfiguration testConfiguration)
     {
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
         String backendText = configurationSectionView.getText();
@@ -141,13 +145,15 @@ class AdminToolsIT
 
     @Test
     @Order(3)
-    void adminToolViewLastLogLinesModal(TestUtils testUtils)
+    void viewLastLogLinesModalTest(TestUtils testUtils)
     {
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
         LastNLinesModalView lastLogsModal = configurationSectionView.clickViewLastLogsModal();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         lastLogsModal.clickViewButton();
+        // We only check if the right tab was opened, as there are no logs in the docker tomcat server.
         switchToNewTab(testUtils, mainWindowHandle);
+        testUtils.getDriver().close();
         testUtils.getDriver().switchTo().window(mainWindowHandle);
         lastLogsModal.clickCancelButton();
         assertFalse(lastLogsModal.isDisplayed());
@@ -155,7 +161,7 @@ class AdminToolsIT
 
     @Test
     @Order(4)
-    void adminToolsHomePageFiles(TestUtils testUtils)
+    void xwikiFilesTest(TestUtils testUtils)
     {
         excludeContent(testUtils, excludedLines);
 
@@ -170,7 +176,7 @@ class AdminToolsIT
 
     @Test
     @Order(5)
-    void adminToolDownloadArchiveModal()
+    void archiveModalTest()
     {
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
 
@@ -202,7 +208,7 @@ class AdminToolsIT
 
     @Test
     @Order(6)
-    void adminToolsHealthSection(TestUtils testUtils)
+    void healthSectionTest(TestUtils testUtils)
     {
         DashboardHealthSectionView healthSectionView = AdminToolsHomePage.getHealthSection();
 
@@ -243,7 +249,7 @@ class AdminToolsIT
 
     @Test
     @Order(7)
-    void adminToolsUsageSection(TestUtils testUtils)
+    void usageSectionTest(TestUtils testUtils)
     {
         setSpamCount(testUtils);
         addComments(testUtils);
@@ -268,9 +274,8 @@ class AdminToolsIT
         assertEquals("Pages with more than 2 comments", spamModalView.getTableTitle());
         WebElement spamRow = spamModalView.getTableRow();
         assertEquals("Home", spamRow.findElement(By.cssSelector("td:nth-child(1)")).getText());
-        assertEquals("Admin Tools",
-            spamRow.findElement(By.cssSelector("td:nth-child(2)")).getText());
-        assertEquals("3", spamRow.findElement(By.cssSelector("td:nth-child(3)")).getText());
+        assertEquals("Admin Tools", spamRow.findElement(By.cssSelector("td:nth-child(2)")).getText());
+        assertEquals("4", spamRow.findElement(By.cssSelector("td:nth-child(3)")).getText());
         spamModalView.clickCancelButton();
         assertFalse(spamModalView.isDisplayed());
 
@@ -304,13 +309,123 @@ class AdminToolsIT
 
     @Test
     @Order(8)
-    void adminToolsHomePageFilesNotAdmin(TestUtils testUtils)
+    void securitySectionTest()
+    {
+        DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
+        String content = securitySection.getContent();
+        assertTrue(content.contains("Active encoding: UTF-8"));
+        assertTrue(content.contains("Configuration encoding: UTF-8"));
+        assertTrue(content.contains("File encoding: UTF-8"));
+    }
+
+    @Test
+    @Order(9)
+    void groupsRightsPage(TestUtils testUtils)
+    {
+        DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
+        securitySection.clickGivenGroupsRights();
+        String mainWindowHandle = testUtils.getDriver().getWindowHandle();
+        switchToNewTab(testUtils, mainWindowHandle);
+
+        // Check groups rights livedata.
+        TableLayoutElement groupsTable = new LiveDataElement("viewGroupsRights").getTableLayout();
+        assertTrue(groupsTable.countRows() > 0);
+        groupsTable.filterColumn("Space", "admin", true);
+        assertEquals(1, groupsTable.countRows());
+        WebElement space = groupsTable.getCell("Space", 1);
+        WebElement right = groupsTable.getCell("Type of rights", 1);
+        WebElement group = groupsTable.getCell("Group", 1);
+        WebElement levels = groupsTable.getCell("Security levels", 1);
+        WebElement policy = groupsTable.getCell("Security policy", 1);
+
+        assertEquals("AdminTools", space.getText());
+        assertEquals("Space", right.getText());
+        assertEquals("XWikiAdminGroup", group.getText());
+        assertEquals("view", levels.getText());
+        assertEquals("Allowed", policy.getText());
+        testUtils.getDriver().close();
+        testUtils.getDriver().switchTo().window(mainWindowHandle);
+    }
+
+    @Test
+    @Order(10)
+    void usersRightsPage(TestUtils testUtils)
+    {
+        DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
+        securitySection.clickGivenUsersRights();
+        String mainWindowHandle = testUtils.getDriver().getWindowHandle();
+        switchToNewTab(testUtils, mainWindowHandle);
+
+        // Check users rights livedata.
+        TableLayoutElement groupsTable = new LiveDataElement("ViewUsersRights").getTableLayout();
+        groupsTable.filterColumn("User", "jon", true);
+        assertEquals(1, groupsTable.countRows());
+        WebElement space = groupsTable.getCell("Space", 1);
+        WebElement right = groupsTable.getCell("Type of rights", 1);
+        WebElement document = groupsTable.getCell("Document name", 1);
+        WebElement user = groupsTable.getCell("User", 1);
+        WebElement levels = groupsTable.getCell("Security levels", 1);
+        WebElement policy = groupsTable.getCell("Security policy", 1);
+
+        assertEquals("XWiki", space.getText());
+        assertEquals("Page", right.getText());
+        assertEquals("JonSnow", document.getText());
+        assertEquals("Jon Snow", user.getText());
+        assertEquals("edit", levels.getText());
+        assertEquals("Allowed", policy.getText());
+        testUtils.getDriver().close();
+        testUtils.getDriver().switchTo().window(mainWindowHandle);
+    }
+
+    @Test
+    @Order(11)
+    void checkUserRightsPage(TestUtils testUtils)
+    {
+        DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
+        securitySection.clickUsersRightsOnPage();
+        String mainWindowHandle = testUtils.getDriver().getWindowHandle();
+        switchToNewTab(testUtils, mainWindowHandle);
+
+        CheckUserRightsPage userRightsPage = new CheckUserRightsPage();
+        userRightsPage.populateTargetPage("AdminTools.WebHome");
+        userRightsPage.populateTargetUser("XWiki.JonSnow");
+
+        testUtils.getDriver().addPageNotYetReloadedMarker();
+        userRightsPage.clickCheckButton();
+        testUtils.getDriver().waitUntilPageIsReloaded();
+
+        userRightsPage = new CheckUserRightsPage();
+        WebElement table = userRightsPage.getTable();
+        verifyNonAdminUserRightsOnAdminPage(table);
+
+        testUtils.getDriver().close();
+        testUtils.getDriver().switchTo().window(mainWindowHandle);
+    }
+
+    @Test
+    @Order(12)
+    void notAdminTest(TestUtils testUtils)
     {
         testUtils.login(USER_NAME, PASSWORD);
 
         WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
         assertTrue(filesSectionNonAdminView.getText()
             .contains("You are not allowed to view this page or perform this action."));
+    }
+
+    private void verifyNonAdminUserRightsOnAdminPage(WebElement table)
+    {
+        List<WebElement> rows = table.findElements(By.cssSelector("tr"));
+        for (WebElement row : rows) {
+            List<WebElement> cells = row.findElements(By.tagName("td"));
+            if (!cells.isEmpty()) {
+                assertEquals("Jon Snow", cells.get(0).getText());
+                assertTrue(cells.get(1).getText().contains("admin"));
+                // Check the view rights.
+                assertEquals("false", cells.get(2).getText().trim());
+                break;
+            }
+        }
     }
 
     /**
@@ -352,7 +467,7 @@ class AdminToolsIT
 
     private void addComments(TestUtils testUtils)
     {
-        for (int i = 1; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             Map<String, Object> parameters =
                 Map.of("author", USER_NAME, "date", new Date(), "comment", String.format("test_%d", i));
             testUtils.addObject(ADMINTOOLS_WEBHOME_REFERENCE, "XWiki.XWikiComments", parameters);

@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.modals;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -25,27 +25,32 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the flush cache modal.
+ * Represents actions that can be done on the spammed wikis modal.
  *
  * @version $Id$
  */
-public class FlushCacheModalView extends BaseModal
+public class CommentsSpamModalView extends BaseModal
 {
-    @FindBy(css = "div#confirmCacheFlushModal")
+    @FindBy(css = "div#pagesOverNumberOfComments")
     public WebElement content;
 
-    public FlushCacheModalView(By selector)
+    public CommentsSpamModalView(By selector)
     {
         super(selector);
     }
 
-    public void clickConfirmButton()
+    public WebElement getTableRow()
     {
-        content.findElement(By.cssSelector("#confirmCacheFlushModal .btn-primary")).click();
+        return content.findElement(By.cssSelector("table > tbody > tr"));
+    }
+
+    public String getTableTitle()
+    {
+        return content.findElement(By.id("pagesOverNumberOfCommentsLabel")).getText();
     }
 
     public void clickCancelButton()
     {
-        content.findElement(By.cssSelector("#confirmCacheFlushModal .btn-default")).click();
+        content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
     }
 }

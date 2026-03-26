@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.modals;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -25,27 +25,52 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the wikis recycle bins view modal.
+ * Represents actions that can be done on the download files archive modal.
  *
  * @version $Id$
  */
-public class RecycleBinsModalView extends BaseModal
+public class DownloadArchiveModalView extends BaseModal
 {
-    @FindBy(css = "div#checkRecycleBinsModal")
+    @FindBy(css = "div#downloadFilesModal")
     public WebElement content;
 
-    public RecycleBinsModalView(By selector)
+    public DownloadArchiveModalView(By selector)
     {
         super(selector);
     }
 
-    public WebElement getTableRow()
+    public WebElement getXWikiConfigCheckbox()
     {
-        return content.findElement(By.cssSelector("table > tbody > tr"));
+        return content.findElement(By.cssSelector("input[value='xwikiConfig']"));
+    }
+
+    public WebElement getXWikiPropertiesCheckBox()
+    {
+        return content.findElement(By.cssSelector("input[value='xwikiProperties']"));
+    }
+
+    public WebElement getProviderCheckBox()
+    {
+        return content.findElement(By.cssSelector("input[value='dataProvider']"));
+    }
+
+    public WebElement getLogsCheckBox()
+    {
+        return content.findElement(By.cssSelector("input[value='logs']"));
+    }
+
+    public WebElement getDateFilters()
+    {
+        return content.findElement(By.className("download-logs-date-fields"));
+    }
+
+    public void clickDownloadButton()
+    {
+        content.findElement(By.cssSelector("#downloadFilesModal .btn-primary")).click();
     }
 
     public void clickCancelButton()
     {
-        content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
+        content.findElement(By.cssSelector("#downloadFilesModal .btn-default")).click();
     }
 }

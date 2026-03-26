@@ -17,7 +17,9 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.modals;
+
+import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -25,32 +27,32 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the spammed wikis modal.
+ * Represents actions that can be done on the wikis size view modal.
  *
  * @version $Id$
  */
-public class CommentsSpamModalView extends BaseModal
+public class WikisSizeModalView extends BaseModal
 {
-    @FindBy(css = "div#pagesOverNumberOfComments")
+    @FindBy(css = "div#viewWikisSizeModal")
     public WebElement content;
 
-    public CommentsSpamModalView(By selector)
+    public WikisSizeModalView(By selector)
     {
         super(selector);
-    }
-
-    public WebElement getTableRow()
-    {
-        return content.findElement(By.cssSelector("table > tbody > tr"));
-    }
-
-    public String getTableTitle()
-    {
-        return content.findElement(By.id("pagesOverNumberOfCommentsLabel")).getText();
     }
 
     public void clickCancelButton()
     {
         content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
+    }
+
+    public String getUserCount()
+    {
+        return content.findElement(By.cssSelector("tr:nth-child(1) > td:nth-child(2)")).getText();
+    }
+
+    public List<WebElement> getTableRows()
+    {
+        return content.findElements(By.cssSelector("table > tbody > tr"));
     }
 }

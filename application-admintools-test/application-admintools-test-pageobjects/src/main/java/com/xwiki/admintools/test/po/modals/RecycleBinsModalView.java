@@ -17,9 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
-
-import java.util.List;
+package com.xwiki.admintools.test.po.modals;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -27,23 +25,23 @@ import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.BaseModal;
 
 /**
- * Represents actions that can be done on the wikis empty pages modal.
+ * Represents actions that can be done on the wikis recycle bins view modal.
  *
  * @version $Id$
  */
-public class EmptyPagesModalView extends BaseModal
+public class RecycleBinsModalView extends BaseModal
 {
-    @FindBy(css = "div#emptyPagesData")
+    @FindBy(css = "div#checkRecycleBinsModal")
     public WebElement content;
 
-    public EmptyPagesModalView(By selector)
+    public RecycleBinsModalView(By selector)
     {
         super(selector);
     }
 
-    public List<WebElement> getTableRows()
+    public WebElement getTableRow()
     {
-        return content.findElements(By.cssSelector("table > tbody > tr"));
+        return content.findElement(By.cssSelector("table > tbody > tr"));
     }
 
     public void clickCancelButton()

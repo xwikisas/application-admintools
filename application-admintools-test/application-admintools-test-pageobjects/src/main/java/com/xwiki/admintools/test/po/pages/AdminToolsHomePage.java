@@ -17,11 +17,17 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.admintools.test.po;
+package com.xwiki.admintools.test.po.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
+
+import com.xwiki.admintools.test.po.sections.DashboardConfigurationSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardFilesSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardHealthSectionView;
+import com.xwiki.admintools.test.po.sections.DashboardSecuritySectionView;
+import com.xwiki.admintools.test.po.sections.DashboardUsageSectionView;
 
 /**
  * Represents actions that can be done on the AdminTools.WebHome page.
@@ -39,7 +45,9 @@ public class AdminToolsHomePage extends ViewPage
      */
     public static AdminToolsHomePage gotoPage()
     {
+        getUtil().getDriver().addPageNotYetReloadedMarker();
         getUtil().gotoPage(ADMIN_TOOLS_SPACE, ADMIN_TOOLS_PAGE);
+        getUtil().getDriver().waitUntilPageIsReloaded();
         return new AdminToolsHomePage();
     }
 
@@ -71,6 +79,12 @@ public class AdminToolsHomePage extends ViewPage
     {
         gotoPage();
         return new DashboardUsageSectionView();
+    }
+
+    public static DashboardSecuritySectionView getSecuritySection()
+    {
+        gotoPage();
+        return new DashboardSecuritySectionView();
     }
 
     /**
