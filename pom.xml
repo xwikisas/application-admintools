@@ -37,7 +37,7 @@
     logs history.</description>
   <properties>
     <licensing.version>1.32</licensing.version>
-    <limits.application.version>2.1.3</limits.application.version>
+    <limits.application.version>2.2</limits.application.version>
     <pro.commons.pickers>1.3.0</pro.commons.pickers>
   </properties>
   <issueManagement>
