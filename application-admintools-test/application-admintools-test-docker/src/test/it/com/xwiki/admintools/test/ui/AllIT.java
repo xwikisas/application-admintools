@@ -23,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.xwiki.test.docker.junit5.UITest;
+import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 
 /**
  * All UI tests for the Admin Tools application.
@@ -30,7 +31,7 @@ import org.xwiki.test.docker.junit5.UITest;
  * @version $Id$
  * @since 1.4
  */
-@UITest
+@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "8")
 @ExtendWith(AdminToolsExecutionCondition.class)
 class AllIT
 {

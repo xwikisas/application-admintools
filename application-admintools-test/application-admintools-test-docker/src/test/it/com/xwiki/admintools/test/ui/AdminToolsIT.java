@@ -119,6 +119,7 @@ class AdminToolsIT
     @Order(1)
     void appEntryRedirectsToHomePage()
     {
+        // Check if the application entry point redirects to the home page when accessed directly.
         ApplicationsPanel applicationPanel = ApplicationsPanel.gotoPage();
         ViewPage vp = applicationPanel.clickApplication("Admin Tools");
         Assertions.assertTrue(AdminToolsHomePage.isCurrentPage(vp));
@@ -128,18 +129,23 @@ class AdminToolsIT
     @Order(2)
     void backendSectionTest(TestConfiguration testConfiguration)
     {
+        // We check that the retrieved backend information is correct.
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
         String backendText = configurationSectionView.getText();
         assertTrue(supportedServers.stream().anyMatch(s -> backendText.toLowerCase().contains(s.toLowerCase())));
 
+        // Depending on the database used for the test, we check if the right warning message is displayed in the UI.
         String configurationDatabase = testConfiguration.getDatabase().name().toLowerCase();
         List<WebElement> warningMessages = configurationSectionView.getErrorMessages();
         if (supportedDatabases.stream().anyMatch(configurationDatabase::contains)) {
             assertEquals(0, warningMessages.size());
+            assertTrue(supportedDatabases.stream().anyMatch(d -> backendText.toLowerCase().contains(d)));
         } else {
             assertEquals(1, warningMessages.size());
         }
         assertTrue(supportedDatabases.stream().anyMatch(d -> backendText.toLowerCase().contains(d)));
+        // We check if the backend information doesn't contain any "null" value, which would mean that some
+        // information was not properly retrieved.
         assertFalse(backendText.toLowerCase().contains("null"));
     }
 
@@ -147,6 +153,8 @@ class AdminToolsIT
     @Order(3)
     void viewLastLogLinesModalTest(TestUtils testUtils)
     {
+        // We open and test the view last log lines modal, which should open a new tab with the logs when clicking on
+        // the view button.
         DashboardConfigurationSectionView configurationSectionView = AdminToolsHomePage.getConfigurationSection();
         LastNLinesModalView lastLogsModal = configurationSectionView.clickViewLastLogsModal();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
@@ -163,6 +171,8 @@ class AdminToolsIT
     @Order(4)
     void xwikiFilesTest(TestUtils testUtils)
     {
+        // In administration, we add some lines from the properties and configuration files to be excluded, to test
+        // if they are correctly removed from the xwiki.cfg and xwiki.properties files content when retrieving them.
         excludeContent(testUtils, excludedLines);
 
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
@@ -179,7 +189,6 @@ class AdminToolsIT
     void archiveModalTest()
     {
         DashboardFilesSectionView filesSectionView = AdminToolsHomePage.getFilesSection();
-
         DownloadArchiveModalView archiveModalView = filesSectionView.clickDownloadModalHyperlink();
         WebElement configCheck = archiveModalView.getXWikiConfigCheckbox();
         WebElement propertiesCheck = archiveModalView.getXWikiPropertiesCheckBox();
@@ -187,6 +196,8 @@ class AdminToolsIT
         WebElement logsCheck = archiveModalView.getLogsCheckBox();
         WebElement dateFilters = archiveModalView.getDateFilters();
 
+        // We check the different options of the download archive modal, default display, interactions between the
+        // options and the display of the date filters when the logs option is selected.
         assertTrue(configCheck.isSelected());
         assertTrue(propertiesCheck.isSelected());
         assertTrue(providerCheck.isSelected());
@@ -211,7 +222,8 @@ class AdminToolsIT
     void healthSectionTest(TestUtils testUtils)
     {
         DashboardHealthSectionView healthSectionView = AdminToolsHomePage.getHealthSection();
-
+        // We run the health check job and check if the button is indeed disabled during the execution and enabled
+        // again after.
         WebElement healthJobButton = healthSectionView.getHealthJobStartButton();
         healthJobButton.click();
         assertFalse(healthJobButton.isEnabled());
@@ -219,7 +231,8 @@ class AdminToolsIT
         AdminToolsHomePage.gotoPage();
 
         // Because the health check result is inserted at runtime by a velocity script, the testUtils fails to select
-        // the result message element. Therefore, it's necessary to select the text from the entire content.
+        // the result message element. Therefore, it's necessary to select the text from the entire content. We then
+        // check if the result message is correctly displayed.
         WebElement healthCheckResult = healthSectionView.getHealthContent();
         List<String> messages = List.of("Critical issues were found, please consult the results below!",
             "Some issues have been found, for more details please see the results below.", "No issue found!");
@@ -227,12 +240,17 @@ class AdminToolsIT
         boolean rightResult = messages.stream().anyMatch(healthCheckResult.getText()::contains);
         assertTrue(rightResult);
 
+        // We check if the logs toggle works properly, and if all the check have run by counting the number of the log
+        // items displayed in the logs section, which should be 13.
         WebElement logs = healthSectionView.getLogs();
         assertFalse(logs.isDisplayed());
         healthSectionView.clickResultsToggle();
         assertTrue(logs.isDisplayed());
         assertEquals(13, logs.findElements(By.className("log-item")).size());
 
+        // We test the flush cache modal, checking if it is displayed when clicking on the hyperlink.
+        // We then check if the cache flush action works properly when clicking on the confirm button and checking
+        // if the success message is displayed. We also check if the cancel button properly closes the modal.
         FlushCacheModalView flushCacheModalView = healthSectionView.clickFlushCacheHyperlink();
         assertTrue(flushCacheModalView.isDisplayed());
         flushCacheModalView.clickConfirmButton();
@@ -251,6 +269,7 @@ class AdminToolsIT
     @Order(7)
     void usageSectionTest(TestUtils testUtils)
     {
+        // Prepare prerequisites.
         setSpamCount(testUtils);
         addComments(testUtils);
         createEmptyPage(testUtils);
@@ -268,7 +287,8 @@ class AdminToolsIT
         sizeModalView.clickCancelButton();
         assertFalse(sizeModalView.isDisplayed());
 
-        // Test the spammed pages for all wikis modal.
+        // Test the spammed pages for all wikis modal. There should be one entry, the admin tools homepage with 4
+        // comments.
         CommentsSpamModalView spamModalView = usageSectionView.getWikiSpamModal();
         assertTrue(spamModalView.isDisplayed());
         assertEquals("Pages with more than 2 comments", spamModalView.getTableTitle());
@@ -279,7 +299,8 @@ class AdminToolsIT
         spamModalView.clickCancelButton();
         assertFalse(spamModalView.isDisplayed());
 
-        // Test the recycle bins view for all wikis modal.
+        // Test the recycle bins view for all wikis modal. At first it should be empty and after creating and deleting
+        // a page, it should contain one entry.
         RecycleBinsModalView recycleBinsModalView = usageSectionView.getRecycleBinsModalView();
         assertTrue(recycleBinsModalView.isDisplayed());
         WebElement recycleBinsTableRow = recycleBinsModalView.getTableRow();
@@ -311,6 +332,8 @@ class AdminToolsIT
     @Order(8)
     void securitySectionTest()
     {
+        // We check the security section content to see if the encoding information is correctly retrieved and
+        // displayed.
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
         String content = securitySection.getContent();
         assertTrue(content.contains("Active encoding: UTF-8"));
@@ -327,7 +350,8 @@ class AdminToolsIT
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         switchToNewTab(testUtils, mainWindowHandle);
 
-        // Check groups rights livedata.
+        // Check the groups rights livedata page for the "admin" space. The view right given to the XWikiAdminGroup
+        // should be displayed.
         TableLayoutElement groupsTable = new LiveDataElement("viewGroupsRights").getTableLayout();
         assertTrue(groupsTable.countRows() > 0);
         groupsTable.filterColumn("Space", "admin", true);
@@ -356,7 +380,8 @@ class AdminToolsIT
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         switchToNewTab(testUtils, mainWindowHandle);
 
-        // Check users rights livedata.
+        // Check the users rights livedata page for the simple user "Jon", by setting the "User" filter. The user
+        // should have edit rights on it's own user page.
         TableLayoutElement groupsTable = new LiveDataElement("ViewUsersRights").getTableLayout();
         groupsTable.filterColumn("User", "jon", true);
         assertEquals(1, groupsTable.countRows());
@@ -381,11 +406,13 @@ class AdminToolsIT
     @Order(11)
     void checkUserRightsPage(TestUtils testUtils)
     {
+        // We check the functionality of the "Check user rights on page" document.
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
         securitySection.clickUsersRightsOnPage();
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         switchToNewTab(testUtils, mainWindowHandle);
 
+        // We set the target fields to check the rights of the "Jon Snow" user on the admin tools homepage.
         CheckUserRightsPage userRightsPage = new CheckUserRightsPage();
         userRightsPage.populateTargetPage("AdminTools.WebHome");
         userRightsPage.populateTargetUser("XWiki.JonSnow");
@@ -394,6 +421,7 @@ class AdminToolsIT
         userRightsPage.clickCheckButton();
         testUtils.getDriver().waitUntilPageIsReloaded();
 
+        // We check that the user has no admin rights on the admin tools homepage.
         userRightsPage = new CheckUserRightsPage();
         WebElement table = userRightsPage.getTable();
         verifyNonAdminUserRightsOnAdminPage(table);
@@ -406,6 +434,7 @@ class AdminToolsIT
     @Order(12)
     void notAdminTest(TestUtils testUtils)
     {
+        // We check that a non-admin user doesn't have access to the admin tools home page.
         testUtils.login(USER_NAME, PASSWORD);
 
         WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
@@ -453,18 +482,27 @@ class AdminToolsIT
         testUtils.getDriver().switchTo().window(mainWindowHandle);
     }
 
+    /**
+     * Add the given lines to the excluded lines configuration property.
+     */
     private void excludeContent(TestUtils testUtils, List<String> lines)
     {
         testUtils.updateObject(ADMINTOOLS_CONFIGURATION_REFERENCE, ADMINTOOLS_CONFIGURATION_CLASSNAME, 0,
             "excludedLines", String.join(",", lines));
     }
 
+    /**
+     * Set the minimum number of comments to be considered as spam to 2, to be able to test the comments spam modal.
+     */
     private void setSpamCount(TestUtils testUtils)
     {
         testUtils.updateObject(ADMINTOOLS_CONFIGURATION_REFERENCE, ADMINTOOLS_CONFIGURATION_CLASSNAME, 0, "spamSize",
             2);
     }
 
+    /**
+     * Add 4 comments to the Admin tools homepage.
+     */
     private void addComments(TestUtils testUtils)
     {
         for (int i = 0; i < 4; i++) {
@@ -474,12 +512,18 @@ class AdminToolsIT
         }
     }
 
+    /**
+     * Create and delete a page to be able to test the recycle bin and empty pages modals.
+     */
     private void createAndDeletePage(TestUtils testUtils)
     {
         testUtils.createPage(ADMINTOOLS_DELETE_PAGE_REF, "testContent");
         testUtils.deletePage(ADMINTOOLS_DELETE_PAGE_REF);
     }
 
+    /**
+     * Create an empty page and a page with only comments, to be able to test the empty pages modal.
+     */
     private void createEmptyPage(TestUtils testUtils)
     {
         testUtils.createPage(EMPTY_PAGE_REF, "");
