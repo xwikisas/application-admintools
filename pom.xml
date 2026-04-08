@@ -57,4 +57,12 @@
     <module>application-admintools-xip</module>
     <module>application-admintools-webjar</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>integration-tests</id>
+      <modules>
+        <module>application-admintools-test</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
