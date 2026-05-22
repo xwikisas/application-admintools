@@ -103,7 +103,7 @@ public class LogsDataResource implements DataResource
     public byte[] getByteData(Map<String, String[]> params) throws IOException, NumberFormatException
     {
         try {
-            ServerInfo usedServer = currentServer.getCurrentServer();
+            ServerInfo usedServer = this.currentServer.getCurrentServer();
             if (usedServer == null) {
                 throw new NullPointerException("Server not found! Configure path in extension configuration.");
             }
@@ -113,16 +113,14 @@ public class LogsDataResource implements DataResource
                 linesCount = 50000;
             }
             String osName = System.getProperty("os.name").toLowerCase();
-            if (osName.contains("linux")) {
-                return getLinuxByteData(usedServer, linesCount);
-            } else if (osName.contains("windows")) {
-                return getWindowsByteData(usedServer, linesCount);
+            if (osName.contains("linux") || osName.contains("windows")) {
+                return getLogsByteData(usedServer, linesCount);
             } else {
                 throw new RuntimeException("OS not supported!");
             }
         } catch (IOException exception) {
             throw new IOException(String.format("Error while accessing log files at [%s].",
-                currentServer.getCurrentServer().getLastLogFilePath()), exception);
+                this.currentServer.getCurrentServer().getLastLogFilePath()), exception);
         } catch (NumberFormatException exception) {
             throw new NumberFormatException(
                 String.format("The given [%s] lines number is not a valid number.", params.get(NO_LINES)[0]));
@@ -135,7 +133,7 @@ public class LogsDataResource implements DataResource
         Map<String, String> filters = getFilters(params);
         byte[] buffer = new byte[2048];
         try {
-            File logsFolder = new File(currentServer.getCurrentServer().getLogsFolderPath());
+            File logsFolder = new File(this.currentServer.getCurrentServer().getLogsFolderPath());
             File[] listOfFiles = logsFolder.listFiles();
             // Go through all the files in the list.
             for (File file : listOfFiles != null ? listOfFiles : new File[0]) {
@@ -159,16 +157,22 @@ public class LogsDataResource implements DataResource
                 }
             }
         } catch (Exception e) {
-            logger.warn("Failed to get logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
+            this.logger.warn("Failed to get logs. Root cause is: [{}]", ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
-    private byte[] getLinuxByteData(ServerInfo usedServer, int linesCount) throws IOException
+    private byte[] getLogsByteData(ServerInfo usedServer, int linesCount) throws IOException
     {
+        // We first attempt to check the main log file specific to the used server. If the file is missing, we read
+        // the logs from all found files in descending order.
         File file = new File(usedServer.getLastLogFilePath());
-        List<String> logData = logFiles.getLines(file, linesCount);
-        Collections.reverse(logData);
-        return String.join(LINE_BREAK, logData).getBytes();
+        if (file.exists()) {
+            List<String> logData = this.logFiles.getLines(file, linesCount);
+            Collections.reverse(logData);
+            return String.join(LINE_BREAK, logData).getBytes();
+        } else {
+            return computeLogsByteData(usedServer, linesCount);
+        }
     }
 
     /**
@@ -181,14 +185,14 @@ public class LogsDataResource implements DataResource
      * @return the last lines of log as a {@link Byte} array.
      * @throws IOException if there are any errors while handling the log files.
      */
-    private byte[] getWindowsByteData(ServerInfo usedServer, int requestedLines) throws IOException
+    private byte[] computeLogsByteData(ServerInfo usedServer, int requestedLines) throws IOException
     {
         int linesCount = requestedLines;
-        File[] files = logFiles.getLogFiles(usedServer.getLogsFolderPath(), usedServer.getLogsHint());
+        File[] files = this.logFiles.getLogFiles(usedServer.getLogsFolderPath(), usedServer.getLogsHint());
 
         List<String> combinedLogs = new ArrayList<>(linesCount);
         for (File file : files) {
-            List<String> retrievedLines = logFiles.getLines(file, linesCount);
+            List<String> retrievedLines = this.logFiles.getLines(file, linesCount);
             linesCount -= retrievedLines.size();
             combinedLogs.addAll(retrievedLines);
             if (linesCount <= 0) {
@@ -199,14 +203,20 @@ public class LogsDataResource implements DataResource
         return String.join(LINE_BREAK, combinedLogs).getBytes();
     }
 
-    private static Map<String, String> getFilters(Map<String, String[]> params)
+    private Map<String, String> getFilters(Map<String, String[]> params)
     {
         Map<String, String> filters = new HashMap<>();
         if (params != null) {
-            filters.put(FROM, !Objects.equals(params.get(FROM)[0], "") ? params.get(FROM)[0] : null);
-            filters.put(TO, !Objects.equals(params.get(TO)[0], "") ? params.get(TO)[0] : null);
+            populateFilter(filters, FROM, params);
+            populateFilter(filters, TO, params);
         }
         return filters;
+    }
+
+    private void populateFilter(Map<String, String> filters, String key, Map<String, String[]> params)
+    {
+        filters.put(key,
+            params.get(key)[0] != null && !Objects.equals(params.get(key)[0], "") ? params.get(key)[0] : "");
     }
 
     private int getRequestedLines(Map<String, String[]> params)
@@ -233,23 +243,23 @@ public class LogsDataResource implements DataResource
     private boolean checkFilters(File file, Map<String, String> filters)
     {
         // Get the server specific Pattern used to identify the log date from the log name.
-        Pattern pattern = currentServer.getCurrentServer().getLogsPattern();
+        Pattern pattern = this.currentServer.getCurrentServer().getLogsPattern();
         Matcher matcher = pattern.matcher(file.getName());
         if (matcher.find()) {
-            XWikiContext wikiContext = contextProvider.get();
+            XWikiContext wikiContext = this.contextProvider.get();
             XWiki xWiki = wikiContext.getWiki();
             String userDateFormat = xWiki.getXWikiPreference("dateformat", "dd-MM-yyyy", wikiContext);
             String fileDateString = matcher.group();
             LocalDate fileDate = LocalDate.parse(fileDateString);
             DateTimeFormatter filtersFormatter = DateTimeFormatter.ofPattern(userDateFormat);
-            if (filters.get(FROM) != null && filters.get(TO) != null) {
+            if (!filters.get(FROM).isEmpty() && !filters.get(TO).isEmpty()) {
                 LocalDate fromDate = LocalDate.parse(filters.get(FROM), filtersFormatter);
                 LocalDate toDate = LocalDate.parse(filters.get(TO), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1)) && fileDate.isBefore(toDate.plusDays(1));
-            } else if (filters.get(FROM) != null) {
+            } else if (!filters.get(FROM).isEmpty()) {
                 LocalDate fromDate = LocalDate.parse(filters.get(FROM), filtersFormatter);
                 return fileDate.isAfter(fromDate.minusDays(1));
-            } else if (filters.get(TO) != null) {
+            } else if (!filters.get(TO).isEmpty()) {
                 LocalDate toDate = LocalDate.parse(filters.get(TO), filtersFormatter);
                 return fileDate.isBefore(toDate.plusDays(1));
             } else {

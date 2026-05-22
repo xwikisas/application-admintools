@@ -96,58 +96,58 @@ class UploadJobTest
     @BeforeComponent
     void setUp() throws IOException
     {
-        tmpDir.mkdir();
-        tmpDir.deleteOnExit();
-        archDir = new File(tmpDir, "resource_folder");
-        archDir.mkdir();
+        this.tmpDir.mkdir();
+        this.tmpDir.deleteOnExit();
+        this.archDir = new File(this.tmpDir, "resource_folder");
+        this.archDir.mkdir();
 
-        testFile = new File(archDir, "resource_file.txt");
-        testFile2 = new File(archDir, "resource_file2.txt");
-        zipFile = new File(tmpDir, "archive");
-        backupFile = new File(tmpDir, "backup");
-        backupFile2 = new File(tmpDir, "backup2");
-        targetFile = new File(tmpDir, "target");
+        this.testFile = new File(this.archDir, "resource_file.txt");
+        this.testFile2 = new File(this.archDir, "resource_file2.txt");
+        this.zipFile = new File(this.tmpDir, "archive");
+        this.backupFile = new File(this.tmpDir, "backup");
+        this.backupFile2 = new File(this.tmpDir, "backup2");
+        this.targetFile = new File(this.tmpDir, "target");
 
-        testFile.createNewFile();
-        testFile2.createNewFile();
-        zipFile.createNewFile();
-        backupFile.createNewFile();
-        backupFile2.createNewFile();
-        targetFile.createNewFile();
-        zipFile(archDir, zipFile);
-        inputStream = new DataInputStream(new FileInputStream(zipFile));
+        this.testFile.createNewFile();
+        this.testFile2.createNewFile();
+        this.zipFile.createNewFile();
+        this.backupFile.createNewFile();
+        this.backupFile2.createNewFile();
+        this.targetFile.createNewFile();
+        zipFile(this.archDir, this.zipFile);
+        this.inputStream = new DataInputStream(new FileInputStream(this.zipFile));
     }
 
     @BeforeEach
     void beforeEach() throws XWikiException
     {
-        when(fileProcessor.getArchiveInputStream(null)).thenReturn(inputStream);
-        when(fileProcessor.maybeBackupFile(eq("resource_file.txt"), any(PackageUploadJobStatus.class))).thenReturn(
-            jobResource);
+        when(this.fileProcessor.getArchiveInputStream(null)).thenReturn(this.inputStream);
+        when(this.fileProcessor.maybeBackupFile(eq("resource_file.txt"), any(PackageUploadJobStatus.class))).thenReturn(
+            this.jobResource);
 
-        when(fileProcessor.maybeBackupFile(eq("resource_file2.txt"), any(PackageUploadJobStatus.class))).thenReturn(
-            jobResource2);
+        when(this.fileProcessor.maybeBackupFile(eq("resource_file2.txt"), any(PackageUploadJobStatus.class))).thenReturn(
+            this.jobResource2);
 
-        when(jobResource.getNewFilename()).thenReturn("new_file_name.txt");
-        when(jobResource.getBackupFile()).thenReturn(backupFile);
+        when(this.jobResource.getNewFilename()).thenReturn("new_file_name.txt");
+        when(this.jobResource.getBackupFile()).thenReturn(this.backupFile);
 
-        when(jobResource2.getNewFilename()).thenReturn("new_file_name2.txt");
-        when(jobResource2.getBackupFile()).thenReturn(backupFile2);
+        when(this.jobResource2.getNewFilename()).thenReturn("new_file_name2.txt");
+        when(this.jobResource2.getBackupFile()).thenReturn(this.backupFile2);
     }
 
     @Test
     void createNewStatus()
     {
-        assertEquals(PackageUploadJobStatus.class, uploadJob.createNewStatus(new PackageUploadJobRequest()).getClass());
+        assertEquals(PackageUploadJobStatus.class, this.uploadJob.createNewStatus(new PackageUploadJobRequest()).getClass());
     }
 
     @Test
     void runInternal()
     {
-        uploadJob.initialize(request);
-        PackageUploadJobStatus uploadJobStatus = uploadJob.getStatus();
+        this.uploadJob.initialize(this.request);
+        PackageUploadJobStatus uploadJobStatus = this.uploadJob.getStatus();
 
-        uploadJob.runInternal();
+        this.uploadJob.runInternal();
 
         assertEquals(1, uploadJobStatus.getJobResults().size());
         assertEquals("adminTools.jobs.upload.success", uploadJobStatus.getJobResults().get(0).getMessage());
@@ -156,20 +156,22 @@ class UploadJobTest
     @Test
     void runInternalFailToDeleteTarget()
     {
-        when(fileProcessor.maybeBackupFile(eq(testFile2.getName()), any(PackageUploadJobStatus.class))).thenThrow(
+        when(this.fileProcessor.maybeBackupFile(eq(this.testFile2.getName()), any(PackageUploadJobStatus.class))).thenThrow(
             new RuntimeException("error"));
+        when(this.jobResource.getTargetFile()).thenReturn(this.targetFile);
+        this.uploadJob.initialize(this.request);
+        this.uploadJob.runInternal();
+        PackageUploadJobStatus uploadJobStatus = this.uploadJob.getStatus();
 
-        uploadJob.initialize(request);
-        uploadJob.runInternal();
-        PackageUploadJobStatus uploadJobStatus = uploadJob.getStatus();
-
-        assertEquals("Error during the file upload job.", logCapture.getMessage(0));
-        assertEquals(3, uploadJobStatus.getJobResults().size());
+        assertEquals("Error during the file upload job.", this.logCapture.getMessage(0));
+        assertEquals(4, uploadJobStatus.getJobResults().size());
         assertEquals("adminTools.jobs.upload.fail", uploadJobStatus.getJobResults().get(0).getMessage());
         assertEquals("adminTools.jobs.upload.batch.restore.start",
             uploadJobStatus.getJobResults().get(1).getMessage());
-        assertEquals("adminTools.jobs.upload.batch.restore.success",
+        assertEquals("adminTools.jobs.upload.batch.restore.file.success",
             uploadJobStatus.getJobResults().get(2).getMessage());
+        assertEquals("adminTools.jobs.upload.batch.restore.success",
+            uploadJobStatus.getJobResults().get(3).getMessage());
     }
 
     private static void zipFile(File sourceFolder, File outputZip) throws IOException
