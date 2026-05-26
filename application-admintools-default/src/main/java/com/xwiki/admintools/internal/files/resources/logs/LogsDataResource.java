@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -215,8 +214,9 @@ public class LogsDataResource implements DataResource
 
     private void populateFilter(Map<String, String> filters, String key, Map<String, String[]> params)
     {
-        filters.put(key,
-            params.get(key)[0] != null && !Objects.equals(params.get(key)[0], "") ? params.get(key)[0] : "");
+        // Get the value of the parameters and put it in the filters map. If the value is null, put an empty string.
+        String value = params.get(key)[0];
+        filters.put(key, value != null ? value : "");
     }
 
     private int getRequestedLines(Map<String, String[]> params)
