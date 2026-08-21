@@ -19,19 +19,31 @@
  */
 package com.xwiki.admintools.internal.health.checks.configuration;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
 
+import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.xwiki.activeinstalls2.internal.PingDataProvider;
+import org.xwiki.activeinstalls2.internal.data.JavaPing;
+import org.xwiki.activeinstalls2.internal.data.Ping;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
+import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.version.Version;
 import org.xwiki.extension.version.internal.DefaultVersion;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xwiki.admintools.health.HealthCheck;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
-import com.xwiki.admintools.health.XWikiVersions;
 
 /**
  * Implementation of {@link HealthCheck} for checking the Java configuration.
@@ -41,81 +53,97 @@ import com.xwiki.admintools.health.XWikiVersions;
 @Component
 @Named(ConfigurationJavaHealthCheck.HINT)
 @Singleton
-public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthCheck
+public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthCheck implements Initializable
 {
     /**
      * Component identifier.
      */
     public static final String HINT = "configurationJava";
 
-    private static final String REGEX = "\\.";
+    private NavigableMap<Version, Set<Integer>> supportedJavaVersions;
+
+    private String xwikiVersionString;
+
+    private String javaVersionString;
+
+    @Inject
+    @Named("java")
+    private Provider<PingDataProvider> pingDataProviderProvider;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Override
+    public void initialize() throws InitializationException
+    {
+        this.xwikiVersionString = getXWikiVersion();
+        this.javaVersionString = getSystemJavaVersion();
+        this.supportedJavaVersions = buildSupportedJavaVersions();
+    }
 
     @Override
     public JobResult check()
     {
-        Map<String, String> configurationJson = getConfigurationProviderJSON();
-        String javaVersionString = configurationJson.get("javaVersion");
-        if (javaVersionString == null) {
-            logger.warn("Java version not found!");
+        if (this.javaVersionString == null) {
+            this.logger.warn("Java version not found!");
             return new JobResult("adminTools.dashboard.healthcheck.java.warn", JobResultLevel.WARN);
         }
-        String xwikiVersionString = configurationJson.get("xwikiVersion");
-        float javaVersion = parseJavaVersionFloat(javaVersionString);
-        if (!isJavaXWikiCompatible(xwikiVersionString, javaVersion)) {
-            logger.error("Java version is not compatible with the current XWiki installation!");
+
+        if (!isJavaCompatible()) {
+            this.logger.error("Java version is not compatible with the current XWiki installation!");
             return new JobResult("adminTools.dashboard.healthcheck.java.error", JobResultLevel.ERROR,
-                javaVersionString, xwikiVersionString);
+                this.javaVersionString, this.xwikiVersionString);
         }
         return new JobResult("adminTools.dashboard.healthcheck.java.info", JobResultLevel.INFO);
     }
 
-    private float parseJavaVersionFloat(String javaVersionString)
+    private String getXWikiVersion()
     {
-        String[] parts = javaVersionString.split(REGEX);
-        return Float.parseFloat(parts[0] + "." + parts[1]);
+        XWikiContext wikiContext = this.contextProvider.get();
+        XWiki wiki = wikiContext.getWiki();
+        return wiki.getVersion();
     }
 
-    private boolean isJavaXWikiCompatible(String xwikiVersion, float javaVersion)
+    private String getSystemJavaVersion()
     {
-        boolean isCompatible = false;
-        if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_8_1.getVersion(), XWikiVersions.XWIKI_11_3.getVersion())) {
-            isCompatible = javaVersion == 1.8f;
-        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_11_3.getVersion(),
-            XWikiVersions.XWIKI_14_0.getVersion()))
-        {
-            isCompatible = (javaVersion == 1.8f) || isJavaCompatible(javaVersion, 10.99f, 12.0f);
-        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_14_0.getVersion(),
-            XWikiVersions.XWIKI_14_10_9.getVersion()))
-        {
-            isCompatible = isJavaCompatible(javaVersion, 10.99f, 12.0f);
-        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_14_10_9.getVersion(),
-            XWikiVersions.XWIKI_15_3.getVersion()))
-        {
-            isCompatible = isJavaCompatible(javaVersion, 16.99f, 18.0f) || isJavaCompatible(javaVersion, 10.99f, 12.0f);
-        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_15_3.getVersion(),
-            XWikiVersions.XWIKI_16_0.getVersion()))
-        {
-            isCompatible = isJavaCompatible(javaVersion, 10.99f, 12f) || isJavaCompatible(javaVersion, 16.99f, 18f);
-        } else if (isInInterval(xwikiVersion, XWikiVersions.XWIKI_16_0.getVersion(),
-            XWikiVersions.XWIKI_17_0.getVersion()))
-        {
-            isCompatible = isJavaCompatible(javaVersion, 16.99f, 22f);
-        }
-
-        return isCompatible;
+        PingDataProvider javaProvider = this.pingDataProviderProvider.get();
+        Ping ping = new Ping();
+        javaProvider.provideData(ping);
+        JavaPing javaPing = ping.getJava();
+        return javaPing.getVersion();
     }
 
-    private boolean isJavaCompatible(float checkedValue, float lowerBound, float upperBound)
+    private NavigableMap<Version, Set<Integer>> buildSupportedJavaVersions()
     {
-        return checkedValue > lowerBound && checkedValue < upperBound;
+        NavigableMap<Version, Set<Integer>> versions = new TreeMap<>();
+        versions.put(new DefaultVersion("15.3"), Set.of(11, 17));
+        versions.put(new DefaultVersion("16.0.0"), Set.of(17, 21));
+        versions.put(new DefaultVersion("17.10.3"), Set.of(17, 21, 25));
+        versions.put(new DefaultVersion("18.0.0"), Set.of(21, 25));
+        return Collections.unmodifiableNavigableMap(versions);
     }
 
-    private boolean isInInterval(String checkedValue, String lowerBound, String upperBound)
+    /**
+     * @return {@code true} if the given Java version is supported for the given XWiki version, or {@code false}
+     *     otherwise
+     */
+    private boolean isJavaCompatible()
     {
-        Version checkedVersion = new DefaultVersion(checkedValue);
-        Version lowerBoundVersion = new DefaultVersion(lowerBound);
-        Version upperBoundVersion = new DefaultVersion(upperBound);
+        int javaMajorVersion = parseJavaMajorVersion();
+        Map.Entry<Version, Set<Integer>> rule =
+            this.supportedJavaVersions.floorEntry(new DefaultVersion(this.xwikiVersionString));
+        return rule != null && rule.getValue().contains(javaMajorVersion);
+    }
 
-        return checkedVersion.compareTo(lowerBoundVersion) >= 0 && checkedVersion.compareTo(upperBoundVersion) < 0;
+    /**
+     * Extracts the Java major version from a raw string.
+     *
+     * @return the Java major version, for example {@code 8}, {@code 11}, {@code 17}, {@code 21}
+     */
+    private int parseJavaMajorVersion()
+    {
+        String[] parts = this.javaVersionString.split("[._-]");
+        int majorIndex = "1".equals(parts[0]) && parts.length > 1 ? 1 : 0;
+        return Integer.parseInt(parts[majorIndex].replaceAll("\\D", ""));
     }
 }
