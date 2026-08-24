@@ -30,9 +30,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.xwiki.activeinstalls2.internal.PingDataProvider;
-import org.xwiki.activeinstalls2.internal.data.JavaPing;
-import org.xwiki.activeinstalls2.internal.data.Ping;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
@@ -67,24 +65,20 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
     private String javaVersionString;
 
     @Inject
-    @Named("java")
-    private Provider<PingDataProvider> pingDataProviderProvider;
-
-    @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Override
     public void initialize() throws InitializationException
     {
         this.xwikiVersionString = getXWikiVersion();
-        this.javaVersionString = getSystemJavaVersion();
+        this.javaVersionString = System.getProperty("java.specification.version");
         this.supportedJavaVersions = buildSupportedJavaVersions();
     }
 
     @Override
     public JobResult check()
     {
-        if (this.javaVersionString == null) {
+        if (StringUtils.isBlank(this.javaVersionString)) {
             this.logger.warn("Java version not found!");
             return new JobResult("adminTools.dashboard.healthcheck.java.warn", JobResultLevel.WARN);
         }
@@ -102,15 +96,6 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
         XWikiContext wikiContext = this.contextProvider.get();
         XWiki wiki = wikiContext.getWiki();
         return wiki.getVersion();
-    }
-
-    private String getSystemJavaVersion()
-    {
-        PingDataProvider javaProvider = this.pingDataProviderProvider.get();
-        Ping ping = new Ping();
-        javaProvider.provideData(ping);
-        JavaPing javaPing = ping.getJava();
-        return javaPing.getVersion();
     }
 
     private NavigableMap<Version, Set<Integer>> buildSupportedJavaVersions()
