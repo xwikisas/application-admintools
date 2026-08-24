@@ -94,8 +94,11 @@ public class HealthCheckJob extends AbstractJob<HealthCheckJobRequest, HealthChe
                 } else {
                     progressManager.startStep(this);
                     // We start the check for the current HealthCheck in the iterator.
-                    JobResult checkResult = healthCheckIterator.next().check();
-                    status.getJobResults().add(checkResult);
+                    HealthCheck healthCheck = healthCheckIterator.next();
+                    if (healthCheck.isApplicable()) {
+                        JobResult checkResult = healthCheck.check();
+                        this.status.getJobResults().add(checkResult);
+                    }
                     progressManager.endStep(this);
                     Thread.yield();
                 }

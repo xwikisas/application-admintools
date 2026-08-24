@@ -28,7 +28,9 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.health.HealthCheck;
+import com.xwiki.admintools.internal.CloudDetectorUtil;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
 
@@ -53,6 +55,9 @@ public class PhysicalMemoryHealthCheck implements HealthCheck
     @Inject
     private Logger logger;
 
+    @Inject
+    private CloudDetectorUtil cloudDetectorUtil;
+
     @Override
     public JobResult check()
     {
@@ -61,14 +66,21 @@ public class PhysicalMemoryHealthCheck implements HealthCheck
 
         float totalMemory = (float) hardware.getMemory().getTotal() / (1024 * 1024 * 1024);
         DecimalFormat format = new DecimalFormat("0.#");
-        if (totalMemory > 2) {
+        if (totalMemory >= 2) {
             return new JobResult("adminTools.dashboard.healthcheck.performance.memory.info",
                 JobResultLevel.INFO);
         }
         String systemCapacityMessage = format.format(totalMemory);
-        logger.warn("There is not enough memory to safely run the XWiki installation! Physical memory detected: [{}]",
+        this.logger.warn(
+            "There is not enough memory to safely run the XWiki installation! Physical memory detected: [{}]",
             systemCapacityMessage);
         return new JobResult("adminTools.dashboard.healthcheck.performance.memory.warn",
             JobResultLevel.WARN, systemCapacityMessage);
+    }
+
+    @Override
+    public boolean isApplicable() throws XWikiException
+    {
+        return !this.cloudDetectorUtil.isCloud();
     }
 }

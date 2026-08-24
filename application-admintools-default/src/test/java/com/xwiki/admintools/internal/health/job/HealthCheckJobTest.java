@@ -62,6 +62,9 @@ class HealthCheckJobTest
     @Mock
     private HealthCheck secondHealthCheck;
 
+    @Mock
+    private HealthCheck thirdHealthCheck;
+
     @Test
     void createNewStatus()
     {
@@ -70,11 +73,16 @@ class HealthCheckJobTest
     }
 
     @Test
-    void runInternal()
+    void runInternal() throws Exception
     {
         List<HealthCheck> healthCheckList = new ArrayList<>();
         healthCheckList.add(firstHealthCheck);
         healthCheckList.add(secondHealthCheck);
+        healthCheckList.add(this.thirdHealthCheck);
+
+        when(this.firstHealthCheck.isApplicable()).thenReturn(true);
+        when(this.secondHealthCheck.isApplicable()).thenReturn(true);
+        when(this.thirdHealthCheck.isApplicable()).thenReturn(false);
 
         when(listProvider.get()).thenReturn(healthCheckList);
         when(firstHealthCheck.check()).thenReturn(new JobResult("err", JobResultLevel.ERROR, "error"));

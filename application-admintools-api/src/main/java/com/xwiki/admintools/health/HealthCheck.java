@@ -27,8 +27,8 @@ import com.xwiki.admintools.jobs.JobResult;
 /**
  * Check for issues in the current wiki.
  *
- * @since 1.0
  * @version $Id$
+ * @since 1.0
  */
 @Role
 @Unstable
@@ -40,4 +40,16 @@ public interface HealthCheck
      * @return a {@link JobResult} with the relevant info regarding the checked issue.
      */
     JobResult check();
+
+    /**
+     * Indicate whether this health check can be applied or not. Returns {@code true} by default.
+     *
+     * @return true if the check should be executed, false otherwise
+     * @since 1.5
+     */
+    @Unstable
+    default boolean isApplicable() throws Exception
+    {
+        return true;
+    }
 }

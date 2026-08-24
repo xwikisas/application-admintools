@@ -21,6 +21,7 @@ package com.xwiki.admintools.internal.health.checks.configuration;
 
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -28,7 +29,9 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.extension.version.Version;
 import org.xwiki.extension.version.internal.DefaultVersion;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.health.HealthCheck;
+import com.xwiki.admintools.internal.CloudDetectorUtil;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
 import com.xwiki.admintools.health.XWikiVersions;
@@ -50,6 +53,9 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
 
     private static final String REGEX = "\\.";
 
+    @Inject
+    private CloudDetectorUtil cloudDetectorUtil;
+
     @Override
     public JobResult check()
     {
@@ -67,6 +73,12 @@ public class ConfigurationJavaHealthCheck extends AbstractConfigurationHealthChe
                 javaVersionString, xwikiVersionString);
         }
         return new JobResult("adminTools.dashboard.healthcheck.java.info", JobResultLevel.INFO);
+    }
+
+    @Override
+    public boolean isApplicable() throws XWikiException
+    {
+        return !this.cloudDetectorUtil.isCloud();
     }
 
     private float parseJavaVersionFloat(String javaVersionString)

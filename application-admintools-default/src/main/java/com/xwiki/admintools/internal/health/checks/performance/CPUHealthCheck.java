@@ -26,7 +26,9 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.health.HealthCheck;
+import com.xwiki.admintools.internal.CloudDetectorUtil;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
 
@@ -52,6 +54,9 @@ public class CPUHealthCheck implements HealthCheck
     @Inject
     private Logger logger;
 
+    @Inject
+    private CloudDetectorUtil cloudDetectorUtil;
+
     @Override
     public JobResult check()
     {
@@ -61,13 +66,19 @@ public class CPUHealthCheck implements HealthCheck
         int cpuCores = processor.getPhysicalProcessorCount();
         int maxFreq = (int) (processor.getMaxFreq() / (1000 * 1000));
 
-        if (cpuCores > 2 && maxFreq > 2000) {
+        if (cpuCores >= 2 && maxFreq >= 2000) {
             return new JobResult("adminTools.dashboard.healthcheck.performance.cpu.info",
                 JobResultLevel.INFO);
         }
         String cpuSpecifications = String.format("CPU cores %d - frequency %d", cpuCores, maxFreq);
-        logger.warn("The CPU does not satisfy the minimum system requirements! [{}]", cpuSpecifications);
+        this.logger.warn("The CPU does not satisfy the minimum system requirements! [{}]", cpuSpecifications);
         return new JobResult("adminTools.dashboard.healthcheck.performance.cpu.warn",
             JobResultLevel.WARN, cpuCores, maxFreq);
+    }
+
+    @Override
+    public boolean isApplicable() throws XWikiException
+    {
+        return !this.cloudDetectorUtil.isCloud();
     }
 }

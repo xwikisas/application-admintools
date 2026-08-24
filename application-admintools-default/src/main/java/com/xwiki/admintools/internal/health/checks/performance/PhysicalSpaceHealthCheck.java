@@ -30,11 +30,13 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.ServerInfo;
 import com.xwiki.admintools.health.HealthCheck;
+import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
+import com.xwiki.admintools.internal.CloudDetectorUtil;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
-import com.xwiki.admintools.internal.data.identifiers.CurrentServer;
 
 /**
  * Implementation of {@link HealthCheck} for checking if system free space XWiki requirements.
@@ -57,11 +59,14 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
     @Inject
     private Logger logger;
 
+    @Inject
+    private CloudDetectorUtil cloudDetectorUtil;
+
     @Override
     public JobResult check()
     {
         File diskPartition;
-        ServerInfo server = currentServer.getCurrentServer();
+        ServerInfo server = this.currentServer.getCurrentServer();
         if (server == null) {
             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
                 diskPartition = new File("C:");
@@ -76,13 +81,19 @@ public class PhysicalSpaceHealthCheck implements HealthCheck
         long freePartitionSpace = diskPartition.getFreeSpace();
         float freeSpace = (float) freePartitionSpace / (1024 * 1024 * 1024);
 
-        if (freeSpace > 16) {
+        if (freeSpace >= 16) {
             return new JobResult("adminTools.dashboard.healthcheck.performance.space.info",
                 JobResultLevel.INFO);
         }
-        logger.warn("There is not enough free space for the XWiki installation! Current free space is [{}]",
+        this.logger.warn("There is not enough free space for the XWiki installation! Current free space is [{}]",
             freeSpace);
         return new JobResult("adminTools.dashboard.healthcheck.performance.space.warn",
             JobResultLevel.WARN, freeSpace, diskPartition.getAbsolutePath());
+    }
+
+    @Override
+    public boolean isApplicable() throws XWikiException
+    {
+        return !this.cloudDetectorUtil.isCloud();
     }
 }

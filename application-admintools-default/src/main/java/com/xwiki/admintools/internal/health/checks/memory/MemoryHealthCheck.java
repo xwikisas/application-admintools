@@ -19,8 +19,6 @@
  */
 package com.xwiki.admintools.internal.health.checks.memory;
 
-import java.text.DecimalFormat;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -31,7 +29,9 @@ import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.health.HealthCheck;
+import com.xwiki.admintools.internal.CloudDetectorUtil;
 import com.xwiki.admintools.jobs.JobResult;
 import com.xwiki.admintools.jobs.JobResultLevel;
 
@@ -56,29 +56,37 @@ public class MemoryHealthCheck implements HealthCheck
     @Inject
     private Logger logger;
 
+    @Inject
+    private CloudDetectorUtil cloudDetectorUtil;
+
     @Override
     public JobResult check()
     {
-        XWiki wiki = xcontextProvider.get().getWiki();
+        XWiki wiki = this.xcontextProvider.get().getWiki();
         float maxMemory = wiki.maxMemory();
         float totalFreeMemory = (maxMemory - (wiki.totalMemory() - wiki.freeMemory())) / (1024.0f * 1024);
         float maxMemoryGB = maxMemory / (1024.0f * 1024 * 1024);
-        DecimalFormat format = new DecimalFormat("0.#");
         if (maxMemoryGB < 1) {
-            logger.error("JVM memory is less than 1024MB. Currently: [{}]", maxMemoryGB * 1024);
+            this.logger.error("JVM memory is less than 1024MB. Currently: [{}]", maxMemoryGB * 1024);
             return new JobResult("adminTools.dashboard.healthcheck.memory.maxcapacity.error",
                 JobResultLevel.ERROR, (maxMemoryGB * 1024f));
         }
         if (totalFreeMemory < 512) {
-            logger.error("JVM instance has only [{}]MB free memory left!", totalFreeMemory);
+            this.logger.error("JVM instance has only [{}]MB free memory left!", totalFreeMemory);
             return new JobResult("adminTools.dashboard.healthcheck.memory.free.error",
                 JobResultLevel.ERROR, totalFreeMemory);
         } else if (totalFreeMemory < 1024) {
-            logger.warn("Instance memory is running low. Currently only [{}]MB free left.", totalFreeMemory);
+            this.logger.warn("Instance memory is running low. Currently only [{}]MB free left.", totalFreeMemory);
             return new JobResult("adminTools.dashboard.healthcheck.memory.free.warn",
                 JobResultLevel.WARN, totalFreeMemory);
         }
         return new JobResult("adminTools.dashboard.healthcheck.memory.info", JobResultLevel.INFO,
             totalFreeMemory / 1024);
+    }
+
+    @Override
+    public boolean isApplicable() throws XWikiException
+    {
+        return !this.cloudDetectorUtil.isCloud();
     }
 }
