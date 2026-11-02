@@ -135,9 +135,9 @@ class PurgeSettingsMapperTest
             settings.getTypeSettings(DELETED_DOCUMENTS));
         assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS),
             settings.getTypeSettings(DELETED_ATTACHMENTS));
-        assertEquals("Invalid automatic purge mode [inherit] for [deletedDocuments] in the [global] settings. "
+        assertEquals("Invalid automatic purge mode [inherit] for [deletedDocuments] in the [GLOBAL SETTINGS] settings. "
             + "Using [disabled] instead.", this.logCapture.getMessage(0));
-        assertEquals("Invalid automatic purge mode [bogus] for [deletedAttachments] in the [global] settings. "
+        assertEquals("Invalid automatic purge mode [bogus] for [deletedAttachments] in the [GLOBAL SETTINGS] settings. "
             + "Using [disabled] instead.", this.logCapture.getMessage(1));
     }
 
@@ -152,10 +152,11 @@ class PurgeSettingsMapperTest
             settings.getTypeSettings(DELETED_DOCUMENTS));
         assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 5, IntervalUnit.MONTHS),
             settings.getTypeSettings(DELETED_ATTACHMENTS));
-        assertEquals("Invalid automatic purge interval [0 days] for [deletedDocuments] in the [global] settings. "
-            + "The automatic purge is disabled for it.", this.logCapture.getMessage(0));
+        assertEquals(
+            "Invalid automatic purge interval [0 days] for [deletedDocuments] in the [GLOBAL SETTINGS] " + "settings. "
+                + "The automatic purge is disabled for it.", this.logCapture.getMessage(0));
         assertEquals("Invalid automatic purge interval [5 decades] for [deletedAttachments] in "
-            + "the [global] settings. The automatic purge is disabled for it.", this.logCapture.getMessage(1));
+            + "the [GLOBAL SETTINGS] settings. The automatic purge is disabled for it.", this.logCapture.getMessage(1));
     }
 
     @Test
@@ -242,11 +243,12 @@ class PurgeSettingsMapperTest
             settings(INHERIT_DEFAULT, DISABLED_DEFAULT), 20);
         assertInvalidGlobalSettings("The settings of [deletedAttachments] are missing.",
             new EnumMap<>(Map.of(DELETED_DOCUMENTS, DISABLED_DEFAULT)), 20);
-        assertInvalidGlobalSettings("The interval of [deletedDocuments] must be at least 1 with a unit, but was "
-            + "[0 DAYS].", settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), DISABLED_DEFAULT),
-            20);
-        assertInvalidGlobalSettings("The interval of [deletedAttachments] must be at least 1 with a unit, but was "
-            + "[3 null].", settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
+        assertInvalidGlobalSettings(
+            "The interval of [deletedDocuments] must be at least 1 with a unit, but was " + "[0 DAYS].",
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), DISABLED_DEFAULT), 20);
+        assertInvalidGlobalSettings(
+            "The interval of [deletedAttachments] must be at least 1 with a unit, but was " + "[3 null].",
+            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
         assertInvalidGlobalSettings("The purge history size must be at least 1, but was [0].",
             settings(DISABLED_DEFAULT, DISABLED_DEFAULT), 0);
         verifyNoInteractions(this.object);
@@ -262,8 +264,9 @@ class PurgeSettingsMapperTest
         verify(this.object).setIntValue(MAX_HISTORY_ENTRIES, 200);
         assertEquals("The purge history size [201] is larger than the maximum. [200] is used instead.",
             this.logCapture.getMessage(0));
-        assertEquals("The automatic purge interval [1001] of [deletedDocuments] in the [global] settings is larger "
-            + "than the maximum. [1000] is used instead.", this.logCapture.getMessage(1));
+        assertEquals(
+            "The automatic purge interval [1001] of [deletedDocuments] in the [GLOBAL SETTINGS] settings is larger "
+                + "than the maximum. [1000] is used instead.", this.logCapture.getMessage(1));
     }
 
     @Test
@@ -308,8 +311,8 @@ class PurgeSettingsMapperTest
         verifyNoInteractions(this.object);
     }
 
-    private void mockSettings(String documentsMode, int documentsInterval, String documentsUnit,
-        String attachmentsMode, int attachmentsInterval, String attachmentsUnit)
+    private void mockSettings(String documentsMode, int documentsInterval, String documentsUnit, String attachmentsMode,
+        int attachmentsInterval, String attachmentsUnit)
     {
         when(this.object.getStringValue(DOCUMENTS_MODE)).thenReturn(documentsMode);
         when(this.object.getIntValue(DOCUMENTS_INTERVAL, 1)).thenReturn(documentsInterval);
