@@ -41,6 +41,12 @@
       <artifactId>application-admintools-purge-api</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- Runs the daily purge of the recycle bins. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-scheduler-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-tool-test-component</artifactId>
