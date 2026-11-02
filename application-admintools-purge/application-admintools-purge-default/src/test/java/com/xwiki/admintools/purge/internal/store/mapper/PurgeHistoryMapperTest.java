@@ -37,7 +37,6 @@ import org.xwiki.test.junit5.mockito.MockComponent;
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 import com.xwiki.admintools.purge.model.PurgeStatus;
-import com.xwiki.admintools.purge.internal.store.mapper.PurgeHistoryMapper;
 
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
@@ -129,9 +128,9 @@ class PurgeHistoryMapperTest
         when(this.object.getLargeStringValue(FAILURES)).thenReturn("Space.Page: locked\n\n Space.Other: error \n");
         when(this.object.getStringValue(STATUS)).thenReturn("partial");
 
-        assertEquals(Optional.of(new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, this.userReference,
-            PurgeStatus.PARTIAL, 40, 120,
-            List.of("Space.Page: locked", "Space.Other: error"))), this.mapper.readEntry(this.object));
+        assertEquals(Optional.of(
+            new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, this.userReference, PurgeStatus.PARTIAL, 40, 120,
+                List.of("Space.Page: locked", "Space.Other: error"))), this.mapper.readEntry(this.object));
     }
 
     @Test
@@ -141,8 +140,8 @@ class PurgeHistoryMapperTest
         when(this.object.getStringValue(TRIGGERED_BY)).thenReturn(SCHEDULED);
         when(this.object.getLongValue(REMOVED_COUNT)).thenReturn(3L);
 
-        assertEquals(Optional.of(new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.SUCCESS, 3, 0,
-            null)), this.mapper.readEntry(this.object));
+        assertEquals(Optional.of(new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.SUCCESS, 3, 0, null)),
+            this.mapper.readEntry(this.object));
         verify(this.referenceResolver, never()).resolve(anyString());
     }
 
@@ -177,8 +176,8 @@ class PurgeHistoryMapperTest
     {
         when(this.referenceResolver.resolve(USER)).thenReturn(this.userReference);
 
-        assertEquals(Optional.of(new PurgeHistoryEntry(DELETED_ATTACHMENTS, NOW, this.userReference,
-            PurgeStatus.INTERRUPTED, 7, 1, null)),
+        assertEquals(Optional.of(
+                new PurgeHistoryEntry(DELETED_ATTACHMENTS, NOW, this.userReference, PurgeStatus.INTERRUPTED, 7, 1, null)),
             this.mapper.readEntry("deletedAttachments", Timestamp.from(NOW), USER, "interrupted", 7, 1));
         assertEquals(Optional.empty(), this.mapper.readEntry("deletedAttachments", null, USER, "interrupted", 7, 1));
     }
@@ -188,8 +187,9 @@ class PurgeHistoryMapperTest
     {
         when(this.referenceSerializer.serialize(this.userReference)).thenReturn(USER);
 
-        this.mapper.writeEntry(this.object, new PurgeHistoryEntry(DELETED_ATTACHMENTS, NOW, this.userReference,
-            PurgeStatus.PARTIAL, 40, 2, List.of("Space.Page@file.txt: first\r\nsecond", "Space.Page@other.txt: error")));
+        this.mapper.writeEntry(this.object,
+            new PurgeHistoryEntry(DELETED_ATTACHMENTS, NOW, this.userReference, PurgeStatus.PARTIAL, 40, 2,
+                List.of("Space.Page@file.txt: first\r\nsecond", "Space.Page@other.txt: error")));
 
         verify(this.object).setStringValue(TYPE, "deletedAttachments");
         verify(this.object).setDateValue(DATE, Date.from(NOW));
@@ -207,8 +207,9 @@ class PurgeHistoryMapperTest
     @Test
     void writeScheduledEntry()
     {
-        this.mapper.writeEntry(this.object, new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.FAILED, 0,
-            1, List.of("Space.Page: error")));
+        this.mapper.writeEntry(this.object,
+            new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.FAILED, 0, 1,
+                List.of("Space.Page: error")));
 
         verify(this.object).setStringValue(TRIGGERED_BY, SCHEDULED);
         verify(this.object).setStringValue(STATUS, "failed");

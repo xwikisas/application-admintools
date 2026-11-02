@@ -70,7 +70,6 @@ public class PurgePolicyResolver
         if (settings.getMode() != PurgeMode.ENABLED) {
             return Optional.empty();
         }
-        return Optional.of(
-            this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
+        return Optional.of(this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
     }
 }

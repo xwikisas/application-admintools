@@ -48,10 +48,10 @@ public class PurgePageReferences
 
     private static final List<String> CODE_SPACE = Arrays.asList(ADMIN_TOOLS, PURGE_SPACE, "Code");
 
-    private static final List<String> WIKIS_SPACE = Arrays.asList(ADMIN_TOOLS, PURGE_SPACE, "Wikis");
-
     private static final LocalDocumentReference SETTINGS_CLASS =
         new LocalDocumentReference(CODE_SPACE, "SettingsClass");
+
+    private static final List<String> WIKIS_SPACE = Arrays.asList(ADMIN_TOOLS, PURGE_SPACE, "Wikis");
 
     private static final String HISTORY_CLASS_NAME = "HistoryClass";
 
@@ -72,8 +72,7 @@ public class PurgePageReferences
     }
 
     /**
-     * @return the reference of the page holding all the settings: the global settings and those of each customized
-     *     wiki
+     * @return the reference of the page holding all the settings: the global settings and those of each customized wiki
      */
     public DocumentReference getSettingsPageReference()
     {

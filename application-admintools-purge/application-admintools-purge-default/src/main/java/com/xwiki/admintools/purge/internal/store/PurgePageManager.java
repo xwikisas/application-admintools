@@ -63,7 +63,8 @@ public class PurgePageManager
 
     /**
      * Load a page. The returned document is the cached one, so it is meant for reading only; use
-     * {@link #getDocumentCopy(DocumentReference)} to modify a page. It is a new document if the page doesn't exist yet.
+     * {@link #getDocumentCopy(DocumentReference)} to modify a page. It is a new document if the page doesn't exist
+     * yet.
      *
      * @param reference the reference of the page to load
      * @return the cached page

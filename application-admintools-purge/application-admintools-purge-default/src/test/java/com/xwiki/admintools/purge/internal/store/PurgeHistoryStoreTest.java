@@ -43,6 +43,7 @@ import org.xwiki.test.junit5.LogCaptureExtension;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -62,8 +63,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -87,8 +88,11 @@ class PurgeHistoryStoreTest
     private static final PurgeHistoryEntry NEW_ENTRY =
         new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.SUCCESS, 10, 0, null);
 
+    private final DocumentReference wikiReference =
+        new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Wikis"), WIKI_ID);
+
     @RegisterExtension
-    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+    private final LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @InjectMockComponents
     private PurgeHistoryStore store;
@@ -108,6 +112,9 @@ class PurgeHistoryStoreTest
     @MockComponent
     private QueryManager queryManager;
 
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
     @Mock
     private LocalDocumentReference historyClass;
 
@@ -120,9 +127,6 @@ class PurgeHistoryStoreTest
     @Mock
     private BaseObject newObject;
 
-    private final DocumentReference wikiReference =
-        new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Wikis"), WIKI_ID);
-
     @BeforeEach
     void setUp() throws Exception
     {
@@ -133,6 +137,7 @@ class PurgeHistoryStoreTest
         when(this.pageManager.getWikiLock(WIKI_ID)).thenReturn(this.wikiLock);
         when(this.pageManager.createObject(this.document, this.historyClass)).thenReturn(this.newObject);
         when(this.document.getDocumentReference()).thenReturn(this.wikiReference);
+        when(this.wikiDescriptorManager.exists(WIKI_ID)).thenReturn(true);
         mockMaxHistoryEntries(3);
     }
 
@@ -144,8 +149,8 @@ class PurgeHistoryStoreTest
         BaseObject newest = mockObject(DELETED_DOCUMENTS, NOW.minusSeconds(100));
         BaseObject attachments = mockObject(DELETED_ATTACHMENTS, NOW.minusSeconds(400));
         // A removed object leaves a null slot in the list of objects.
-        when(this.document.getXObjects(this.historyClass))
-            .thenReturn(Arrays.asList(middle, null, attachments, newest, oldest));
+        when(this.document.getXObjects(this.historyClass)).thenReturn(
+            Arrays.asList(middle, null, attachments, newest, oldest));
 
         this.store.addEntry(WIKI_ID, NEW_ENTRY);
 
@@ -213,10 +218,10 @@ class PurgeHistoryStoreTest
         verify(this.mapper).markAsOlder(valid);
         assertEquals(2, this.logCapture.size());
         assertEquals("Removed the invalid automatic purge history entry [0] from "
-            + "[xwiki:AdminTools.Purge.Wikis.subwiki]: its type or date is missing or invalid.",
+                + "[xwiki:AdminTools.Purge.Wikis.subwiki]: its type or date is missing or invalid.",
             this.logCapture.getMessage(0));
         assertEquals("Removed the invalid automatic purge history entry [1] from "
-            + "[xwiki:AdminTools.Purge.Wikis.subwiki]: its type or date is missing or invalid.",
+                + "[xwiki:AdminTools.Purge.Wikis.subwiki]: its type or date is missing or invalid.",
             this.logCapture.getMessage(1));
     }
 
@@ -230,6 +235,22 @@ class PurgeHistoryStoreTest
         assertEquals(exception, assertThrows(XWikiException.class, () -> this.store.addEntry(WIKI_ID, NEW_ENTRY)));
 
         verify(this.wikiLock).unlock();
+    }
+
+    @Test
+    void addEntryForDeletedWiki() throws Exception
+    {
+        when(this.wikiDescriptorManager.exists(WIKI_ID)).thenReturn(false);
+
+        this.store.addEntry(WIKI_ID, NEW_ENTRY);
+
+        // The history of a deleted wiki doesn't come back.
+        InOrder inOrder = inOrder(this.wikiLock, this.wikiDescriptorManager);
+        inOrder.verify(this.wikiLock).lock();
+        inOrder.verify(this.wikiDescriptorManager).exists(WIKI_ID);
+        inOrder.verify(this.wikiLock).unlock();
+        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).saveWithoutRevision(any(), anyString());
     }
 
     @Test
@@ -255,16 +276,16 @@ class PurgeHistoryStoreTest
             + "doc.object(AdminTools.Purge.Code.HistoryClass) as history "
             + "where doc.space = :space and history.latest = 1", Query.XWQL)).thenReturn(query);
         Date date = Date.from(NOW);
-        when(query.<Object[]>execute()).thenReturn(List.of(
-            new Object[] { WIKI_ID, "deletedDocuments", date, "scheduled", "success", 3L, 0L },
-            new Object[] { WIKI_ID, "deletedAttachments", date, "scheduled", "failed", 0L, 2L },
-            new Object[] { "other", "invalid", date, "scheduled", "success", 1L, 0L }));
+        when(query.<Object[]>execute()).thenReturn(
+            List.of(new Object[] { WIKI_ID, "deletedDocuments", date, "scheduled", "success", 3L, 0L },
+                new Object[] { WIKI_ID, "deletedAttachments", date, "scheduled", "failed", 0L, 2L },
+                new Object[] { "other", "invalid", date, "scheduled", "success", 1L, 0L }));
         PurgeHistoryEntry documentsEntry = mockEntry(DELETED_DOCUMENTS);
-        when(this.mapper.readEntry("deletedDocuments", date, "scheduled", "success", 3L, 0L))
-            .thenReturn(Optional.of(documentsEntry));
+        when(this.mapper.readEntry("deletedDocuments", date, "scheduled", "success", 3L, 0L)).thenReturn(
+            Optional.of(documentsEntry));
         PurgeHistoryEntry attachmentsEntry = mockEntry(DELETED_ATTACHMENTS);
-        when(this.mapper.readEntry("deletedAttachments", date, "scheduled", "failed", 0L, 2L))
-            .thenReturn(Optional.of(attachmentsEntry));
+        when(this.mapper.readEntry("deletedAttachments", date, "scheduled", "failed", 0L, 2L)).thenReturn(
+            Optional.of(attachmentsEntry));
         when(this.mapper.readEntry("invalid", date, "scheduled", "success", 1L, 0L)).thenReturn(Optional.empty());
 
         assertEquals(Map.of(WIKI_ID, Map.of(DELETED_DOCUMENTS, documentsEntry, DELETED_ATTACHMENTS, attachmentsEntry)),
@@ -320,8 +341,8 @@ class PurgeHistoryStoreTest
     {
         Map<PurgeType, PurgeTypeSettings> typeSettings = new EnumMap<>(PurgeType.class);
         typeSettings.put(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.MONTHS));
-        when(this.settingsStore.getGlobalSettings())
-            .thenReturn(new GlobalPurgeSettings(typeSettings, maxHistoryEntries));
+        when(this.settingsStore.getGlobalSettings()).thenReturn(
+            new GlobalPurgeSettings(typeSettings, maxHistoryEntries));
     }
 
     /**

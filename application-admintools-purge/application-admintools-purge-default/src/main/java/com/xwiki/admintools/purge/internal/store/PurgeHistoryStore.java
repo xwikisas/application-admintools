@@ -38,6 +38,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -47,8 +49,8 @@ import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 import com.xwiki.admintools.purge.model.PurgeType;
 
 /**
- * Stores the purge history of each wiki, on the page of the wiki. Each item type keeps a limited number of entries,
- * and only its newest entry keeps the list of failures.
+ * Stores the purge history of each wiki, on the page of the wiki. Each item type keeps a limited number of entries, and
+ * only its newest entry keeps the list of failures.
  *
  * @version $Id$
  * @since 1.5
@@ -81,20 +83,25 @@ public class PurgeHistoryStore
     private PurgeHistoryMapper mapper;
 
     @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
     private Logger logger;
 
     /**
      * Add an entry to the purge history of a wiki, as the newest entry of its item type. The older entries of the same
-     * item type lose their failures and their newest-entry flag, and the oldest ones are removed so that the type
-     * keeps at most the number of entries set in the global settings. Invalid history objects are removed too. All of
-     * this is saved at once, without a new revision of the history page of the wiki.
+     * item type lose their failures and their newest-entry flag, and the oldest ones are removed so that the type keeps
+     * at most the number of entries set in the global settings. Invalid history objects are removed too. All of this is
+     * saved at once, without a new revision of the history page of the wiki. Nothing is added for a wiki that no longer
+     * exists, so that its history doesn't come back after it was deleted with the wiki.
      *
      * @param wikiId the identifier of the wiki
      * @param entry the new history entry
      * @throws XWikiException if the global settings can't be loaded, or the page of the wiki can't be saved
+     * @throws WikiManagerException if the existence of the wiki can't be checked
      * @throws IllegalArgumentException if the wiki identifier is missing
      */
-    public void addEntry(String wikiId, PurgeHistoryEntry entry) throws XWikiException
+    public void addEntry(String wikiId, PurgeHistoryEntry entry) throws XWikiException, WikiManagerException
     {
         if (StringUtils.isBlank(wikiId)) {
             throw new IllegalArgumentException("The wiki identifier is missing.");
@@ -103,14 +110,20 @@ public class PurgeHistoryStore
         Lock lock = this.pageManager.getWikiLock(wikiId);
         lock.lock();
         try {
+            // Check under the lock that the wiki still exists.
+            if (!this.wikiDescriptorManager.exists(wikiId)) {
+                this.logger.debug("Skipped the purge history entry of wiki [{}], since the wiki no longer exists.",
+                    wikiId);
+                return;
+            }
             XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getHistoryPageReference(wikiId));
             removeInvalidObjects(document);
             List<BaseObject> olderObjects = getObjectsNewestFirst(document, entry.getType());
             olderObjects.forEach(this.mapper::markAsOlder);
             // The new entry takes one of the places.
             olderObjects.stream().skip(maxHistoryEntries - 1L).forEach(document::removeXObject);
-            this.mapper.writeEntry(
-                this.pageManager.createObject(document, this.references.getHistoryClassReference()), entry);
+            this.mapper.writeEntry(this.pageManager.createObject(document, this.references.getHistoryClassReference()),
+                entry);
             this.pageManager.saveWithoutRevision(document, "Added an automatic purge history entry.");
         } finally {
             lock.unlock();
@@ -121,16 +134,15 @@ public class PurgeHistoryStore
      * Read the newest history entry of each item type of every wiki, with one query on the newest-entry flag, without
      * loading the history pages. The failures of the entries are not read.
      *
-     * @return the newest history entry of each item type, by wiki identifier; wikis that were never purged are left
-     *     out
+     * @return the newest history entry of each item type, by wiki identifier; wikis that were never purged are left out
      * @throws QueryException if the history can't be queried
      */
     public Map<String, Map<PurgeType, PurgeHistoryEntry>> getAllLatestEntries() throws QueryException
     {
-        List<Object[]> rows = this.queryManager
-            .createQuery(String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName()), Query.XWQL)
-            .setWiki(this.references.getMainWikiId()).bindValue("space", this.references.getWikisSpaceReference())
-            .execute();
+        List<Object[]> rows =
+            this.queryManager.createQuery(String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName()),
+                    Query.XWQL).setWiki(this.references.getMainWikiId())
+                .bindValue("space", this.references.getWikisSpaceReference()).execute();
         Map<String, Map<PurgeType, PurgeHistoryEntry>> allLatestEntries = new HashMap<>();
         for (Object[] row : rows) {
             // The columns selected by the query, in the same order.

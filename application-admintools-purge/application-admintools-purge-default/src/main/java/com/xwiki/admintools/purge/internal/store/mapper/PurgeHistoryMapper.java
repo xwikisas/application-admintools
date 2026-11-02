@@ -37,8 +37,8 @@ import org.xwiki.model.reference.EntityReferenceSerializer;
 
 import com.xpn.xwiki.objects.BaseObject;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
-import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeStatus;
+import com.xwiki.admintools.purge.model.PurgeType;
 
 /**
  * Converts between the purge history objects stored in the wiki and the purge history entries.
@@ -146,8 +146,9 @@ public class PurgeHistoryMapper
         object.setLongValue(REMOVED_COUNT, entry.getRemovedCount());
         object.setLongValue(FAILED_COUNT, entry.getFailedCount());
         // A line break inside a failure would split it into two items when read.
-        object.setLargeStringValue(FAILURES, entry.getFailures().stream()
-            .map(failure -> failure.replaceAll("[\\r\\n]+", " ")).collect(Collectors.joining(LINE_SEPARATOR)));
+        object.setLargeStringValue(FAILURES,
+            entry.getFailures().stream().map(failure -> failure.replaceAll("[\\r\\n]+", " "))
+                .collect(Collectors.joining(LINE_SEPARATOR)));
         object.setIntValue(LATEST, 1);
     }
 

@@ -72,11 +72,16 @@ class PurgeSettingsStoreTest
     private static final PurgeTypeSettings INHERIT = new PurgeTypeSettings(PurgeMode.INHERIT, 1, IntervalUnit.MONTHS);
 
     private static final Map<PurgeType, PurgeTypeSettings> CUSTOM_SETTINGS =
-        Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS),
-            DELETED_ATTACHMENTS, INHERIT);
+        Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS), DELETED_ATTACHMENTS,
+            INHERIT);
 
     private static final Map<PurgeType, PurgeTypeSettings> INHERITED_SETTINGS =
         Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT);
+
+    /**
+     * The settings objects of the settings page; a removed object leaves a {@code null} in the list.
+     */
+    private final List<BaseObject> objects = new ArrayList<>();
 
     @InjectMockComponents
     private PurgeSettingsStore store;
@@ -111,11 +116,6 @@ class PurgeSettingsStoreTest
     @Mock
     private Lock lock;
 
-    /**
-     * The settings objects of the settings page; a removed object leaves a {@code null} in the list.
-     */
-    private final List<BaseObject> objects = new ArrayList<>();
-
     @BeforeEach
     void setUp() throws Exception
     {
@@ -147,7 +147,7 @@ class PurgeSettingsStoreTest
     {
         this.objects.clear();
         GlobalPurgeSettings settings = mock(GlobalPurgeSettings.class);
-        when(this.mapper.readSettings((BaseObject) null)).thenReturn(settings);
+        when(this.mapper.readSettings(null)).thenReturn(settings);
 
         assertSame(settings, this.store.getGlobalSettings());
     }
@@ -262,8 +262,8 @@ class PurgeSettingsStoreTest
     {
         // A missing item type doesn't count as inheriting: the settings go to the mapper, which rejects them.
         Map<PurgeType, PurgeTypeSettings> partialSettings = Map.of(DELETED_DOCUMENTS, INHERIT);
-        doThrow(new IllegalArgumentException("missing")).when(this.mapper).writeSettings(this.wikiObject, WIKI_ID,
-            partialSettings);
+        doThrow(new IllegalArgumentException("missing")).when(this.mapper)
+            .writeSettings(this.wikiObject, WIKI_ID, partialSettings);
 
         assertThrows(IllegalArgumentException.class, () -> this.store.saveWikiSettings(WIKI_ID, partialSettings));
 
@@ -275,8 +275,8 @@ class PurgeSettingsStoreTest
     @Test
     void saveWikiSettingsWithoutWikiIdentifier() throws Exception
     {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> this.store.saveWikiSettings(" ", CUSTOM_SETTINGS));
+        IllegalArgumentException exception =
+            assertThrows(IllegalArgumentException.class, () -> this.store.saveWikiSettings(" ", CUSTOM_SETTINGS));
 
         assertEquals("The wiki identifier is missing.", exception.getMessage());
         verify(this.pageManager, never()).getGlobalLock();

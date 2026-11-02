@@ -30,7 +30,6 @@ import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
-import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
 import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
 import com.xwiki.admintools.purge.model.GlobalPurgeSettings;
 import com.xwiki.admintools.purge.model.IntervalUnit;
@@ -80,8 +79,8 @@ class PurgePolicyResolverTest
     @Test
     void getExpirationDateWithWikiSettings() throws Exception
     {
-        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7,
-            IntervalUnit.DAYS)));
+        mockSettings(GLOBAL_ENABLED,
+            Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS)));
         when(this.retentionCalculator.getExpirationDate(NOW, 7, IntervalUnit.DAYS)).thenReturn(EXPIRATION_DATE);
 
         assertEquals(Optional.of(EXPIRATION_DATE), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));

@@ -76,8 +76,8 @@ public class PurgeSettingsStore
      * Save the global settings, with a new revision of the settings page.
      *
      * @param typeSettings the settings of every item type; the mode can't be {@link PurgeMode#INHERIT}
-     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least 1;
-     *     a larger number than 200 is replaced by 200
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least
+     *     1; a larger number than 200 is replaced by 200
      * @throws XWikiException if the settings page can't be saved
      * @throws IllegalArgumentException if the settings are invalid
      */
@@ -150,8 +150,8 @@ public class PurgeSettingsStore
         try {
             XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, wikiId), wikiId, typeSettings);
-            this.pageManager.save(document, String.format("Updated the automatic purge settings of wiki [%s].",
-                wikiId));
+            this.pageManager.save(document,
+                String.format("Updated the automatic purge settings of wiki [%s].", wikiId));
         } finally {
             lock.unlock();
         }

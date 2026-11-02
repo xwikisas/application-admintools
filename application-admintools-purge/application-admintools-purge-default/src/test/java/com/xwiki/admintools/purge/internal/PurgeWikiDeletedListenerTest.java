@@ -51,7 +51,7 @@ class PurgeWikiDeletedListenerTest
     private static final String WIKI_ID = "subwiki";
 
     @RegisterExtension
-    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+    private final LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @InjectMockComponents
     private PurgeWikiDeletedListener listener;

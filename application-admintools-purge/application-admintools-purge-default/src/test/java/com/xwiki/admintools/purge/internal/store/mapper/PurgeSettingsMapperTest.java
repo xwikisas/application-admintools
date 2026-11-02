@@ -82,7 +82,7 @@ class PurgeSettingsMapperTest
         new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS);
 
     @RegisterExtension
-    private LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
+    private final LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
 
     @InjectMockComponents
     private PurgeSettingsMapper mapper;
