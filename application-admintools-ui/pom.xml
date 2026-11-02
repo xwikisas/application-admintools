@@ -57,6 +57,11 @@
     </dependency>
     <dependency>
       <groupId>com.xwiki.admintools</groupId>
+      <artifactId>application-admintools-purge-default</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.xwiki.admintools</groupId>
       <artifactId>application-admintools-webjar</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>

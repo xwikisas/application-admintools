@@ -1,0 +1,9 @@
+com.xwiki.admintools.purge.internal.PurgeWikiDeletedListener
+com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver
+com.xwiki.admintools.purge.internal.policy.RetentionCalculator
+com.xwiki.admintools.purge.internal.store.PurgeHistoryStore
+com.xwiki.admintools.purge.internal.store.PurgePageManager
+com.xwiki.admintools.purge.internal.store.PurgePageReferences
+com.xwiki.admintools.purge.internal.store.PurgeSettingsStore
+com.xwiki.admintools.purge.internal.store.mapper.PurgeHistoryMapper
+com.xwiki.admintools.purge.internal.store.mapper.PurgeSettingsMapper
