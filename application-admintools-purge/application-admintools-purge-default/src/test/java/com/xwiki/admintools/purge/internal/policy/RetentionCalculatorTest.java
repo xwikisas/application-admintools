@@ -95,15 +95,23 @@ class RetentionCalculatorTest
     }
 
     @Test
+    void getExpirationDateWithZeroInterval()
+    {
+        // A manual purge with a limit of 0 expires every item deleted until now, whatever the unit.
+        ZonedDateTime now = time("2026-10-23T10:15:30", UTC);
+
+        assertEquals(now.toInstant(), this.retentionCalculator.getExpirationDate(now, 0, IntervalUnit.DAYS));
+        assertEquals(now.toInstant(), this.retentionCalculator.getExpirationDate(now, 0, IntervalUnit.YEARS));
+    }
+
+    @Test
     void getExpirationDateWithInvalidInterval()
     {
         ZonedDateTime now = ZonedDateTime.now();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> this.retentionCalculator.getExpirationDate(now, 0, IntervalUnit.DAYS));
-        assertEquals("The purge interval must be at least 1, but was [0].", exception.getMessage());
-        assertThrows(IllegalArgumentException.class,
-            () -> this.retentionCalculator.getExpirationDate(now, -1, IntervalUnit.MONTHS));
+            () -> this.retentionCalculator.getExpirationDate(now, -1, IntervalUnit.DAYS));
+        assertEquals("The purge interval must be at least 0, but was [-1].", exception.getMessage());
     }
 
     private static ZonedDateTime time(String localDateTime, ZoneId zone)

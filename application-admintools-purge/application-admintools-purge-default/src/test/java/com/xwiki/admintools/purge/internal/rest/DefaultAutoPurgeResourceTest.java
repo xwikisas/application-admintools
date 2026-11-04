@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.xwiki.csrf.CSRFToken;
+import org.xwiki.job.JobException;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.security.authorization.AccessDeniedException;
@@ -46,6 +47,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.purge.internal.PurgeManager;
+import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
 import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
 import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.admintools.purge.model.PurgeMode;
@@ -58,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -105,6 +108,9 @@ class DefaultAutoPurgeResourceTest
 
     @MockComponent
     private PurgeSettingsStore settingsStore;
+
+    @MockComponent
+    private PurgePolicyResolver policyResolver;
 
     @Mock
     private XWikiRequest request;
@@ -190,8 +196,12 @@ class DefaultAutoPurgeResourceTest
     {
         when(this.request.getParameterValues("type")).thenReturn(
             new String[] { "deletedDocuments", "deletedAttachments" });
-        when(this.purgeManager.startPurge(SUBWIKI, DELETED_DOCUMENTS, USER)).thenReturn(true);
-        when(this.purgeManager.startPurge(SUBWIKI, DELETED_ATTACHMENTS, USER)).thenReturn(false);
+        mockLimit("deletedDocuments", "10", "years");
+        mockLimit("deletedAttachments", "1", "months");
+        when(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 10, IntervalUnit.YEARS, USER))
+            .thenReturn(true);
+        when(this.purgeManager.startManualPurge(SUBWIKI, DELETED_ATTACHMENTS, 1, IntervalUnit.MONTHS, USER))
+            .thenReturn(false);
 
         Response response = this.resource.purgeWiki(SUBWIKI);
 
@@ -204,12 +214,14 @@ class DefaultAutoPurgeResourceTest
     {
         when(this.request.getParameterValues("type")).thenReturn(
             new String[] { "deletedDocuments", "deletedDocuments" });
-        when(this.purgeManager.startPurge(SUBWIKI, DELETED_DOCUMENTS, USER)).thenReturn(true);
+        mockLimit("deletedDocuments", "1", "weeks");
+        when(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1, IntervalUnit.WEEKS, USER))
+            .thenReturn(true);
 
         Response response = this.resource.purgeWiki(SUBWIKI);
 
         assertEquals("[[\"adminTools\",\"purge\",\"deletedDocuments\",\"subwiki\"]]", response.getEntity());
-        verify(this.purgeManager).startPurge(SUBWIKI, DELETED_DOCUMENTS, USER);
+        verify(this.purgeManager).startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1, IntervalUnit.WEEKS, USER);
     }
 
     @Test
@@ -218,23 +230,83 @@ class DefaultAutoPurgeResourceTest
         assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
 
         // No job is started when one of the item types is unknown.
+        mockLimit("deletedDocuments", "1", "months");
         when(this.request.getParameterValues("type")).thenReturn(new String[] { "deletedDocuments", "comments" });
         assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
 
-        verify(this.purgeManager, never()).startPurge(anyString(), any(), any());
+        verify(this.purgeManager, never()).startManualPurge(anyString(), any(), anyInt(), any(), any());
+    }
+
+    @Test
+    void purgeWikiWithInvalidLimits() throws Exception
+    {
+        when(this.request.getParameterValues("type")).thenReturn(
+            new String[] { "deletedDocuments", "deletedAttachments" });
+        mockLimit("deletedDocuments", "1", "months");
+
+        // The limit of an item type is missing.
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        // Only half of the limit is set.
+        mockLimit("deletedAttachments", "1", null);
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+        mockLimit("deletedAttachments", null, "days");
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        // The limit is invalid: the purge manager rejects an interval out of bounds, e.g. below 0 or more than 1000.
+        mockLimit("deletedAttachments", "-1", "days");
+        doThrow(new IllegalArgumentException("Invalid purge limit")).when(this.purgeManager).checkLimit(-1,
+            IntervalUnit.DAYS);
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+        mockLimit("deletedAttachments", "1001", "years");
+        doThrow(new IllegalArgumentException("Invalid purge limit")).when(this.purgeManager).checkLimit(1001,
+            IntervalUnit.YEARS);
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+        mockLimit("deletedAttachments", "seven", "days");
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+        mockLimit("deletedAttachments", "7", "decades");
+        assertEquals(400, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        // Nothing is started, not even the item type whose limit is valid.
+        verify(this.purgeManager, never()).startManualPurge(anyString(), any(), anyInt(), any(), any());
     }
 
     @Test
     void previewPurge() throws Exception
     {
-        when(this.purgeManager.getExpiredCounts(SUBWIKI)).thenReturn(Map.of(DELETED_DOCUMENTS, 7L));
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenReturn(
+            new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS));
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_ATTACHMENTS)).thenReturn(
+            new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS));
+        // The stored limit applies to the pages, and the requested one to the attachments, although they are disabled.
+        mockLimit("deletedAttachments", "1", "years");
+        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, 1, IntervalUnit.MONTHS)).thenReturn(7L);
+        when(this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, 1, IntervalUnit.YEARS)).thenReturn(2L);
         // Reading doesn't need a form token.
         when(this.csrfToken.isTokenValid(TOKEN)).thenReturn(false);
 
         Response response = this.resource.previewPurge(SUBWIKI);
 
         assertEquals(200, response.getStatus());
-        assertEquals("{\"deletedDocuments\":7}", response.getEntity());
+        assertEquals("{\"deletedDocuments\":{\"enabled\":true,\"interval\":1,\"unit\":\"months\",\"count\":7},"
+            + "\"deletedAttachments\":{\"enabled\":false,\"interval\":1,\"unit\":\"years\",\"count\":2}}",
+            response.getEntity());
+    }
+
+    @Test
+    void previewPurgeWithInvalidLimit() throws Exception
+    {
+        when(this.policyResolver.getSettings(eq(SUBWIKI), any())).thenReturn(
+            new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS));
+
+        mockLimit("deletedDocuments", "seven", "days");
+        assertEquals(400, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        // A requested interval below 0 is rejected by the purge manager, instead of being skipped.
+        mockLimit("deletedDocuments", "-1", "days");
+        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, -1, IntervalUnit.DAYS)).thenThrow(
+            new IllegalArgumentException("Invalid purge limit"));
+        assertEquals(400, this.resource.previewPurge(SUBWIKI).getStatus());
     }
 
     @Test
@@ -247,7 +319,7 @@ class DefaultAutoPurgeResourceTest
         assertEquals(401, this.resource.previewPurge(SUBWIKI).getStatus());
 
         verify(this.settingsStore, never()).saveGlobalSettings(any(), anyInt());
-        verify(this.purgeManager, never()).getExpiredCounts(anyString());
+        verify(this.policyResolver, never()).getSettings(anyString(), any());
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(1));
     }
@@ -271,7 +343,7 @@ class DefaultAutoPurgeResourceTest
 
         assertEquals(402, this.resource.purgeWiki(SUBWIKI).getStatus());
 
-        verify(this.purgeManager, never()).startPurge(anyString(), any(), any());
+        verify(this.purgeManager, never()).startManualPurge(anyString(), any(), anyInt(), any(), any());
     }
 
     @Test
@@ -279,13 +351,13 @@ class DefaultAutoPurgeResourceTest
     {
         assertEquals(404, this.resource.previewPurge("unknown").getStatus());
 
-        verify(this.purgeManager, never()).getExpiredCounts(anyString());
+        verify(this.policyResolver, never()).getSettings(anyString(), any());
     }
 
     @Test
     void requestFailure() throws Exception
     {
-        when(this.purgeManager.getExpiredCounts(SUBWIKI)).thenThrow(new XWikiException());
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenThrow(new XWikiException());
 
         Response response = this.resource.previewPurge(SUBWIKI);
 
@@ -300,8 +372,12 @@ class DefaultAutoPurgeResourceTest
     {
         when(this.request.getParameterValues("type")).thenReturn(
             new String[] { "deletedDocuments", "deletedAttachments" });
-        when(this.purgeManager.startPurge(SUBWIKI, DELETED_DOCUMENTS, USER)).thenThrow(new XWikiException());
-        when(this.purgeManager.startPurge(SUBWIKI, DELETED_ATTACHMENTS, USER)).thenReturn(true);
+        mockLimit("deletedDocuments", "1", "months");
+        mockLimit("deletedAttachments", "1", "months");
+        when(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1, IntervalUnit.MONTHS, USER))
+            .thenThrow(new JobException("Failed"));
+        when(this.purgeManager.startManualPurge(SUBWIKI, DELETED_ATTACHMENTS, 1, IntervalUnit.MONTHS, USER))
+            .thenReturn(true);
 
         Response response = this.resource.purgeWiki(SUBWIKI);
 
@@ -310,5 +386,18 @@ class DefaultAutoPurgeResourceTest
         assertEquals("[[\"adminTools\",\"purge\",\"deletedAttachments\",\"subwiki\"]]", response.getEntity());
         assertEquals("Failed to start the purge of [deletedDocuments] on wiki [subwiki].",
             this.logCapture.getMessage(0));
+    }
+
+    /**
+     * Set the limit of a manual purge of an item type in the request.
+     *
+     * @param typeId the identifier of the item type
+     * @param interval the interval, or {@code null} to leave it out
+     * @param unit the unit, or {@code null} to leave it out
+     */
+    private void mockLimit(String typeId, String interval, String unit)
+    {
+        when(this.request.getParameter(typeId + "Interval")).thenReturn(interval);
+        when(this.request.getParameter(typeId + "Unit")).thenReturn(unit);
     }
 }

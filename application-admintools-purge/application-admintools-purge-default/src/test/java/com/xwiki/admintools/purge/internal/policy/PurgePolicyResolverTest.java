@@ -39,6 +39,7 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -111,6 +112,21 @@ class PurgePolicyResolverTest
         assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
 
         verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
+    }
+
+    @Test
+    void getSettings() throws Exception
+    {
+        // The settings of the wiki apply, even disabled ones, which keep their interval.
+        PurgeTypeSettings wikiDisabled = new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS);
+        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, wikiDisabled));
+        assertSame(wikiDisabled, this.resolver.getSettings(WIKI_ID, DELETED_DOCUMENTS));
+
+        // The default settings apply to a wiki that inherits them, or that has no settings for the item type.
+        mockSettings(DISABLED, Map.of(DELETED_DOCUMENTS, INHERIT));
+        assertSame(DISABLED, this.resolver.getSettings(WIKI_ID, DELETED_DOCUMENTS));
+        mockSettings(GLOBAL_ENABLED, Map.of());
+        assertSame(GLOBAL_ENABLED, this.resolver.getSettings(WIKI_ID, DELETED_DOCUMENTS));
     }
 
     /**

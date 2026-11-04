@@ -19,12 +19,14 @@
  */
 package com.xwiki.admintools.purge.internal.store;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
@@ -116,7 +118,7 @@ public class PurgeHistoryStore
                     wikiId);
                 return;
             }
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getHistoryPageReference(wikiId));
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getHistoryPageReference(wikiId));
             removeInvalidObjects(document);
             List<BaseObject> olderObjects = getObjectsNewestFirst(document, entry.getType());
             olderObjects.forEach(this.mapper::markAsOlder);
@@ -131,18 +133,29 @@ public class PurgeHistoryStore
     }
 
     /**
-     * Read the newest history entry of each item type of every wiki, with one query on the newest-entry flag, without
-     * loading the history pages. The failures of the entries are not read.
+     * Read the newest history entry of each item type of some wikis, with one query on the newest-entry flag, without
+     * loading the history pages. The failures of the entries are not read. Restricting the wikis lets the query use the
+     * index on the page names, instead of going through the history of every wiki.
      *
+     * @param wikiIds the identifiers of the wikis, or {@code null} for every wiki
      * @return the newest history entry of each item type, by wiki identifier; wikis that were never purged are left out
      * @throws QueryException if the history can't be queried
      */
-    public Map<String, Map<PurgeType, PurgeHistoryEntry>> getAllLatestEntries() throws QueryException
+    public Map<String, Map<PurgeType, PurgeHistoryEntry>> getLatestEntries(Collection<String> wikiIds)
+        throws QueryException
     {
-        List<Object[]> rows =
-            this.queryManager.createQuery(String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName()),
-                    Query.XWQL).setWiki(this.references.getMainWikiId())
-                .bindValue("space", this.references.getWikisSpaceReference()).execute();
+        if (wikiIds != null && wikiIds.isEmpty()) {
+            return new HashMap<>();
+        }
+        String statement = String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("space", this.references.getWikisSpaceReference());
+        if (wikiIds != null) {
+            statement += " and doc.name in (:wikis)";
+            parameters.put("wikis", wikiIds);
+        }
+        List<Object[]> rows = this.queryManager.createQuery(statement, Query.XWQL)
+            .setWiki(this.references.getMainWikiId()).bindValues(parameters).execute();
         Map<String, Map<PurgeType, PurgeHistoryEntry>> allLatestEntries = new HashMap<>();
         for (Object[] row : rows) {
             // The columns selected by the query, in the same order.
@@ -165,6 +178,23 @@ public class PurgeHistoryStore
     }
 
     /**
+     * Read the purge history of a wiki, newest first. Only the newest entry of each item type has its failures. Invalid
+     * history objects are skipped.
+     *
+     * @param wikiId the identifier of the wiki
+     * @return the history entries of the wiki, newest first; empty if the wiki was never purged
+     * @throws XWikiException if the history page can't be loaded
+     */
+    public List<PurgeHistoryEntry> getEntries(String wikiId) throws XWikiException
+    {
+        // The cached page can miss the entries saved by the purges running at the same time.
+        return this.pageManager.loadDocument(this.references.getHistoryPageReference(wikiId))
+            .getXObjects(this.references.getHistoryClassReference()).stream().filter(Objects::nonNull)
+            .map(this.mapper::readEntry).flatMap(Optional::stream)
+            .sorted(Comparator.comparing(PurgeHistoryEntry::getDate).reversed()).collect(Collectors.toList());
+    }
+
+    /**
      * Delete the purge history of a wiki, once the wiki no longer exists. Nothing happens if the wiki has no history.
      *
      * @param wikiId the identifier of the deleted wiki
@@ -172,14 +202,14 @@ public class PurgeHistoryStore
      */
     public void deleteHistory(String wikiId) throws XWikiException
     {
-        // Most wikis were never purged: the cached page tells it without copying the page.
+        // Most wikis were never purged: the cached page tells it, without a database load.
         if (this.pageManager.getDocument(this.references.getHistoryPageReference(wikiId)).isNew()) {
             return;
         }
         Lock lock = this.pageManager.getWikiLock(wikiId);
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getHistoryPageReference(wikiId));
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getHistoryPageReference(wikiId));
             if (!document.isNew()) {
                 this.pageManager.delete(document);
             }

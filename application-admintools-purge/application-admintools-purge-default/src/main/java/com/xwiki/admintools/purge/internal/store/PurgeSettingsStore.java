@@ -87,7 +87,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, null), typeSettings, maxHistoryEntries);
             this.pageManager.save(document, "Updated the automatic purge defaults.");
         } finally {
@@ -148,7 +148,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, wikiId), wikiId, typeSettings);
             this.pageManager.save(document,
                 String.format("Updated the automatic purge settings of wiki [%s].", wikiId));
@@ -166,14 +166,14 @@ public class PurgeSettingsStore
      */
     public void removeWikiSettings(String wikiId) throws XWikiException
     {
-        // Most wikis have no settings of their own: the cached page tells it without copying the page.
+        // Most wikis have no settings of their own: the cached page tells it, without a database load.
         if (getSettingsObject(getSettingsPage(), wikiId).isEmpty()) {
             return;
         }
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             Optional<BaseObject> object = getSettingsObject(document, wikiId);
             if (object.isPresent()) {
                 document.removeXObject(object.get());

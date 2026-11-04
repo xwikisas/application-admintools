@@ -134,6 +134,7 @@
             <contentPage>.*/AdminTools/CheckSecurityCache\.xml</contentPage>
             <contentPage>.*/AdminTools/NetworkOrders\.xml</contentPage>
             <contentPage>.*/AdminTools/NetworkIssues\.xml</contentPage>
+            <contentPage>.*/AdminTools/Purge/WebHome\.xml</contentPage>
           </contentPages>
         </configuration>
       </plugin>

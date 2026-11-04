@@ -63,7 +63,7 @@ public class PurgePageManager
 
     /**
      * Load a page. The returned document is the cached one, so it is meant for reading only; use
-     * {@link #getDocumentCopy(DocumentReference)} to modify a page. It is a new document if the page doesn't exist
+     * {@link #loadDocument(DocumentReference)} to modify a page. It is a new document if the page doesn't exist
      * yet.
      *
      * @param reference the reference of the page to load
@@ -77,16 +77,28 @@ public class PurgePageManager
     }
 
     /**
-     * Load a copy of a page in order to modify it, without affecting the cached page. It is a new document if the page
-     * doesn't exist yet.
+     * Load a page from the database, in order to modify it without affecting the cached page, or to read it while it
+     * may be modified. It is a new document if the page doesn't exist yet.
+     * <p>
+     * The cache is skipped since it can hold an outdated version of a page that is modified concurrently: a request
+     * that loads the page from the database just before it is saved puts that version in the cache just after the save
+     * cleared it. Modifying that version would lose the changes saved in the meantime.
      *
      * @param reference the reference of the page to load
-     * @return a copy of the page
+     * @return the page, not shared with the cache
      * @throws XWikiException if the page can't be loaded
      */
-    public XWikiDocument getDocumentCopy(DocumentReference reference) throws XWikiException
+    public XWikiDocument loadDocument(DocumentReference reference) throws XWikiException
     {
-        return getDocument(reference).clone();
+        XWikiContext wikiContext = this.wikiContextProvider.get();
+        String currentWiki = wikiContext.getWikiId();
+        try {
+            // The store loads the page from the database of the current wiki.
+            wikiContext.setWikiId(reference.getWikiReference().getName());
+            return wikiContext.getWiki().getNotCacheStore().loadXWikiDoc(new XWikiDocument(reference), wikiContext);
+        } finally {
+            wikiContext.setWikiId(currentWiki);
+        }
     }
 
     /**

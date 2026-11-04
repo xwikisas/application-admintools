@@ -133,7 +133,7 @@ class PurgeHistoryStoreTest
         when(this.references.getHistoryPageReference(WIKI_ID)).thenReturn(this.wikiReference);
         when(this.references.getHistoryClassReference()).thenReturn(this.historyClass);
         when(this.pageManager.getDocument(this.wikiReference)).thenReturn(this.document);
-        when(this.pageManager.getDocumentCopy(this.wikiReference)).thenReturn(this.document);
+        when(this.pageManager.loadDocument(this.wikiReference)).thenReturn(this.document);
         when(this.pageManager.getWikiLock(WIKI_ID)).thenReturn(this.wikiLock);
         when(this.pageManager.createObject(this.document, this.historyClass)).thenReturn(this.newObject);
         when(this.document.getDocumentReference()).thenReturn(this.wikiReference);
@@ -249,7 +249,7 @@ class PurgeHistoryStoreTest
         inOrder.verify(this.wikiLock).lock();
         inOrder.verify(this.wikiDescriptorManager).exists(WIKI_ID);
         inOrder.verify(this.wikiLock).unlock();
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
         verify(this.pageManager, never()).saveWithoutRevision(any(), anyString());
     }
 
@@ -261,11 +261,11 @@ class PurgeHistoryStoreTest
 
         assertEquals("The wiki identifier is missing.", exception.getMessage());
         verify(this.pageManager, never()).getWikiLock(anyString());
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
-    void getAllLatestEntries() throws Exception
+    void getLatestEntriesOfEveryWiki() throws Exception
     {
         when(this.references.getMainWikiId()).thenReturn("xwiki");
         when(this.references.getWikisSpaceReference()).thenReturn("AdminTools.Purge.Wikis");
@@ -289,11 +289,72 @@ class PurgeHistoryStoreTest
         when(this.mapper.readEntry("invalid", date, "scheduled", "success", 1L, 0L)).thenReturn(Optional.empty());
 
         assertEquals(Map.of(WIKI_ID, Map.of(DELETED_DOCUMENTS, documentsEntry, DELETED_ATTACHMENTS, attachmentsEntry)),
-            this.store.getAllLatestEntries());
+            this.store.getLatestEntries(null));
         verify(query).setWiki("xwiki");
-        verify(query).bindValue("space", "AdminTools.Purge.Wikis");
+        verify(query).bindValues(Map.of("space", "AdminTools.Purge.Wikis"));
         // No history page is loaded.
         verify(this.pageManager, never()).getDocument(any());
+    }
+
+    @Test
+    void getEntries() throws Exception
+    {
+        BaseObject older = mock(BaseObject.class);
+        BaseObject newer = mock(BaseObject.class);
+        BaseObject invalid = mock(BaseObject.class);
+        PurgeHistoryEntry olderEntry =
+            new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW.minusSeconds(100), null, PurgeStatus.SUCCESS, 1, 0, null);
+        PurgeHistoryEntry newerEntry =
+            new PurgeHistoryEntry(DELETED_DOCUMENTS, NOW, null, PurgeStatus.PARTIAL, 1, 1, List.of("Sandbox.Page"));
+        when(this.mapper.readEntry(older)).thenReturn(Optional.of(olderEntry));
+        when(this.mapper.readEntry(newer)).thenReturn(Optional.of(newerEntry));
+        when(this.mapper.readEntry(invalid)).thenReturn(Optional.empty());
+        // The objects list holds null for the removed objects.
+        when(this.document.getXObjects(this.historyClass)).thenReturn(Arrays.asList(older, null, invalid, newer));
+
+        assertEquals(List.of(newerEntry, olderEntry), this.store.getEntries(WIKI_ID));
+        // The page is loaded from the database, since the cached one can miss the entries being saved.
+        verify(this.pageManager, never()).getDocument(any());
+    }
+
+    @Test
+    void getEntriesWithoutHistory() throws Exception
+    {
+        when(this.document.getXObjects(this.historyClass)).thenReturn(List.of());
+
+        assertEquals(List.of(), this.store.getEntries(WIKI_ID));
+    }
+
+    @Test
+    void getLatestEntriesOfSomeWikis() throws Exception
+    {
+        when(this.references.getMainWikiId()).thenReturn("xwiki");
+        when(this.references.getWikisSpaceReference()).thenReturn("AdminTools.Purge.Wikis");
+        when(this.references.getHistoryClassName()).thenReturn("AdminTools.Purge.Code.HistoryClass");
+        Query query = mock(Query.class, RETURNS_SELF);
+        // Only the history pages of the given wikis are queried.
+        when(this.queryManager.createQuery("select doc.name, history.type, history.date, history.triggeredBy, "
+            + "history.status, history.removedCount, history.failedCount from Document doc, "
+            + "doc.object(AdminTools.Purge.Code.HistoryClass) as history "
+            + "where doc.space = :space and history.latest = 1 and doc.name in (:wikis)", Query.XWQL)).thenReturn(query);
+        Date date = Date.from(NOW);
+        when(query.<Object[]>execute()).thenReturn(
+            List.<Object[]>of(new Object[] { WIKI_ID, "deletedDocuments", date, "scheduled", "success", 3L, 0L }));
+        PurgeHistoryEntry documentsEntry = mockEntry(DELETED_DOCUMENTS);
+        when(this.mapper.readEntry("deletedDocuments", date, "scheduled", "success", 3L, 0L)).thenReturn(
+            Optional.of(documentsEntry));
+
+        assertEquals(Map.of(WIKI_ID, Map.of(DELETED_DOCUMENTS, documentsEntry)),
+            this.store.getLatestEntries(List.of(WIKI_ID, "other")));
+        verify(query).bindValues(Map.of("space", "AdminTools.Purge.Wikis", "wikis", List.of(WIKI_ID, "other")));
+    }
+
+    @Test
+    void getLatestEntriesOfNoWiki() throws Exception
+    {
+        assertEquals(Map.of(), this.store.getLatestEntries(List.of()));
+
+        verify(this.queryManager, never()).createQuery(anyString(), anyString());
     }
 
     @Test
@@ -316,7 +377,7 @@ class PurgeHistoryStoreTest
 
         // The cached page shows there is no history, so the page is neither locked nor copied.
         verify(this.pageManager, never()).getWikiLock(anyString());
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
         verify(this.pageManager, never()).delete(any());
     }
 

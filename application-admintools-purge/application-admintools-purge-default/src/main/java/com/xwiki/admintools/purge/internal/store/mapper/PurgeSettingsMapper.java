@@ -49,14 +49,15 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 @Singleton
 public class PurgeSettingsMapper
 {
+    /**
+     * The largest interval, high enough for any real limit and low enough to keep the date computations valid. It is
+     * also the largest limit of a manual purge.
+     */
+    public static final int MAX_INTERVAL = 1000;
+
     private static final int DEFAULT_INTERVAL = 1;
 
     private static final int MIN_INTERVAL = 1;
-
-    /**
-     * The largest interval, high enough for any real limit and low enough to keep the date computations valid.
-     */
-    private static final int MAX_INTERVAL = 1000;
 
     private static final IntervalUnit DEFAULT_UNIT = IntervalUnit.MONTHS;
 

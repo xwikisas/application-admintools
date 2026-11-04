@@ -123,7 +123,7 @@ class PurgeSettingsStoreTest
         when(this.references.getSettingsClassReference()).thenReturn(this.settingsClass);
         // Reads use the cached page, modifications use a copy; the same mock stands for both.
         when(this.pageManager.getDocument(this.settingsReference)).thenReturn(this.document);
-        when(this.pageManager.getDocumentCopy(this.settingsReference)).thenReturn(this.document);
+        when(this.pageManager.loadDocument(this.settingsReference)).thenReturn(this.document);
         when(this.pageManager.getGlobalLock()).thenReturn(this.lock);
         when(this.pageManager.createObject(this.document, this.settingsClass)).thenReturn(this.newObject);
         when(this.document.getXObjects(this.settingsClass)).thenReturn(this.objects);
@@ -139,7 +139,7 @@ class PurgeSettingsStoreTest
         when(this.mapper.readSettings(this.globalObject)).thenReturn(settings);
 
         assertSame(settings, this.store.getGlobalSettings());
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
@@ -195,7 +195,7 @@ class PurgeSettingsStoreTest
 
         assertSame(CUSTOM_SETTINGS, this.store.getWikiSettings(WIKI_ID));
         assertSame(INHERITED_SETTINGS, this.store.getWikiSettings("other"));
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
@@ -252,7 +252,7 @@ class PurgeSettingsStoreTest
 
         // The cached page shows there is nothing to remove, so the page is neither locked nor copied.
         verify(this.pageManager, never()).getGlobalLock();
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
         verify(this.document, never()).removeXObject(any());
         verify(this.pageManager, never()).save(any(), anyString());
     }

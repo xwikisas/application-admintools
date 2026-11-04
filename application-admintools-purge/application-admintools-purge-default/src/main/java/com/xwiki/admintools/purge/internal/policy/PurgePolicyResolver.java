@@ -63,13 +63,29 @@ public class PurgePolicyResolver
      */
     public Optional<Instant> getExpirationDate(String wikiId, PurgeType type, ZonedDateTime now) throws XWikiException
     {
-        PurgeTypeSettings settings = this.settingsStore.getWikiSettings(wikiId).get(type);
-        if (settings == null || settings.getMode() == PurgeMode.INHERIT) {
-            settings = this.settingsStore.getGlobalSettings().getTypeSettings(type);
-        }
+        PurgeTypeSettings settings = getSettings(wikiId, type);
         if (settings.getMode() != PurgeMode.ENABLED) {
             return Optional.empty();
         }
         return Optional.of(this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
+    }
+
+    /**
+     * Get the settings that apply to an item type on a wiki: the settings of the wiki, or the default settings if the
+     * wiki inherits them.
+     *
+     * @param wikiId the identifier of a wiki
+     * @param type an item type
+     * @return the settings that apply, either {@link PurgeMode#ENABLED} or {@link PurgeMode#DISABLED}; the interval and
+     *     unit are the stored ones even if the item type is disabled
+     * @throws XWikiException if the settings can't be loaded
+     */
+    public PurgeTypeSettings getSettings(String wikiId, PurgeType type) throws XWikiException
+    {
+        PurgeTypeSettings settings = this.settingsStore.getWikiSettings(wikiId).get(type);
+        if (settings == null || settings.getMode() == PurgeMode.INHERIT) {
+            settings = this.settingsStore.getGlobalSettings().getTypeSettings(type);
+        }
+        return settings;
     }
 }

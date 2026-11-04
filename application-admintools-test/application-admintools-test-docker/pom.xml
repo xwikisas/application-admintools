@@ -68,6 +68,13 @@
       <version>${platform.version}</version>
       <type>xar</type>
     </dependency>
+    <!-- The automatic purge test moves recycle bin items back in time with a Groovy script. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rendering-macro-groovy</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Test only dependencies. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>

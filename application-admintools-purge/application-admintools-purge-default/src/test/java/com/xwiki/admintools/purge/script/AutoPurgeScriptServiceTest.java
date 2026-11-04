@@ -35,12 +35,17 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xwiki.admintools.purge.internal.PurgeManager;
 import com.xwiki.admintools.purge.internal.PurgeWikisDataProvider;
+import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
+import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
+import com.xwiki.admintools.purge.model.GlobalPurgeSettings;
+import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +62,8 @@ class AutoPurgeScriptServiceTest
 
     private static final Map<String, String> FILTERS = Map.of("wikiName", "sub");
 
+    private static final String SUBWIKI = "subwiki";
+
     @InjectMockComponents
     private AutoPurgeScriptService scriptService;
 
@@ -72,6 +79,12 @@ class AutoPurgeScriptServiceTest
     @MockComponent
     private PurgeManager purgeManager;
 
+    @MockComponent
+    private PurgeSettingsStore settingsStore;
+
+    @MockComponent
+    private PurgeHistoryStore historyStore;
+
     @BeforeEach
     void setUp()
     {
@@ -82,10 +95,10 @@ class AutoPurgeScriptServiceTest
     @Test
     void getWikis() throws Exception
     {
-        List<Map<String, Object>> rows = List.of(Map.of("wikiId", "subwiki"));
-        when(this.purgeWikisDataProvider.getWikis(FILTERS, "asc")).thenReturn(rows);
+        Map<String, Object> page = Map.of("total", 1, "rows", List.of(Map.of("wikiId", SUBWIKI)));
+        when(this.purgeWikisDataProvider.getWikis(FILTERS, "asc", 0, 15)).thenReturn(page);
 
-        assertSame(rows, this.scriptService.getWikis(FILTERS, "asc"));
+        assertSame(page, this.scriptService.getWikis(FILTERS, "asc", 0, 15));
         verify(this.contextualAuthorizationManager).checkAccess(Right.ADMIN, MAIN_WIKI);
     }
 
@@ -95,8 +108,8 @@ class AutoPurgeScriptServiceTest
         doThrow(AccessDeniedException.class).when(this.contextualAuthorizationManager)
             .checkAccess(Right.ADMIN, MAIN_WIKI);
 
-        assertThrows(AccessDeniedException.class, () -> this.scriptService.getWikis(FILTERS, "asc"));
-        verify(this.purgeWikisDataProvider, never()).getWikis(any(), any());
+        assertThrows(AccessDeniedException.class, () -> this.scriptService.getWikis(FILTERS, "asc", 0, 15));
+        verify(this.purgeWikisDataProvider, never()).getWikis(any(), any(), anyInt(), anyInt());
     }
 
     @Test
@@ -104,7 +117,65 @@ class AutoPurgeScriptServiceTest
     {
         when(this.purgeManager.isLicensed()).thenReturn(false);
 
-        assertEquals(List.of(), this.scriptService.getWikis(FILTERS, "asc"));
-        verify(this.purgeWikisDataProvider, never()).getWikis(any(), any());
+        assertThrows(IllegalStateException.class, () -> this.scriptService.getWikis(FILTERS, "asc", 0, 15));
+        verify(this.purgeWikisDataProvider, never()).getWikis(any(), any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void getDefaultSettings() throws Exception
+    {
+        GlobalPurgeSettings settings = mock(GlobalPurgeSettings.class);
+        when(this.settingsStore.getGlobalSettings()).thenReturn(settings);
+
+        assertSame(settings, this.scriptService.getDefaultSettings());
+        verify(this.contextualAuthorizationManager).checkAccess(Right.ADMIN, MAIN_WIKI);
+    }
+
+    @Test
+    void getDefaultSettingsWithoutAdminRightsOnTheMainWiki() throws Exception
+    {
+        doThrow(AccessDeniedException.class).when(this.contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN, MAIN_WIKI);
+
+        assertThrows(AccessDeniedException.class, () -> this.scriptService.getDefaultSettings());
+        verify(this.settingsStore, never()).getGlobalSettings();
+    }
+
+    @Test
+    void getDefaultSettingsWithoutLicense() throws Exception
+    {
+        when(this.purgeManager.isLicensed()).thenReturn(false);
+
+        assertThrows(IllegalStateException.class, () -> this.scriptService.getDefaultSettings());
+        verify(this.settingsStore, never()).getGlobalSettings();
+    }
+
+    @Test
+    void getHistory() throws Exception
+    {
+        List<PurgeHistoryEntry> entries = List.of(mock(PurgeHistoryEntry.class));
+        when(this.historyStore.getEntries(SUBWIKI)).thenReturn(entries);
+
+        assertSame(entries, this.scriptService.getHistory(SUBWIKI));
+        verify(this.contextualAuthorizationManager).checkAccess(Right.ADMIN, MAIN_WIKI);
+    }
+
+    @Test
+    void getHistoryWithoutAdminRightsOnTheMainWiki() throws Exception
+    {
+        doThrow(AccessDeniedException.class).when(this.contextualAuthorizationManager)
+            .checkAccess(Right.ADMIN, MAIN_WIKI);
+
+        assertThrows(AccessDeniedException.class, () -> this.scriptService.getHistory(SUBWIKI));
+        verify(this.historyStore, never()).getEntries(any());
+    }
+
+    @Test
+    void getHistoryWithoutLicense() throws Exception
+    {
+        when(this.purgeManager.isLicensed()).thenReturn(false);
+
+        assertThrows(IllegalStateException.class, () -> this.scriptService.getHistory(SUBWIKI));
+        verify(this.historyStore, never()).getEntries(any());
     }
 }
