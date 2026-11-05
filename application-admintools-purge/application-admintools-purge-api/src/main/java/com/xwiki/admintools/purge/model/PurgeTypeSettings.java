@@ -77,9 +77,10 @@ public final class PurgeTypeSettings
     }
 
     /**
-     * Implementation used to help with testing.
+     * Compare with other item type settings. They are equal when they have the same mode, interval and unit.
      *
-     * @return {@code true} if the objects are equals, or {@code false} otherwise.
+     * @param object the object to compare with
+     * @return {@code true} if the given object is equal item type settings, {@code false} otherwise
      */
     @Override
     public boolean equals(Object object)

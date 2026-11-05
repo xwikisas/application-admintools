@@ -34,6 +34,8 @@ import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
+import org.xwiki.wiki.manager.WikiManagerException;
 
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -63,6 +65,9 @@ public class PurgeSettingsStore
     @Inject
     private PurgeSettingsMapper mapper;
 
+    @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
     /**
      * @return the global settings; every item type is disabled if they were never saved
      * @throws XWikiException if the settings page can't be loaded
@@ -76,8 +81,8 @@ public class PurgeSettingsStore
      * Save the global settings, with a new revision of the settings page.
      *
      * @param typeSettings the settings of every item type; the mode can't be {@link PurgeMode#INHERIT}
-     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least
-     *     1; a larger number than 200 is replaced by 200
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, between 1
+     *     and 200
      * @throws XWikiException if the settings page can't be saved
      * @throws IllegalArgumentException if the settings are invalid
      */
@@ -134,9 +139,11 @@ public class PurgeSettingsStore
      * @param wikiId the identifier of the wiki
      * @param typeSettings the settings of every item type
      * @throws XWikiException if the settings page can't be saved
-     * @throws IllegalArgumentException if the settings are invalid
+     * @throws WikiManagerException if the existence of the wiki can't be checked
+     * @throws IllegalArgumentException if the wiki doesn't exist, or if the settings are invalid
      */
-    public void saveWikiSettings(String wikiId, Map<PurgeType, PurgeTypeSettings> typeSettings) throws XWikiException
+    public void saveWikiSettings(String wikiId, Map<PurgeType, PurgeTypeSettings> typeSettings)
+        throws XWikiException, WikiManagerException
     {
         if (StringUtils.isBlank(wikiId)) {
             throw new IllegalArgumentException("The wiki identifier is missing.");
@@ -148,6 +155,10 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
+            // Check under the lock that the wiki exists, since the settings of a deleted wiki are removed under it.
+            if (!this.wikiDescriptorManager.exists(wikiId)) {
+                throw new IllegalArgumentException(String.format("The wiki [%s] doesn't exist.", wikiId));
+            }
             XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, wikiId), wikiId, typeSettings);
             this.pageManager.save(document,
@@ -166,10 +177,6 @@ public class PurgeSettingsStore
      */
     public void removeWikiSettings(String wikiId) throws XWikiException
     {
-        // Most wikis have no settings of their own: the cached page tells it without copying the page.
-        if (getSettingsObject(getSettingsPage(), wikiId).isEmpty()) {
-            return;
-        }
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {

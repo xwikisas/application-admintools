@@ -122,27 +122,21 @@ public class PurgeSettingsMapper
      *
      * @param object the global settings object to write to
      * @param typeSettings the global settings of every item type; the mode can't be {@link PurgeMode#INHERIT}
-     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least
-     *     1; a larger number than 200 is replaced by 200, with a warning
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, between 1
+     *     and 200
      * @throws IllegalArgumentException if a setting is missing or invalid, if a mode is {@link PurgeMode#INHERIT},
-     *     or if the history size is lower than 1
+     *     or if the history size is not between 1 and 200
      */
     public void writeSettings(BaseObject object, Map<PurgeType, PurgeTypeSettings> typeSettings, int maxHistoryEntries)
     {
         validate(typeSettings, true);
-        if (maxHistoryEntries < MIN_HISTORY_ENTRIES) {
+        if (maxHistoryEntries < MIN_HISTORY_ENTRIES || maxHistoryEntries > MAX_HISTORY_ENTRIES) {
             throw new IllegalArgumentException(
-                String.format("The purge history size must be at least %d, but was [%d].", MIN_HISTORY_ENTRIES,
-                    maxHistoryEntries));
-        }
-        int historySize = maxHistoryEntries;
-        if (historySize > MAX_HISTORY_ENTRIES) {
-            this.logger.warn("The purge history size [{}] is larger than the maximum. [{}] is used instead.",
-                historySize, MAX_HISTORY_ENTRIES);
-            historySize = MAX_HISTORY_ENTRIES;
+                String.format("The purge history size must be between %d and %d, but was [%d].", MIN_HISTORY_ENTRIES,
+                    MAX_HISTORY_ENTRIES, maxHistoryEntries));
         }
         writeTypeSettings(object, typeSettings, GLOBAL_SETTINGS);
-        object.setIntValue(MAX_HISTORY_ENTRIES_PROPERTY, historySize);
+        object.setIntValue(MAX_HISTORY_ENTRIES_PROPERTY, maxHistoryEntries);
     }
 
     /**
@@ -255,8 +249,8 @@ public class PurgeSettingsMapper
 
     /**
      * Check the settings of every item type before they are written. Every item type must have settings, the global
-     * settings can't inherit, and an enabled item type needs an interval of at least 1 and a unit. The interval of an
-     * item type that is not enabled is not checked, since it is not used.
+     * settings can't inherit, and an enabled item type needs an interval between 1 and 1000 and a unit. The interval of
+     * an item type that is not enabled is not checked, since it is not used.
      *
      * @param typeSettings the settings of every item type
      * @param global {@code true} for the global settings, {@code false} for the settings of a wiki
@@ -274,19 +268,20 @@ public class PurgeSettingsMapper
                     String.format("The global settings of [%s] can't inherit.", type.getId()));
             }
             if (settings.getMode() == PurgeMode.ENABLED && (settings.getInterval() < MIN_INTERVAL
-                || settings.getUnit() == null))
+                || settings.getInterval() > MAX_INTERVAL || settings.getUnit() == null))
             {
                 throw new IllegalArgumentException(
-                    String.format("The interval of [%s] must be at least %d with a unit, but was [%d %s].",
-                        type.getId(), MIN_INTERVAL, settings.getInterval(), settings.getUnit()));
+                    String.format("The interval of [%s] must be between %d and %d, but was [%d].", type.getId(),
+                        MIN_INTERVAL, MAX_INTERVAL, settings.getInterval()));
             }
         }
     }
 
     /**
      * Write the mode, interval and unit of every item type to a settings object. The interval and unit of an item type
-     * that is not enabled are not used, so missing or invalid ones are replaced by the defaults. An interval larger
-     * than the maximum is replaced by the maximum, with a warning.
+     * that is not enabled are not used, so missing or invalid ones are replaced by the defaults. Since the interval of
+     * an enabled item type was validated, only the interval of an item type that is not enabled can be larger than the
+     * maximum, in which case it is replaced by the maximum, with a warning.
      *
      * @param object the settings object to write to
      * @param typeSettings the validated settings of every item type

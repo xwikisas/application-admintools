@@ -59,7 +59,7 @@
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            &lt;form class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
+            &lt;form id="${modalId}Form" class="xform" action="$request.getContextPath()/rest/admintools/files/logs"&gt;
               &lt;dl&gt;
                 &lt;dt&gt;
                   &lt;label for="${id}NoLines"&gt;$escapetool.xml($services.localization.render(
@@ -73,7 +73,7 @@
             &lt;/form&gt;
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
-            &lt;button type="button" class="btn btn-primary" value="${id}NoLines"&gt;
+            &lt;button type="submit" form="${modalId}Form" class="btn btn-primary"&gt;
               $escapetool.xml($services.localization.render('adminTools.dashboard.logs.modal.submit'))&lt;/button&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
