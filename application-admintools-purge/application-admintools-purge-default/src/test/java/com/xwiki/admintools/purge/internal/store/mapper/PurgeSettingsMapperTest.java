@@ -113,14 +113,15 @@ class PurgeSettingsMapperTest
     @Test
     void readGlobalSettingsWithMissingValues()
     {
-        // A missing interval is read as the default interval, a missing unit as the default unit.
-        mockSettings("enabled", 1, "", "", 1, null);
+        // A missing interval is read as 0 and a missing unit as null, both invalid, instead of the defaults.
+        mockSettings("enabled", 0, "", "", 0, null);
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS)),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 0, null)),
             settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(Optional.of(DISABLED_DEFAULT), settings.getTypeSettings(DELETED_ATTACHMENTS));
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 0, null)),
+            settings.getTypeSettings(DELETED_ATTACHMENTS));
         assertEquals(0, this.logCapture.size());
     }
 
@@ -142,33 +143,29 @@ class PurgeSettingsMapperTest
     }
 
     @Test
-    void readGlobalSettingsDisablesEnabledTypeWithInvalidInterval()
+    void readGlobalSettingsWithInvalidValues()
     {
-        mockSettings("enabled", 0, "days", "enabled", 5, "decades");
+        // Invalid values are returned as they are stored, so that the code using them reports them.
+        mockSettings("enabled", 0, "days", "enabled", 5000, "decades");
+        when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(500);
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.DAYS)),
-            settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 5, IntervalUnit.MONTHS)),
-            settings.getTypeSettings(DELETED_ATTACHMENTS));
-        assertEquals(
-            "Invalid automatic purge interval [0 days] for [deletedDocuments] in the [GLOBAL SETTINGS] " + "settings. "
-                + "The automatic purge is disabled for it.", this.logCapture.getMessage(0));
-        assertEquals("Invalid automatic purge interval [5 decades] for [deletedAttachments] in "
-            + "the [GLOBAL SETTINGS] settings. The automatic purge is disabled for it.", this.logCapture.getMessage(1));
+        assertEquals(new GlobalPurgeSettings(settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS),
+            new PurgeTypeSettings(PurgeMode.ENABLED, 5000, null)), 500), settings);
+        assertEquals(0, this.logCapture.size());
     }
 
     @Test
-    void readGlobalSettingsClampsHistorySize()
+    void readGlobalSettingsWithHistorySizeLowerThanOne()
     {
         mockSettings("disabled", 1, "months", "disabled", 1, "months");
-
-        when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(500);
-        assertEquals(200, this.mapper.readSettings(this.object).getMaxHistoryEntries());
-
         when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(0);
-        assertEquals(1, this.mapper.readSettings(this.object).getMaxHistoryEntries());
+
+        IllegalArgumentException exception =
+            assertThrows(IllegalArgumentException.class, () -> this.mapper.readSettings(this.object));
+
+        assertEquals("The purge history size must be at least 1, but was [0].", exception.getMessage());
     }
 
     @Test
@@ -188,26 +185,14 @@ class PurgeSettingsMapperTest
     }
 
     @Test
-    void readWikiSettingsDisablesEnabledTypeWithInvalidInterval()
+    void readWikiSettingsWithInvalidValues()
     {
-        // An invalid custom interval disables the purge instead of falling back to the global settings.
-        mockSettings("enabled", -3, "weeks", "inherit", 1, "months");
+        // Invalid values are returned as they are stored, whatever the mode.
+        mockSettings("enabled", -3, "weeks", "disabled", 1001, "bogus");
 
-        assertEquals(settings(new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.WEEKS), INHERIT_DEFAULT),
-            this.mapper.readSettings(this.object, WIKI_ID));
-        assertEquals("Invalid automatic purge interval [-3 weeks] for [deletedDocuments] in the [subwiki] "
-            + "settings. The automatic purge is disabled for it.", this.logCapture.getMessage(0));
-    }
-
-    @Test
-    void readWikiSettingsCapsTooLargeInterval()
-    {
-        mockSettings("enabled", 1001, "years", "inherit", 1, "months");
-
-        assertEquals(settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1000, IntervalUnit.YEARS), INHERIT_DEFAULT),
-            this.mapper.readSettings(this.object, WIKI_ID));
-        assertEquals("The automatic purge interval [1001] of [deletedDocuments] in the [subwiki] settings is larger "
-            + "than the maximum. [1000] is used instead.", this.logCapture.getMessage(0));
+        assertEquals(settings(new PurgeTypeSettings(PurgeMode.ENABLED, -3, IntervalUnit.WEEKS),
+            new PurgeTypeSettings(PurgeMode.DISABLED, 1001, null)), this.mapper.readSettings(this.object, WIKI_ID));
+        assertEquals(0, this.logCapture.size());
     }
 
     @Test
@@ -243,12 +228,20 @@ class PurgeSettingsMapperTest
             settings(INHERIT_DEFAULT, DISABLED_DEFAULT), 20);
         assertInvalidGlobalSettings("The settings of [deletedAttachments] are missing.",
             new EnumMap<>(Map.of(DELETED_DOCUMENTS, DISABLED_DEFAULT)), 20);
-        assertInvalidGlobalSettings("The interval of [deletedDocuments] must be between 1 and 1000, but was [0].",
+        assertInvalidGlobalSettings("The interval of [deletedDocuments] in the [GLOBAL SETTINGS] settings must be "
+            + "between 1 and 1000, but was [0].",
             settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), DISABLED_DEFAULT), 20);
-        assertInvalidGlobalSettings("The interval of [deletedDocuments] must be between 1 and 1000, but was [1001].",
+        assertInvalidGlobalSettings("The interval of [deletedDocuments] in the [GLOBAL SETTINGS] settings must be "
+            + "between 1 and 1000, but was [1001].",
             settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1001, IntervalUnit.YEARS), DISABLED_DEFAULT), 20);
-        assertInvalidGlobalSettings("The interval of [deletedAttachments] must be between 1 and 1000, but was [3].",
-            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
+        assertInvalidGlobalSettings("The interval unit of [deletedAttachments] in the [GLOBAL SETTINGS] settings is "
+            + "missing.", settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
+        // The interval and unit of a disabled type are validated too.
+        assertInvalidGlobalSettings("The interval of [deletedAttachments] in the [GLOBAL SETTINGS] settings must be "
+            + "between 1 and 1000, but was [0].",
+            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.DISABLED, 0, IntervalUnit.MONTHS)), 20);
+        assertInvalidGlobalSettings("The interval unit of [deletedAttachments] in the [GLOBAL SETTINGS] settings is "
+            + "missing.", settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.DISABLED, 1, null)), 20);
         assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [0].",
             settings(DISABLED_DEFAULT, DISABLED_DEFAULT), 0);
         assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [201].",
@@ -271,9 +264,7 @@ class PurgeSettingsMapperTest
     @Test
     void writeWikiSettings()
     {
-        // The interval and unit of an inherited type are not used, so invalid ones are replaced by the defaults.
-        this.mapper.writeSettings(this.object, WIKI_ID,
-            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, 0, null)));
+        this.mapper.writeSettings(this.object, WIKI_ID, settings(ENABLED_7_DAYS, INHERIT_DEFAULT));
 
         verify(this.object).setStringValue(WIKI, WIKI_ID);
         verify(this.object).setStringValue(DOCUMENTS_MODE, "enabled");
@@ -285,39 +276,32 @@ class PurgeSettingsMapperTest
     }
 
     @Test
-    void writeWikiSettingsWithDisabledTypeWithoutInterval()
-    {
-        // The interval and unit of a disabled type are not used either; a stored interval is kept within range.
-        this.mapper.writeSettings(this.object, WIKI_ID,
-            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.DISABLED, 5000, null)));
-
-        verify(this.object).setStringValue(ATTACHMENTS_MODE, "disabled");
-        verify(this.object).setIntValue(ATTACHMENTS_INTERVAL, 1000);
-        verify(this.object).setStringValue(ATTACHMENTS_UNIT, "months");
-        assertEquals("The automatic purge interval [5000] of [deletedAttachments] in the [subwiki] settings is larger "
-            + "than the maximum. [1000] is used instead.", this.logCapture.getMessage(0));
-    }
-
-    @Test
     void writeWikiSettingsRejectsInvalidSettings()
     {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> this.mapper.writeSettings(this.object, WIKI_ID,
-                settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), INHERIT_DEFAULT)));
-
-        assertEquals("The interval of [deletedDocuments] must be between 1 and 1000, but was [0].",
-            exception.getMessage());
+        assertInvalidWikiSettings("The interval of [deletedDocuments] in the [subwiki] settings must be between 1 and "
+            + "1000, but was [0].",
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), INHERIT_DEFAULT));
+        // The interval and unit of an inherited or disabled type are validated too.
+        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 1 "
+            + "and 1000, but was [0].",
+            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, 0, IntervalUnit.MONTHS)));
+        assertInvalidWikiSettings("The interval unit of [deletedAttachments] in the [subwiki] settings is missing.",
+            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, 1, null)));
+        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 1 "
+            + "and 1000, but was [5000].",
+            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.DISABLED, 5000, IntervalUnit.MONTHS)));
         verifyNoInteractions(this.object);
+        assertEquals(0, this.logCapture.size());
     }
 
     private void mockSettings(String documentsMode, int documentsInterval, String documentsUnit, String attachmentsMode,
         int attachmentsInterval, String attachmentsUnit)
     {
         when(this.object.getStringValue(DOCUMENTS_MODE)).thenReturn(documentsMode);
-        when(this.object.getIntValue(DOCUMENTS_INTERVAL, 1)).thenReturn(documentsInterval);
+        when(this.object.getIntValue(DOCUMENTS_INTERVAL, 0)).thenReturn(documentsInterval);
         when(this.object.getStringValue(DOCUMENTS_UNIT)).thenReturn(documentsUnit);
         when(this.object.getStringValue(ATTACHMENTS_MODE)).thenReturn(attachmentsMode);
-        when(this.object.getIntValue(ATTACHMENTS_INTERVAL, 1)).thenReturn(attachmentsInterval);
+        when(this.object.getIntValue(ATTACHMENTS_INTERVAL, 0)).thenReturn(attachmentsInterval);
         when(this.object.getStringValue(ATTACHMENTS_UNIT)).thenReturn(attachmentsUnit);
         when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(20);
     }
@@ -327,6 +311,13 @@ class PurgeSettingsMapperTest
     {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> this.mapper.writeSettings(this.object, settings, maxHistoryEntries));
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    private void assertInvalidWikiSettings(String expectedMessage, Map<PurgeType, PurgeTypeSettings> settings)
+    {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> this.mapper.writeSettings(this.object, WIKI_ID, settings));
         assertEquals(expectedMessage, exception.getMessage());
     }
 
