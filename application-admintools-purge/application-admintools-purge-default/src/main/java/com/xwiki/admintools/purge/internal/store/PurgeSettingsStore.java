@@ -72,6 +72,7 @@ public class PurgeSettingsStore
     /**
      * @return the global settings; every item type is disabled if they were never saved
      * @throws XWikiException if the settings page can't be loaded
+     * @throws IllegalArgumentException if the stored history size is lower than 1
      */
     public GlobalPurgeSettings getGlobalSettings() throws XWikiException
     {
