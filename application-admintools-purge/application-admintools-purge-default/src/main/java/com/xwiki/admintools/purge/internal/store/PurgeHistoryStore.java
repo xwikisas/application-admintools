@@ -172,10 +172,6 @@ public class PurgeHistoryStore
      */
     public void deleteHistory(String wikiId) throws XWikiException
     {
-        // Most wikis were never purged: the cached page tells it without copying the page.
-        if (this.pageManager.getDocument(this.references.getHistoryPageReference(wikiId)).isNew()) {
-            return;
-        }
         Lock lock = this.pageManager.getWikiLock(wikiId);
         lock.lock();
         try {

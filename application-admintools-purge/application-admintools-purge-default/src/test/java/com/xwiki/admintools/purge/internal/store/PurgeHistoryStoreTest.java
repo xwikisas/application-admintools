@@ -314,9 +314,11 @@ class PurgeHistoryStoreTest
 
         this.store.deleteHistory(WIKI_ID);
 
-        // The cached page shows there is no history, so the page is neither locked nor copied.
-        verify(this.pageManager, never()).getWikiLock(anyString());
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        // The page is always checked under the lock, so that an entry being added can't leave the history behind.
+        InOrder inOrder = inOrder(this.wikiLock, this.pageManager);
+        inOrder.verify(this.wikiLock).lock();
+        inOrder.verify(this.pageManager).getDocumentCopy(this.wikiReference);
+        inOrder.verify(this.wikiLock).unlock();
         verify(this.pageManager, never()).delete(any());
     }
 

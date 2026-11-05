@@ -118,9 +118,9 @@ class PurgeSettingsMapperTest
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS)),
             settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(DISABLED_DEFAULT, settings.getTypeSettings(DELETED_ATTACHMENTS));
+        assertEquals(Optional.of(DISABLED_DEFAULT), settings.getTypeSettings(DELETED_ATTACHMENTS));
         assertEquals(0, this.logCapture.size());
     }
 
@@ -131,9 +131,9 @@ class PurgeSettingsMapperTest
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS)),
             settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS)),
             settings.getTypeSettings(DELETED_ATTACHMENTS));
         assertEquals("Invalid automatic purge mode [inherit] for [deletedDocuments] in the [GLOBAL SETTINGS] settings. "
             + "Using [disabled] instead.", this.logCapture.getMessage(0));
@@ -148,9 +148,9 @@ class PurgeSettingsMapperTest
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.DAYS),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.DAYS)),
             settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(new PurgeTypeSettings(PurgeMode.DISABLED, 5, IntervalUnit.MONTHS),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 5, IntervalUnit.MONTHS)),
             settings.getTypeSettings(DELETED_ATTACHMENTS));
         assertEquals(
             "Invalid automatic purge interval [0 days] for [deletedDocuments] in the [GLOBAL SETTINGS] " + "settings. "
@@ -243,30 +243,29 @@ class PurgeSettingsMapperTest
             settings(INHERIT_DEFAULT, DISABLED_DEFAULT), 20);
         assertInvalidGlobalSettings("The settings of [deletedAttachments] are missing.",
             new EnumMap<>(Map.of(DELETED_DOCUMENTS, DISABLED_DEFAULT)), 20);
-        assertInvalidGlobalSettings(
-            "The interval of [deletedDocuments] must be at least 1 with a unit, but was " + "[0 DAYS].",
+        assertInvalidGlobalSettings("The interval of [deletedDocuments] must be between 1 and 1000, but was [0].",
             settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), DISABLED_DEFAULT), 20);
-        assertInvalidGlobalSettings(
-            "The interval of [deletedAttachments] must be at least 1 with a unit, but was " + "[3 null].",
+        assertInvalidGlobalSettings("The interval of [deletedDocuments] must be between 1 and 1000, but was [1001].",
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1001, IntervalUnit.YEARS), DISABLED_DEFAULT), 20);
+        assertInvalidGlobalSettings("The interval of [deletedAttachments] must be between 1 and 1000, but was [3].",
             settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
-        assertInvalidGlobalSettings("The purge history size must be at least 1, but was [0].",
+        assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [0].",
             settings(DISABLED_DEFAULT, DISABLED_DEFAULT), 0);
+        assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [201].",
+            settings(DISABLED_DEFAULT, DISABLED_DEFAULT), 201);
         verifyNoInteractions(this.object);
+        assertEquals(0, this.logCapture.size());
     }
 
     @Test
-    void writeGlobalSettingsCapsTooLargeValues()
+    void writeGlobalSettingsWithLimitValues()
     {
         this.mapper.writeSettings(this.object,
-            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1001, IntervalUnit.YEARS), DISABLED_DEFAULT), 201);
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1000, IntervalUnit.YEARS), DISABLED_DEFAULT), 200);
 
         verify(this.object).setIntValue(DOCUMENTS_INTERVAL, 1000);
         verify(this.object).setIntValue(MAX_HISTORY_ENTRIES, 200);
-        assertEquals("The purge history size [201] is larger than the maximum. [200] is used instead.",
-            this.logCapture.getMessage(0));
-        assertEquals(
-            "The automatic purge interval [1001] of [deletedDocuments] in the [GLOBAL SETTINGS] settings is larger "
-                + "than the maximum. [1000] is used instead.", this.logCapture.getMessage(1));
+        assertEquals(0, this.logCapture.size());
     }
 
     @Test
@@ -306,7 +305,7 @@ class PurgeSettingsMapperTest
             () -> this.mapper.writeSettings(this.object, WIKI_ID,
                 settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), INHERIT_DEFAULT)));
 
-        assertEquals("The interval of [deletedDocuments] must be at least 1 with a unit, but was [0 DAYS].",
+        assertEquals("The interval of [deletedDocuments] must be between 1 and 1000, but was [0].",
             exception.getMessage());
         verifyNoInteractions(this.object);
     }

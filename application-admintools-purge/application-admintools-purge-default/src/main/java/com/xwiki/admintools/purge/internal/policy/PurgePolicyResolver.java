@@ -63,13 +63,14 @@ public class PurgePolicyResolver
      */
     public Optional<Instant> getExpirationDate(String wikiId, PurgeType type, ZonedDateTime now) throws XWikiException
     {
-        PurgeTypeSettings settings = this.settingsStore.getWikiSettings(wikiId).get(type);
-        if (settings == null || settings.getMode() == PurgeMode.INHERIT) {
+        Optional<PurgeTypeSettings> settings = Optional.ofNullable(this.settingsStore.getWikiSettings(wikiId).get(type))
+            .filter(wikiSettings -> wikiSettings.getMode() != PurgeMode.INHERIT);
+        if (settings.isEmpty()) {
+            // Not in a lambda, since loading the global settings can throw a checked exception.
             settings = this.settingsStore.getGlobalSettings().getTypeSettings(type);
         }
-        if (settings.getMode() != PurgeMode.ENABLED) {
-            return Optional.empty();
-        }
-        return Optional.of(this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
+        return settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).map(
+            typeSettings -> this.retentionCalculator.getExpirationDate(now, typeSettings.getInterval(),
+                typeSettings.getUnit()));
     }
 }

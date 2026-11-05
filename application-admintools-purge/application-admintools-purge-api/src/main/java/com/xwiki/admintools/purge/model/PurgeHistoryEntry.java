@@ -133,9 +133,11 @@ public final class PurgeHistoryEntry
     }
 
     /**
-     * Implementation used to help with testing.
+     * Compare with another history entry. They are equal when they have the same item type, date, user who triggered
+     * them, status, number of removed and failed items, and failures.
      *
-     * @return {@code true} if the objects are equals, or {@code false} otherwise.
+     * @param object the object to compare with
+     * @return {@code true} if the given object is an equal history entry, {@code false} otherwise
      */
     @Override
     public boolean equals(Object object)

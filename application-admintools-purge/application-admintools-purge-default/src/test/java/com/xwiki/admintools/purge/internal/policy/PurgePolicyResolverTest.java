@@ -113,17 +113,30 @@ class PurgePolicyResolverTest
         verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
     }
 
+    @Test
+    void getExpirationDateWithoutGlobalSettings() throws Exception
+    {
+        // An item type without global settings is not purged for the wikis that inherit them.
+        mockSettings(null, Map.of(DELETED_DOCUMENTS, INHERIT));
+        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
+
+        mockSettings(null, Map.of());
+        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
+
+        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
+    }
+
     /**
      * Make the test wiki use the given settings.
      *
-     * @param globalSettings the global settings of the deleted pages
+     * @param globalSettings the global settings of the deleted pages, or {@code null} if there are none
      * @param wikiSettings the settings of the test wiki
      */
     private void mockSettings(PurgeTypeSettings globalSettings, Map<PurgeType, PurgeTypeSettings> wikiSettings)
         throws Exception
     {
         GlobalPurgeSettings settings = mock(GlobalPurgeSettings.class);
-        when(settings.getTypeSettings(DELETED_DOCUMENTS)).thenReturn(globalSettings);
+        when(settings.getTypeSettings(DELETED_DOCUMENTS)).thenReturn(Optional.ofNullable(globalSettings));
         when(this.settingsStore.getGlobalSettings()).thenReturn(settings);
         when(this.settingsStore.getWikiSettings(WIKI_ID)).thenReturn(wikiSettings);
     }

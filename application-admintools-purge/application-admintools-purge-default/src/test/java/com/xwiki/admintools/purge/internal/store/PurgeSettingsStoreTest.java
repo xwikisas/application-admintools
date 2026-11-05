@@ -35,6 +35,7 @@ import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
@@ -95,6 +96,9 @@ class PurgeSettingsStoreTest
     @MockComponent
     private PurgeSettingsMapper mapper;
 
+    @MockComponent
+    private WikiDescriptorManager wikiDescriptorManager;
+
     @Mock
     private DocumentReference settingsReference;
 
@@ -129,6 +133,7 @@ class PurgeSettingsStoreTest
         when(this.document.getXObjects(this.settingsClass)).thenReturn(this.objects);
         when(this.mapper.readWiki(any())).thenReturn(Optional.empty());
         when(this.mapper.readWiki(this.wikiObject)).thenReturn(Optional.of(WIKI_ID));
+        when(this.wikiDescriptorManager.exists(WIKI_ID)).thenReturn(true);
         this.objects.addAll(Arrays.asList(null, this.globalObject, this.wikiObject));
     }
 
@@ -215,12 +220,29 @@ class PurgeSettingsStoreTest
     {
         this.store.saveWikiSettings(WIKI_ID, CUSTOM_SETTINGS);
 
-        InOrder inOrder = inOrder(this.lock, this.mapper, this.pageManager);
+        // The wiki is checked under the lock, so that it can't be deleted before its settings are saved.
+        InOrder inOrder = inOrder(this.lock, this.wikiDescriptorManager, this.mapper, this.pageManager);
         inOrder.verify(this.lock).lock();
+        inOrder.verify(this.wikiDescriptorManager).exists(WIKI_ID);
         inOrder.verify(this.mapper).writeSettings(this.wikiObject, WIKI_ID, CUSTOM_SETTINGS);
         inOrder.verify(this.pageManager).save(this.document, "Updated the automatic purge settings of wiki [subwiki].");
         inOrder.verify(this.lock).unlock();
         verify(this.pageManager, never()).createObject(any(), any());
+    }
+
+    @Test
+    void saveWikiSettingsOfMissingWiki() throws Exception
+    {
+        IllegalArgumentException exception =
+            assertThrows(IllegalArgumentException.class, () -> this.store.saveWikiSettings("other", CUSTOM_SETTINGS));
+
+        assertEquals("The wiki [other] doesn't exist.", exception.getMessage());
+        InOrder inOrder = inOrder(this.lock, this.wikiDescriptorManager);
+        inOrder.verify(this.lock).lock();
+        inOrder.verify(this.wikiDescriptorManager).exists("other");
+        inOrder.verify(this.lock).unlock();
+        verify(this.mapper, never()).writeSettings(any(), anyString(), any());
+        verify(this.pageManager, never()).save(any(), anyString());
     }
 
     @Test
@@ -250,9 +272,11 @@ class PurgeSettingsStoreTest
     {
         this.store.removeWikiSettings("other");
 
-        // The cached page shows there is nothing to remove, so the page is neither locked nor copied.
-        verify(this.pageManager, never()).getGlobalLock();
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        // The page is always checked under the lock, so that a save in progress can't leave the settings behind.
+        InOrder inOrder = inOrder(this.lock, this.pageManager);
+        inOrder.verify(this.lock).lock();
+        inOrder.verify(this.pageManager).getDocumentCopy(this.settingsReference);
+        inOrder.verify(this.lock).unlock();
         verify(this.document, never()).removeXObject(any());
         verify(this.pageManager, never()).save(any(), anyString());
     }
