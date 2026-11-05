@@ -22,6 +22,7 @@ package com.xwiki.admintools.purge.internal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
 import com.xwiki.admintools.purge.internal.job.PurgeJob;
 import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
+import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
+import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
 import com.xwiki.admintools.purge.jobs.PurgeJobRequest;
 import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.licensing.Licensor;
@@ -69,8 +72,8 @@ public class PurgeManager
     private static final List<String> LICENSED_PAGE_SPACE = List.of("AdminTools", "Code");
 
     /**
-     * The context entries a purge job runs with: the user who started it and the current wiki. The purge itself
-     * doesn't depend on that wiki, since the handlers switch to the purged wiki.
+     * The context entries a purge job runs with: the user who started it and the current wiki. The purge itself doesn't
+     * depend on that wiki, since the handlers switch to the purged wiki.
      */
     private static final List<String> JOB_CONTEXT = List.of("user", "wiki");
 
@@ -82,6 +85,12 @@ public class PurgeManager
 
     @Inject
     private PurgePolicyResolver policyResolver;
+
+    @Inject
+    private PurgeSettingsStore settingsStore;
+
+    @Inject
+    private PurgeHistoryStore historyStore;
 
     @Inject
     private Map<String, PurgeHandler> handlers;
@@ -97,7 +106,8 @@ public class PurgeManager
 
     /**
      * Start a purge job for each wiki and enabled item type that has items past its limit. A wiki and item type whose
-     * previous purge job is still queued or running is skipped.
+     * previous purge job is still queued or running is skipped. The settings and the purge history left behind by
+     * deleted wikis are removed first.
      *
      * @throws JobException if the license of Admin Tools is not active, in which case nothing is purged
      * @throws WikiManagerException if the wikis can't be listed
@@ -108,7 +118,9 @@ public class PurgeManager
             throw new JobException("The automatic purge of the recycle bins was not started, since the Admin Tools "
                 + "license is not active.");
         }
-        for (String wikiId : this.wikiDescriptorManager.getAllIds()) {
+        Collection<String> wikiIds = this.wikiDescriptorManager.getAllIds();
+        removeDataOfDeletedWikis(wikiIds);
+        for (String wikiId : wikiIds) {
             for (PurgeType type : PurgeType.values()) {
                 try {
                     startPurge(wikiId, type, null);
@@ -172,6 +184,31 @@ public class PurgeManager
         return licensor != null && licensor.hasLicensure(
             new DocumentReference(this.wikiDescriptorManager.getMainWikiId(), LICENSED_PAGE_SPACE,
                 "ConfigurationClass"));
+    }
+
+    /**
+     * Remove the settings and the purge history of the wikis that no longer exist, left behind when their removal
+     * failed after the wikis were deleted, or when the wikis were deleted while Admin Tools was not installed. A
+     * failure is logged, without stopping the purge.
+     *
+     * @param wikiIds the identifiers of the existing wikis
+     */
+    private void removeDataOfDeletedWikis(Collection<String> wikiIds)
+    {
+        try {
+            for (String wikiId : this.settingsStore.getWikiIdsWithSettings()) {
+                if (!wikiIds.contains(wikiId)) {
+                    this.settingsStore.removeWikiSettings(wikiId);
+                }
+            }
+            for (String wikiId : this.historyStore.getWikiIdsWithHistory()) {
+                if (!wikiIds.contains(wikiId)) {
+                    this.historyStore.deleteHistory(wikiId);
+                }
+            }
+        } catch (Exception e) {
+            this.logger.error("Failed to remove the automatic purge data of the deleted wikis.", e);
+        }
     }
 
     /**
