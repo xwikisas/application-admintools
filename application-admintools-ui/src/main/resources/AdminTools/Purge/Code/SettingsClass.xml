@@ -1,0 +1,206 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Purge.Code.SettingsClass" locale="">
+  <web>AdminTools.Purge.Code</web>
+  <name>SettingsClass</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>XWiki.XWikiClasses</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Purge Settings Class</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content/>
+  <class>
+    <name>AdminTools.Purge.Code.SettingsClass</name>
+    <customClass/>
+    <customMapping/>
+    <defaultViewSheet/>
+    <defaultEditSheet/>
+    <defaultWeb/>
+    <nameField/>
+    <validationScript/>
+    <deletedAttachmentsInterval>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>deletedAttachmentsInterval</name>
+      <number>5</number>
+      <numberType>integer</numberType>
+      <prettyName>deletedAttachmentsInterval</prettyName>
+      <size>10</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </deletedAttachmentsInterval>
+    <deletedAttachmentsMode>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>inherit</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>deletedAttachmentsMode</name>
+      <number>4</number>
+      <picker>0</picker>
+      <prettyName>deletedAttachmentsMode</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>inherit|enabled|disabled</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </deletedAttachmentsMode>
+    <deletedAttachmentsUnit>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>months</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>deletedAttachmentsUnit</name>
+      <number>6</number>
+      <picker>0</picker>
+      <prettyName>deletedAttachmentsUnit</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>days|weeks|months|years</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </deletedAttachmentsUnit>
+    <deletedDocumentsInterval>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>deletedDocumentsInterval</name>
+      <number>2</number>
+      <numberType>integer</numberType>
+      <prettyName>deletedDocumentsInterval</prettyName>
+      <size>10</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </deletedDocumentsInterval>
+    <deletedDocumentsMode>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>inherit</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>deletedDocumentsMode</name>
+      <number>1</number>
+      <picker>0</picker>
+      <prettyName>deletedDocumentsMode</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>inherit|enabled|disabled</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </deletedDocumentsMode>
+    <deletedDocumentsUnit>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>months</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>deletedDocumentsUnit</name>
+      <number>3</number>
+      <picker>0</picker>
+      <prettyName>deletedDocumentsUnit</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>days|weeks|months|years</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </deletedDocumentsUnit>
+    <maxHistoryEntries>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>maxHistoryEntries</name>
+      <number>7</number>
+      <numberType>integer</numberType>
+      <prettyName>maxHistoryEntries</prettyName>
+      <size>10</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </maxHistoryEntries>
+    <wiki>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>wiki</name>
+      <number>8</number>
+      <picker>0</picker>
+      <prettyName>wiki</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </wiki>
+  </class>
+</xwikidoc>
