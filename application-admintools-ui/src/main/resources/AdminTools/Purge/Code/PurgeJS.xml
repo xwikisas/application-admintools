@@ -1,0 +1,706 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Purge.Code.PurgeJS" locale="">
+  <web>AdminTools.Purge.Code</web>
+  <name>PurgeJS</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.Purge.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>PurgeJS</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content/>
+  <object>
+    <name>AdminTools.Purge.Code.PurgeJS</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>f2661065-759c-4992-899b-26e831a6c043</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>define('admin-tools-purge-messages', {
+  prefix: 'adminTools.purge.js.',
+  keys: [
+    'saving',
+    'saved',
+    'loading',
+    'loadFailed',
+    'nothingExpired',
+    'expired',
+    'expiredOne',
+    'error.400',
+    'error.401',
+    'error.402',
+    'error.403',
+    'error.404',
+    'error.generic',
+    'error.number'
+  ]
+});
+
+require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], function($, l10n) {
+  'use strict';
+
+  const types = ['deletedDocuments', 'deletedAttachments'];
+  const restURL = XWiki.contextPath + '/rest/admintools/autopurge';
+  const jsonURL = new XWiki.Document(XWiki.Model.resolve('AdminTools.Purge.Code.PurgeJSON',
+    XWiki.EntityType.DOCUMENT)).getURL('get');
+  // While the history shows a purge in progress, it is refreshed more and more rarely, and no longer after a few
+  // minutes: a purge of one wiki shouldn't take that long, and the history can still be refreshed manually. In
+  // milliseconds.
+  const minRefreshDelay = 2000;
+  const maxRefreshDelay = 10000;
+  const maxRefreshDuration = 5 * 60 * 1000;
+
+  const getErrorMessage = function(xhr) {
+    return l10n.get([400, 401, 402, 403, 404].includes(xhr.status) ? 'error.' + xhr.status : 'error.generic');
+  };
+
+  /**
+   * Send a request changing the automatic purge, and report its progress and outcome when messages are given. Errors
+   * are always reported. XWiki adds the form token expected by the REST resource to the headers of the request.
+   */
+  const send = function(method, path, data, progressMessage, successMessage) {
+    const notification = progressMessage ? new XWiki.widgets.Notification(progressMessage, 'inprogress') : null;
+    return $.ajax({
+      url: restURL + path,
+      type: method,
+      data: data,
+      traditional: true
+    }).done(function() {
+      if (notification &amp;&amp; successMessage) {
+        notification.replace(new XWiki.widgets.Notification(successMessage, 'done'));
+      } else if (notification) {
+        notification.hide();
+      }
+    }).fail(function(xhr) {
+      const error = new XWiki.widgets.Notification(getErrorMessage(xhr), 'error');
+      if (notification) {
+        notification.replace(error);
+      }
+    });
+  };
+
+  const post = function(path, data, progressMessage, successMessage) {
+    return send('POST', path, data, progressMessage, successMessage);
+  };
+
+  const getTypeContainer = function(form, type) {
+    return form.find('.purge-type[data-type="' + type + '"]');
+  };
+
+  const getWikiPath = function(wikiId) {
+    return '/wikis/' + encodeURIComponent(wikiId);
+  };
+
+  const refreshLiveData = function(id) {
+    const liveData = $('#' + id).data('liveData');
+    if (liveData) {
+      liveData.updateEntries();
+    }
+  };
+
+  /**
+   * Add the interval and unit of an enabled item type to the submitted data. They are left out for an item type that
+   * is not enabled, which keeps its stored ones for when it is enabled again.
+   */
+  const addInterval = function(data, typeContainer, type) {
+    const interval = getInterval(typeContainer);
+    if (interval) {
+      data[type + 'Interval'] = interval;
+      data[type + 'Unit'] = typeContainer.find('.purge-unit').val();
+    }
+  };
+
+  /**
+   * Get the interval of an item type, if it is a valid one.
+   */
+  const getInterval = function(typeContainer) {
+    const input = typeContainer.find('.purge-interval');
+    return getNumberError(input) ? null : input.val();
+  };
+
+  /**
+   * Check a number field against its `min` and `max` attributes.
+   *
+   * @return the translated error message, or `null` if the value is valid
+   */
+  const getNumberError = function(input) {
+    const value = input.val();
+    const min = parseInt(input.attr('min'), 10);
+    const max = parseInt(input.attr('max'), 10);
+    if (!/^\d+$/.test(value) || parseInt(value, 10) &lt; min || parseInt(value, 10) &gt; max) {
+      return l10n.get('error.number', min, max);
+    }
+    return null;
+  };
+
+  /**
+   * Check number fields, and show a translated message under each invalid one. The validation of the browser is not
+   * used, since its messages follow the language of the browser instead of the language of the wiki.
+   *
+   * @return `true` if all the fields are valid
+   */
+  const validateNumbers = function(inputs) {
+    inputs.each(function() {
+      const input = $(this);
+      const error = getNumberError(input);
+      // The message goes under the fields of the interval, or under the field itself.
+      const fields = input.closest('.purge-interval-fields');
+      const messageAnchor = fields.length ? fields : input;
+      messageAnchor.next('.purge-error').remove();
+      input.attr('aria-invalid', error ? 'true' : 'false').closest('.form-group').toggleClass('has-error', !!error);
+      if (error) {
+        $('&lt;span class="help-block purge-error"&gt;').text(error).insertAfter(messageAnchor);
+      }
+    });
+    const invalidInputs = inputs.filter('[aria-invalid="true"]');
+    invalidInputs.first().trigger('focus');
+    return invalidInputs.length === 0;
+  };
+
+  /**
+   * Remove the messages of a previous validation, when a modal opens or when the fields of an item type are disabled,
+   * since a disabled field is neither checked nor saved.
+   */
+  const clearErrors = function(container) {
+    container.find('.purge-error').remove();
+    container.find('.has-error').addBack('.has-error').removeClass('has-error');
+    container.find('[aria-invalid]').removeAttr('aria-invalid');
+  };
+
+  $(document).on('show.bs.modal', '.purge-modal', function() {
+    clearErrors($(this));
+  });
+
+  // A stored limit can only be invalid after a manual edit: its error is shown as soon as the settings are opened.
+  $(document).on('shown.bs.modal', '#purgeDefaultsModal, #purgeWikiModal', function() {
+    validateNumbers($(this).find('input[type="number"]:enabled'));
+  });
+
+  // The error of a setting is shown while it is typed, not only when the settings are saved.
+  $(document).on('input', '#purgeDefaultsForm input[type="number"], #purgeWikiForm input[type="number"]', function() {
+    validateNumbers($(this));
+  });
+
+  // The default settings.
+  const updateDefaultFields = function(typeContainer) {
+    const enabled = typeContainer.find('.purge-enable').prop('checked');
+    typeContainer.find('.purge-interval-fields :input').prop('disabled', !enabled);
+    if (!enabled) {
+      clearErrors(typeContainer);
+    }
+  };
+
+  $(document).on('change', '#purgeDefaultsForm .purge-enable', function() {
+    updateDefaultFields($(this).closest('.purge-type'));
+  });
+
+  const getDefaultsFormState = function(form) {
+    const state = {maxHistoryEntries: form.find('[name="maxHistoryEntries"]').val()};
+    types.forEach(type =&gt; {
+      const typeContainer = getTypeContainer(form, type);
+      state[type] = {
+        enabled: typeContainer.find('.purge-enable').prop('checked'),
+        interval: typeContainer.find('.purge-interval').val(),
+        unit: typeContainer.find('.purge-unit').val()
+      };
+    });
+    return state;
+  };
+
+  const setDefaultsFormState = function(form, state) {
+    form.find('[name="maxHistoryEntries"]').val(state.maxHistoryEntries);
+    types.forEach(type =&gt; {
+      const typeContainer = getTypeContainer(form, type);
+      typeContainer.find('.purge-enable').prop('checked', state[type].enabled);
+      typeContainer.find('.purge-interval').val(state[type].interval);
+      typeContainer.find('.purge-unit').val(state[type].unit);
+      updateDefaultFields(typeContainer);
+    });
+  };
+
+  // The default settings as last saved, so that the changes of a cancelled edit are undone when the modal opens again.
+  // The form holds them until it is first opened.
+  let savedDefaults;
+  $(document).on('show.bs.modal', '#purgeDefaultsModal', function() {
+    const form = $(this).find('form');
+    if (savedDefaults) {
+      setDefaultsFormState(form, savedDefaults);
+    } else {
+      savedDefaults = getDefaultsFormState(form);
+    }
+  });
+
+  $(document).on('submit', '#purgeDefaultsForm', function(event) {
+    event.preventDefault();
+    const form = $(this);
+    // The fields of the item types that are not purged automatically are disabled, and not checked.
+    if (!validateNumbers(form.find('input[type="number"]:enabled'))) {
+      return;
+    }
+    const data = {maxHistoryEntries: form.find('[name="maxHistoryEntries"]').val()};
+    types.forEach(type =&gt; {
+      const typeContainer = getTypeContainer(form, type);
+      const enabled = typeContainer.find('.purge-enable').prop('checked');
+      data[type + 'Mode'] = enabled ? 'enabled' : 'disabled';
+      if (enabled) {
+        addInterval(data, typeContainer, type);
+      }
+    });
+    const state = getDefaultsFormState(form);
+    post('/settings', data, l10n.get('saving'), l10n.get('saved')).done(function() {
+      savedDefaults = state;
+      $('#purgeDefaultsModal').modal('hide');
+      refreshDefaults();
+      refreshLiveData('purgeWikis');
+    });
+  });
+
+  /**
+   * Update the summary of the default settings once they were saved.
+   */
+  const refreshDefaults = function() {
+    $.getJSON(jsonURL, {data: 'defaults'}).done(function(summary) {
+      Object.keys(summary).forEach(key =&gt; $('.purge-defaults-' + key).text(summary[key]));
+    });
+  };
+
+  // The settings of a wiki.
+  const setWikiName = function(modal, wikiName) {
+    modal.data('wikiName', wikiName).find('.purge-wiki-name').text(wikiName);
+  };
+
+  const updateCustomFields = function(typeContainer) {
+    const custom = typeContainer.find('.purge-mode:checked').val() === 'enabled';
+    typeContainer.find('.purge-interval-fields :input').prop('disabled', !custom);
+    if (!custom) {
+      clearErrors(typeContainer);
+    }
+  };
+
+  $(document).on('click', '.purge-edit', function() {
+    const wiki = $(this).data('purge');
+    const modal = $('#purgeWikiModal').data('wikiId', wiki.wikiId);
+    setWikiName(modal, wiki.wikiName);
+    types.forEach(type =&gt; {
+      const settings = wiki.types[type];
+      const typeContainer = getTypeContainer(modal, type);
+      typeContainer.find('.purge-mode[value="' + settings.mode + '"]').prop('checked', true);
+      typeContainer.find('.purge-default-label').text(settings.defaultLabel);
+      typeContainer.find('.purge-interval').val(settings.interval);
+      // An item type that is not enabled can have no stored unit: months is selected, as in the other forms.
+      typeContainer.find('.purge-unit').val(settings.unit || 'months');
+      updateCustomFields(typeContainer);
+    });
+    modal.modal('show');
+  });
+
+  $(document).on('change', '#purgeWikiForm .purge-mode', function() {
+    updateCustomFields($(this).closest('.purge-type'));
+  });
+
+  // Save the settings of the wiki of the modal, or remove them (method DELETE) so that it uses the defaults.
+  const updateWikiSettings = function(method, data) {
+    const modal = $('#purgeWikiModal');
+    send(method, getWikiPath(modal.data('wikiId')) + '/settings', data, l10n.get('saving'), l10n.get('saved'))
+      .done(function() {
+        modal.modal('hide');
+        refreshLiveData('purgeWikis');
+      });
+  };
+
+  $(document).on('submit', '#purgeWikiForm', function(event) {
+    event.preventDefault();
+    const form = $(this);
+    // Only the custom limits are enabled, and checked.
+    if (!validateNumbers(form.find('input[type="number"]:enabled'))) {
+      return;
+    }
+    const data = {};
+    types.forEach(type =&gt; {
+      const typeContainer = getTypeContainer(form, type);
+      const mode = typeContainer.find('.purge-mode:checked').val();
+      data[type + 'Mode'] = mode;
+      if (mode === 'enabled') {
+        addInterval(data, typeContainer, type);
+      }
+    });
+    updateWikiSettings('POST', data);
+  });
+
+  $(document).on('click', '#purgeWikiForm .purge-reset', function() {
+    updateWikiSettings('DELETE');
+  });
+
+  // The manual purge of a wiki.
+  /**
+   * Enable the purge button only when a selected item type has items older than its limit.
+   */
+  const updatePurgeButton = function(form) {
+    const hasItems = form.find('input[name="type"]:checked').closest('.purge-type').get()
+      .some(typeContainer =&gt; $(typeContainer).data('count') &gt; 0);
+    form.find('button[type="submit"]').prop('disabled', !hasItems);
+  };
+
+  /**
+   * Show how many items of an item type are past its limit, and remember it for the purge button.
+   */
+  const showCount = function(typeContainer, count) {
+    let label = '';
+    if (count === 0) {
+      label = '(' + l10n.get('nothingExpired') + ')';
+    } else if (count === 1) {
+      label = '(' + l10n.get('expiredOne') + ')';
+    } else if (count !== undefined) {
+      label = '(' + l10n.get('expired', count) + ')';
+    }
+    typeContainer.find('.purge-count').text(label);
+    // Not counted (undefined) is stored as 0, since data(key, undefined) would only read the stored count.
+    typeContainer.data('count', count || 0);
+  };
+
+  // Only the response of the newest preview request is shown, and a request identical to the previous one is not sent.
+  let previewRequest = 0;
+  let previewParams;
+  let previewTimeout;
+
+  /**
+   * Count the items past the limit of each item type. The first time, the limits are the stored ones, which fill the
+   * fields; afterwards, they are the ones in the fields.
+   */
+  const updatePreview = function(form, fillFields) {
+    const params = {};
+    if (!fillFields) {
+      types.forEach(type =&gt; addInterval(params, getTypeContainer(form, type), type));
+    }
+    const paramsJSON = JSON.stringify(params);
+    if (!fillFields &amp;&amp; paramsJSON === previewParams) {
+      return;
+    }
+    previewParams = paramsJSON;
+    const requestNumber = ++previewRequest;
+    form.find('.purge-count').text('(' + l10n.get('loading') + ')');
+    const previewURL = restURL + getWikiPath(form.closest('.modal').data('wikiId')) + '/preview';
+    $.getJSON(previewURL, params).done(function(preview) {
+      if (requestNumber !== previewRequest) {
+        return;
+      }
+      types.forEach(type =&gt; {
+        const typeContainer = getTypeContainer(form, type);
+        const typePreview = preview[type];
+        if (fillFields) {
+          typeContainer.find('.purge-interval').val(typePreview.interval);
+          typeContainer.find('.purge-unit').val(typePreview.unit);
+          typeContainer.find('.purge-disabled-note').toggleClass('hidden', typePreview.enabled);
+        }
+        // An invalid limit was not sent, so its count is the one of the stored limit.
+        showCount(typeContainer, getInterval(typeContainer) ? typePreview.count : undefined);
+      });
+      updatePurgeButton(form);
+    }).fail(function(xhr) {
+      if (requestNumber === previewRequest) {
+        form.find('.purge-count').text('');
+        new XWiki.widgets.Notification(getErrorMessage(xhr), 'error');
+      }
+    });
+  };
+
+  $(document).on('click', '.purge-now', function() {
+    // A preview still waiting for the modal of another wiki would replace the one of this wiki.
+    clearTimeout(previewTimeout);
+    const wiki = $(this).data('purge');
+    const modal = $('#purgeNowModal').data({wikiId: wiki.wikiId, wiki: wiki});
+    const form = modal.find('form');
+    setWikiName(modal, wiki.wikiName);
+    form.find('input[name="type"]').prop('checked', false);
+    form.find('.purge-interval-fields :input').prop('disabled', true);
+    form.find('.purge-type').removeData('count');
+    form.find('.purge-interval').val('');
+    form.find('.purge-disabled-note, .purge-nothing-started').addClass('hidden');
+    updatePurgeButton(form);
+    modal.modal('show');
+    updatePreview(form, true);
+  });
+
+  // Count the items again once the user stops changing a limit.
+  $(document).on('input change', '#purgeNowForm .purge-interval, #purgeNowForm .purge-unit', function() {
+    const form = $(this).closest('form');
+    const typeContainer = $(this).closest('.purge-type');
+    clearTimeout(previewTimeout);
+    // An invalid limit isn't counted, and its item type can't be purged until it is fixed.
+    if (!validateNumbers(typeContainer.find('.purge-interval'))) {
+      showCount(typeContainer, undefined);
+      updatePurgeButton(form);
+      return;
+    }
+    previewTimeout = setTimeout(() =&gt; updatePreview(form, false), 400);
+  });
+
+  $(document).on('change', '#purgeNowForm input[name="type"]', function() {
+    const typeContainer = $(this).closest('.purge-type');
+    typeContainer.find('.purge-interval-fields :input').prop('disabled', !this.checked);
+    if (!this.checked) {
+      clearErrors(typeContainer);
+    }
+    updatePurgeButton($(this).closest('form'));
+  });
+
+  $(document).on('submit', '#purgeNowForm', function(event) {
+    event.preventDefault();
+    const modal = $('#purgeNowModal');
+    const form = $(this);
+    // Only the limits of the selected item types are checked.
+    if (!validateNumbers(form.find('input[name="type"]:checked').closest('.purge-type').find('.purge-interval'))) {
+      return;
+    }
+    const wiki = modal.data('wiki');
+    const data = {type: form.find('input[name="type"]:checked').map((index, input) =&gt; input.value).get()};
+    data.type.forEach(type =&gt; addInterval(data, getTypeContainer(form, type), type));
+    form.find('.purge-nothing-started').addClass('hidden');
+    form.find('button[type="submit"]').prop('disabled', true);
+    post(getWikiPath(wiki.wikiId) + '/purge', data).done(function(jobIds) {
+      if (jobIds.length === 0) {
+        // Nothing older than the limits, or a purge of the wiki already running.
+        form.find('.purge-nothing-started').removeClass('hidden');
+        updatePurgeButton(form);
+      } else {
+        // The history shows the started purges while they run, then their outcome.
+        modal.modal('hide');
+        openHistory(wiki);
+      }
+    }).fail(function() {
+      updatePurgeButton(form);
+    });
+  });
+
+  // The purge history of a wiki.
+  let historyRefreshTimeout;
+
+  /**
+   * Refresh the history while it shows a purge in progress, more and more rarely, until the deadline.
+   */
+  const refreshHistory = function(delay, deadline) {
+    const liveData = $('#purgeHistory').data('liveData');
+    if (!liveData) {
+      return;
+    }
+    liveData.updateEntries().then(() =&gt; {
+      const modal = $('#purgeHistoryModal');
+      const inProgress = liveData.data.data.entries.some(entry =&gt; entry.inProgress);
+      if (!modal.data('open') || !inProgress) {
+        return;
+      }
+      if (Date.now() + delay &gt; deadline) {
+        modal.find('.purge-history-stopped').removeClass('hidden');
+      } else {
+        historyRefreshTimeout =
+          setTimeout(() =&gt; refreshHistory(Math.min(delay * 2, maxRefreshDelay), deadline), delay);
+      }
+    });
+  };
+
+  const startHistoryRefresh = function() {
+    clearTimeout(historyRefreshTimeout);
+    $('#purgeHistoryModal .purge-history-stopped').addClass('hidden');
+    refreshHistory(minRefreshDelay, Date.now() + maxRefreshDuration);
+  };
+
+  /**
+   * Show the purge history of a wiki, from its first page, without the filters chosen for another wiki.
+   */
+  const openHistory = function(wiki) {
+    const modal = $('#purgeHistoryModal');
+    setWikiName(modal, wiki.wikiName);
+    const liveData = $('#purgeHistory').data('liveData');
+    if (liveData) {
+      liveData.data.query.source.wikiId = wiki.wikiId;
+      liveData.data.query.filters = [];
+      liveData.data.query.offset = 0;
+    }
+    modal.data('open', true).modal('show');
+    startHistoryRefresh();
+  };
+
+  $(document).on('click', '.purge-history', function() {
+    openHistory($(this).data('purge'));
+  });
+
+  $(document).on('click', '.purge-history-refresh', startHistoryRefresh);
+
+  // Stop refreshing the history once it is closed, and show the newest purges in the table of the wikis.
+  $(document).on('hidden.bs.modal', '#purgeHistoryModal', function() {
+    $(this).data('open', false);
+    clearTimeout(historyRefreshTimeout);
+    refreshLiveData('purgeWikis');
+  });
+
+  /**
+   * Show the failures of the newest purge of an item type of a wiki.
+   */
+  const showFailures = function(wikiId, wikiName, type) {
+    const modal = $('#purgeFailuresModal');
+    const tableBody = modal.find('tbody').empty();
+    modal.find('.purge-failures-subtitle, .purge-failures-summary').text('');
+    modal.find('.purge-recycle-bin').addClass('hidden');
+    modal.modal('show');
+    $.getJSON(jsonURL, {data: 'failures', wikiId: wikiId, type: type}).done(function(failures) {
+      modal.find('.purge-failures-subtitle').text([wikiName, failures.type, failures.date].join(' \u00b7 '));
+      modal.find('.purge-failures-summary').text(failures.summary);
+      failures.failures.forEach(failure =&gt; {
+        const itemCell = $('&lt;td&gt;').text(failure.item);
+        tableBody.append($('&lt;tr&gt;').append(itemCell, $('&lt;td&gt;').text(failure.error)));
+      });
+      modal.find('.purge-recycle-bin').attr('href', failures.recycleBinURL).removeClass('hidden');
+    }).fail(function() {
+      new XWiki.widgets.Notification(l10n.get('loadFailed'), 'error');
+    });
+  };
+
+  $(document).on('click', '.purge-failures', function(event) {
+    event.preventDefault();
+    const link = $(this);
+    // The links of the history don't hold the wiki name, which is shown by the history modal.
+    showFailures(link.data('wikiId'), link.data('wikiName') || $('#purgeHistoryModal').data('wikiName'),
+      link.data('type'));
+  });
+
+  // Show the failures modal and its backdrop over the history modal. The z-index is computed from the one of the
+  // history modal, since the skin extensions of other applications can change the z-index of the modals.
+  $(document).on('show.bs.modal', '#purgeFailuresModal', function() {
+    const historyModal = $('#purgeHistoryModal.in');
+    if (historyModal.length) {
+      const zIndex = parseInt(historyModal.css('z-index'), 10);
+      const modal = $(this).css('z-index', zIndex + 2);
+      // The backdrop is added once the modal starts to show.
+      setTimeout(() =&gt; $(modal.data('bs.modal').$backdrop).css('z-index', zIndex + 1));
+    }
+  });
+
+  // Keep the page from scrolling when the failures modal closes over the history modal.
+  $(document).on('hidden.bs.modal', '#purgeFailuresModal', function() {
+    $(this).css('z-index', '');
+    if ($('.purge-modal.in').length &gt; 0) {
+      $('body').addClass('modal-open');
+    }
+  });
+});</code>
+    </property>
+    <property>
+      <name>Purge</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+</xwikidoc>

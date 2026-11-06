@@ -1,0 +1,413 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="AdminTools.Purge.Code.PurgeJSON" locale="">
+  <web>AdminTools.Purge.Code</web>
+  <name>PurgeJSON</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>AdminTools.Purge.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>PurgeJSON</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="AdminTools.Purge.Code.Macros"/}}
+
+{{velocity output="false"}}
+## Read the paging of a LiveData request: $offset starts at 0, while the live table source sends it from 1.
+#macro (readPaging)
+  #set ($offset = $numbertool.toNumber($request.offset).intValue())
+  #set ($offset = $offset - 1)
+  #if (!$offset || $offset &lt; 0)
+    #set ($offset = 0)
+  #end
+  #set ($limit = $numbertool.toNumber($request.limit).intValue())
+  #if (!$limit || $limit &lt; 1)
+    #set ($limit = 15)
+  #end
+#end
+
+## The rows of the current page.
+#macro (getPage $allRows)
+  #set ($purgePage = [])
+  #if ($offset &lt; $allRows.size())
+    #set ($purgePage = $allRows.subList($offset, $mathtool.min($mathtool.add($offset, $limit), $allRows.size())))
+  #end
+#end
+
+## The response of a LiveData request.
+#macro (liveDataResponse $rows $total)
+  #jsonResponse({
+    'totalrows': $total,
+    'returnedrows': $rows.size(),
+    'offset': $mathtool.add($offset, 1),
+    'reqNo': $numbertool.toNumber($request.reqNo).intValue(),
+    'rows': $rows
+  })
+#end
+
+## The formatted date of a history entry.
+#macro (getPurgeDate $entry)
+  #set ($purgeDate = $xwiki.formatDate($datetool.toDate($entry.date.toEpochMilli())))
+#end
+
+## The status of a history entry, as a coloured label. A manual purge that found nothing to remove is shown as such.
+#macro (getPurgeStatusLabel $entry)
+  #set ($statusId = $entry.status.id)
+  #if ($statusId == 'success' &amp;&amp; $entry.triggeredBy.isPresent() &amp;&amp; $entry.removedCount == 0)
+    #set ($purgeStatusText = $services.localization.render('adminTools.purge.status.noExpired'))
+  #else
+    #set ($purgeStatusText = $services.localization.render("AdminTools.Purge.Code.HistoryClass_status_${statusId}"))
+  #end
+  #set ($purgeStatusClasses = {'success': 'success', 'partial': 'warning', 'failed': 'danger',
+    'interrupted': 'default'})
+  #set ($purgeStatusLabel =
+    "&lt;span class='label label-$purgeStatusClasses.get($statusId)'&gt;$escapetool.xml($purgeStatusText)&lt;/span&gt;")
+#end
+
+## The link opening the failures of the newest purge of an item type of a wiki.
+#macro (getPurgeFailuresLink $wikiId $wikiName $type $failedCount)
+  #set ($purgeFailuresLabel = $services.localization.render('adminTools.purge.status.viewFailures', [$failedCount]))
+  #set ($purgeFailuresLink = "&lt;a href='#' role='button' class='purge-failures'
+    data-wiki-id='$escapetool.xml($wikiId)' data-wiki-name='$escapetool.xml($wikiName)'
+    data-type='$escapetool.xml($type)'&gt;$escapetool.xml($purgeFailuresLabel)&lt;/a&gt;")
+#end
+
+## The newest purge of an item type of a wiki, shown in the wikis LiveData.
+#macro (getPurgeLastPurgeHTML $wiki $type $entry)
+  #set ($purgeLastPurgeHTML = '')
+  #if ($entry)
+    #getPurgeDate($entry)
+    #set ($statusId = $entry.status.id)
+    #if ($statusId == 'success')
+      #set ($lastPurgeTitle = $services.localization.render('adminTools.purge.status.success.hint',
+        [$purgeDate, $entry.removedCount]))
+      #set ($purgeLastPurgeHTML = "&lt;span class='text-success' title='$escapetool.xml($lastPurgeTitle)'&gt;
+        $services.icon.renderHTML('check') $escapetool.xml($purgeDate)&lt;/span&gt;")
+    #elseif ($statusId == 'interrupted')
+      #set ($lastPurgeTitle = $services.localization.render('adminTools.purge.status.interrupted.hint',
+        [$purgeDate, $entry.removedCount]))
+      #set ($interruptedLabel = $services.localization.render(
+        'AdminTools.Purge.Code.HistoryClass_status_interrupted'))
+      #set ($purgeLastPurgeHTML = "&lt;span class='label label-default' title='$escapetool.xml($lastPurgeTitle)'&gt;
+        $escapetool.xml($interruptedLabel)&lt;/span&gt;")
+      ## An interrupted purge keeps the failures that happened before it stopped.
+      #if ($entry.failedCount &gt; 0)
+        #getPurgeFailuresLink($wiki.wikiId $wiki.wikiName $type $entry.failedCount)
+        #set ($purgeLastPurgeHTML = "$purgeLastPurgeHTML&lt;br/&gt;$purgeFailuresLink")
+      #end
+    #else
+      #set ($lastPurgeTitle = $services.localization.render('adminTools.purge.status.failed.hint',
+        [$purgeDate, $entry.removedCount, $entry.failedCount]))
+      #set ($lastPurgeIcon = $services.icon.renderHTML('warning'))
+      #set ($lastPurgeClass = 'text-warning')
+      #if ($statusId == 'failed')
+        #set ($lastPurgeIcon = $services.icon.renderHTML('cross'))
+        #set ($lastPurgeClass = 'text-danger')
+      #end
+      #getPurgeFailuresLink($wiki.wikiId $wiki.wikiName $type $entry.failedCount)
+      #set ($purgeLastPurgeHTML = "&lt;span class='$lastPurgeClass' title='$escapetool.xml($lastPurgeTitle)'&gt;
+        $lastPurgeIcon $escapetool.xml($purgeDate)&lt;/span&gt;&lt;br/&gt;$purgeFailuresLink")
+    #end
+  #end
+#end
+
+## The rows of the wikis LiveData. The wikis are filtered and sorted by the script service, then only the current page
+## is turned into rows.
+#macro (purgeWikisJSON)
+  #readPaging()
+  #loadPurgeDefaults()
+  #set ($filters = {'wikiName': "$!request.wikiName"})
+  ## The column of an item type filters the wikis by their configuration of it.
+  #foreach ($type in $purgeTypes)
+    #set ($discard = $filters.put("${type}Mode", "$!request.getParameter($type)"))
+  #end
+  ## Only the rows of the current page are built.
+  #set ($wikis = $services.adminToolsAutoPurge.getWikis($filters, "$!request.dir", $offset, $limit))
+  #set ($wikiRows = [])
+  #foreach ($wiki in $wikis.rows)
+    #set ($row = {'wikiId': $wiki.wikiId, 'wikiName': $wiki.wikiName, 'doc_viewable': true})
+    ## The values needed by the JavaScript to edit the settings of the wiki.
+    #set ($wikiData = {'wikiId': $wiki.wikiId, 'wikiName': $wiki.wikiName, 'types': {}})
+    #foreach ($type in $purgeTypes)
+      #set ($wikiTypeSettings = $wiki.get($type))
+      #set ($typeDefaults = $purgeDefaults.get($type))
+      #getPurgeLabels($typeDefaults $wikiTypeSettings)
+      #set ($modeId = $wikiTypeSettings.mode.id)
+      #set ($policyClass = '')
+      #if ($modeId == 'inherit')
+        #set ($policyClass = 'text-muted')
+      #elseif ($modeId == 'enabled')
+        #set ($policyClass = 'purge-custom')
+      #end
+      ## An invalid limit, which can only come from a manual edit, is highlighted.
+      #if ($purgePolicyWarning)
+        #set ($policyClass = "$policyClass text-warning")
+      #end
+      #set ($entry = $wiki.get("${type}LastPurge"))
+      #getPurgeLastPurgeHTML($wiki $type $entry)
+      #set ($discard = $row.put($type,
+        "&lt;div class='$policyClass'&gt;$escapetool.xml($purgePolicyLabel)&lt;/div&gt;
+        &lt;div&gt;$purgeLastPurgeHTML&lt;/div&gt;"))
+      ## A missing stored interval or unit leaves the field empty.
+      #set ($interval = '')
+      #if ($wikiTypeSettings.interval.isPresent())
+        #set ($interval = $wikiTypeSettings.interval.get())
+      #end
+      #set ($unitId = '')
+      #if ($wikiTypeSettings.unit.isPresent())
+        #set ($unitId = $wikiTypeSettings.unit.get().id)
+      #end
+      #set ($discard = $wikiData.types.put($type, {
+        'mode': $modeId,
+        'interval': $interval,
+        'unit': $unitId,
+        'defaultLabel': $purgeDefaultLabel
+      }))
+    #end
+    #set ($wikiDataAttribute = $escapetool.xml($jsontool.serialize($wikiData)))
+    ## The CSS classes of the button of each action: its style, and the class used by the JavaScript. The purge
+    ## deletes items permanently, so it is red.
+    #set ($actionClasses = {'purge': 'btn-danger purge-now', 'edit': 'btn-default purge-edit',
+      'history': 'btn-default purge-history'})
+    #set ($actions = [])
+    #foreach ($action in $actionClasses.entrySet())
+      #set ($actionLabel = $services.localization.render("adminTools.purge.action.${action.key}"))
+      #set ($discard = $actions.add("&lt;button type='button' class='btn btn-xs ${action.value}'
+        data-purge='$wikiDataAttribute'&gt;$escapetool.xml($actionLabel)&lt;/button&gt;"))
+    #end
+    #set ($discard = $row.put('actions', $stringtool.join($actions, ' ')))
+    #set ($discard = $wikiRows.add($row))
+  #end
+  #liveDataResponse($wikiRows $wikis.total)
+#end
+
+## The purges of a wiki that are queued or running, as rows of its history LiveData, matching the item type and trigger
+## filters. They record their history entry once finished. Sets $purgesInProgress.
+#macro (getPurgesInProgress $wikiId $typeFilter $triggerFilter)
+  #set ($purgesInProgress = [])
+  #foreach ($type in $purgeTypes)
+    ## Only the purge jobs of the wiki can be read, since their identifiers are built here.
+    #set ($jobStatus = $services.job.getJobStatus(['adminTools', 'purge', $type, $wikiId]))
+    #if ($jobStatus &amp;&amp; "$jobStatus.state" != 'FINISHED')
+      #set ($jobTriggeredBy = $jobStatus.request.triggeredBy)
+      #if ($jobTriggeredBy.isPresent())
+        #set ($jobTrigger = 'manual')
+        #set ($triggerLabel = $services.localization.render('adminTools.purge.history.trigger.manualBy',
+          [$xwiki.getPlainUserName($jobTriggeredBy.get())]))
+      #else
+        #set ($jobTrigger = 'scheduled')
+        #set ($triggerLabel = $services.localization.render('adminTools.purge.history.trigger.scheduled'))
+      #end
+      #if (($typeFilter == '' || $typeFilter == $type)
+        &amp;&amp; ($triggerFilter == '' || $triggerFilter == $jobTrigger))
+        ## A job waiting behind the purges of other wikis has not started yet.
+        #set ($jobDate = '')
+        #set ($jobStart = 0)
+        #set ($jobStatusLabel = $services.localization.render('adminTools.purge.history.status.waiting'))
+        #if ("$jobStatus.state" == 'RUNNING')
+          #set ($jobDate = $xwiki.formatDate($jobStatus.startDate))
+          #set ($jobStart = $jobStatus.startDate.time)
+          #set ($jobStatusLabel = $services.localization.render('adminTools.purge.history.status.inProgress'))
+        #end
+        #set ($discard = $purgesInProgress.add({
+          'id': "${type}-inProgress",
+          'date': $jobDate,
+          'type': $services.localization.render("adminTools.purge.type.${type}"),
+          'status': "&lt;span class='label label-info'&gt;$escapetool.xml($jobStatusLabel)&lt;/span&gt;",
+          'removedCount': '',
+          'failedCount': '',
+          'trigger': $triggerLabel,
+          'actions': '',
+          'doc_viewable': true,
+          'inProgress': true,
+          'typeId': $type,
+          'jobStart': $jobStart
+        }))
+      #end
+    #end
+  #end
+#end
+
+## The rows of the purge history LiveData of a wiki, filtered by item type, status and trigger, and sorted by date.
+#macro (purgeHistoryJSON)
+  #readPaging()
+  #set ($wikiId = "$!request.wikiId")
+  #set ($typeFilter = "$!request.type")
+  #set ($statusFilter = "$!request.status")
+  #set ($triggerFilter = "$!request.trigger")
+  ## The purges in progress come first when the newest entries come first, unless the history is filtered by status.
+  ## They are read before the history: a purge records its entry before it finishes, so a purge that finishes in
+  ## between is still shown, as in progress, and the refresh that this triggers then shows its entry.
+  #set ($purgesInProgress = [])
+  #if ($wikiId != '' &amp;&amp; "$!request.dir" != 'asc' &amp;&amp; $statusFilter == '')
+    #getPurgesInProgress($wikiId $typeFilter $triggerFilter)
+  #end
+  #set ($entries = [])
+  #if ($wikiId != '')
+    #set ($entries = $services.adminToolsAutoPurge.getHistory($wikiId))
+  #end
+  ## A purge that finished in between is not shown twice: its entry, dated when it ran, replaces its row in progress.
+  #set ($shownInProgress = [])
+  #foreach ($purgeInProgress in $purgesInProgress)
+    #set ($recorded = false)
+    ## A job waiting to start can't have recorded its entry yet.
+    #if ($purgeInProgress.jobStart &gt; 0)
+      #foreach ($entry in $entries)
+        #if ($entry.type.id == $purgeInProgress.typeId
+          &amp;&amp; $entry.date.toEpochMilli() &gt;= $purgeInProgress.jobStart)
+          #set ($recorded = true)
+        #end
+      #end
+    #end
+    #if (!$recorded)
+      #set ($discard = $shownInProgress.add($purgeInProgress))
+    #end
+  #end
+  ## Filter the entries first, which is cheap, so that only the rows of the current page are built.
+  #set ($matchingEntries = [])
+  #foreach ($entry in $entries)
+    #set ($trigger = 'scheduled')
+    #if ($entry.triggeredBy.isPresent())
+      #set ($trigger = 'manual')
+    #end
+    #if (($typeFilter == '' || $typeFilter == $entry.type.id) &amp;&amp; ($statusFilter == ''
+      || $statusFilter == $entry.status.id) &amp;&amp; ($triggerFilter == '' || $triggerFilter == $trigger))
+      ## The entries are sorted newest first.
+      #if ("$!request.dir" == 'asc')
+        #set ($discard = $matchingEntries.add(0, $entry))
+      #else
+        #set ($discard = $matchingEntries.add($entry))
+      #end
+    #end
+  #end
+  #set ($historyItems = [])
+  #set ($discard = $historyItems.addAll($shownInProgress))
+  #set ($discard = $historyItems.addAll($matchingEntries))
+  #getPage($historyItems)
+  #set ($historyRows = [])
+  #foreach ($item in $purgePage)
+    #if ($item.inProgress)
+      #set ($discard = $historyRows.add($item))
+    #else
+      #set ($entry = $item)
+      #getPurgeDate($entry)
+      #getPurgeStatusLabel($entry)
+      #if ($entry.triggeredBy.isPresent())
+        #set ($triggerLabel = $services.localization.render('adminTools.purge.history.trigger.manualBy',
+          [$xwiki.getPlainUserName($entry.triggeredBy.get())]))
+      #else
+        #set ($triggerLabel = $services.localization.render('adminTools.purge.history.trigger.scheduled'))
+      #end
+      #set ($actions = '')
+      #if (!$entry.failures.isEmpty())
+        #getPurgeFailuresLink($wikiId '' $entry.type.id $entry.failedCount)
+        #set ($actions = $purgeFailuresLink)
+      #end
+      #set ($discard = $historyRows.add({
+        'id': "${entry.type.id}-${entry.date.toEpochMilli()}",
+        'date': $purgeDate,
+        'type': $services.localization.render("adminTools.purge.type.${entry.type.id}"),
+        'status': $purgeStatusLabel,
+        'removedCount': "$entry.removedCount",
+        'failedCount': "$entry.failedCount",
+        'trigger': $triggerLabel,
+        'actions': $actions,
+        'doc_viewable': true
+      }))
+    #end
+  #end
+  #liveDataResponse($historyRows $historyItems.size())
+#end
+
+## The newest purge of an item type of a wiki, with its failures. Only the newest entry of each item type keeps them.
+#macro (purgeFailuresJSON)
+  #set ($wikiId = "$!request.wikiId")
+  #set ($typeId = "$!request.type")
+  #set ($failuresEntry = $NULL)
+  #foreach ($entry in $services.adminToolsAutoPurge.getHistory($wikiId))
+    #if ($entry.type.id == $typeId)
+      #set ($failuresEntry = $entry)
+      #break
+    #end
+  #end
+  #if ($failuresEntry)
+    #set ($failures = [])
+    #foreach ($line in $failuresEntry.failures)
+      ## Each line is the item, then a tab and the root cause of the failure.
+      #set ($parts = $line.split('\t', 2))
+      #set ($error = '')
+      #if ($parts.size() &gt; 1)
+        #set ($error = $parts[1])
+      #end
+      #set ($discard = $failures.add({'item': $parts[0], 'error': $error}))
+    #end
+    #getPurgeDate($failuresEntry)
+    #set ($recycleBinView = 'deletedDocs')
+    #if ($typeId == 'deletedAttachments')
+      #set ($recycleBinView = 'deletedAttachments')
+    #end
+    #set ($allDocsReference = $services.model.createDocumentReference($wikiId, 'Main', 'AllDocs'))
+    ## The summary is rendered here, since only the server side translations handle plural forms.
+    #if ($failures.size() &lt; $failuresEntry.failedCount)
+      #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.shown',
+        [$failures.size(), $failuresEntry.failedCount]))
+    #else
+      #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.all',
+        [$failuresEntry.failedCount]))
+    #end
+    #jsonResponse({
+      'type': $services.localization.render("adminTools.purge.type.${typeId}"),
+      'date': $purgeDate,
+      'summary': $failuresSummary,
+      'failedCount': $failuresEntry.failedCount,
+      'failures': $failures,
+      'recycleBinURL': $xwiki.getURL($allDocsReference, 'view', "view=${recycleBinView}")
+    })
+  #else
+    #set ($discard = $response.setStatus(404))
+  #end
+#end
+{{/velocity}}
+
+{{velocity}}
+#if ($xcontext.action == 'get')
+  #if ($request.data == 'history')
+    #purgeHistoryJSON()
+  #elseif ($request.data == 'failures')
+    #purgeFailuresJSON()
+  #elseif ($request.data == 'defaults')
+    #loadPurgeDefaults()
+    #getPurgeDefaultsSummary()
+    #jsonResponse($purgeDefaultsSummary)
+  #else
+    #purgeWikisJSON()
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>

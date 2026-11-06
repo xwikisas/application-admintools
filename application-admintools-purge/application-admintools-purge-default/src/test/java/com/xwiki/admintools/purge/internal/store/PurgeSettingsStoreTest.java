@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -127,7 +128,7 @@ class PurgeSettingsStoreTest
         when(this.references.getSettingsClassReference()).thenReturn(this.settingsClass);
         // Reads use the cached page, modifications use a copy; the same mock stands for both.
         when(this.pageManager.getDocument(this.settingsReference)).thenReturn(this.document);
-        when(this.pageManager.getDocumentCopy(this.settingsReference)).thenReturn(this.document);
+        when(this.pageManager.loadDocument(this.settingsReference)).thenReturn(this.document);
         when(this.pageManager.getGlobalLock()).thenReturn(this.lock);
         when(this.pageManager.createObject(this.document, this.settingsClass)).thenReturn(this.newObject);
         when(this.document.getXObjects(this.settingsClass)).thenReturn(this.objects);
@@ -144,7 +145,7 @@ class PurgeSettingsStoreTest
         when(this.mapper.readSettings(this.globalObject)).thenReturn(settings);
 
         assertSame(settings, this.store.getGlobalSettings());
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
@@ -200,7 +201,7 @@ class PurgeSettingsStoreTest
 
         assertSame(CUSTOM_SETTINGS, this.store.getWikiSettings(WIKI_ID));
         assertSame(INHERITED_SETTINGS, this.store.getWikiSettings("other"));
-        verify(this.pageManager, never()).getDocumentCopy(any());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
@@ -213,6 +214,14 @@ class PurgeSettingsStoreTest
             this.store.getSettingsOfWikis(List.of(WIKI_ID, "other")));
         // The settings page is read once for all the wikis.
         verify(this.pageManager).getDocument(this.settingsReference);
+    }
+
+    @Test
+    void getWikiIdsWithSettings() throws Exception
+    {
+        // The global settings object and the removed objects have no wiki.
+        assertEquals(Set.of(WIKI_ID), this.store.getWikiIdsWithSettings());
+        verify(this.pageManager, never()).loadDocument(any());
     }
 
     @Test
@@ -275,7 +284,7 @@ class PurgeSettingsStoreTest
         // The page is always checked under the lock, so that a save in progress can't leave the settings behind.
         InOrder inOrder = inOrder(this.lock, this.pageManager);
         inOrder.verify(this.lock).lock();
-        inOrder.verify(this.pageManager).getDocumentCopy(this.settingsReference);
+        inOrder.verify(this.pageManager).loadDocument(this.settingsReference);
         inOrder.verify(this.lock).unlock();
         verify(this.document, never()).removeXObject(any());
         verify(this.pageManager, never()).save(any(), anyString());

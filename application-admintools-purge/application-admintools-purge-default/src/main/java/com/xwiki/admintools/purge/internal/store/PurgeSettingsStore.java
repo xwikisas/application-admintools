@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
@@ -93,7 +94,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, null), typeSettings, maxHistoryEntries);
             this.pageManager.save(document, "Updated the automatic purge defaults.");
         } finally {
@@ -160,7 +161,7 @@ public class PurgeSettingsStore
             if (!this.wikiDescriptorManager.exists(wikiId)) {
                 throw new IllegalArgumentException(String.format("The wiki [%s] doesn't exist.", wikiId));
             }
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, wikiId), wikiId, typeSettings);
             this.pageManager.save(document,
                 String.format("Updated the automatic purge settings of wiki [%s].", wikiId));
@@ -181,7 +182,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             Optional<BaseObject> object = getSettingsObject(document, wikiId);
             if (object.isPresent()) {
                 document.removeXObject(object.get());
@@ -191,6 +192,19 @@ public class PurgeSettingsStore
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Find the wikis that have settings of their own, from the cached settings page. The wikis that no longer exist are
+     * included, when their settings were not removed with them.
+     *
+     * @return the identifiers of the wikis that have settings of their own
+     * @throws XWikiException if the settings page can't be loaded
+     */
+    public Set<String> getWikiIdsWithSettings() throws XWikiException
+    {
+        return getSettingsObjects(getSettingsPage()).stream().map(this.mapper::readWiki).flatMap(Optional::stream)
+            .collect(Collectors.toSet());
     }
 
     /**

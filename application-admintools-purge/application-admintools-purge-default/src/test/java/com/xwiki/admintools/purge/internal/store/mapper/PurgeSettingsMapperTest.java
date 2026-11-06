@@ -42,6 +42,10 @@ import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -71,6 +75,12 @@ class PurgeSettingsMapperTest
     private static final String MAX_HISTORY_ENTRIES = "maxHistoryEntries";
 
     private static final String WIKI = "wiki";
+
+    /**
+     * What {@link BaseObject#getIntValue(String, int)} returns for a missing or empty interval, the default it is
+     * given.
+     */
+    private static final int MISSING = Integer.MIN_VALUE;
 
     private static final PurgeTypeSettings DISABLED_DEFAULT =
         new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.MONTHS);
@@ -113,14 +123,15 @@ class PurgeSettingsMapperTest
     @Test
     void readGlobalSettingsWithMissingValues()
     {
-        // A missing interval is read as 0 and a missing unit as null, both invalid, instead of the defaults.
-        mockSettings("enabled", 0, "", "", 0, null);
+        // A missing interval or unit is read as missing, instead of the defaults. The interval is not read as 0, which
+        // is valid and purges every deleted item.
+        mockSettings("enabled", MISSING, "", "", MISSING, null);
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 0, null)),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, null, null)),
             settings.getTypeSettings(DELETED_DOCUMENTS));
-        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 0, null)),
+        assertEquals(Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, null, null)),
             settings.getTypeSettings(DELETED_ATTACHMENTS));
         assertEquals(0, this.logCapture.size());
     }
@@ -146,12 +157,12 @@ class PurgeSettingsMapperTest
     void readGlobalSettingsWithInvalidValues()
     {
         // Invalid values are returned as they are stored, so that the code using them reports them.
-        mockSettings("enabled", 0, "days", "enabled", 5000, "decades");
+        mockSettings("enabled", -3, "days", "enabled", 5000, "decades");
         when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(500);
 
         GlobalPurgeSettings settings = this.mapper.readSettings(this.object);
 
-        assertEquals(new GlobalPurgeSettings(settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS),
+        assertEquals(new GlobalPurgeSettings(settings(new PurgeTypeSettings(PurgeMode.ENABLED, -3, IntervalUnit.DAYS),
             new PurgeTypeSettings(PurgeMode.ENABLED, 5000, null)), 500), settings);
         assertEquals(0, this.logCapture.size());
     }
@@ -229,19 +240,20 @@ class PurgeSettingsMapperTest
         assertInvalidGlobalSettings("The settings of [deletedAttachments] are missing.",
             new EnumMap<>(Map.of(DELETED_DOCUMENTS, DISABLED_DEFAULT)), 20);
         assertInvalidGlobalSettings("The interval of [deletedDocuments] in the [GLOBAL SETTINGS] settings must be "
-            + "between 1 and 1000, but was [0].",
-            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), DISABLED_DEFAULT), 20);
+            + "between 0 and 1000, but was [-1].",
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, -1, IntervalUnit.DAYS), DISABLED_DEFAULT), 20);
         assertInvalidGlobalSettings("The interval of [deletedDocuments] in the [GLOBAL SETTINGS] settings must be "
-            + "between 1 and 1000, but was [1001].",
+            + "between 0 and 1000, but was [1001].",
             settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1001, IntervalUnit.YEARS), DISABLED_DEFAULT), 20);
+        // An enabled item type needs an interval and a unit.
+        assertInvalidGlobalSettings("The interval of [deletedAttachments] in the [GLOBAL SETTINGS] settings is missing.",
+            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, null, IntervalUnit.DAYS)), 20);
         assertInvalidGlobalSettings("The interval unit of [deletedAttachments] in the [GLOBAL SETTINGS] settings is "
             + "missing.", settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.ENABLED, 3, null)), 20);
-        // The interval and unit of a disabled type are validated too.
+        // The given interval of a disabled type is validated too.
         assertInvalidGlobalSettings("The interval of [deletedAttachments] in the [GLOBAL SETTINGS] settings must be "
-            + "between 1 and 1000, but was [0].",
-            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.DISABLED, 0, IntervalUnit.MONTHS)), 20);
-        assertInvalidGlobalSettings("The interval unit of [deletedAttachments] in the [GLOBAL SETTINGS] settings is "
-            + "missing.", settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.DISABLED, 1, null)), 20);
+            + "between 0 and 1000, but was [-1].",
+            settings(DISABLED_DEFAULT, new PurgeTypeSettings(PurgeMode.DISABLED, -1, IntervalUnit.MONTHS)), 20);
         assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [0].",
             settings(DISABLED_DEFAULT, DISABLED_DEFAULT), 0);
         assertInvalidGlobalSettings("The purge history size must be between 1 and 200, but was [201].",
@@ -253,10 +265,13 @@ class PurgeSettingsMapperTest
     @Test
     void writeGlobalSettingsWithLimitValues()
     {
+        // An interval of 0 is valid: it purges every item deleted until the purge runs.
         this.mapper.writeSettings(this.object,
-            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1000, IntervalUnit.YEARS), DISABLED_DEFAULT), 200);
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 1000, IntervalUnit.YEARS),
+                new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS)), 200);
 
         verify(this.object).setIntValue(DOCUMENTS_INTERVAL, 1000);
+        verify(this.object).setIntValue(ATTACHMENTS_INTERVAL, 0);
         verify(this.object).setIntValue(MAX_HISTORY_ENTRIES, 200);
         assertEquals(0, this.logCapture.size());
     }
@@ -276,18 +291,30 @@ class PurgeSettingsMapperTest
     }
 
     @Test
+    void writeWikiSettingsWithoutLimit()
+    {
+        // An item type that is not enabled can leave its interval and unit out, which keeps the stored ones.
+        this.mapper.writeSettings(this.object, WIKI_ID,
+            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, null, null)));
+
+        verify(this.object).setStringValue(ATTACHMENTS_MODE, "inherit");
+        verify(this.object, never()).setIntValue(eq(ATTACHMENTS_INTERVAL), anyInt());
+        verify(this.object, never()).setStringValue(eq(ATTACHMENTS_UNIT), any());
+        verify(this.object).setIntValue(DOCUMENTS_INTERVAL, 7);
+        verify(this.object).setStringValue(DOCUMENTS_UNIT, "days");
+    }
+
+    @Test
     void writeWikiSettingsRejectsInvalidSettings()
     {
-        assertInvalidWikiSettings("The interval of [deletedDocuments] in the [subwiki] settings must be between 1 and "
-            + "1000, but was [0].",
-            settings(new PurgeTypeSettings(PurgeMode.ENABLED, 0, IntervalUnit.DAYS), INHERIT_DEFAULT));
-        // The interval and unit of an inherited or disabled type are validated too.
-        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 1 "
-            + "and 1000, but was [0].",
-            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, 0, IntervalUnit.MONTHS)));
-        assertInvalidWikiSettings("The interval unit of [deletedAttachments] in the [subwiki] settings is missing.",
-            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, 1, null)));
-        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 1 "
+        assertInvalidWikiSettings("The interval of [deletedDocuments] in the [subwiki] settings must be between 0 and "
+            + "1000, but was [-1].",
+            settings(new PurgeTypeSettings(PurgeMode.ENABLED, -1, IntervalUnit.DAYS), INHERIT_DEFAULT));
+        // The given interval of an inherited or disabled type is validated too.
+        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 0 "
+            + "and 1000, but was [-1].",
+            settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.INHERIT, -1, IntervalUnit.MONTHS)));
+        assertInvalidWikiSettings("The interval of [deletedAttachments] in the [subwiki] settings must be between 0 "
             + "and 1000, but was [5000].",
             settings(ENABLED_7_DAYS, new PurgeTypeSettings(PurgeMode.DISABLED, 5000, IntervalUnit.MONTHS)));
         verifyNoInteractions(this.object);
@@ -298,10 +325,10 @@ class PurgeSettingsMapperTest
         int attachmentsInterval, String attachmentsUnit)
     {
         when(this.object.getStringValue(DOCUMENTS_MODE)).thenReturn(documentsMode);
-        when(this.object.getIntValue(DOCUMENTS_INTERVAL, 0)).thenReturn(documentsInterval);
+        when(this.object.getIntValue(DOCUMENTS_INTERVAL, MISSING)).thenReturn(documentsInterval);
         when(this.object.getStringValue(DOCUMENTS_UNIT)).thenReturn(documentsUnit);
         when(this.object.getStringValue(ATTACHMENTS_MODE)).thenReturn(attachmentsMode);
-        when(this.object.getIntValue(ATTACHMENTS_INTERVAL, 0)).thenReturn(attachmentsInterval);
+        when(this.object.getIntValue(ATTACHMENTS_INTERVAL, MISSING)).thenReturn(attachmentsInterval);
         when(this.object.getStringValue(ATTACHMENTS_UNIT)).thenReturn(attachmentsUnit);
         when(this.object.getIntValue(MAX_HISTORY_ENTRIES, 20)).thenReturn(20);
     }
