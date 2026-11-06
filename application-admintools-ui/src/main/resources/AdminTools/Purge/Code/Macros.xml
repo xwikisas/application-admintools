@@ -59,19 +59,29 @@
 ## "Default · 1 month", "Custom · 7 days" or "Disabled".
 #macro (getPurgeLabels $defaultSettings $wikiSettings)
   #if ($defaultSettings.mode.id == 'enabled')
-    #set ($purgeDefaultLabel = $services.localization.render(
-      "adminTools.purge.interval.${defaultSettings.unit.id}", [$defaultSettings.interval]))
+    #getPurgeIntervalLabel($defaultSettings)
+    #set ($purgeDefaultLabel = $purgeIntervalLabel)
   #else
     #set ($purgeDefaultLabel = $services.localization.render('adminTools.purge.policy.disabled.lower'))
   #end
   #if ($wikiSettings.mode.id == 'enabled')
-    #set ($purgeWikiInterval = $services.localization.render("adminTools.purge.interval.${wikiSettings.unit.id}",
-      [$wikiSettings.interval]))
-    #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.custom', [$purgeWikiInterval]))
+    #getPurgeIntervalLabel($wikiSettings)
+    #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.custom', [$purgeIntervalLabel]))
   #elseif ($wikiSettings.mode.id == 'disabled')
     #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.disabled'))
   #else
     #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.default', [$purgeDefaultLabel]))
+  #end
+#end
+
+## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", or to a warning if the stored interval or
+## unit is missing, which can only come from a manual edit.
+#macro (getPurgeIntervalLabel $settings)
+  #if ($settings.interval.isPresent() &amp;&amp; $settings.unit.isPresent())
+    #set ($purgeIntervalLabel = $services.localization.render("adminTools.purge.interval.${settings.unit.get().id}",
+      [$settings.interval.get()]))
+  #else
+    #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.invalid'))
   #end
 #end
 
@@ -95,16 +105,22 @@
 ## The fields of the interval of an item type, e.g. "Keep for [n] [unit]", with the label of the given key. The
 ## smallest interval is 1 for the settings, and 0 for a manual purge, which then purges every deleted item.
 #macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey $min)
-  ## Months is selected when there are no settings.
-  #set ($selectedUnit = "$!settings.unit.id")
-  #if ($selectedUnit == '')
-    #set ($selectedUnit = 'months')
+  ## Months is selected when there is no stored unit.
+  #set ($selectedUnit = 'months')
+  #set ($interval = '')
+  #if ($settings)
+    #if ($settings.unit.isPresent())
+      #set ($selectedUnit = $settings.unit.get().id)
+    #end
+    #if ($settings.interval.isPresent())
+      #set ($interval = $settings.interval.get())
+    #end
   #end
   &lt;span class="purge-interval-fields form-inline"&gt;
     &lt;label for="${idPrefix}${type}Interval"&gt;$escapetool.xml(
       $services.localization.render($labelKey))&lt;/label&gt;
     &lt;input type="number" class="form-control input-sm purge-interval" id="${idPrefix}${type}Interval"
-      name="${type}Interval" min="$min" max="1000" required value="$!settings.interval"
+      name="${type}Interval" min="$min" max="1000" required value="$interval"
       #if ($disabled)disabled#end/&gt;
     &lt;label class="sr-only" for="${idPrefix}${type}Unit"&gt;$escapetool.xml($services.localization.render(
       'adminTools.purge.form.unit'))&lt;/label&gt;

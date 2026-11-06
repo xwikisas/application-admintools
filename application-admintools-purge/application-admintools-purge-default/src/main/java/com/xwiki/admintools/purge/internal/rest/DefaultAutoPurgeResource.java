@@ -86,8 +86,6 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
 
     private static final String INVALID_VALUE = "Invalid value [%s] for [%s].";
 
-    private static final String MISSING_FIELD = "The field [%s] is missing.";
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Inject
@@ -133,6 +131,16 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
     }
 
     @Override
+    public Response deleteWikiSettings(String wikiId)
+    {
+        return handle(wikiId, true,
+            String.format("Failed to remove the automatic purge settings of wiki [%s].", wikiId), () -> {
+                this.settingsStore.removeWikiSettings(wikiId);
+                return Response.noContent().build();
+            });
+    }
+
+    @Override
     public Response purgeWiki(String wikiId)
     {
         return handle(wikiId, true, String.format("Failed to start the purge of the recycle bin of wiki [%s].", wikiId),
@@ -150,7 +158,7 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                         .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, typeId, TYPE)));
                     PurgeTypeSettings limit = readLimit(request, type).orElseThrow(() -> new IllegalArgumentException(
                         String.format("The limit of [%s] is missing.", typeId)));
-                    this.purgeManager.checkLimit(limit.getInterval(), limit.getUnit());
+                    this.purgeManager.checkLimit(limit.getInterval().orElseThrow(), limit.getUnit().orElseThrow());
                     limits.put(type, limit);
                 }
                 // A type that can't be started doesn't prevent the others, and the started jobs are still returned.
@@ -158,8 +166,9 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                 for (Map.Entry<PurgeType, PurgeTypeSettings> limit : limits.entrySet()) {
                     PurgeType type = limit.getKey();
                     try {
-                        if (this.purgeManager.startManualPurge(wikiId, type, limit.getValue().getInterval(),
-                            limit.getValue().getUnit(), context.getUserReference()))
+                        if (this.purgeManager.startManualPurge(wikiId, type,
+                            limit.getValue().getInterval().orElseThrow(), limit.getValue().getUnit().orElseThrow(),
+                            context.getUserReference()))
                         {
                             jobIds.add(PurgeJobRequest.getJobId(wikiId, type));
                         }
@@ -181,17 +190,19 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                 Map<String, Map<String, Object>> preview = new LinkedHashMap<>();
                 for (PurgeType type : PurgeType.values()) {
                     Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type);
-                    Optional<PurgeTypeSettings> limit = readLimit(request, type).or(() -> settings);
+                    // Without a stored interval and unit, the item type is counted only for a requested limit.
+                    Optional<PurgeTypeSettings> limit = readLimit(request, type).or(() -> settings.filter(
+                        typeSettings -> typeSettings.getInterval().isPresent() && typeSettings.getUnit().isPresent()));
                     Map<String, Object> typePreview = new LinkedHashMap<>();
                     typePreview.put("enabled",
                         settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).isPresent());
-                    // Without settings for the item type, it is counted only for a requested limit.
                     if (limit.isPresent()) {
-                        typePreview.put("interval", limit.get().getInterval());
-                        typePreview.put("unit", limit.get().getUnit().getId());
-                        // The purge manager rejects an invalid requested limit.
+                        PurgeTypeSettings typeLimit = limit.get();
+                        typePreview.put("interval", typeLimit.getInterval().orElseThrow());
+                        typePreview.put("unit", typeLimit.getUnit().orElseThrow().getId());
+                        // The purge manager rejects an invalid limit.
                         typePreview.put("count", this.purgeManager.countExpired(wikiId, type,
-                            limit.get().getInterval(), limit.get().getUnit()));
+                            typeLimit.getInterval().orElseThrow(), typeLimit.getUnit().orElseThrow()));
                     }
                     preview.put(type.getId(), typePreview);
                 }
@@ -258,11 +269,13 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
 
     /**
      * Read the automatic purge settings of every item type from the form fields {@code <typeId>Mode},
-     * {@code <typeId>Interval} and {@code <typeId>Unit}, which are all required, whatever the mode.
+     * {@code <typeId>Interval} and {@code <typeId>Unit}. The mode is required; the interval and unit can be left out
+     * for an item type that is not enabled, which keeps its stored ones. The settings store rejects an enabled item
+     * type without them.
      *
      * @param request the request holding the form fields
      * @return the settings of every item type
-     * @throws IllegalArgumentException if a field is missing, or if it has an invalid value
+     * @throws IllegalArgumentException if a mode is missing, or if a field has an invalid value
      */
     private Map<PurgeType, PurgeTypeSettings> readTypeSettings(XWikiRequest request)
     {
@@ -272,10 +285,7 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
             String modeValue = request.getParameter(mode);
             typeSettings.put(type, new PurgeTypeSettings(PurgeMode.fromId(modeValue)
                 .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, modeValue, mode))),
-                readInterval(request, type).orElseThrow(
-                    () -> new IllegalArgumentException(String.format(MISSING_FIELD, type.getId() + INTERVAL_SUFFIX))),
-                readUnit(request, type).orElseThrow(
-                    () -> new IllegalArgumentException(String.format(MISSING_FIELD, type.getId() + UNIT_SUFFIX)))));
+                readInterval(request, type).orElse(null), readUnit(request, type).orElse(null)));
         }
         return typeSettings;
     }

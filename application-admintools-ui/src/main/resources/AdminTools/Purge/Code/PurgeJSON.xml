@@ -170,10 +170,19 @@
       #set ($discard = $row.put($type,
         "&lt;div class='$policyClass'&gt;$escapetool.xml($purgePolicyLabel)&lt;/div&gt;
         &lt;div&gt;$purgeLastPurgeHTML&lt;/div&gt;"))
+      ## A missing stored interval or unit leaves the field empty.
+      #set ($interval = '')
+      #if ($wikiTypeSettings.interval.isPresent())
+        #set ($interval = $wikiTypeSettings.interval.get())
+      #end
+      #set ($unitId = '')
+      #if ($wikiTypeSettings.unit.isPresent())
+        #set ($unitId = $wikiTypeSettings.unit.get().id)
+      #end
       #set ($discard = $wikiData.types.put($type, {
         'mode': $modeId,
-        'interval': $wikiTypeSettings.interval,
-        'unit': "$!wikiTypeSettings.unit.id",
+        'interval': $interval,
+        'unit': $unitId,
         'defaultLabel': $purgeDefaultLabel
       }))
     #end

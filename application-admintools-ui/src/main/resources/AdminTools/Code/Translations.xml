@@ -228,6 +228,7 @@ adminTools.purge.interval.days={0,choice,1#1 day|1&lt;{0} days}
 adminTools.purge.interval.weeks={0,choice,1#1 week|1&lt;{0} weeks}
 adminTools.purge.interval.months={0,choice,1#1 month|1&lt;{0} months}
 adminTools.purge.interval.years={0,choice,1#1 year|1&lt;{0} years}
+adminTools.purge.interval.invalid=invalid limit
 adminTools.purge.mode.inherit=Default
 adminTools.purge.mode.enabled=Custom
 adminTools.purge.mode.disabled=Disabled

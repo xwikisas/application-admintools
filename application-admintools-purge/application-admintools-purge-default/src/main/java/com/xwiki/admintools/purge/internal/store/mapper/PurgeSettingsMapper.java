@@ -38,10 +38,11 @@ import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Converts between the settings objects stored in the wiki and the automatic purge settings. Writing is strict: the
- * settings of every item type, whatever its mode, and the purge history size are validated, and nothing is written if
- * they are invalid. Reading doesn't validate: the stored values are returned as they are, so that invalid ones, which
- * can only come from manual edits, are reported by the code using them instead of being silently replaced.
+ * Converts between the settings objects stored in the wiki and the automatic purge settings. Writing is strict: every
+ * value written is validated, and nothing is written if a value is invalid. Only an enabled item type needs an
+ * interval and a unit; an item type that is not enabled keeps its stored ones when none are given.
+ * Reading doesn't validate: the stored values are returned as they are, so that invalid ones, which can only come
+ * from manual edits, are reported by the code using them instead of being silently replaced.
  *
  * @version $Id$
  * @since 1.5
@@ -57,12 +58,6 @@ public class PurgeSettingsMapper
     public static final int MAX_INTERVAL = 1000;
 
     private static final int DEFAULT_INTERVAL = 1;
-
-    /**
-     * The interval read when none is stored. It is invalid, unlike 0, which purges every deleted item, so that a
-     * missing interval is never used.
-     */
-    private static final int MISSING_INTERVAL = -1;
 
     /**
      * The smallest interval. An interval of 0 purges every item deleted until the purge runs.
@@ -179,8 +174,7 @@ public class PurgeSettingsMapper
     /**
      * Read the settings of every item type from a settings object, without validating them. The global and the wiki
      * settings objects are read the same way; they only differ by the mode used when the stored one is missing or
-     * invalid. A missing interval is read as {@link #MISSING_INTERVAL} and a missing or unknown unit as {@code null},
-     * both invalid, so that the code using them reports them.
+     * invalid. A missing interval, and a missing or unknown unit, are read as missing values.
      *
      * @param object the settings object, or {@code null} if there is none, in which case every item type gets the
      *     fallback mode and the default interval and unit
@@ -198,11 +192,26 @@ public class PurgeSettingsMapper
             } else {
                 typeSettings.put(type, new PurgeTypeSettings(
                     parseMode(type, object.getStringValue(type.getId() + MODE_SUFFIX), global, settingsName),
-                    object.getIntValue(type.getId() + INTERVAL_SUFFIX, MISSING_INTERVAL),
+                    readInterval(object, type.getId() + INTERVAL_SUFFIX),
                     IntervalUnit.fromId(object.getStringValue(type.getId() + UNIT_SUFFIX)).orElse(null)));
             }
         }
         return typeSettings;
+    }
+
+    /**
+     * Read a stored interval. A missing or empty interval is read as missing, not as 0, which is valid and purges every
+     * deleted item.
+     *
+     * @param object the settings object
+     * @param property the name of the interval property
+     * @return the stored interval, or {@code null} if it is missing or empty
+     */
+    private Integer readInterval(BaseObject object, String property)
+    {
+        // The default is returned for a missing property and for an empty one; stored, it would be invalid anyway.
+        int interval = object.getIntValue(property, Integer.MIN_VALUE);
+        return interval == Integer.MIN_VALUE ? null : interval;
     }
 
     /**
@@ -233,8 +242,7 @@ public class PurgeSettingsMapper
 
     /**
      * Check the settings of every item type before they are written. Every item type must have settings, the global
-     * settings can't inherit, and every item type, whatever its mode, must have an interval between
-     * {@link #MIN_INTERVAL} and {@link #MAX_INTERVAL} and a unit.
+     * settings can't inherit, and the limit of every item type must pass {@link #checkLimit}.
      *
      * @param typeSettings the settings of every item type
      * @param global {@code true} for the global settings, {@code false} for the settings of a wiki
@@ -252,16 +260,37 @@ public class PurgeSettingsMapper
                 throw new IllegalArgumentException(
                     String.format("The global settings of [%s] can't inherit.", type.getId()));
             }
-            if (settings.getInterval() < MIN_INTERVAL || settings.getInterval() > MAX_INTERVAL) {
-                throw new IllegalArgumentException(
-                    String.format("The interval of [%s] in the [%s] settings must be between %d and %d, but was [%d].",
-                        type.getId(), settingsName, MIN_INTERVAL, MAX_INTERVAL, settings.getInterval()));
-            }
-            if (settings.getUnit() == null) {
-                throw new IllegalArgumentException(
-                    String.format("The interval unit of [%s] in the [%s] settings is missing.", type.getId(),
-                        settingsName));
-            }
+            checkLimit(type, settings, settingsName);
+        }
+    }
+
+    /**
+     * Check the limit of an item type before it is written. An enabled item type needs an interval and a unit; another
+     * one can leave them out, to keep its stored ones. A given interval must be between {@link #MIN_INTERVAL} and
+     * {@link #MAX_INTERVAL}, whatever the mode, so that no invalid value is written. A given unit is always valid.
+     *
+     * @param type the item type, used in errors
+     * @param settings the settings of the item type
+     * @param settingsName the name of the settings in errors: the wiki identifier, or {@link #GLOBAL_SETTINGS}
+     * @throws IllegalArgumentException if the limit is invalid
+     */
+    private void checkLimit(PurgeType type, PurgeTypeSettings settings, String settingsName)
+    {
+        boolean enabled = settings.getMode() == PurgeMode.ENABLED;
+        if (enabled && settings.getInterval().isEmpty()) {
+            throw new IllegalArgumentException(
+                String.format("The interval of [%s] in the [%s] settings is missing.", type.getId(), settingsName));
+        }
+        if (enabled && settings.getUnit().isEmpty()) {
+            throw new IllegalArgumentException(
+                String.format("The interval unit of [%s] in the [%s] settings is missing.", type.getId(),
+                    settingsName));
+        }
+        Optional<Integer> interval = settings.getInterval();
+        if (interval.isPresent() && (interval.get() < MIN_INTERVAL || interval.get() > MAX_INTERVAL)) {
+            throw new IllegalArgumentException(
+                String.format("The interval of [%s] in the [%s] settings must be between %d and %d, but was [%d].",
+                    type.getId(), settingsName, MIN_INTERVAL, MAX_INTERVAL, interval.get()));
         }
     }
 
@@ -282,7 +311,8 @@ public class PurgeSettingsMapper
     }
 
     /**
-     * Write the mode, interval and unit of every item type to a settings object.
+     * Write the mode, interval and unit of every item type to a settings object. A missing interval or unit, which
+     * only an item type that is not enabled can have, leaves the stored one unchanged.
      *
      * @param object the settings object to write to
      * @param typeSettings the validated settings of every item type
@@ -292,8 +322,8 @@ public class PurgeSettingsMapper
         for (PurgeType type : PurgeType.values()) {
             PurgeTypeSettings settings = typeSettings.get(type);
             object.setStringValue(type.getId() + MODE_SUFFIX, settings.getMode().getId());
-            object.setIntValue(type.getId() + INTERVAL_SUFFIX, settings.getInterval());
-            object.setStringValue(type.getId() + UNIT_SUFFIX, settings.getUnit().getId());
+            settings.getInterval().ifPresent(interval -> object.setIntValue(type.getId() + INTERVAL_SUFFIX, interval));
+            settings.getUnit().ifPresent(unit -> object.setStringValue(type.getId() + UNIT_SUFFIX, unit.getId()));
         }
     }
 }

@@ -40,6 +40,7 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -131,6 +132,25 @@ class PurgePolicyResolverTest
         // An item type left out of the default settings has no settings for the wikis that inherit them.
         mockSettings(null, Map.of(DELETED_DOCUMENTS, INHERIT));
         assertEquals(Optional.empty(), this.resolver.getSettings(WIKI_ID, DELETED_DOCUMENTS));
+    }
+
+    @Test
+    void getExpirationDateWithMissingLimit() throws Exception
+    {
+        // An enabled item type without a stored interval or unit, which can only come from a manual edit, fails
+        // instead of being purged with a guessed limit.
+        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, null,
+            IntervalUnit.DAYS)));
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
+        assertEquals("The automatic purge of [deletedDocuments] is enabled on wiki [subwiki], but its interval or unit "
+            + "is missing.", exception.getMessage());
+
+        mockSettings(new PurgeTypeSettings(PurgeMode.ENABLED, 1, null), Map.of(DELETED_DOCUMENTS, INHERIT));
+        assertThrows(IllegalStateException.class,
+            () -> this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
+
+        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
     }
 
     @Test

@@ -60,11 +60,27 @@ public class PurgePolicyResolver
      * @param now when the purge runs
      * @return the expiration date, or an empty value if the item type is not purged on the wiki
      * @throws XWikiException if the settings can't be loaded
+     * @throws IllegalStateException if the item type is purged on the wiki, but the stored interval or unit is missing
      */
     public Optional<Instant> getExpirationDate(String wikiId, PurgeType type, ZonedDateTime now) throws XWikiException
     {
         return getSettings(wikiId, type).filter(settings -> settings.getMode() == PurgeMode.ENABLED).map(
-            settings -> this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
+            settings -> this.retentionCalculator.getExpirationDate(now,
+                settings.getInterval().orElseThrow(() -> missingLimit(wikiId, type)),
+                settings.getUnit().orElseThrow(() -> missingLimit(wikiId, type))));
+    }
+
+    /**
+     * @param wikiId the identifier of the wiki
+     * @param type the item type
+     * @return the error of an enabled item type whose stored interval or unit is missing, which can only come from a
+     *     manual edit
+     */
+    private IllegalStateException missingLimit(String wikiId, PurgeType type)
+    {
+        return new IllegalStateException(String.format(
+            "The automatic purge of [%s] is enabled on wiki [%s], but its interval or unit is missing.", type.getId(),
+            wikiId));
     }
 
     /**

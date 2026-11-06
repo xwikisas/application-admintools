@@ -19,6 +19,7 @@
  */
 package com.xwiki.admintools.purge.rest;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -46,8 +47,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * fields are, for each item type: {@code <typeId>Mode} ({@code enabled} or {@code disabled}),
      * {@code <typeId>Interval} and {@code <typeId>Unit} ({@code days}, {@code weeks}, {@code months} or {@code years}),
      * plus {@code maxHistoryEntries}, the number of purge history entries kept for each item type of each wiki, between
-     * 1 and 200. Every field is required, whatever the mode, and the interval must be between 0 and 1000; an interval
-     * of 0 purges every item deleted until the purge runs.
+     * 1 and 200. An enabled item type needs its interval, between 0 and 1000 (0 purges every item deleted until the
+     * purge runs), and its unit. They can be left out for an item type that is not enabled, which then keeps its stored
+     * ones.
      *
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
      *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid
@@ -74,6 +76,21 @@ public interface AutoPurgeResource extends XWikiRestComponent
     @POST
     @Path("/wikis/{wikiId}/settings")
     default Response saveWikiSettings(@PathParam("wikiId") String wikiId) throws XWikiRestException
+    {
+        throw new WebApplicationException(501);
+    }
+
+    /**
+     * Remove the automatic purge settings of a wiki, so that it uses the default settings for every item type.
+     *
+     * @param wikiId the identifier of the wiki
+     * @return status code 204 if the wiki has no settings of its own anymore; 401 if the user is not an admin of the
+     *     main wiki; 402 if the license is not active; 403 if the form token is invalid; 404 if the wiki doesn't exist
+     * @throws XWikiRestException if an error occurred while removing the settings
+     */
+    @DELETE
+    @Path("/wikis/{wikiId}/settings")
+    default Response deleteWikiSettings(@PathParam("wikiId") String wikiId) throws XWikiRestException
     {
         throw new WebApplicationException(501);
     }

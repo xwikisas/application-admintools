@@ -192,20 +192,34 @@ class DefaultAutoPurgeResourceTest
     @Test
     void saveSettingsWithMissingFields() throws Exception
     {
-        // The interval and unit are required for every item type, whatever its mode, instead of being read as
-        // values that could be valid.
+        // A missing interval or unit is passed as missing, never as a value that could be valid: the settings store
+        // keeps the stored ones of an item type that is not enabled, and rejects an enabled item type without them.
         mockTypeFields("deletedDocuments", "enabled", null, "days");
-        mockTypeFields("deletedAttachments", "inherit", "1", "months");
-        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+        mockTypeFields("deletedAttachments", "inherit", " ", "");
 
-        mockTypeFields("deletedDocuments", "enabled", "7", "days");
-        mockTypeFields("deletedAttachments", "disabled", "1", " ");
-        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+        assertEquals(204, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
-        mockTypeFields("deletedAttachments", "inherit", "", "months");
-        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+        verify(this.settingsStore).saveWikiSettings(SUBWIKI,
+            Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, null, IntervalUnit.DAYS),
+                DELETED_ATTACHMENTS, new PurgeTypeSettings(PurgeMode.INHERIT, null, null)));
+    }
 
-        verify(this.settingsStore, never()).saveWikiSettings(anyString(), any());
+    @Test
+    void deleteWikiSettings() throws Exception
+    {
+        assertEquals(204, this.resource.deleteWikiSettings(SUBWIKI).getStatus());
+
+        verify(this.settingsStore).removeWikiSettings(SUBWIKI);
+    }
+
+    @Test
+    void deleteWikiSettingsWithInvalidFormToken() throws Exception
+    {
+        when(this.csrfToken.isTokenValid(TOKEN)).thenReturn(false);
+
+        assertEquals(403, this.resource.deleteWikiSettings(SUBWIKI).getStatus());
+
+        verify(this.settingsStore, never()).removeWikiSettings(anyString());
     }
 
     @Test
@@ -325,6 +339,23 @@ class DefaultAutoPurgeResourceTest
             + "\"deletedAttachments\":{\"enabled\":false,\"interval\":0,\"unit\":\"days\",\"count\":4}}",
             response.getEntity());
         verify(this.purgeManager, never()).countExpired(eq(SUBWIKI), eq(DELETED_DOCUMENTS), anyInt(), any());
+    }
+
+    @Test
+    void previewPurgeWithoutStoredLimit() throws Exception
+    {
+        // Settings without a stored interval or unit, which can only come from a manual edit, give no count.
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenReturn(
+            Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, null, IntervalUnit.DAYS)));
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_ATTACHMENTS)).thenReturn(
+            Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 7, null)));
+
+        Response response = this.resource.previewPurge(SUBWIKI);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("{\"deletedDocuments\":{\"enabled\":true},\"deletedAttachments\":{\"enabled\":false}}",
+            response.getEntity());
+        verify(this.purgeManager, never()).countExpired(anyString(), any(), anyInt(), any());
     }
 
     @Test

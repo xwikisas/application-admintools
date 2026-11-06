@@ -167,11 +167,11 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
    * Send a request changing the automatic purge, and report its progress and outcome when messages are given. Errors
    * are always reported. XWiki adds the form token expected by the REST resource to the headers of the request.
    */
-  const post = function(path, data, progressMessage, successMessage) {
+  const send = function(method, path, data, progressMessage, successMessage) {
     const notification = progressMessage ? new XWiki.widgets.Notification(progressMessage, 'inprogress') : null;
     return $.ajax({
       url: restURL + path,
-      type: 'POST',
+      type: method,
       data: data,
       traditional: true
     }).done(function() {
@@ -186,6 +186,10 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
         notification.replace(error);
       }
     });
+  };
+
+  const post = function(path, data, progressMessage, successMessage) {
+    return send('POST', path, data, progressMessage, successMessage);
   };
 
   const getTypeContainer = function(form, type) {
@@ -204,8 +208,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
   };
 
   /**
-   * Add the interval and unit of an item type to the submitted data, when they are valid. They are optional for an
-   * item type that is not enabled, so their stored values are kept for when it is enabled again.
+   * Add the interval and unit of an enabled item type to the submitted data. They are left out for an item type that
+   * is not enabled, which keeps its stored ones for when it is enabled again.
    */
   const addInterval = function(data, typeContainer, type) {
     const interval = getInterval(typeContainer);
@@ -340,8 +344,11 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     const data = {maxHistoryEntries: form.find('[name="maxHistoryEntries"]').val()};
     types.forEach(type =&gt; {
       const typeContainer = getTypeContainer(form, type);
-      data[type + 'Mode'] = typeContainer.find('.purge-enable').prop('checked') ? 'enabled' : 'disabled';
-      addInterval(data, typeContainer, type);
+      const enabled = typeContainer.find('.purge-enable').prop('checked');
+      data[type + 'Mode'] = enabled ? 'enabled' : 'disabled';
+      if (enabled) {
+        addInterval(data, typeContainer, type);
+      }
     });
     const state = getDefaultsFormState(form);
     post('/settings', data, l10n.get('saving'), l10n.get('saved')).done(function() {
@@ -384,7 +391,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       typeContainer.find('.purge-mode[value="' + settings.mode + '"]').prop('checked', true);
       typeContainer.find('.purge-default-label').text(settings.defaultLabel);
       typeContainer.find('.purge-interval').val(settings.interval);
-      typeContainer.find('.purge-unit').val(settings.unit);
+      // An item type that is not enabled can have no stored unit: months is selected, as in the other forms.
+      typeContainer.find('.purge-unit').val(settings.unit || 'months');
       updateCustomFields(typeContainer);
     });
     modal.modal('show');
@@ -394,9 +402,10 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     updateCustomFields($(this).closest('.purge-type'));
   });
 
-  const saveWikiSettings = function(data) {
+  // Save the settings of the wiki of the modal, or remove them (method DELETE) so that it uses the defaults.
+  const updateWikiSettings = function(method, data) {
     const modal = $('#purgeWikiModal');
-    post(getWikiPath(modal.data('wikiId')) + '/settings', data, l10n.get('saving'), l10n.get('saved'))
+    send(method, getWikiPath(modal.data('wikiId')) + '/settings', data, l10n.get('saving'), l10n.get('saved'))
       .done(function() {
         modal.modal('hide');
         refreshLiveData('purgeWikis');
@@ -413,16 +422,17 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     const data = {};
     types.forEach(type =&gt; {
       const typeContainer = getTypeContainer(form, type);
-      data[type + 'Mode'] = typeContainer.find('.purge-mode:checked').val();
-      addInterval(data, typeContainer, type);
+      const mode = typeContainer.find('.purge-mode:checked').val();
+      data[type + 'Mode'] = mode;
+      if (mode === 'enabled') {
+        addInterval(data, typeContainer, type);
+      }
     });
-    saveWikiSettings(data);
+    updateWikiSettings('POST', data);
   });
 
   $(document).on('click', '#purgeWikiForm .purge-reset', function() {
-    const data = {};
-    types.forEach(type =&gt; data[type + 'Mode'] = 'inherit');
-    saveWikiSettings(data);
+    updateWikiSettings('DELETE');
   });
 
   // The manual purge of a wiki.
