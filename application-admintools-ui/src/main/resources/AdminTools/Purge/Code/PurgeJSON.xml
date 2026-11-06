@@ -165,6 +165,10 @@
       #elseif ($modeId == 'enabled')
         #set ($policyClass = 'purge-custom')
       #end
+      ## An invalid limit, which can only come from a manual edit, is highlighted.
+      #if ($purgePolicyWarning)
+        #set ($policyClass = "$policyClass text-warning")
+      #end
       #set ($entry = $wiki.get("${type}LastPurge"))
       #getPurgeLastPurgeHTML($wiki $type $entry)
       #set ($discard = $row.put($type,
@@ -224,9 +228,11 @@
         &amp;&amp; ($triggerFilter == '' || $triggerFilter == $jobTrigger))
         ## A job waiting behind the purges of other wikis has not started yet.
         #set ($jobDate = '')
+        #set ($jobStart = 0)
         #set ($jobStatusLabel = $services.localization.render('adminTools.purge.history.status.waiting'))
         #if ("$jobStatus.state" == 'RUNNING')
           #set ($jobDate = $xwiki.formatDate($jobStatus.startDate))
+          #set ($jobStart = $jobStatus.startDate.time)
           #set ($jobStatusLabel = $services.localization.render('adminTools.purge.history.status.inProgress'))
         #end
         #set ($discard = $purgesInProgress.add({
@@ -239,7 +245,9 @@
           'trigger': $triggerLabel,
           'actions': '',
           'doc_viewable': true,
-          'inProgress': true
+          'inProgress': true,
+          'typeId': $type,
+          'jobStart': $jobStart
         }))
       #end
     #end
@@ -250,13 +258,37 @@
 #macro (purgeHistoryJSON)
   #readPaging()
   #set ($wikiId = "$!request.wikiId")
+  #set ($typeFilter = "$!request.type")
+  #set ($statusFilter = "$!request.status")
+  #set ($triggerFilter = "$!request.trigger")
+  ## The purges in progress come first when the newest entries come first, unless the history is filtered by status.
+  ## They are read before the history: a purge records its entry before it finishes, so a purge that finishes in
+  ## between is still shown, as in progress, and the refresh that this triggers then shows its entry.
+  #set ($purgesInProgress = [])
+  #if ($wikiId != '' &amp;&amp; "$!request.dir" != 'asc' &amp;&amp; $statusFilter == '')
+    #getPurgesInProgress($wikiId $typeFilter $triggerFilter)
+  #end
   #set ($entries = [])
   #if ($wikiId != '')
     #set ($entries = $services.adminToolsAutoPurge.getHistory($wikiId))
   #end
-  #set ($typeFilter = "$!request.type")
-  #set ($statusFilter = "$!request.status")
-  #set ($triggerFilter = "$!request.trigger")
+  ## A purge that finished in between is not shown twice: its entry, dated when it ran, replaces its row in progress.
+  #set ($shownInProgress = [])
+  #foreach ($purgeInProgress in $purgesInProgress)
+    #set ($recorded = false)
+    ## A job waiting to start can't have recorded its entry yet.
+    #if ($purgeInProgress.jobStart &gt; 0)
+      #foreach ($entry in $entries)
+        #if ($entry.type.id == $purgeInProgress.typeId
+          &amp;&amp; $entry.date.toEpochMilli() &gt;= $purgeInProgress.jobStart)
+          #set ($recorded = true)
+        #end
+      #end
+    #end
+    #if (!$recorded)
+      #set ($discard = $shownInProgress.add($purgeInProgress))
+    #end
+  #end
   ## Filter the entries first, which is cheap, so that only the rows of the current page are built.
   #set ($matchingEntries = [])
   #foreach ($entry in $entries)
@@ -274,12 +306,8 @@
       #end
     #end
   #end
-  ## The purges in progress come first when the newest entries come first, unless the history is filtered by status.
   #set ($historyItems = [])
-  #if ($wikiId != '' &amp;&amp; "$!request.dir" != 'asc' &amp;&amp; $statusFilter == '')
-    #getPurgesInProgress($wikiId $typeFilter $triggerFilter)
-    #set ($discard = $historyItems.addAll($purgesInProgress))
-  #end
+  #set ($discard = $historyItems.addAll($shownInProgress))
   #set ($discard = $historyItems.addAll($matchingEntries))
   #getPage($historyItems)
   #set ($historyRows = [])

@@ -111,6 +111,13 @@ class AdminToolsIT
 
     private static final String PURGE_HISTORY_CLASSNAME = "AdminTools.Purge.Code.HistoryClass";
 
+    private static final DocumentReference PURGE_SETTINGS_REF =
+        new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Code"), "Settings");
+
+    private static final String PURGE_SETTINGS_CLASSNAME = "AdminTools.Purge.Code.SettingsClass";
+
+    private static final String INTERVAL_ERROR = "Enter a whole number between 0 and 1000.";
+
     private static final DocumentReference OLD_DELETED_PAGE_REF =
         new DocumentReference("xwiki", "TestSpace", "AutoPurgePage");
 
@@ -558,6 +565,60 @@ class AdminToolsIT
 
     @Test
     @Order(10)
+    void purgeLimitLabelsTest(TestUtils testUtils)
+    {
+        // Relies on the state left by the purge tests: the deleted pages are purged after 10 years by default, the
+        // deleted attachments are not purged, and the main wiki has no settings of its own.
+        AutoPurgePage purgePage = AutoPurgePage.gotoPage();
+
+        // A limit of 0 purges every deleted item at each daily run.
+        AutoPurgeDefaultsModalView defaultsModal = purgePage.openDefaultsModal();
+        defaultsModal.setEnabled(DELETED_ATTACHMENTS, true);
+        defaultsModal.setInterval(DELETED_ATTACHMENTS, "0", "days");
+        defaultsModal.submit();
+        defaultsModal.waitUntilClosed();
+        purgePage.waitUntilDefaultsSummaryContains(
+            "Deleted attachments: purged at every daily run, with no retention");
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Default · no retention");
+        AutoPurgeWikiModalView wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        assertEquals("no retention", wikiModal.getDefaultLabel(DELETED_ATTACHMENTS));
+        wikiModal.close();
+
+        // Invalid limits can only come from manual edits: a default interval out of range, a custom interval left
+        // empty, and a custom interval out of range. A larger interval than the range is still used, so it is shown.
+        testUtils.updateObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, 0, "deletedDocumentsInterval", "5000");
+        testUtils.addObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, "wiki", "xwiki", "deletedDocumentsMode",
+            "enabled", "deletedAttachmentsMode", "enabled", "deletedAttachmentsInterval", "2000",
+            "deletedAttachmentsUnit", "days");
+        purgePage = AutoPurgePage.gotoPage();
+        assertTrue(purgePage.getDefaultsSummary().contains("Deleted pages: purged after invalid limit (5,000 years)"));
+        assertTrue(purgePage.isDefaultsSummaryWarning(DELETED_DOCUMENTS));
+        assertFalse(purgePage.isDefaultsSummaryWarning(DELETED_ATTACHMENTS));
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN, "Custom · invalid limit");
+        assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN));
+        assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN)
+            .contains("Custom · invalid limit (2,000 days)"));
+        assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN));
+
+        // The invalid limits are reported as soon as the settings of the wiki are opened.
+        wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        wikiModal.waitUntilErrorMessagesShown();
+        assertEquals(List.of(INTERVAL_ERROR, INTERVAL_ERROR), wikiModal.getErrorMessages());
+        assertEquals("", wikiModal.getInterval(DELETED_DOCUMENTS));
+        assertEquals("2000", wikiModal.getInterval(DELETED_ATTACHMENTS));
+        // The settings of the wiki can still be removed.
+        wikiModal.resetToDefaults();
+        wikiModal.waitUntilClosed();
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Default · no retention");
+        assertFalse(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN));
+
+        // Restore the defaults left by the purge tests.
+        testUtils.updateObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, 0, "deletedDocumentsInterval", "10",
+            "deletedAttachmentsMode", "disabled");
+    }
+
+    @Test
+    @Order(11)
     void securitySectionTest()
     {
         // We check the security section content to see if the encoding information is correctly retrieved and
@@ -570,7 +631,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     void groupsRightsPage(TestUtils testUtils)
     {
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
@@ -600,7 +661,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     void usersRightsPage(TestUtils testUtils)
     {
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
@@ -631,7 +692,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     void checkUserRightsPage(TestUtils testUtils)
     {
         // We check the functionality of the "Check user rights on page" document.
@@ -659,7 +720,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     void notAdminTest(TestUtils testUtils)
     {
         // We check that a non-admin user doesn't have access to the admin tools home page.

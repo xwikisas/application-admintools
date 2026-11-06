@@ -71,6 +71,14 @@ public abstract class AbstractAutoPurgeModalView extends BaseModal
     }
 
     /**
+     * Wait until error messages are shown, for example for the invalid stored settings checked when the modal opens.
+     */
+    public void waitUntilErrorMessagesShown()
+    {
+        getDriver().waitUntilCondition(driver -> !getErrorMessages().isEmpty());
+    }
+
+    /**
      * @return the name of the wiki shown by the modal
      */
     public String getWikiName()

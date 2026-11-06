@@ -79,6 +79,16 @@ public class AutoPurgePage extends ViewPage
     }
 
     /**
+     * @param type the identifier of an item type
+     * @return {@code true} if the default limit of the item type is highlighted as invalid in the summary
+     */
+    public boolean isDefaultsSummaryWarning(String type)
+    {
+        return getDriver().findElement(By.cssSelector(".purge-defaults-" + type)).getAttribute("class")
+            .contains("text-warning");
+    }
+
+    /**
      * Wait until the summary of the default settings, refreshed after they are saved, holds a text.
      *
      * @param text the expected text
@@ -119,6 +129,17 @@ public class AutoPurgePage extends ViewPage
     public String getWikiCell(String wikiName, String column)
     {
         return getWikisTable().getCell(column, getRowNumber(wikiName)).getText();
+    }
+
+    /**
+     * @param wikiName the name of a wiki
+     * @param column the label of a column
+     * @return {@code true} if the limit shown in the cell of the wiki is highlighted as invalid
+     */
+    public boolean isWikiCellWarning(String wikiName, String column)
+    {
+        return !getWikisTable().getCell(column, getRowNumber(wikiName)).findElements(By.className("text-warning"))
+            .isEmpty();
     }
 
     /**

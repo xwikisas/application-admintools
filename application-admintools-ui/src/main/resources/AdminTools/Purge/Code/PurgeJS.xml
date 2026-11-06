@@ -280,6 +280,11 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     clearErrors($(this));
   });
 
+  // A stored limit can only be invalid after a manual edit: its error is shown as soon as the settings are opened.
+  $(document).on('shown.bs.modal', '#purgeDefaultsModal, #purgeWikiModal', function() {
+    validateNumbers($(this).find('input[type="number"]:enabled'));
+  });
+
   // The error of a setting is shown while it is typed, not only when the settings are saved.
   $(document).on('input', '#purgeDefaultsForm input[type="number"], #purgeWikiForm input[type="number"]', function() {
     validateNumbers($(this));

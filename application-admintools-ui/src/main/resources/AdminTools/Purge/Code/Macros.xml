@@ -56,41 +56,66 @@
 
 ## Get the labels of the settings of an item type. It sets $purgeDefaultLabel to the default limit, e.g. "1 month" or
 ## "disabled", and, when the settings of a wiki are given, $purgePolicyLabel to what applies to the wiki, e.g.
-## "Default · 1 month", "Custom · 7 days" or "Disabled".
+## "Default · 1 month", "Custom · 7 days" or "Disabled". $purgeDefaultWarning and $purgePolicyWarning tell whether the
+## limit of each label is invalid.
 #macro (getPurgeLabels $defaultSettings $wikiSettings)
+  #set ($purgeDefaultWarning = false)
   #if ($defaultSettings.mode.id == 'enabled')
     #getPurgeIntervalLabel($defaultSettings)
     #set ($purgeDefaultLabel = $purgeIntervalLabel)
+    #set ($purgeDefaultWarning = $purgeIntervalWarning)
   #else
     #set ($purgeDefaultLabel = $services.localization.render('adminTools.purge.policy.disabled.lower'))
   #end
+  #set ($purgePolicyWarning = false)
   #if ($wikiSettings.mode.id == 'enabled')
     #getPurgeIntervalLabel($wikiSettings)
     #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.custom', [$purgeIntervalLabel]))
+    #set ($purgePolicyWarning = $purgeIntervalWarning)
   #elseif ($wikiSettings.mode.id == 'disabled')
     #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.disabled'))
   #else
     #set ($purgePolicyLabel = $services.localization.render('adminTools.purge.policy.default', [$purgeDefaultLabel]))
+    #set ($purgePolicyWarning = $purgeDefaultWarning)
   #end
 #end
 
-## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", or to a warning if the stored interval or
-## unit is missing, which can only come from a manual edit.
+## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", or "no retention" for an interval of 0,
+## which purges every deleted item at each daily run. A stored limit can only be invalid after a manual edit: a missing
+## interval or unit, or an interval out of the range accepted by the forms. The label then warns about it, and
+## $purgeIntervalWarning is true. A larger interval than the range is still used by the purge, so it is shown.
 #macro (getPurgeIntervalLabel $settings)
+  #set ($purgeIntervalWarning = false)
+  #set ($purgeIntervalZero = false)
   #if ($settings.interval.isPresent() &amp;&amp; $settings.unit.isPresent())
+    #set ($purgeInterval = $settings.interval.get())
     #set ($purgeIntervalLabel = $services.localization.render("adminTools.purge.interval.${settings.unit.get().id}",
-      [$settings.interval.get()]))
+      [$purgeInterval]))
+    #if ($purgeInterval == 0)
+      #set ($purgeIntervalZero = true)
+      #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.zero'))
+    #elseif ($purgeInterval &lt; 0 || $purgeInterval &gt; 1000)
+      #set ($purgeIntervalWarning = true)
+      #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
+        [$purgeIntervalLabel]))
+    #end
   #else
+    #set ($purgeIntervalWarning = true)
     #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.invalid'))
   #end
 #end
 
-## The defaults shown on the purge page, for each item type and for the history size.
+## The defaults shown on the purge page, for each item type and for the history size. The entry
+## "&lt;typeId&gt;Warning" tells whether the limit of an item type is invalid.
 #macro (getPurgeDefaultsSummary)
   #set ($purgeDefaultsSummary = {})
   #foreach ($type in $purgeTypes)
     #getPurgeLabels($purgeDefaults.get($type) $NULL)
-    #if ($purgeDefaults.get($type).mode.id == 'enabled')
+    #set ($discard = $purgeDefaultsSummary.put("${type}Warning", $purgeDefaultWarning))
+    #if ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeIntervalZero)
+      #set ($discard = $purgeDefaultsSummary.put($type,
+        $services.localization.render('adminTools.purge.defaults.enabled.noRetention')))
+    #elseif ($purgeDefaults.get($type).mode.id == 'enabled')
       #set ($discard = $purgeDefaultsSummary.put($type,
         $services.localization.render('adminTools.purge.defaults.enabled', [$purgeDefaultLabel])))
     #else
@@ -103,8 +128,8 @@
 #end
 
 ## The fields of the interval of an item type, e.g. "Keep for [n] [unit]", with the label of the given key. The
-## smallest interval is 1 for the settings, and 0 for a manual purge, which then purges every deleted item.
-#macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey $min)
+## interval is between 0 and 1000: 0 purges every deleted item.
+#macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey)
   ## Months is selected when there is no stored unit.
   #set ($selectedUnit = 'months')
   #set ($interval = '')
@@ -120,7 +145,7 @@
     &lt;label for="${idPrefix}${type}Interval"&gt;$escapetool.xml(
       $services.localization.render($labelKey))&lt;/label&gt;
     &lt;input type="number" class="form-control input-sm purge-interval" id="${idPrefix}${type}Interval"
-      name="${type}Interval" min="$min" max="1000" required value="$interval"
+      name="${type}Interval" min="0" max="1000" required value="$interval"
       #if ($disabled)disabled#end/&gt;
     &lt;label class="sr-only" for="${idPrefix}${type}Unit"&gt;$escapetool.xml($services.localization.render(
       'adminTools.purge.form.unit'))&lt;/label&gt;
@@ -157,7 +182,8 @@
       #foreach ($type in $purgeTypes)
         &lt;li&gt;&lt;strong&gt;$escapetool.xml($services.localization.render(
           "adminTools.purge.type.$type"))&lt;/strong&gt;:
-          &lt;span class="purge-defaults-$type"&gt;$escapetool.xml($summary.get($type))&lt;/span&gt;&lt;/li&gt;
+          &lt;span class="purge-defaults-$type#if ($summary.get("${type}Warning")) text-warning#end"&gt;$escapetool.xml(
+            $summary.get($type))&lt;/span&gt;&lt;/li&gt;
       #end
       &lt;li class="purge-defaults-maxHistoryEntries"&gt;$escapetool.xml($summary.get('maxHistoryEntries'))&lt;/li&gt;
     &lt;/ul&gt;
@@ -178,6 +204,8 @@
         &lt;form id="purgeDefaultsForm" class="purge-form" novalidate&gt;
           #purgeModalHeader('purgeDefaultsModal' 'adminTools.purge.defaults.modal.title')
           &lt;div class="modal-body"&gt;
+            &lt;p class="xHint"&gt;$escapetool.xml($services.localization.render(
+              'adminTools.purge.form.zeroHint'))&lt;/p&gt;
             #foreach ($type in $purgeTypes)
               #set ($typeDefaults = $purgeDefaults.get($type))
               #set ($enabled = $typeDefaults.mode.id == 'enabled')
@@ -189,7 +217,7 @@
                     $escapetool.xml($services.localization.render("adminTools.purge.form.${type}.enable"))&lt;/label&gt;
                 &lt;/div&gt;
                 #purgeIntervalFields('purgeDefaults' $type $typeDefaults $fieldsDisabled
-                  'adminTools.purge.form.keepFor' 1)
+                  'adminTools.purge.form.keepFor')
               &lt;/div&gt;
             #end
             &lt;div class="form-group"&gt;
@@ -228,6 +256,8 @@
           #purgeModalHeader('purgeWikiModal' 'adminTools.purge.wiki.modal.title')
           &lt;div class="modal-body"&gt;
             &lt;p&gt;&lt;strong class="purge-wiki-name"&gt;&lt;/strong&gt;&lt;/p&gt;
+            &lt;p class="xHint"&gt;$escapetool.xml($services.localization.render(
+              'adminTools.purge.form.zeroHint'))&lt;/p&gt;
             #foreach ($type in $purgeTypes)
               &lt;fieldset class="form-group purge-type" data-type="$type"&gt;
                 &lt;legend&gt;$escapetool.xml($services.localization.render(
@@ -240,7 +270,7 @@
                 &lt;div class="radio"&gt;
                   &lt;label&gt;&lt;input type="radio" class="purge-mode" name="${type}Mode" value="enabled"/&gt;
                     $escapetool.xml($services.localization.render('adminTools.purge.form.custom'))&lt;/label&gt;
-                  #purgeIntervalFields('purgeWiki' $type $NULL true 'adminTools.purge.form.keepFor' 1)
+                  #purgeIntervalFields('purgeWiki' $type $NULL true 'adminTools.purge.form.keepFor')
                 &lt;/div&gt;
                 &lt;div class="radio"&gt;
                   &lt;label&gt;&lt;input type="radio" class="purge-mode" name="${type}Mode" value="disabled"/&gt;
@@ -289,7 +319,7 @@
                     &lt;span class="text-muted purge-count"&gt;&lt;/span&gt;&lt;/span&gt;&lt;/label&gt;
                 &lt;/div&gt;
                 ## The limit of an item type can be changed once the item type is selected.
-                #purgeIntervalFields('purgeNow' $type $NULL true 'adminTools.purge.now.olderThan' 0)
+                #purgeIntervalFields('purgeNow' $type $NULL true 'adminTools.purge.now.olderThan')
                 &lt;p class="xHint purge-disabled-note hidden"&gt;$escapetool.xml($services.localization.render(
                   'adminTools.purge.now.autoPurgeDisabled'))&lt;/p&gt;
               &lt;/div&gt;
