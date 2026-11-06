@@ -1,6 +1,13 @@
+com.xwiki.admintools.purge.script.AutoPurgeScriptService
+com.xwiki.admintools.purge.internal.PurgeManager
 com.xwiki.admintools.purge.internal.PurgeWikiDeletedListener
+com.xwiki.admintools.purge.internal.PurgeWikisDataProvider
+com.xwiki.admintools.purge.internal.handler.DeletedAttachmentsPurgeHandler
+com.xwiki.admintools.purge.internal.handler.DeletedDocumentsPurgeHandler
+com.xwiki.admintools.purge.internal.job.PurgeJob
 com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver
 com.xwiki.admintools.purge.internal.policy.RetentionCalculator
+com.xwiki.admintools.purge.internal.rest.DefaultAutoPurgeResource
 com.xwiki.admintools.purge.internal.store.PurgeHistoryStore
 com.xwiki.admintools.purge.internal.store.PurgePageManager
 com.xwiki.admintools.purge.internal.store.PurgePageReferences

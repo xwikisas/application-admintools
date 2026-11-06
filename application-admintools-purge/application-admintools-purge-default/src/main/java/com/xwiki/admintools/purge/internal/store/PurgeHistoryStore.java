@@ -67,6 +67,15 @@ public class PurgeHistoryStore
         + "history.triggeredBy, history.status, history.removedCount, history.failedCount "
         + "from Document doc, doc.object(%s) as history where doc.space = :space and history.latest = 1";
 
+    /**
+     * Finds the names of the history pages, which are the identifiers of their wikis, without loading the pages. Only
+     * the pages holding history objects are found. The {@code %s} is replaced by the history class.
+     */
+    private static final String WIKIS_WITH_HISTORY_QUERY =
+        "select distinct doc.name from Document doc, doc.object(%s) as history where doc.space = :space";
+
+    private static final String SPACE_PARAMETER = "space";
+
     @Inject
     private PurgePageReferences references;
 
@@ -142,7 +151,7 @@ public class PurgeHistoryStore
         List<Object[]> rows =
             this.queryManager.createQuery(String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName()),
                     Query.XWQL).setWiki(this.references.getMainWikiId())
-                .bindValue("space", this.references.getWikisSpaceReference()).execute();
+                .bindValue(SPACE_PARAMETER, this.references.getWikisSpaceReference()).execute();
         Map<String, Map<PurgeType, PurgeHistoryEntry>> allLatestEntries = new HashMap<>();
         for (Object[] row : rows) {
             // The columns selected by the query, in the same order.
@@ -162,6 +171,20 @@ public class PurgeHistoryStore
             }
         }
         return allLatestEntries;
+    }
+
+    /**
+     * Find the wikis that have a purge history page, without loading the pages. The wikis that no longer exist are
+     * included, when their history was not deleted with them.
+     *
+     * @return the identifiers of the wikis that have a purge history
+     * @throws QueryException if the history pages can't be queried
+     */
+    public List<String> getWikiIdsWithHistory() throws QueryException
+    {
+        return this.queryManager.createQuery(String.format(WIKIS_WITH_HISTORY_QUERY,
+                this.references.getHistoryClassName()), Query.XWQL).setWiki(this.references.getMainWikiId())
+            .bindValue(SPACE_PARAMETER, this.references.getWikisSpaceReference()).execute();
     }
 
     /**
