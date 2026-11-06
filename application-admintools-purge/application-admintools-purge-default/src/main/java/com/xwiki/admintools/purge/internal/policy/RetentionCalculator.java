@@ -45,15 +45,16 @@ public class RetentionCalculator
      * same local time across a daylight saving time change.
      *
      * @param now the time from which the interval is subtracted, usually {@link ZonedDateTime#now()}
-     * @param interval the number of units the deleted items are kept for, at least 1
+     * @param interval the number of units the deleted items are kept for, at least 0; 0 gives {@code now}, so that
+     *     every item deleted until now is expired
      * @param unit the unit of the interval
      * @return the instant before which deleted items must be purged
      */
     public Instant getExpirationDate(ZonedDateTime now, int interval, IntervalUnit unit)
     {
-        if (interval < 1) {
+        if (interval < 0) {
             throw new IllegalArgumentException(
-                String.format("The purge interval must be at least 1, but was [%d].", interval));
+                String.format("The purge interval must be at least 0, but was [%d].", interval));
         }
         ZonedDateTime expirationDate;
         switch (unit) {

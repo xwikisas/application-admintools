@@ -44,9 +44,10 @@ public interface AutoPurgeResource extends XWikiRestComponent
     /**
      * Save the default automatic purge settings, used by every wiki that doesn't customize an item type. The form
      * fields are, for each item type: {@code <typeId>Mode} ({@code enabled} or {@code disabled}),
-     * {@code <typeId>Interval} and {@code <typeId>Unit} ({@code days}, {@code weeks}, {@code months} or
-     * {@code years}), plus {@code maxHistoryEntries}, the number of purge history entries kept for each item type of
-     * each wiki.
+     * {@code <typeId>Interval} and {@code <typeId>Unit} ({@code days}, {@code weeks}, {@code months} or {@code years}),
+     * plus {@code maxHistoryEntries}, the number of purge history entries kept for each item type of each wiki, between
+     * 1 and 200. Every field is required, whatever the mode, and the interval must be between 0 and 1000; an interval
+     * of 0 purges every item deleted until the purge runs.
      *
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
      *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid
@@ -60,14 +61,14 @@ public interface AutoPurgeResource extends XWikiRestComponent
     }
 
     /**
-     * Save the automatic purge settings of a wiki. The form fields are the same as for
-     * {@link #saveDefaultSettings()}, without {@code maxHistoryEntries}, and the mode can also be {@code inherit},
-     * to use the default settings of the item type.
+     * Save the automatic purge settings of a wiki. The form fields are the same as for {@link #saveDefaultSettings()},
+     * without {@code maxHistoryEntries}, and the mode can also be {@code inherit}, to use the default settings of the
+     * item type.
      *
      * @param wikiId the identifier of the wiki
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
-     *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid; 404 if
-     *     the wiki doesn't exist
+     *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid; 404 if the
+     *     wiki doesn't exist
      * @throws XWikiRestException if an error occurred while saving the settings
      */
     @POST
@@ -78,9 +79,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
     }
 
     /**
-     * Start purging the recycle bin of a wiki now, applying its stored settings. The form field {@code type}, which
-     * can be repeated, holds the identifiers of the item types to purge. An item type is not purged if its previous
-     * purge is still queued or running, or if it has no expired items.
+     * Start purging the recycle bin of a wiki now, applying its stored settings. The form field {@code type}, which can
+     * be repeated, holds the identifiers of the item types to purge. An item type is not purged if its previous purge
+     * is still queued or running, or if it has no expired items.
      *
      * @param wikiId the identifier of the wiki
      * @return status code 202 with the JSON list of the identifiers of the started jobs; 400 if no item type is given
@@ -100,9 +101,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * purge would remove.
      *
      * @param wikiId the identifier of the wiki
-     * @return status code 200 with a JSON object holding the number of expired items of each enabled item type, by
-     *     item type identifier, a disabled item type being left out; 401 if the user is not an admin of the main wiki;
-     *     402 if the license is not active; 404 if the wiki doesn't exist
+     * @return status code 200 with a JSON object holding the number of expired items of each enabled item type, by item
+     *     type identifier, a disabled item type being left out; 401 if the user is not an admin of the main wiki; 402
+     *     if the license is not active; 404 if the wiki doesn't exist
      * @throws XWikiRestException if an error occurred while counting the items
      */
     @GET

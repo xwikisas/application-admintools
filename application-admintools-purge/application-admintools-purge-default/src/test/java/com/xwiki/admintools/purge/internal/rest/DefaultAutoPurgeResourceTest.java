@@ -80,7 +80,7 @@ class DefaultAutoPurgeResourceTest
 
     private static final DocumentReference USER = new DocumentReference(MAIN_WIKI, "XWiki", "Admin");
 
-    private static final PurgeTypeSettings INHERIT = new PurgeTypeSettings(PurgeMode.INHERIT, 0, null);
+    private static final PurgeTypeSettings INHERIT = new PurgeTypeSettings(PurgeMode.INHERIT, 1, IntervalUnit.MONTHS);
 
     @RegisterExtension
     private final LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
@@ -135,24 +135,22 @@ class DefaultAutoPurgeResourceTest
     @Test
     void saveDefaultSettings() throws Exception
     {
-        when(this.request.getParameter("deletedDocumentsMode")).thenReturn("enabled");
-        when(this.request.getParameter("deletedDocumentsInterval")).thenReturn("7");
-        when(this.request.getParameter("deletedDocumentsUnit")).thenReturn("days");
-        when(this.request.getParameter("deletedAttachmentsMode")).thenReturn("disabled");
+        mockTypeFields("deletedDocuments", "enabled", "7", "days");
+        mockTypeFields("deletedAttachments", "disabled", "0", "months");
         when(this.request.getParameter("maxHistoryEntries")).thenReturn("20");
 
         assertEquals(204, this.resource.saveDefaultSettings().getStatus());
 
         verify(this.settingsStore).saveGlobalSettings(
             Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS),
-                DELETED_ATTACHMENTS, new PurgeTypeSettings(PurgeMode.DISABLED, 0, null)), 20);
+                DELETED_ATTACHMENTS, new PurgeTypeSettings(PurgeMode.DISABLED, 0, IntervalUnit.MONTHS)), 20);
     }
 
     @Test
     void saveWikiSettings() throws Exception
     {
-        when(this.request.getParameter("deletedDocumentsMode")).thenReturn("inherit");
-        when(this.request.getParameter("deletedAttachmentsMode")).thenReturn("inherit");
+        mockTypeFields("deletedDocuments", "inherit", "1", "months");
+        mockTypeFields("deletedAttachments", "inherit", "1", "months");
 
         assertEquals(204, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
@@ -163,26 +161,44 @@ class DefaultAutoPurgeResourceTest
     @Test
     void saveSettingsWithInvalidValues() throws Exception
     {
-        when(this.request.getParameter("deletedDocumentsMode")).thenReturn("sometimes");
+        mockTypeFields("deletedAttachments", "inherit", "1", "months");
+        mockTypeFields("deletedDocuments", "sometimes", "7", "days");
         assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
-        when(this.request.getParameter("deletedDocumentsMode")).thenReturn("enabled");
-        when(this.request.getParameter("deletedDocumentsInterval")).thenReturn("seven");
+        mockTypeFields("deletedDocuments", "enabled", "seven", "days");
         assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
-        when(this.request.getParameter("deletedDocumentsInterval")).thenReturn("7");
-        when(this.request.getParameter("deletedDocumentsUnit")).thenReturn("decades");
+        mockTypeFields("deletedDocuments", "enabled", "7", "decades");
         assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
         verify(this.settingsStore, never()).saveWikiSettings(anyString(), any());
 
-        // The settings store rejects the settings that can be parsed but are invalid, such as the missing history
-        // size of the defaults.
-        when(this.request.getParameter("deletedDocumentsUnit")).thenReturn("days");
-        when(this.request.getParameter("deletedAttachmentsMode")).thenReturn("inherit");
+        // The missing history size of the defaults is rejected, as well as the settings rejected by the settings
+        // store.
+        mockTypeFields("deletedDocuments", "enabled", "7", "days");
+        mockTypeFields("deletedAttachments", "inherit", "1", "months");
         assertEquals(400, this.resource.saveDefaultSettings().getStatus());
         doThrow(new IllegalArgumentException("Invalid")).when(this.settingsStore).saveWikiSettings(anyString(), any());
         assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+    }
+
+    @Test
+    void saveSettingsWithMissingFields() throws Exception
+    {
+        // The interval and unit are required for every item type, whatever its mode, instead of being read as
+        // values that could be valid.
+        mockTypeFields("deletedDocuments", "enabled", null, "days");
+        mockTypeFields("deletedAttachments", "inherit", "1", "months");
+        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+
+        mockTypeFields("deletedDocuments", "enabled", "7", "days");
+        mockTypeFields("deletedAttachments", "disabled", "1", " ");
+        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+
+        mockTypeFields("deletedAttachments", "inherit", "", "months");
+        assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
+
+        verify(this.settingsStore, never()).saveWikiSettings(anyString(), any());
     }
 
     @Test
@@ -310,5 +326,12 @@ class DefaultAutoPurgeResourceTest
         assertEquals("[[\"adminTools\",\"purge\",\"deletedAttachments\",\"subwiki\"]]", response.getEntity());
         assertEquals("Failed to start the purge of [deletedDocuments] on wiki [subwiki].",
             this.logCapture.getMessage(0));
+    }
+
+    private void mockTypeFields(String typeId, String mode, String interval, String unit)
+    {
+        when(this.request.getParameter(typeId + "Mode")).thenReturn(mode);
+        when(this.request.getParameter(typeId + "Interval")).thenReturn(interval);
+        when(this.request.getParameter(typeId + "Unit")).thenReturn(unit);
     }
 }

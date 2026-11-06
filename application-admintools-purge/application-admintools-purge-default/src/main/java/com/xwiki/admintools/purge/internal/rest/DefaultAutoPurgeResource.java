@@ -226,12 +226,11 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
 
     /**
      * Read the automatic purge settings of every item type from the form fields {@code <typeId>Mode},
-     * {@code <typeId>Interval} and {@code <typeId>Unit}. A missing interval or unit is left for the settings store to
-     * reject, since only an enabled item type needs them.
+     * {@code <typeId>Interval} and {@code <typeId>Unit}, which are all required, whatever the mode.
      *
      * @param request the request holding the form fields
      * @return the settings of every item type
-     * @throws IllegalArgumentException if a mode is missing, or if a field has an invalid value
+     * @throws IllegalArgumentException if a field is missing, or if it has an invalid value
      */
     private Map<PurgeType, PurgeTypeSettings> readTypeSettings(XWikiRequest request)
     {
@@ -241,14 +240,27 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
             String interval = type.getId() + "Interval";
             String unit = type.getId() + "Unit";
             String modeValue = request.getParameter(mode);
-            String intervalValue = request.getParameter(interval);
-            String unitValue = request.getParameter(unit);
+            String unitValue = getRequiredParameter(request, unit);
             typeSettings.put(type, new PurgeTypeSettings(PurgeMode.fromId(modeValue)
                 .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, modeValue, mode))),
-                StringUtils.isBlank(intervalValue) ? 0 : Integer.parseInt(intervalValue),
-                StringUtils.isBlank(unitValue) ? null : IntervalUnit.fromId(unitValue)
-                    .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, unitValue, unit)))));
+                Integer.parseInt(getRequiredParameter(request, interval)), IntervalUnit.fromId(unitValue)
+                .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, unitValue, unit)))));
         }
         return typeSettings;
+    }
+
+    /**
+     * @param request the request holding the form fields
+     * @param field the name of a form field
+     * @return the value of the form field
+     * @throws IllegalArgumentException if the form field is missing or empty
+     */
+    private String getRequiredParameter(XWikiRequest request, String field)
+    {
+        String value = request.getParameter(field);
+        if (StringUtils.isBlank(value)) {
+            throw new IllegalArgumentException(String.format("The field [%s] is missing.", field));
+        }
+        return value;
     }
 }
