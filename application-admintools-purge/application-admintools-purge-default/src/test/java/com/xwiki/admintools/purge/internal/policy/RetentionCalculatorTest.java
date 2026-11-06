@@ -97,8 +97,8 @@ class RetentionCalculatorTest
     @Test
     void getExpirationDateWithZeroInterval()
     {
-        // A manual purge with a limit of 0 expires every item deleted until now, whatever the unit.
-        ZonedDateTime now = time("2026-10-23T10:15:30", UTC);
+        // An interval of 0 expires every item deleted until now, whatever the unit.
+        ZonedDateTime now = time("2026-10-30T10:00:00", BUCHAREST);
 
         assertEquals(now.toInstant(), this.retentionCalculator.getExpirationDate(now, 0, IntervalUnit.DAYS));
         assertEquals(now.toInstant(), this.retentionCalculator.getExpirationDate(now, 0, IntervalUnit.YEARS));

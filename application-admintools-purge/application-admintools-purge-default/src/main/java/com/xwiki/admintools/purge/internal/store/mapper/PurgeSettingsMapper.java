@@ -38,9 +38,10 @@ import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Converts between the settings objects stored in the wiki and the automatic purge settings. Reading is forgiving:
- * invalid stored values, which can only come from manual edits, fall back to values that never purge more than
- * intended. Writing is strict: invalid settings are rejected before anything is written.
+ * Converts between the settings objects stored in the wiki and the automatic purge settings. Writing is strict: the
+ * settings of every item type, whatever its mode, and the purge history size are validated, and nothing is written if
+ * they are invalid. Reading doesn't validate: the stored values are returned as they are, so that invalid ones, which
+ * can only come from manual edits, are reported by the code using them instead of being silently replaced.
  *
  * @version $Id$
  * @since 1.5
@@ -57,7 +58,16 @@ public class PurgeSettingsMapper
 
     private static final int DEFAULT_INTERVAL = 1;
 
-    private static final int MIN_INTERVAL = 1;
+    /**
+     * The interval read when none is stored. It is invalid, unlike 0, which purges every deleted item, so that a
+     * missing interval is never used.
+     */
+    private static final int MISSING_INTERVAL = -1;
+
+    /**
+     * The smallest interval. An interval of 0 purges every item deleted until the purge runs.
+     */
+    private static final int MIN_INTERVAL = 0;
 
     private static final IntervalUnit DEFAULT_UNIT = IntervalUnit.MONTHS;
 
@@ -91,17 +101,17 @@ public class PurgeSettingsMapper
      * object holds the purge history size.
      *
      * @param object the global settings object, or {@code null} if there is none
-     * @return the global settings; every item type is disabled if there is no object
+     * @return the global settings, with the stored values; every item type is disabled if there is no object
+     * @throws IllegalArgumentException if the stored history size is lower than 1
      */
-    public GlobalPurgeSettings readSettings(BaseObject object)
+    public GlobalPurgeSettings readSettings(BaseObject object) throws IllegalArgumentException
     {
         Map<PurgeType, PurgeTypeSettings> typeSettings = readTypeSettings(object, true, GLOBAL_SETTINGS);
         if (object == null) {
             return new GlobalPurgeSettings(typeSettings, DEFAULT_MAX_HISTORY_ENTRIES);
         }
-        int maxHistoryEntries = Math.min(MAX_HISTORY_ENTRIES, Math.max(MIN_HISTORY_ENTRIES,
-            object.getIntValue(MAX_HISTORY_ENTRIES_PROPERTY, DEFAULT_MAX_HISTORY_ENTRIES)));
-        return new GlobalPurgeSettings(typeSettings, maxHistoryEntries);
+        return new GlobalPurgeSettings(typeSettings,
+            object.getIntValue(MAX_HISTORY_ENTRIES_PROPERTY, DEFAULT_MAX_HISTORY_ENTRIES));
     }
 
     /**
@@ -109,8 +119,8 @@ public class PurgeSettingsMapper
      *
      * @param object the settings object of the wiki, or {@code null} if there is none
      * @param wikiId the identifier of the wiki, used in warnings
-     * @return the settings of each item type for the wiki; every item type is {@link PurgeMode#INHERIT} if there is no
-     *     object
+     * @return the settings of each item type for the wiki, with the stored values; every item type is
+     *     {@link PurgeMode#INHERIT} if there is no object
      */
     public Map<PurgeType, PurgeTypeSettings> readSettings(BaseObject object, String wikiId)
     {
@@ -123,27 +133,18 @@ public class PurgeSettingsMapper
      *
      * @param object the global settings object to write to
      * @param typeSettings the global settings of every item type; the mode can't be {@link PurgeMode#INHERIT}
-     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least
-     *     1; a larger number than 200 is replaced by 200, with a warning
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, between 1
+     *     and 200
      * @throws IllegalArgumentException if a setting is missing or invalid, if a mode is {@link PurgeMode#INHERIT},
-     *     or if the history size is lower than 1
+     *     or if the history size is not between 1 and 200
      */
     public void writeSettings(BaseObject object, Map<PurgeType, PurgeTypeSettings> typeSettings, int maxHistoryEntries)
+        throws IllegalArgumentException
     {
-        validate(typeSettings, true);
-        if (maxHistoryEntries < MIN_HISTORY_ENTRIES) {
-            throw new IllegalArgumentException(
-                String.format("The purge history size must be at least %d, but was [%d].", MIN_HISTORY_ENTRIES,
-                    maxHistoryEntries));
-        }
-        int historySize = maxHistoryEntries;
-        if (historySize > MAX_HISTORY_ENTRIES) {
-            this.logger.warn("The purge history size [{}] is larger than the maximum. [{}] is used instead.",
-                historySize, MAX_HISTORY_ENTRIES);
-            historySize = MAX_HISTORY_ENTRIES;
-        }
-        writeTypeSettings(object, typeSettings, GLOBAL_SETTINGS);
-        object.setIntValue(MAX_HISTORY_ENTRIES_PROPERTY, historySize);
+        validate(typeSettings, true, GLOBAL_SETTINGS);
+        checkMaxHistoryEntries(maxHistoryEntries);
+        writeTypeSettings(object, typeSettings);
+        object.setIntValue(MAX_HISTORY_ENTRIES_PROPERTY, maxHistoryEntries);
     }
 
     /**
@@ -156,10 +157,11 @@ public class PurgeSettingsMapper
      * @throws IllegalArgumentException if a setting is missing or invalid
      */
     public void writeSettings(BaseObject object, String wikiId, Map<PurgeType, PurgeTypeSettings> typeSettings)
+        throws IllegalArgumentException
     {
-        validate(typeSettings, false);
+        validate(typeSettings, false, wikiId);
         object.setStringValue(WIKI_PROPERTY, wikiId);
-        writeTypeSettings(object, typeSettings, wikiId);
+        writeTypeSettings(object, typeSettings);
     }
 
     /**
@@ -175,11 +177,13 @@ public class PurgeSettingsMapper
     }
 
     /**
-     * Read the settings of every item type from a settings object. The global and the wiki settings objects are read
-     * the same way; they only differ by the mode used when the stored one is missing or invalid.
+     * Read the settings of every item type from a settings object, without validating them. The global and the wiki
+     * settings objects are read the same way; they only differ by the mode used when the stored one is missing or
+     * invalid. A missing interval is read as {@link #MISSING_INTERVAL} and a missing or unknown unit as {@code null},
+     * both invalid, so that the code using them reports them.
      *
      * @param object the settings object, or {@code null} if there is none, in which case every item type gets the
-     *     fallback mode and the default interval
+     *     fallback mode and the default interval and unit
      * @param global {@code true} for the global settings object, {@code false} for the settings object of a wiki
      * @param settingsName the name of the settings in warnings: the wiki identifier, or {@link #GLOBAL_SETTINGS}
      * @return the settings of each item type
@@ -189,43 +193,16 @@ public class PurgeSettingsMapper
         Map<PurgeType, PurgeTypeSettings> typeSettings = new EnumMap<>(PurgeType.class);
         for (PurgeType type : PurgeType.values()) {
             if (object == null) {
-                typeSettings.put(type, toTypeSettings(type, null, DEFAULT_INTERVAL, null, global, settingsName));
+                typeSettings.put(type,
+                    new PurgeTypeSettings(parseMode(type, null, global, settingsName), DEFAULT_INTERVAL, DEFAULT_UNIT));
             } else {
-                // A missing or empty interval is read as the default interval.
-                typeSettings.put(type, toTypeSettings(type, object.getStringValue(type.getId() + MODE_SUFFIX),
-                    object.getIntValue(type.getId() + INTERVAL_SUFFIX, DEFAULT_INTERVAL),
-                    object.getStringValue(type.getId() + UNIT_SUFFIX), global, settingsName));
+                typeSettings.put(type, new PurgeTypeSettings(
+                    parseMode(type, object.getStringValue(type.getId() + MODE_SUFFIX), global, settingsName),
+                    object.getIntValue(type.getId() + INTERVAL_SUFFIX, MISSING_INTERVAL),
+                    IntervalUnit.fromId(object.getStringValue(type.getId() + UNIT_SUFFIX)).orElse(null)));
             }
         }
         return typeSettings;
-    }
-
-    /**
-     * Build the settings of an item type from its stored values, applying the reading rules: a missing unit is read as
-     * the default unit, an enabled item type with an interval below 1 or an unknown unit is disabled, with a warning,
-     * instead of falling back to a default interval that could purge much more than intended, and an interval larger
-     * than the maximum is replaced by the maximum, with a warning.
-     *
-     * @param type the item type
-     * @param modeId the stored mode, possibly empty or invalid
-     * @param interval the stored interval, possibly invalid
-     * @param unitId the stored unit, possibly empty or invalid
-     * @param global {@code true} for the global settings, {@code false} for the settings of a wiki
-     * @param settingsName the name of the settings in warnings: the wiki identifier, or {@link #GLOBAL_SETTINGS}
-     * @return the settings of the item type
-     */
-    private PurgeTypeSettings toTypeSettings(PurgeType type, String modeId, int interval, String unitId, boolean global,
-        String settingsName)
-    {
-        PurgeMode mode = parseMode(type, modeId, global, settingsName);
-        Optional<IntervalUnit> unit =
-            StringUtils.isBlank(unitId) ? Optional.of(DEFAULT_UNIT) : IntervalUnit.fromId(unitId);
-        if (mode == PurgeMode.ENABLED && (interval < MIN_INTERVAL || unit.isEmpty())) {
-            this.logger.warn("Invalid automatic purge interval [{} {}] for [{}] in the [{}] settings. The automatic "
-                + "purge is disabled for it.", interval, unitId, type.getId(), settingsName);
-            mode = PurgeMode.DISABLED;
-        }
-        return new PurgeTypeSettings(mode, capInterval(type, interval, settingsName), unit.orElse(DEFAULT_UNIT));
     }
 
     /**
@@ -256,14 +233,15 @@ public class PurgeSettingsMapper
 
     /**
      * Check the settings of every item type before they are written. Every item type must have settings, the global
-     * settings can't inherit, and an enabled item type needs an interval of at least 1 and a unit. The interval of an
-     * item type that is not enabled is not checked, since it is not used.
+     * settings can't inherit, and every item type, whatever its mode, must have an interval between
+     * {@link #MIN_INTERVAL} and {@link #MAX_INTERVAL} and a unit.
      *
      * @param typeSettings the settings of every item type
      * @param global {@code true} for the global settings, {@code false} for the settings of a wiki
+     * @param settingsName the name of the settings in errors: the wiki identifier, or {@link #GLOBAL_SETTINGS}
      * @throws IllegalArgumentException if the settings are invalid
      */
-    private void validate(Map<PurgeType, PurgeTypeSettings> typeSettings, boolean global)
+    private void validate(Map<PurgeType, PurgeTypeSettings> typeSettings, boolean global, String settingsName)
     {
         for (PurgeType type : PurgeType.values()) {
             PurgeTypeSettings settings = typeSettings.get(type);
@@ -274,54 +252,48 @@ public class PurgeSettingsMapper
                 throw new IllegalArgumentException(
                     String.format("The global settings of [%s] can't inherit.", type.getId()));
             }
-            if (settings.getMode() == PurgeMode.ENABLED && (settings.getInterval() < MIN_INTERVAL
-                || settings.getUnit() == null))
-            {
+            if (settings.getInterval() < MIN_INTERVAL || settings.getInterval() > MAX_INTERVAL) {
                 throw new IllegalArgumentException(
-                    String.format("The interval of [%s] must be at least %d with a unit, but was [%d %s].",
-                        type.getId(), MIN_INTERVAL, settings.getInterval(), settings.getUnit()));
+                    String.format("The interval of [%s] in the [%s] settings must be between %d and %d, but was [%d].",
+                        type.getId(), settingsName, MIN_INTERVAL, MAX_INTERVAL, settings.getInterval()));
+            }
+            if (settings.getUnit() == null) {
+                throw new IllegalArgumentException(
+                    String.format("The interval unit of [%s] in the [%s] settings is missing.", type.getId(),
+                        settingsName));
             }
         }
     }
 
     /**
-     * Write the mode, interval and unit of every item type to a settings object. The interval and unit of an item type
-     * that is not enabled are not used, so missing or invalid ones are replaced by the defaults. An interval larger
-     * than the maximum is replaced by the maximum, with a warning.
+     * Check the purge history size before it is written.
      *
-     * @param object the settings object to write to
-     * @param typeSettings the validated settings of every item type
-     * @param settingsName the name of the settings in warnings: the wiki identifier, or {@link #GLOBAL_SETTINGS}
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki
+     * @throws IllegalArgumentException if the history size is not between {@link #MIN_HISTORY_ENTRIES} and
+     *     {@link #MAX_HISTORY_ENTRIES}
      */
-    private void writeTypeSettings(BaseObject object, Map<PurgeType, PurgeTypeSettings> typeSettings,
-        String settingsName)
+    private void checkMaxHistoryEntries(int maxHistoryEntries)
     {
-        for (PurgeType type : PurgeType.values()) {
-            PurgeTypeSettings settings = typeSettings.get(type);
-            object.setStringValue(type.getId() + MODE_SUFFIX, settings.getMode().getId());
-            object.setIntValue(type.getId() + INTERVAL_SUFFIX, capInterval(type, settings.getInterval(), settingsName));
-            object.setStringValue(type.getId() + UNIT_SUFFIX,
-                settings.getUnit() != null ? settings.getUnit().getId() : DEFAULT_UNIT.getId());
+        if (maxHistoryEntries < MIN_HISTORY_ENTRIES || maxHistoryEntries > MAX_HISTORY_ENTRIES) {
+            throw new IllegalArgumentException(
+                String.format("The purge history size must be between %d and %d, but was [%d].", MIN_HISTORY_ENTRIES,
+                    MAX_HISTORY_ENTRIES, maxHistoryEntries));
         }
     }
 
     /**
-     * Bring an interval between {@link #MIN_INTERVAL} and {@link #MAX_INTERVAL}. An interval larger than the maximum is
-     * reported, since it can only come from a request or a manual edit; a missing or lower interval is not, since it is
-     * only used when the item type is not enabled.
+     * Write the mode, interval and unit of every item type to a settings object.
      *
-     * @param type the item type, used in warnings
-     * @param interval an interval
-     * @param settingsName the name of the settings in warnings: the wiki identifier, or {@link #GLOBAL_SETTINGS}
-     * @return the interval brought between {@link #MIN_INTERVAL} and {@link #MAX_INTERVAL}
+     * @param object the settings object to write to
+     * @param typeSettings the validated settings of every item type
      */
-    private int capInterval(PurgeType type, int interval, String settingsName)
+    private void writeTypeSettings(BaseObject object, Map<PurgeType, PurgeTypeSettings> typeSettings)
     {
-        if (interval > MAX_INTERVAL) {
-            this.logger.warn("The automatic purge interval [{}] of [{}] in the [{}] settings is larger than the "
-                + "maximum. [{}] is used instead.", interval, type.getId(), settingsName, MAX_INTERVAL);
-            return MAX_INTERVAL;
+        for (PurgeType type : PurgeType.values()) {
+            PurgeTypeSettings settings = typeSettings.get(type);
+            object.setStringValue(type.getId() + MODE_SUFFIX, settings.getMode().getId());
+            object.setIntValue(type.getId() + INTERVAL_SUFFIX, settings.getInterval());
+            object.setStringValue(type.getId() + UNIT_SUFFIX, settings.getUnit().getId());
         }
-        return Math.max(interval, MIN_INTERVAL);
     }
 }

@@ -69,6 +69,15 @@ public class PurgeHistoryStore
         + "history.triggeredBy, history.status, history.removedCount, history.failedCount "
         + "from Document doc, doc.object(%s) as history where doc.space = :space and history.latest = 1";
 
+    /**
+     * Finds the names of the history pages, which are the identifiers of their wikis, without loading the pages. Only
+     * the pages holding history objects are found. The {@code %s} is replaced by the history class.
+     */
+    private static final String WIKIS_WITH_HISTORY_QUERY =
+        "select distinct doc.name from Document doc, doc.object(%s) as history where doc.space = :space";
+
+    private static final String SPACE_PARAMETER = "space";
+
     @Inject
     private PurgePageReferences references;
 
@@ -149,7 +158,7 @@ public class PurgeHistoryStore
         }
         String statement = String.format(LATEST_ENTRIES_QUERY, this.references.getHistoryClassName());
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("space", this.references.getWikisSpaceReference());
+        parameters.put(SPACE_PARAMETER, this.references.getWikisSpaceReference());
         if (wikiIds != null) {
             statement += " and doc.name in (:wikis)";
             parameters.put("wikis", wikiIds);
@@ -195,6 +204,20 @@ public class PurgeHistoryStore
     }
 
     /**
+     * Find the wikis that have a purge history page, without loading the pages. The wikis that no longer exist are
+     * included, when their history was not deleted with them.
+     *
+     * @return the identifiers of the wikis that have a purge history
+     * @throws QueryException if the history pages can't be queried
+     */
+    public List<String> getWikiIdsWithHistory() throws QueryException
+    {
+        return this.queryManager.createQuery(String.format(WIKIS_WITH_HISTORY_QUERY,
+                this.references.getHistoryClassName()), Query.XWQL).setWiki(this.references.getMainWikiId())
+            .bindValue(SPACE_PARAMETER, this.references.getWikisSpaceReference()).execute();
+    }
+
+    /**
      * Delete the purge history of a wiki, once the wiki no longer exists. Nothing happens if the wiki has no history.
      *
      * @param wikiId the identifier of the deleted wiki
@@ -202,10 +225,6 @@ public class PurgeHistoryStore
      */
     public void deleteHistory(String wikiId) throws XWikiException
     {
-        // Most wikis were never purged: the cached page tells it, without a database load.
-        if (this.pageManager.getDocument(this.references.getHistoryPageReference(wikiId)).isNew()) {
-            return;
-        }
         Lock lock = this.pageManager.getWikiLock(wikiId);
         lock.lock();
         try {

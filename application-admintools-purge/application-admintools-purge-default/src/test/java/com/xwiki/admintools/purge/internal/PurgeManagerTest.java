@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.xwiki.context.concurrent.ContextStoreManager;
 import org.xwiki.job.Job;
@@ -51,6 +53,8 @@ import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
 import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
 import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
+import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
+import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
 import com.xwiki.admintools.purge.jobs.PurgeJobRequest;
 import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.licensing.Licensor;
@@ -65,10 +69,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -112,6 +118,12 @@ class PurgeManagerTest
     private RetentionCalculator retentionCalculator;
 
     @MockComponent
+    private PurgeSettingsStore settingsStore;
+
+    @MockComponent
+    private PurgeHistoryStore historyStore;
+
+    @MockComponent
     @Named("deletedDocuments")
     private PurgeHandler documentsHandler;
 
@@ -146,6 +158,38 @@ class PurgeManagerTest
 
         verify(this.wikiDescriptorManager, never()).getAllIds();
         verify(this.jobExecutor, never()).execute(anyString(), any());
+        verifyNoInteractions(this.settingsStore, this.historyStore);
+    }
+
+    @Test
+    void dispatchDuePurgesRemovesDataOfDeletedWikis() throws Exception
+    {
+        when(this.settingsStore.getWikiIdsWithSettings()).thenReturn(Set.of(SUBWIKI, "deletedWithSettings"));
+        when(this.historyStore.getWikiIdsWithHistory()).thenReturn(List.of(MAIN_WIKI, "deletedWithHistory"));
+
+        this.purgeManager.dispatchDuePurges();
+
+        // Only the data of the wikis that no longer exist is removed, before the purges are dispatched.
+        InOrder inOrder = inOrder(this.settingsStore, this.historyStore, this.policyResolver);
+        inOrder.verify(this.settingsStore).removeWikiSettings("deletedWithSettings");
+        inOrder.verify(this.historyStore).deleteHistory("deletedWithHistory");
+        inOrder.verify(this.policyResolver).getExpirationDate(eq(MAIN_WIKI), eq(DELETED_DOCUMENTS), any());
+        verify(this.settingsStore, never()).removeWikiSettings(SUBWIKI);
+        verify(this.historyStore, never()).deleteHistory(MAIN_WIKI);
+    }
+
+    @Test
+    void dispatchDuePurgesContinuesAfterACleanupError() throws Exception
+    {
+        when(this.settingsStore.getWikiIdsWithSettings()).thenThrow(new XWikiException());
+        when(this.policyResolver.getExpirationDate(eq(MAIN_WIKI), eq(DELETED_DOCUMENTS), any())).thenReturn(
+            Optional.of(EXPIRATION_DATE));
+        when(this.documentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(5L);
+
+        this.purgeManager.dispatchDuePurges();
+
+        verify(this.jobExecutor).execute(eq("admintools.purge"), any());
+        assertEquals("Failed to remove the automatic purge data of the deleted wikis.", this.logCapture.getMessage(0));
     }
 
     @Test

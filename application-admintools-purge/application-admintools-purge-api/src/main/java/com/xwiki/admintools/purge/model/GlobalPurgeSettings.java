@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.xwiki.stability.Unstable;
 
@@ -42,11 +43,20 @@ public final class GlobalPurgeSettings
     /**
      * Create the global settings.
      *
-     * @param typeSettings the default settings of each item type
-     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki
+     * @param typeSettings the default settings of each item type; an item type can be left out, in which case it is
+     *     not purged for the wikis that inherit the defaults
+     * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki, at least
+     *     1
+     * @throws NullPointerException if the settings of the item types are {@code null}
+     * @throws IllegalArgumentException if the number of purge history entries is lower than 1
      */
     public GlobalPurgeSettings(Map<PurgeType, PurgeTypeSettings> typeSettings, int maxHistoryEntries)
     {
+        Objects.requireNonNull(typeSettings, "The settings of the item types are missing.");
+        if (maxHistoryEntries < 1) {
+            throw new IllegalArgumentException(
+                String.format("The purge history size must be at least 1, but was [%d].", maxHistoryEntries));
+        }
         // EnumMap's copy constructor rejects an empty map that is not an EnumMap.
         Map<PurgeType, PurgeTypeSettings> copy = new EnumMap<>(PurgeType.class);
         copy.putAll(typeSettings);
@@ -64,11 +74,12 @@ public final class GlobalPurgeSettings
 
     /**
      * @param type an item type
-     * @return the default settings of the given item type
+     * @return the default settings of the given item type, or an empty value if there are none, in which case the item
+     *     type is not purged for the wikis that inherit the defaults
      */
-    public PurgeTypeSettings getTypeSettings(PurgeType type)
+    public Optional<PurgeTypeSettings> getTypeSettings(PurgeType type)
     {
-        return this.typeSettings.get(type);
+        return Optional.ofNullable(this.typeSettings.get(type));
     }
 
     /**
@@ -80,9 +91,11 @@ public final class GlobalPurgeSettings
     }
 
     /**
-     * Implementation used to help with testing.
+     * Compare with other global settings. They are equal when they keep the same number of history entries and have
+     * the same settings for the same item types.
      *
-     * @return {@code true} if the objects are equals, or {@code false} otherwise.
+     * @param object the object to compare with
+     * @return {@code true} if the given object is equal global settings, {@code false} otherwise
      */
     @Override
     public boolean equals(Object object)

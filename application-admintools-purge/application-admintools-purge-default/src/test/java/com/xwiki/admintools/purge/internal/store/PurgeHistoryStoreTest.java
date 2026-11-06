@@ -358,6 +358,25 @@ class PurgeHistoryStoreTest
     }
 
     @Test
+    void getWikiIdsWithHistory() throws Exception
+    {
+        when(this.references.getMainWikiId()).thenReturn("xwiki");
+        when(this.references.getWikisSpaceReference()).thenReturn("AdminTools.Purge.Wikis");
+        when(this.references.getHistoryClassName()).thenReturn("AdminTools.Purge.Code.HistoryClass");
+        Query query = mock(Query.class, RETURNS_SELF);
+        when(this.queryManager.createQuery("select distinct doc.name from Document doc, "
+            + "doc.object(AdminTools.Purge.Code.HistoryClass) as history where doc.space = :space", Query.XWQL))
+            .thenReturn(query);
+        when(query.<String>execute()).thenReturn(List.of(WIKI_ID, "deleted"));
+
+        assertEquals(List.of(WIKI_ID, "deleted"), this.store.getWikiIdsWithHistory());
+        verify(query).setWiki("xwiki");
+        verify(query).bindValue("space", "AdminTools.Purge.Wikis");
+        // No history page is loaded.
+        verify(this.pageManager, never()).getDocument(any());
+    }
+
+    @Test
     void deleteHistory() throws Exception
     {
         this.store.deleteHistory(WIKI_ID);
@@ -375,9 +394,11 @@ class PurgeHistoryStoreTest
 
         this.store.deleteHistory(WIKI_ID);
 
-        // The cached page shows there is no history, so the page is neither locked nor copied.
-        verify(this.pageManager, never()).getWikiLock(anyString());
-        verify(this.pageManager, never()).loadDocument(any());
+        // The page is always checked under the lock, so that an entry being added can't leave the history behind.
+        InOrder inOrder = inOrder(this.wikiLock, this.pageManager);
+        inOrder.verify(this.wikiLock).lock();
+        inOrder.verify(this.pageManager).loadDocument(this.wikiReference);
+        inOrder.verify(this.wikiLock).unlock();
         verify(this.pageManager, never()).delete(any());
     }
 

@@ -63,11 +63,8 @@ public class PurgePolicyResolver
      */
     public Optional<Instant> getExpirationDate(String wikiId, PurgeType type, ZonedDateTime now) throws XWikiException
     {
-        PurgeTypeSettings settings = getSettings(wikiId, type);
-        if (settings.getMode() != PurgeMode.ENABLED) {
-            return Optional.empty();
-        }
-        return Optional.of(this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
+        return getSettings(wikiId, type).filter(settings -> settings.getMode() == PurgeMode.ENABLED).map(
+            settings -> this.retentionCalculator.getExpirationDate(now, settings.getInterval(), settings.getUnit()));
     }
 
     /**
@@ -76,14 +73,17 @@ public class PurgePolicyResolver
      *
      * @param wikiId the identifier of a wiki
      * @param type an item type
-     * @return the settings that apply, either {@link PurgeMode#ENABLED} or {@link PurgeMode#DISABLED}; the interval and
-     *     unit are the stored ones even if the item type is disabled
+     * @return the settings that apply, either {@link PurgeMode#ENABLED} or {@link PurgeMode#DISABLED}, with the stored
+     *     interval and unit even if the item type is disabled; an empty value if the wiki inherits the default settings
+     *     and they leave the item type out, in which case it is not purged
      * @throws XWikiException if the settings can't be loaded
      */
-    public PurgeTypeSettings getSettings(String wikiId, PurgeType type) throws XWikiException
+    public Optional<PurgeTypeSettings> getSettings(String wikiId, PurgeType type) throws XWikiException
     {
-        PurgeTypeSettings settings = this.settingsStore.getWikiSettings(wikiId).get(type);
-        if (settings == null || settings.getMode() == PurgeMode.INHERIT) {
+        Optional<PurgeTypeSettings> settings = Optional.ofNullable(this.settingsStore.getWikiSettings(wikiId).get(type))
+            .filter(wikiSettings -> wikiSettings.getMode() != PurgeMode.INHERIT);
+        if (settings.isEmpty()) {
+            // Not in a lambda, since loading the global settings can throw a checked exception.
             settings = this.settingsStore.getGlobalSettings().getTypeSettings(type);
         }
         return settings;
