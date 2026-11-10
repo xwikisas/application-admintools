@@ -114,6 +114,16 @@ class RetentionCalculatorTest
         assertEquals("The purge interval must be at least 0, but was [-1].", exception.getMessage());
     }
 
+    @Test
+    void getExpirationDateWithMissingUnit()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> this.retentionCalculator.getExpirationDate(now, 1, null));
+        assertEquals("The purge interval unit is missing.", exception.getMessage());
+    }
+
     private static ZonedDateTime time(String localDateTime, ZoneId zone)
     {
         return LocalDateTime.parse(localDateTime).atZone(zone);

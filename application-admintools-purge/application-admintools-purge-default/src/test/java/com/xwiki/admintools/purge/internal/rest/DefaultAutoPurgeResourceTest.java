@@ -259,13 +259,27 @@ class DefaultAutoPurgeResourceTest
         doThrow(new AccessDeniedException(Right.ADMIN, USER, new WikiReference(MAIN_WIKI))).when(
             this.authorizationManager).checkAccess(Right.ADMIN, USER, new WikiReference(MAIN_WIKI));
 
-        assertEquals(401, this.resource.saveDefaultSettings().getStatus());
-        assertEquals(401, this.resource.previewPurge(SUBWIKI).getStatus());
+        assertEquals(403, this.resource.saveDefaultSettings().getStatus());
+        assertEquals(403, this.resource.previewPurge(SUBWIKI).getStatus());
 
         verify(this.settingsStore, never()).saveGlobalSettings(any(), anyInt());
         verify(this.purgeManager, never()).getExpiredCounts(anyString());
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(1));
+    }
+
+    @Test
+    void requestFromGuest() throws Exception
+    {
+        when(this.context.getUserReference()).thenReturn(null);
+        doThrow(new AccessDeniedException(Right.ADMIN, null, new WikiReference(MAIN_WIKI))).when(
+            this.authorizationManager).checkAccess(Right.ADMIN, null, new WikiReference(MAIN_WIKI));
+
+        // A guest might get the rights by logging in.
+        assertEquals(401, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        verify(this.purgeManager, never()).startPurge(anyString(), any(), any());
+        assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
     }
 
     @Test
@@ -308,6 +322,21 @@ class DefaultAutoPurgeResourceTest
         assertEquals(500, response.getStatus());
         assertNull(response.getEntity());
         assertEquals("Failed to count the expired items of the recycle bin of wiki [subwiki].",
+            this.logCapture.getMessage(0));
+    }
+
+    @Test
+    void previewPurgeWithInvalidStoredSettings() throws Exception
+    {
+        when(this.purgeManager.getExpiredCounts(SUBWIKI)).thenThrow(
+            new IllegalArgumentException("The purge interval unit is missing."));
+
+        Response response = this.resource.previewPurge(SUBWIKI);
+
+        // The stored settings are at fault, not the request, so it isn't rejected as invalid.
+        assertEquals(409, response.getStatus());
+        assertNull(response.getEntity());
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
             this.logCapture.getMessage(0));
     }
 

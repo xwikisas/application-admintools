@@ -161,8 +161,16 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
     {
         return handle(wikiId, false,
             String.format("Failed to count the expired items of the recycle bin of wiki [%s].", wikiId), () -> {
+                Map<PurgeType, Long> expiredCounts;
+                try {
+                    expiredCounts = this.purgeManager.getExpiredCounts(wikiId);
+                } catch (IllegalArgumentException e) {
+                    // The request has no parameters, so the stored settings are at fault, not the request.
+                    this.logger.error("The stored automatic purge settings of wiki [{}] are invalid.", wikiId, e);
+                    return Response.status(Response.Status.CONFLICT).build();
+                }
                 Map<String, Long> counts = new LinkedHashMap<>();
-                this.purgeManager.getExpiredCounts(wikiId).forEach((type, count) -> counts.put(type.getId(), count));
+                expiredCounts.forEach((type, count) -> counts.put(type.getId(), count));
                 return Response.ok(OBJECT_MAPPER.writeValueAsString(counts)).type(MediaType.APPLICATION_JSON_TYPE)
                     .build();
             });
@@ -170,8 +178,9 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
 
     /**
      * Run an automatic purge request, once {@link #checkRequest(String, boolean)} accepts it. A missing or invalid
-     * parameter is reported with status code 400. The responses of failed requests have no content, so that they expose
-     * nothing.
+     * parameter is reported with status code 400. Missing rights are reported with status code 401 to a guest, who
+     * might get them by logging in, and with 403 to a logged-in user. The responses of failed requests have no content,
+     * so that they expose nothing.
      *
      * @param wikiId the identifier of the wiki the request is about, or {@code null} for the default settings
      * @param modifying {@code true} if the request changes something, so it needs a valid form token
@@ -186,7 +195,12 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
             return rejection.isPresent() ? rejection.get() : request.call();
         } catch (AccessDeniedException e) {
             this.logger.warn("Failed to access the automatic purge due to restricted rights.");
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            // A guest has no user reference: 401 tells them to log in, while 403 tells a logged-in user that logging in
+            // again won't help.
+            Response.Status errorStatus =
+                this.xcontextProvider.get().getUserReference() == null ? Response.Status.UNAUTHORIZED
+                    : Response.Status.FORBIDDEN;
+            return Response.status(errorStatus).build();
         } catch (IllegalArgumentException e) {
             this.logger.debug("Rejected an invalid automatic purge request.", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
