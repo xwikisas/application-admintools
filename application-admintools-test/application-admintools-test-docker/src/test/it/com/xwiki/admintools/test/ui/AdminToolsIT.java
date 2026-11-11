@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +35,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.xwiki.livedata.test.po.LiveDataElement;
 import org.xwiki.livedata.test.po.TableLayoutElement;
+import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.panels.test.po.ApplicationsPanel;
 import org.xwiki.test.docker.junit5.TestConfiguration;
@@ -42,6 +44,11 @@ import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
+import com.xwiki.admintools.test.po.modals.AutoPurgeDefaultsModalView;
+import com.xwiki.admintools.test.po.modals.AutoPurgeFailuresModalView;
+import com.xwiki.admintools.test.po.modals.AutoPurgeHistoryModalView;
+import com.xwiki.admintools.test.po.modals.AutoPurgeNowModalView;
+import com.xwiki.admintools.test.po.modals.AutoPurgeWikiModalView;
 import com.xwiki.admintools.test.po.modals.CommentsSpamModalView;
 import com.xwiki.admintools.test.po.modals.DownloadArchiveModalView;
 import com.xwiki.admintools.test.po.modals.EmptyPagesModalView;
@@ -50,6 +57,7 @@ import com.xwiki.admintools.test.po.modals.LastNLinesModalView;
 import com.xwiki.admintools.test.po.modals.RecycleBinsModalView;
 import com.xwiki.admintools.test.po.modals.WikisSizeModalView;
 import com.xwiki.admintools.test.po.pages.AdminToolsHomePage;
+import com.xwiki.admintools.test.po.pages.AutoPurgePage;
 import com.xwiki.admintools.test.po.pages.CheckUserRightsPage;
 import com.xwiki.admintools.test.po.sections.DashboardConfigurationSectionView;
 import com.xwiki.admintools.test.po.sections.DashboardFilesSectionView;
@@ -62,7 +70,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "8")
+@UITest(servletEngine = ServletEngine.TOMCAT, servletEngineTag = "8", properties = {
+    // The functional tests deny programming right to wiki content, except to the pages matching this pattern: the
+    // automatic purge test needs it to move recycle bin items back in time.
+    "xwikiPropertiesAdditionalProperties=test.prchecker.excludePattern=.*:TestSpace\\.AutoPurgeFixture" })
 class AdminToolsIT
 {
     private static final List<String> supportedServers = List.of("TOMCAT");
@@ -84,6 +95,64 @@ class AdminToolsIT
         new DocumentReference("xwiki", "TestSpace", "emptyPageWithComm");
 
     private static final String ADMINTOOLS_CONFIGURATION_CLASSNAME = "AdminTools.Code.ConfigurationClass";
+
+    private static final String MAIN_WIKI_NAME = "Home";
+
+    private static final String DELETED_DOCUMENTS = "deletedDocuments";
+
+    private static final String DELETED_ATTACHMENTS = "deletedAttachments";
+
+    private static final String DELETED_DOCUMENTS_COLUMN = "Deleted pages";
+
+    private static final String DELETED_ATTACHMENTS_COLUMN = "Deleted attachments";
+
+    private static final DocumentReference PURGE_HISTORY_REF =
+        new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Wikis"), "xwiki");
+
+    private static final String PURGE_HISTORY_CLASSNAME = "AdminTools.Purge.Code.HistoryClass";
+
+    private static final DocumentReference PURGE_SETTINGS_REF =
+        new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Code"), "Settings");
+
+    private static final String PURGE_SETTINGS_CLASSNAME = "AdminTools.Purge.Code.SettingsClass";
+
+    private static final String INTERVAL_ERROR = "Enter a whole number between 0 and 1000.";
+
+    private static final DocumentReference OLD_DELETED_PAGE_REF =
+        new DocumentReference("xwiki", "TestSpace", "AutoPurgePage");
+
+    private static final AttachmentReference OLD_DELETED_ATTACHMENT_REF =
+        new AttachmentReference("autoPurge.txt", new DocumentReference("xwiki", "TestSpace", "AutoPurgeAttachments"));
+
+    private static final AttachmentReference RECENT_DELETED_ATTACHMENT_REF =
+        new AttachmentReference("recent.txt", OLD_DELETED_ATTACHMENT_REF.getDocumentReference());
+
+    private static final DocumentReference BACKDATE_FIXTURE_REF =
+        new DocumentReference("xwiki", "TestSpace", "AutoPurgeFixture");
+
+    /**
+     * Moves the recycle bin entries of the test items 20 years back, so that a purge with a long limit removes them and
+     * nothing else.
+     */
+    private static final String BACKDATE_SCRIPT =
+        String.join("\n", "{{groovy}}", "import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback", "",
+            "def oldDate = new java.sql.Timestamp(java.time.Instant.parse('2006-01-01T00:00:00Z').toEpochMilli())",
+            // The context is a map, so its getters are called explicitly: '.wiki' would read the 'wiki' entry.
+            "xcontext.context.getWiki().getHibernateStore().executeWrite(xcontext.context, { session ->",
+            "  session.createNativeQuery('update xwikirecyclebin set xdd_date = :date where xdd_fullname = :name')",
+            "    .setParameter('date', oldDate).setParameter('name', 'TestSpace.AutoPurgePage').executeUpdate()",
+            "  session.createNativeQuery('update xwikiattrecyclebin set xda_date = :date where xda_filename = :name')",
+            "    .setParameter('date', oldDate).setParameter('name', 'autoPurge.txt').executeUpdate()",
+            "} as HibernateCallback)", "println 'backdated'", "{{/groovy}}");
+
+    /**
+     * The failures of the newest purge of the deleted attachments in the predefined history. They hold HTML and wiki
+     * syntax, which must be shown as text.
+     */
+    private static final List<List<String>> PURGE_FAILURES =
+        List.of(List.of("Sandbox.<img src=x onerror=alert(1)>", "java.lang.Exception: <script>alert(2)</script>"),
+            List.of("Sandbox.Page **bold** [[link>>https://example.com]]", "{{html}}<b>x</b>{{/html}}"),
+            List.of("Sandbox.Plain", ""));
 
     private static final String PASSWORD = "pass";
 
@@ -307,6 +376,8 @@ class AdminToolsIT
         assertEquals("Home", recycleBinsTableRow.findElement(By.cssSelector("td:nth-child(1)")).getText());
         assertEquals("0", recycleBinsTableRow.findElement(By.cssSelector("td:nth-child(2)")).getText());
         assertEquals("0", recycleBinsTableRow.findElement(By.cssSelector("td:nth-child(3)")).getText());
+        // The footer links to the deleted pages of the current wiki.
+        assertTrue(recycleBinsModalView.getViewTrashBinURL().endsWith("/Main/AllDocs?view=deletedDocs"));
         createAndDeletePage(testUtils);
         AdminToolsHomePage.gotoPage();
         recycleBinsModalView = usageSectionView.getRecycleBinsModalView();
@@ -330,6 +401,224 @@ class AdminToolsIT
 
     @Test
     @Order(8)
+    void scheduledPurgeTest(TestUtils testUtils) throws Exception
+    {
+        addPurgeHistory(testUtils);
+
+        // The dashboard links to the automatic purge page.
+        AutoPurgePage purgePage = AdminToolsHomePage.getInstanceUsageSection().clickAutoPurgeLink();
+        assertTrue(purgePage.isCurrentPage());
+
+        // The predefined history: the newest purge of the deleted attachments has failures.
+        assertTrue(purgePage.getDefaultsSummary().contains("Deleted pages: not purged automatically"));
+        assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN).contains("Default · disabled"));
+        assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN).contains("View the 120 failures"));
+        assertTrue(purgePage.isPurgeNowButtonDangerous(MAIN_WIKI_NAME));
+        AutoPurgeFailuresModalView failuresModal =
+            purgePage.openFailuresModal(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN);
+        assertEquals("Home · Deleted attachments · 2024/01/02 01:00", failuresModal.getSubtitle());
+        assertEquals("Showing 3 of 120 failures. Failed items are retried at the next daily run.",
+            failuresModal.getSummary());
+        assertEquals(PURGE_FAILURES, failuresModal.getFailures());
+        assertEquals(0, failuresModal.countElementsInFailures());
+        failuresModal.close();
+
+        AutoPurgeHistoryModalView historyModal = purgePage.openHistoryModal(MAIN_WIKI_NAME);
+        assertEquals(MAIN_WIKI_NAME, historyModal.getWikiName());
+        TableLayoutElement historyTable = historyModal.getHistoryTable();
+        assertEquals(3, historyTable.countRows());
+        // Newest first; a manual purge that removed nothing found no expired items.
+        assertEquals("Deleted pages", historyTable.getCell("Item", 1).getText());
+        assertEquals("No expired items", historyTable.getCell("Status", 1).getText());
+        assertTrue(historyTable.getCell("Triggered by", 1).getText().startsWith("Manual"));
+        assertEquals("Partial", historyTable.getCell("Status", 2).getText());
+        assertEquals("120", historyTable.getCell("Failed", 2).getText());
+        assertEquals("Scheduled", historyTable.getCell("Triggered by", 3).getText());
+        historyTable.filterColumn("Status", "Partial", true,
+            Map.of(TableLayoutElement.FILTER_COLUMN_SELECTIZE_WAIT_FOR_SUGGESTIONS, true));
+        historyTable.waitUntilRowCountEqualsTo(1);
+        failuresModal = historyModal.openFailures(1);
+        assertEquals(PURGE_FAILURES, failuresModal.getFailures());
+        failuresModal.close();
+        historyModal.close();
+        // The filters are reset when the history is opened again.
+        historyModal = purgePage.openHistoryModal(MAIN_WIKI_NAME);
+        historyModal.getHistoryTable().waitUntilRowCountEqualsTo(3);
+        historyModal.close();
+
+        // Enable the purge of the deleted pages by default. The history size is checked with a translated message.
+        AutoPurgeDefaultsModalView defaultsModal = purgePage.openDefaultsModal();
+        assertFalse(defaultsModal.isIntervalEnabled(DELETED_DOCUMENTS));
+        defaultsModal.setEnabled(DELETED_DOCUMENTS, true);
+        assertTrue(defaultsModal.isIntervalEnabled(DELETED_DOCUMENTS));
+        defaultsModal.setInterval(DELETED_DOCUMENTS, "10", "years");
+        defaultsModal.setHistorySize("500");
+        defaultsModal.submit();
+        assertEquals(List.of("Enter a whole number between 1 and 200."), defaultsModal.getErrorMessages());
+        assertTrue(defaultsModal.isDisplayed());
+        defaultsModal.setHistorySize("20");
+        defaultsModal.submit();
+        defaultsModal.waitUntilClosed();
+        purgePage.waitForNotificationSuccessMessage("The settings were saved.");
+        purgePage.waitUntilDefaultsSummaryContains("Deleted pages: purged after 10 years");
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN, "Default · 10 years");
+        // The changes of a cancelled edit are undone when the modal opens again.
+        defaultsModal = purgePage.openDefaultsModal();
+        defaultsModal.setEnabled(DELETED_DOCUMENTS, false);
+        defaultsModal.close();
+        defaultsModal = purgePage.openDefaultsModal();
+        assertTrue(defaultsModal.isEnabled(DELETED_DOCUMENTS));
+        assertTrue(defaultsModal.isIntervalEnabled(DELETED_DOCUMENTS));
+        assertEquals("10", defaultsModal.getInterval(DELETED_DOCUMENTS));
+        defaultsModal.close();
+
+        // Customize the deleted attachments of the wiki, then go back to the defaults.
+        AutoPurgeWikiModalView wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        assertEquals(MAIN_WIKI_NAME, wikiModal.getWikiName());
+        assertEquals("inherit", wikiModal.getSelectedMode(DELETED_ATTACHMENTS));
+        assertEquals("10 years", wikiModal.getDefaultLabel(DELETED_DOCUMENTS));
+        assertEquals("disabled", wikiModal.getDefaultLabel(DELETED_ATTACHMENTS));
+        wikiModal.selectMode(DELETED_ATTACHMENTS, "enabled");
+        wikiModal.setInterval(DELETED_ATTACHMENTS, "2", "weeks");
+        wikiModal.submit();
+        wikiModal.waitUntilClosed();
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Custom · 2 weeks");
+        // The columns filter the wikis by their own configuration: the deleted pages of the wiki use the default limit,
+        // so they are not custom.
+        TableLayoutElement wikisTable = purgePage.getWikisTable();
+        wikisTable.filterColumn(DELETED_ATTACHMENTS_COLUMN, "Custom", true,
+            Map.of(TableLayoutElement.FILTER_COLUMN_SELECTIZE_WAIT_FOR_SUGGESTIONS, true));
+        wikisTable.waitUntilRowCountEqualsTo(1);
+        // The filter waits until the wikis are loaded; waitUntilRowCountEqualsTo can't wait for an empty table.
+        wikisTable.filterColumn(DELETED_DOCUMENTS_COLUMN, "Custom", true,
+            Map.of(TableLayoutElement.FILTER_COLUMN_SELECTIZE_WAIT_FOR_SUGGESTIONS, true));
+        assertEquals(0, wikisTable.countRows());
+        purgePage = AutoPurgePage.gotoPage();
+        wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        assertEquals("enabled", wikiModal.getSelectedMode(DELETED_ATTACHMENTS));
+        assertEquals("2", wikiModal.getInterval(DELETED_ATTACHMENTS));
+        assertEquals("weeks", wikiModal.getUnit(DELETED_ATTACHMENTS));
+        wikiModal.resetToDefaults();
+        wikiModal.waitUntilClosed();
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Default · disabled");
+    }
+
+    @Test
+    @Order(9)
+    void manualPurgeTest(TestUtils testUtils) throws Exception
+    {
+        // Relies on the state left by the scheduled purge test: the predefined history, and the deleted pages purged
+        // after 10 years by default.
+        addOldRecycleBinItems(testUtils);
+        AutoPurgePage purgePage = AutoPurgePage.gotoPage();
+
+        // Purge the old items now, even the deleted attachments, whose automatic purge is disabled.
+        AutoPurgeNowModalView purgeNowModal = purgePage.openPurgeNowModal(MAIN_WIKI_NAME);
+        purgeNowModal.waitUntilCount(DELETED_DOCUMENTS, "(1 item)");
+        assertEquals("10", purgeNowModal.getInterval(DELETED_DOCUMENTS));
+        assertEquals("years", purgeNowModal.getUnit(DELETED_DOCUMENTS));
+        assertFalse(purgeNowModal.isAutoPurgeDisabledNoteDisplayed(DELETED_DOCUMENTS));
+        assertTrue(purgeNowModal.isAutoPurgeDisabledNoteDisplayed(DELETED_ATTACHMENTS));
+        assertFalse(purgeNowModal.isPurgeEnabled());
+        // The limit of an item type can be changed once the item type is selected.
+        assertFalse(purgeNowModal.isIntervalEnabled(DELETED_ATTACHMENTS));
+        purgeNowModal.select(DELETED_ATTACHMENTS);
+        assertTrue(purgeNowModal.isIntervalEnabled(DELETED_ATTACHMENTS));
+        // An invalid limit is explained, and its item type can't be purged.
+        purgeNowModal.setInterval(DELETED_ATTACHMENTS, "5000", "years");
+        purgeNowModal.waitUntilCount(DELETED_ATTACHMENTS, "");
+        assertEquals(List.of("Enter a whole number between 0 and 1000."), purgeNowModal.getErrorMessages());
+        assertFalse(purgeNowModal.isPurgeEnabled());
+        // A limit of 0 empties the recycle bin: it also counts the attachment deleted just now. Only the old items are
+        // purged, though.
+        purgeNowModal.setInterval(DELETED_ATTACHMENTS, "0", "days");
+        purgeNowModal.waitUntilCount(DELETED_ATTACHMENTS, "(2 items)");
+        assertEquals(List.of(), purgeNowModal.getErrorMessages());
+        purgeNowModal.setInterval(DELETED_ATTACHMENTS, "10", "years");
+        purgeNowModal.waitUntilCount(DELETED_ATTACHMENTS, "(1 item)");
+        assertEquals(List.of(), purgeNowModal.getErrorMessages());
+        assertTrue(purgeNowModal.isPurgeEnabled());
+        purgeNowModal.select(DELETED_DOCUMENTS);
+
+        // The history of the wiki opens, showing the purges while they run, then their outcome.
+        AutoPurgeHistoryModalView historyModal = purgeNowModal.purge();
+        TableLayoutElement historyTable = historyModal.getHistoryTable();
+        historyTable.waitUntilRowCountEqualsTo(5);
+        historyModal.waitUntilNoPurgeInProgress();
+        historyTable = historyModal.getHistoryTable();
+        assertEquals(5, historyTable.countRows());
+        for (int row = 1; row <= 2; row++) {
+            assertEquals("Success", historyTable.getCell("Status", row).getText());
+            assertEquals("1", historyTable.getCell("Removed", row).getText());
+            assertTrue(historyTable.getCell("Triggered by", row).getText().startsWith("Manual"));
+        }
+        historyModal.close();
+
+        // The failures of the older purge are no longer shown, and nothing older is left.
+        purgePage = AutoPurgePage.gotoPage();
+        assertFalse(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN).contains("2024/01/03"));
+        assertFalse(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN).contains("View the"));
+        purgeNowModal = purgePage.openPurgeNowModal(MAIN_WIKI_NAME);
+        purgeNowModal.waitUntilCount(DELETED_DOCUMENTS, "(nothing older)");
+        purgeNowModal.close();
+    }
+
+    @Test
+    @Order(10)
+    void purgeLimitLabelsTest(TestUtils testUtils)
+    {
+        // Relies on the state left by the purge tests: the deleted pages are purged after 10 years by default, the
+        // deleted attachments are not purged, and the main wiki has no settings of its own.
+        AutoPurgePage purgePage = AutoPurgePage.gotoPage();
+
+        // A limit of 0 purges every deleted item at each daily run.
+        AutoPurgeDefaultsModalView defaultsModal = purgePage.openDefaultsModal();
+        defaultsModal.setEnabled(DELETED_ATTACHMENTS, true);
+        defaultsModal.setInterval(DELETED_ATTACHMENTS, "0", "days");
+        defaultsModal.submit();
+        defaultsModal.waitUntilClosed();
+        purgePage.waitUntilDefaultsSummaryContains(
+            "Deleted attachments: purged at every daily run, with no retention");
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Default · no retention");
+        AutoPurgeWikiModalView wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        assertEquals("no retention", wikiModal.getDefaultLabel(DELETED_ATTACHMENTS));
+        wikiModal.close();
+
+        // Invalid limits can only come from manual edits: a default interval out of range, a custom interval left
+        // empty, and a custom interval out of range. A larger interval than the range is still used, so it is shown.
+        testUtils.updateObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, 0, "deletedDocumentsInterval", "5000");
+        testUtils.addObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, "wiki", "xwiki", "deletedDocumentsMode",
+            "enabled", "deletedAttachmentsMode", "enabled", "deletedAttachmentsInterval", "2000",
+            "deletedAttachmentsUnit", "days");
+        purgePage = AutoPurgePage.gotoPage();
+        assertTrue(purgePage.getDefaultsSummary().contains("Deleted pages: purged after invalid limit (5,000 years)"));
+        assertTrue(purgePage.isDefaultsSummaryWarning(DELETED_DOCUMENTS));
+        assertFalse(purgePage.isDefaultsSummaryWarning(DELETED_ATTACHMENTS));
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN, "Custom · invalid limit");
+        assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN));
+        assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN)
+            .contains("Custom · invalid limit (2,000 days)"));
+        assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN));
+
+        // The invalid limits are reported as soon as the settings of the wiki are opened.
+        wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
+        wikiModal.waitUntilErrorMessagesShown();
+        assertEquals(List.of(INTERVAL_ERROR, INTERVAL_ERROR), wikiModal.getErrorMessages());
+        assertEquals("", wikiModal.getInterval(DELETED_DOCUMENTS));
+        assertEquals("2000", wikiModal.getInterval(DELETED_ATTACHMENTS));
+        // The settings of the wiki can still be removed.
+        wikiModal.resetToDefaults();
+        wikiModal.waitUntilClosed();
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN, "Default · no retention");
+        assertFalse(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN));
+
+        // Restore the defaults left by the purge tests.
+        testUtils.updateObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, 0, "deletedDocumentsInterval", "10",
+            "deletedAttachmentsMode", "disabled");
+    }
+
+    @Test
+    @Order(11)
     void securitySectionTest()
     {
         // We check the security section content to see if the encoding information is correctly retrieved and
@@ -342,7 +631,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(9)
+    @Order(12)
     void groupsRightsPage(TestUtils testUtils)
     {
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
@@ -350,8 +639,8 @@ class AdminToolsIT
         String mainWindowHandle = testUtils.getDriver().getWindowHandle();
         switchToNewTab(testUtils, mainWindowHandle);
 
-        // Check the groups rights livedata page for the "admin" space. The view right given to the XWikiAdminGroup
-        // should be displayed.
+        // Check the groups rights livedata page for the "admin" space. The rights given to the XWikiAdminGroup on the
+        // AdminTools space should be displayed.
         TableLayoutElement groupsTable = new LiveDataElement("viewGroupsRights").getTableLayout();
         assertTrue(groupsTable.countRows() > 0);
         groupsTable.filterColumn("Space", "admin", true);
@@ -365,14 +654,14 @@ class AdminToolsIT
         assertEquals("AdminTools", space.getText());
         assertEquals("Space", right.getText());
         assertEquals("XWikiAdminGroup", group.getText());
-        assertEquals("view", levels.getText());
+        assertEquals("view,edit,delete", levels.getText());
         assertEquals("Allowed", policy.getText());
         testUtils.getDriver().close();
         testUtils.getDriver().switchTo().window(mainWindowHandle);
     }
 
     @Test
-    @Order(10)
+    @Order(13)
     void usersRightsPage(TestUtils testUtils)
     {
         DashboardSecuritySectionView securitySection = AdminToolsHomePage.getSecuritySection();
@@ -403,7 +692,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(11)
+    @Order(14)
     void checkUserRightsPage(TestUtils testUtils)
     {
         // We check the functionality of the "Check user rights on page" document.
@@ -431,7 +720,7 @@ class AdminToolsIT
     }
 
     @Test
-    @Order(12)
+    @Order(15)
     void notAdminTest(TestUtils testUtils)
     {
         // We check that a non-admin user doesn't have access to the admin tools home page.
@@ -439,6 +728,10 @@ class AdminToolsIT
 
         WebElement filesSectionNonAdminView = AdminToolsHomePage.gotoPage().getNonAdminUserView();
         assertTrue(filesSectionNonAdminView.getText()
+            .contains("You are not allowed to view this page or perform this action."));
+
+        // Nor to the automatic purge page.
+        assertTrue(AutoPurgePage.gotoPage().getAccessDeniedMessage()
             .contains("You are not allowed to view this page or perform this action."));
     }
 
@@ -510,6 +803,52 @@ class AdminToolsIT
                 Map.of("author", USER_NAME, "date", new Date(), "comment", String.format("test_%d", i));
             testUtils.addObject(ADMINTOOLS_WEBHOME_REFERENCE, "XWiki.XWikiComments", parameters);
         }
+    }
+
+    /**
+     * Add a predefined purge history to the main wiki: a scheduled purge of the deleted attachments, a newer one that
+     * failed to remove some items, and a manual purge of the deleted pages that found nothing to remove.
+     */
+    private void addPurgeHistory(TestUtils testUtils) throws Exception
+    {
+        testUtils.rest().savePage(PURGE_HISTORY_REF);
+        addPurgeHistoryEntry(testUtils,
+            Map.of("type", DELETED_ATTACHMENTS, "date", "2024-01-01 01:00:00", "triggeredBy", "scheduled", "status",
+                "success", "removedCount", "4", "failedCount", "0", "latest", "0"));
+        String failures = PURGE_FAILURES.stream().map(failure -> String.join("\t", failure).strip())
+            .collect(Collectors.joining("\n"));
+        addPurgeHistoryEntry(testUtils,
+            Map.of("type", DELETED_ATTACHMENTS, "date", "2024-01-02 01:00:00", "triggeredBy", "scheduled", "status",
+                "partial", "removedCount", "1", "failedCount", "120", "failures", failures, "latest", "1"));
+        addPurgeHistoryEntry(testUtils,
+            Map.of("type", DELETED_DOCUMENTS, "date", "2024-01-03 01:00:00", "triggeredBy", "xwiki:XWiki.Admin",
+                "status", "success", "removedCount", "0", "failedCount", "0", "latest", "1"));
+    }
+
+    /**
+     * Add an entry to the purge history of the main wiki.
+     */
+    private void addPurgeHistoryEntry(TestUtils testUtils, Map<String, String> properties) throws Exception
+    {
+        org.xwiki.rest.model.jaxb.Object entry = testUtils.rest().object(PURGE_HISTORY_REF, PURGE_HISTORY_CLASSNAME);
+        properties.forEach((name, value) -> entry.getProperties().add(TestUtils.RestTestUtils.property(name, value)));
+        testUtils.rest().add(entry);
+    }
+
+    /**
+     * Delete a page and an attachment, then move their recycle bin entries 20 years back. Also delete a second
+     * attachment, which stays recent.
+     */
+    private void addOldRecycleBinItems(TestUtils testUtils) throws Exception
+    {
+        testUtils.createPage(OLD_DELETED_PAGE_REF, "Old deleted page");
+        testUtils.deletePage(OLD_DELETED_PAGE_REF);
+        testUtils.createPage(OLD_DELETED_ATTACHMENT_REF.getDocumentReference(), "Page with an old deleted attachment");
+        testUtils.rest().attachFile(OLD_DELETED_ATTACHMENT_REF, "content".getBytes(), true);
+        testUtils.rest().deleteAttachement(OLD_DELETED_ATTACHMENT_REF);
+        testUtils.rest().attachFile(RECENT_DELETED_ATTACHMENT_REF, "content".getBytes(), true);
+        testUtils.rest().deleteAttachement(RECENT_DELETED_ATTACHMENT_REF);
+        assertEquals("backdated", testUtils.createPage(BACKDATE_FIXTURE_REF, BACKDATE_SCRIPT).getContent());
     }
 
     /**

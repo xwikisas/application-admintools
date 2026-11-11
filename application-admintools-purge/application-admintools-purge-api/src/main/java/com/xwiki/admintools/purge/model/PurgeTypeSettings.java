@@ -20,11 +20,13 @@
 package com.xwiki.admintools.purge.model;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * The automatic purge settings of one item type, as configured globally or for a specific wiki.
+ * The automatic purge settings of one item type, as configured globally or for a specific wiki. The interval and unit
+ * can be missing: only an enabled item type needs them.
  *
  * @version $Id$
  * @since 1.5
@@ -34,7 +36,7 @@ public final class PurgeTypeSettings
 {
     private final PurgeMode mode;
 
-    private final int interval;
+    private final Integer interval;
 
     private final IntervalUnit unit;
 
@@ -42,10 +44,11 @@ public final class PurgeTypeSettings
      * Create the settings of an item type.
      *
      * @param mode how the automatic purge is configured for the item type
-     * @param interval the number of units the deleted items are kept for before being purged
-     * @param unit the unit of the interval
+     * @param interval the number of units the deleted items are kept for before being purged, or {@code null} if it
+     *     is missing
+     * @param unit the unit of the interval, or {@code null} if it is missing
      */
-    public PurgeTypeSettings(PurgeMode mode, int interval, IntervalUnit unit)
+    public PurgeTypeSettings(PurgeMode mode, Integer interval, IntervalUnit unit)
     {
         this.mode = mode;
         this.interval = interval;
@@ -61,19 +64,20 @@ public final class PurgeTypeSettings
     }
 
     /**
-     * @return the number of units the deleted items are kept for before being purged
+     * @return the number of units the deleted items are kept for before being purged, or an empty value if it is
+     *     missing
      */
-    public int getInterval()
+    public Optional<Integer> getInterval()
     {
-        return this.interval;
+        return Optional.ofNullable(this.interval);
     }
 
     /**
-     * @return the unit of the interval
+     * @return the unit of the interval, or an empty value if it is missing
      */
-    public IntervalUnit getUnit()
+    public Optional<IntervalUnit> getUnit()
     {
-        return this.unit;
+        return Optional.ofNullable(this.unit);
     }
 
     /**
@@ -92,7 +96,7 @@ public final class PurgeTypeSettings
             return false;
         }
         PurgeTypeSettings other = (PurgeTypeSettings) object;
-        return this.mode == other.mode && this.interval == other.interval && this.unit == other.unit;
+        return this.mode == other.mode && Objects.equals(this.interval, other.interval) && this.unit == other.unit;
     }
 
     @Override
