@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -213,6 +214,14 @@ class PurgeSettingsStoreTest
             this.store.getSettingsOfWikis(List.of(WIKI_ID, "other")));
         // The settings page is read once for all the wikis.
         verify(this.pageManager).getDocument(this.settingsReference);
+    }
+
+    @Test
+    void getWikiIdsWithSettings() throws Exception
+    {
+        // The global settings object and the removed objects have no wiki.
+        assertEquals(Set.of(WIKI_ID), this.store.getWikiIdsWithSettings());
+        verify(this.pageManager, never()).getDocumentCopy(any());
     }
 
     @Test

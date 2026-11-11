@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
@@ -191,6 +192,19 @@ public class PurgeSettingsStore
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Find the wikis that have settings of their own, from the cached settings page. The wikis that no longer exist are
+     * included, when their settings were not removed with them.
+     *
+     * @return the identifiers of the wikis that have settings of their own
+     * @throws XWikiException if the settings page can't be loaded
+     */
+    public Set<String> getWikiIdsWithSettings() throws XWikiException
+    {
+        return getSettingsObjects(getSettingsPage()).stream().map(this.mapper::readWiki).flatMap(Optional::stream)
+            .collect(Collectors.toSet());
     }
 
     /**

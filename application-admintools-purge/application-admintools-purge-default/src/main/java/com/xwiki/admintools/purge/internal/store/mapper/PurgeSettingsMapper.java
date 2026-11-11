@@ -52,7 +52,16 @@ public class PurgeSettingsMapper
 {
     private static final int DEFAULT_INTERVAL = 1;
 
-    private static final int MIN_INTERVAL = 1;
+    /**
+     * The interval read when none is stored. It is invalid, unlike 0, which purges every deleted item, so that a
+     * missing interval is never used.
+     */
+    private static final int MISSING_INTERVAL = -1;
+
+    /**
+     * The smallest interval. An interval of 0 purges every item deleted until the purge runs.
+     */
+    private static final int MIN_INTERVAL = 0;
 
     /**
      * The largest interval, high enough for any real limit and low enough to keep the date computations valid.
@@ -169,8 +178,8 @@ public class PurgeSettingsMapper
     /**
      * Read the settings of every item type from a settings object, without validating them. The global and the wiki
      * settings objects are read the same way; they only differ by the mode used when the stored one is missing or
-     * invalid. A missing interval is read as 0 and a missing or unknown unit as {@code null}, both invalid, so that the
-     * code using them reports them.
+     * invalid. A missing interval is read as {@link #MISSING_INTERVAL} and a missing or unknown unit as {@code null},
+     * both invalid, so that the code using them reports them.
      *
      * @param object the settings object, or {@code null} if there is none, in which case every item type gets the
      *     fallback mode and the default interval and unit
@@ -188,7 +197,7 @@ public class PurgeSettingsMapper
             } else {
                 typeSettings.put(type, new PurgeTypeSettings(
                     parseMode(type, object.getStringValue(type.getId() + MODE_SUFFIX), global, settingsName),
-                    object.getIntValue(type.getId() + INTERVAL_SUFFIX, 0),
+                    object.getIntValue(type.getId() + INTERVAL_SUFFIX, MISSING_INTERVAL),
                     IntervalUnit.fromId(object.getStringValue(type.getId() + UNIT_SUFFIX)).orElse(null)));
             }
         }
