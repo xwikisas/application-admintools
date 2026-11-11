@@ -20,10 +20,12 @@
 package com.xwiki.admintools.purge.internal.handler;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import javax.inject.Provider;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
@@ -39,9 +41,13 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.AttachmentRecycleBinStore;
+import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
+import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
+import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.RETURNS_SELF;
@@ -62,7 +68,11 @@ class DeletedAttachmentsPurgeHandlerTest
 
     private static final Instant EXPIRATION_DATE = Instant.parse("2026-09-30T01:00:00Z");
 
-    private static final Instant DATE = Instant.parse("2026-10-30T01:00:00Z");
+    private static final ZonedDateTime NOW = ZonedDateTime.parse("2026-10-30T01:00:00Z");
+
+    private static final Instant DATE = NOW.toInstant();
+
+    private static final PurgeTypeSettings LIMIT = new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS);
 
     @RegisterExtension
     private final LogCaptureExtension logCapture = new LogCaptureExtension(LogLevel.WARN);
@@ -76,6 +86,9 @@ class DeletedAttachmentsPurgeHandlerTest
     @MockComponent
     private Provider<XWikiContext> wikiContextProvider;
 
+    @MockComponent
+    private RetentionCalculator retentionCalculator;
+
     @Mock
     private XWikiContext wikiContext;
 
@@ -84,6 +97,12 @@ class DeletedAttachmentsPurgeHandlerTest
 
     @Mock
     private AttachmentRecycleBinStore recycleBinStore;
+
+    @BeforeEach
+    void setUp()
+    {
+        when(this.retentionCalculator.getExpirationDate(NOW, 1, IntervalUnit.MONTHS)).thenReturn(EXPIRATION_DATE);
+    }
 
     @Test
     void hint()
@@ -100,7 +119,7 @@ class DeletedAttachmentsPurgeHandlerTest
             Query.HQL)).thenReturn(query);
         when(query.execute()).thenReturn(List.of(3L));
 
-        assertEquals(3, this.handler.countExpired(WIKI_ID, EXPIRATION_DATE));
+        assertEquals(3, this.handler.countExpired(WIKI_ID, LIMIT, NOW));
     }
 
     @Test
@@ -121,7 +140,7 @@ class DeletedAttachmentsPurgeHandlerTest
         doThrow(new XWikiException(0, 0, "Failed to delete")).when(this.recycleBinStore)
             .deleteFromRecycleBin(1, this.wikiContext, true);
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, null);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, null);
 
         assertEquals(new PurgeHistoryEntry(PurgeType.DELETED_ATTACHMENTS, DATE, null, PurgeStatus.PARTIAL, 1, 1,
             List.of("Space.Page@image.png\tXWikiException: Error number 0 in 0: Failed to delete")), entry);

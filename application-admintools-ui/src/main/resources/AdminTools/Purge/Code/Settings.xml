@@ -193,6 +193,84 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
       </maxHistoryEntries>
+      <pageHistoryInterval>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>pageHistoryInterval</name>
+        <number>10</number>
+        <numberType>integer</numberType>
+        <prettyName>pageHistoryInterval</prettyName>
+        <size>10</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </pageHistoryInterval>
+      <pageHistoryMaxVersions>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>pageHistoryMaxVersions</name>
+        <number>12</number>
+        <numberType>integer</numberType>
+        <prettyName>pageHistoryMaxVersions</prettyName>
+        <size>10</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </pageHistoryMaxVersions>
+      <pageHistoryMode>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>inherit</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <hint/>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>pageHistoryMode</name>
+        <number>9</number>
+        <picker>0</picker>
+        <prettyName>pageHistoryMode</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>inherit|enabled|disabled</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </pageHistoryMode>
+      <pageHistoryUnit>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue>months</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <hint/>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>pageHistoryUnit</name>
+        <number>11</number>
+        <picker>0</picker>
+        <prettyName>pageHistoryUnit</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>days|weeks|months|years</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </pageHistoryUnit>
       <wiki>
         <customDisplay/>
         <disabled>0</disabled>
@@ -228,6 +306,15 @@
     </property>
     <property>
       <maxHistoryEntries>20</maxHistoryEntries>
+    </property>
+    <property>
+      <pageHistoryInterval>1</pageHistoryInterval>
+    </property>
+    <property>
+      <pageHistoryMode>disabled</pageHistoryMode>
+    </property>
+    <property>
+      <pageHistoryUnit>months</pageHistoryUnit>
     </property>
     <property>
       <wiki/>

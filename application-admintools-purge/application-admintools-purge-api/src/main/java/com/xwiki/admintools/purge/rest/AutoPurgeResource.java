@@ -32,8 +32,8 @@ import org.xwiki.rest.XWikiRestException;
 import org.xwiki.stability.Unstable;
 
 /**
- * Configures and starts the automatic purge of the recycle bins. Every endpoint requires admin rights on the main wiki
- * and an active license, and the {@code POST} endpoints also require a valid {@code XWiki-Form-Token} header.
+ * Configures and starts the automatic purge. Every endpoint requires admin rights on the main wiki and an active
+ * license, and the {@code POST} endpoints also require a valid {@code XWiki-Form-Token} header.
  *
  * @version $Id$
  * @since 1.5
@@ -46,9 +46,11 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * Save the default automatic purge settings, used by every wiki that doesn't customize an item type. The form
      * fields are, for each item type: {@code <typeId>Mode} ({@code enabled} or {@code disabled}),
      * {@code <typeId>Interval} and {@code <typeId>Unit} ({@code days}, {@code weeks}, {@code months} or {@code years}),
-     * plus {@code maxHistoryEntries}, the number of purge history entries kept for each item type of each wiki, between
-     * 1 and 200. An enabled item type needs its interval, between 0 and 1000 (0 purges every item deleted until the
-     * purge runs), and its unit. They can be left out for an item type that is not enabled, which then keeps its stored
+     * {@code <typeId>MaxVersions} for a history item type (the number of versions kept, between 1 and 1000), plus
+     * {@code maxHistoryEntries}, the number of purge history entries kept for each item type of each wiki, between 1
+     * and 200. An enabled item type needs its interval, between 0 and 1000 (0 purges every item deleted until the purge
+     * runs), and its unit; an enabled history item type needs them, the number of versions, or both, and the ones left
+     * out are removed. They can all be left out for an item type that is not enabled, which then keeps its stored
      * ones.
      *
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
@@ -96,12 +98,14 @@ public interface AutoPurgeResource extends XWikiRestComponent
     }
 
     /**
-     * Start purging the recycle bin of a wiki now, with a limit chosen for each item type, whatever the settings of the
-     * wiki, even for a disabled item type. The form field {@code type}, which can be repeated, holds the identifiers of
-     * the item types to purge, and the form fields {@code <typeId>Interval} and {@code <typeId>Unit} the limit of each
-     * of them, an interval between 0 and 1000: the items deleted before it are purged, and 0 purges every item
-     * deleted until now. An item type is not purged if its previous purge is still queued or running, or if it has no
-     * items past the limit.
+     * Start purging a wiki now, with a limit chosen for each item type, whatever the settings of the wiki, even for a
+     * disabled item type. The form field {@code type}, which can be repeated, holds the identifiers of the item types
+     * to purge, and the form fields {@code <typeId>Interval} and {@code <typeId>Unit} the limit of each of them, an
+     * interval between 0 and 1000: the items deleted before it are purged, and 0 purges every item deleted until now.
+     * A history item type can have {@code <typeId>MaxVersions} instead, or as well: the number of versions kept,
+     * between 1 and 1000; the current version is never purged.
+     * The items are not counted first: the caller is expected to show the count of {@link #previewPurge(String)}
+     * before. An item type is not purged if its previous purge is still queued or running.
      *
      * @param wikiId the identifier of the wiki
      * @return status code 202 with the JSON list of the identifiers of the started jobs; 400 if no item type is given,
@@ -117,15 +121,19 @@ public interface AutoPurgeResource extends XWikiRestComponent
     }
 
     /**
-     * Count the items of the recycle bin of a wiki that a manual purge would remove. The optional query parameters
-     * {@code <typeId>Interval} (between 0 and 1000) and {@code <typeId>Unit} set the limit of an item type; by default,
-     * the limit stored for the item type applies, even if it is disabled.
+     * Count the items of a wiki that a manual purge would remove. The optional query parameters
+     * {@code <typeId>Interval} (between 0 and 1000), {@code <typeId>Unit} and, for a history item type,
+     * {@code <typeId>MaxVersions} (between 1 and 1000) set the limit of an item type; by default, the limit stored for
+     * the item type applies, even if it is disabled. The optional query parameter {@code type}, which can be repeated,
+     * restricts the counted item types, since counting a history can be slow; by default, every item type is
+     * counted.
      *
      * @param wikiId the identifier of the wiki
      * @return status code 200 with a JSON object holding, by item type identifier: {@code enabled}, whether the
-     *     automatic purge of the item type is enabled for the wiki; {@code interval} and {@code unit}, the limit used;
-     *     {@code count}, the number of items past the limit; 400 if a requested limit is invalid; 401 if the user is
-     *     not an admin of the main wiki; 402 if the license is not active; 404 if the wiki doesn't exist
+     *     automatic purge of the item type is enabled for the wiki; {@code interval}, {@code unit} and
+     *     {@code maxVersions}, the parts of the limit used; {@code count}, the number of items past the limit, only for
+     *     a counted item type; 400 if a requested limit or item type is invalid; 401 if the user is not an admin of the
+     *     main wiki; 402 if the license is not active; 404 if the wiki doesn't exist
      * @throws XWikiRestException if an error occurred while counting the items
      */
     @GET

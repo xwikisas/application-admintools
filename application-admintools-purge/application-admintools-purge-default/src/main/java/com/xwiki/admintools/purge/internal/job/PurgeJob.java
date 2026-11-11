@@ -19,7 +19,6 @@
  */
 package com.xwiki.admintools.purge.internal.job;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -44,11 +43,13 @@ import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
 import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
 import com.xwiki.admintools.purge.jobs.PurgeJobRequest;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
+import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Purges an item type from the recycle bin of a wiki, applying the limit stored when the job runs, and records the
+ * Purges an item type of a wiki, applying the limit stored when the job runs, and records the
  * result in the purge history. The jobs of an item type share one group, so the wikis are purged one after another,
  * while the item types are purged in parallel.
  *
@@ -94,9 +95,9 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
     }
 
     /**
-     * Purge the item type, and record the purge in the history. A manual purge removes the items deleted before the
-     * expiration date of its request; a scheduled purge applies the stored settings, and does nothing if the item type
-     * is disabled for the wiki. Nothing is done for a wiki deleted after the job was queued. A scheduled purge is
+     * Purge the item type, and record the purge in the history. A manual purge removes the items past the limit of its
+     * request, at the time it was started; a scheduled purge applies the stored settings, and does nothing if the item
+     * type is disabled for the wiki. Nothing is done for a wiki deleted after the job was queued. A scheduled purge is
      * recorded only when it removed items, or when it didn't succeed. If the job fails, a failed entry is recorded.
      *
      * @throws JobException if the item type can't be purged
@@ -115,24 +116,28 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
                     type.getId(), wikiId);
                 return;
             }
-            Instant expirationDate;
-            if (this.request.getExpirationDate().isPresent()) {
-                // A manual purge removes the items past the limit chosen by the user when it was started, whatever
-                // the settings of the wiki, even if the item type is disabled.
-                expirationDate = this.request.getExpirationDate().get();
+            PurgeTypeSettings limit;
+            ZonedDateTime limitTime;
+            if (this.request.getLimit().isPresent()) {
+                // A manual purge removes the items past the limit chosen by the user at the time it was started,
+                // whatever the settings of the wiki, even if the item type is disabled.
+                limit = this.request.getLimit().get();
+                limitTime = this.request.getStartDate().map(date -> date.atZone(now.getZone())).orElse(now);
             } else {
                 // A scheduled purge applies the settings stored when the job runs, since the job may have waited
-                // behind the purges of other wikis, and does nothing if the item type is disabled.
-                Optional<Instant> storedExpirationDate = this.policyResolver.getExpirationDate(wikiId, type, now);
-                if (storedExpirationDate.isEmpty()) {
+                // behind the purges of other wikis, and does nothing if the item type is disabled. The resolved
+                // settings never inherit: a wiki that inherits gets the global settings, which can't inherit.
+                Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type)
+                    .filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED);
+                if (settings.isEmpty()) {
                     this.logger.debug("Skipped the purge of [{}] on wiki [{}], since it is disabled.", type.getId(),
                         wikiId);
                     return;
                 }
-                expirationDate = storedExpirationDate.get();
+                limit = settings.get();
+                limitTime = now;
             }
-            PurgeHistoryEntry entry =
-                this.handlers.get(type.getId()).purge(wikiId, expirationDate, now.toInstant(), triggeredBy);
+            PurgeHistoryEntry entry = this.handlers.get(type.getId()).purge(wikiId, limit, limitTime, triggeredBy);
             // The history store skips the entry if the wiki was deleted in the meantime.
             if (triggeredBy != null || entry.getRemovedCount() > 0 || entry.getStatus() != PurgeStatus.SUCCESS) {
                 this.historyStore.addEntry(wikiId, entry);

@@ -21,6 +21,8 @@ package com.xwiki.admintools.purge.internal;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,11 +54,13 @@ import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
 import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
-import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
 import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
 import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
+import com.xwiki.admintools.purge.internal.store.mapper.PurgeSettingsMapper;
 import com.xwiki.admintools.purge.jobs.PurgeJobRequest;
 import com.xwiki.admintools.purge.model.IntervalUnit;
+import com.xwiki.admintools.purge.model.PurgeMode;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 import com.xwiki.licensing.Licensor;
 
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
@@ -66,9 +70,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -89,7 +93,10 @@ class PurgeManagerTest
 
     private static final String SUBWIKI = "subwiki";
 
-    private static final Instant EXPIRATION_DATE = Instant.parse("2026-10-23T01:00:00Z");
+    private static final PurgeTypeSettings ENABLED = new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS);
+
+    private static final PurgeTypeSettings DISABLED =
+        new PurgeTypeSettings(PurgeMode.DISABLED, 1, IntervalUnit.MONTHS);
 
     private static final DocumentReference USER = new DocumentReference(MAIN_WIKI, "XWiki", "Admin");
 
@@ -115,9 +122,6 @@ class PurgeManagerTest
     private PurgePolicyResolver policyResolver;
 
     @MockComponent
-    private RetentionCalculator retentionCalculator;
-
-    @MockComponent
     private PurgeSettingsStore settingsStore;
 
     @MockComponent
@@ -132,6 +136,13 @@ class PurgeManagerTest
     private PurgeHandler attachmentsHandler;
 
     @MockComponent
+    @Named("pageHistory")
+    private PurgeHandler historyHandler;
+
+    @MockComponent
+    private PurgeSettingsMapper settingsMapper;
+
+    @MockComponent
     private JobExecutor jobExecutor;
 
     @MockComponent
@@ -144,7 +155,7 @@ class PurgeManagerTest
         when(this.wikiDescriptorManager.getMainWikiId()).thenReturn(MAIN_WIKI);
         when(this.licensor.hasLicensure(LICENSED_PAGE)).thenReturn(true);
         when(this.wikiDescriptorManager.getAllIds()).thenReturn(List.of(MAIN_WIKI, SUBWIKI));
-        when(this.policyResolver.getExpirationDate(anyString(), any(), any())).thenReturn(Optional.empty());
+        when(this.policyResolver.getSettings(anyString(), any())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -173,7 +184,7 @@ class PurgeManagerTest
         InOrder inOrder = inOrder(this.settingsStore, this.historyStore, this.policyResolver);
         inOrder.verify(this.settingsStore).removeWikiSettings("deletedWithSettings");
         inOrder.verify(this.historyStore).deleteHistory("deletedWithHistory");
-        inOrder.verify(this.policyResolver).getExpirationDate(eq(MAIN_WIKI), eq(DELETED_DOCUMENTS), any());
+        inOrder.verify(this.policyResolver).getSettings(MAIN_WIKI, DELETED_DOCUMENTS);
         verify(this.settingsStore, never()).removeWikiSettings(SUBWIKI);
         verify(this.historyStore, never()).deleteHistory(MAIN_WIKI);
     }
@@ -182,9 +193,8 @@ class PurgeManagerTest
     void dispatchDuePurgesContinuesAfterACleanupError() throws Exception
     {
         when(this.settingsStore.getWikiIdsWithSettings()).thenThrow(new XWikiException());
-        when(this.policyResolver.getExpirationDate(eq(MAIN_WIKI), eq(DELETED_DOCUMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
-        when(this.documentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(5L);
+        when(this.policyResolver.getSettings(MAIN_WIKI, DELETED_DOCUMENTS)).thenReturn(Optional.of(ENABLED));
+        when(this.documentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(5L);
 
         this.purgeManager.dispatchDuePurges();
 
@@ -199,12 +209,11 @@ class PurgeManagerTest
         when(this.contextStoreManager.save(List.of("user", "wiki"))).thenReturn(context);
         // Pages: due on the main wiki, nothing expired on the subwiki. Attachments: disabled on the main wiki, due on
         // the subwiki.
-        when(this.policyResolver.getExpirationDate(anyString(), eq(DELETED_DOCUMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
-        when(this.documentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(5L);
-        when(this.policyResolver.getExpirationDate(eq(SUBWIKI), eq(DELETED_ATTACHMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
-        when(this.attachmentsHandler.countExpired(SUBWIKI, EXPIRATION_DATE)).thenReturn(2L);
+        when(this.policyResolver.getSettings(anyString(), eq(DELETED_DOCUMENTS))).thenReturn(Optional.of(ENABLED));
+        when(this.documentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(5L);
+        when(this.policyResolver.getSettings(MAIN_WIKI, DELETED_ATTACHMENTS)).thenReturn(Optional.of(DISABLED));
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_ATTACHMENTS)).thenReturn(Optional.of(ENABLED));
+        when(this.attachmentsHandler.countExpired(eq(SUBWIKI), eq(ENABLED), any())).thenReturn(2L);
 
         this.purgeManager.dispatchDuePurges();
 
@@ -215,10 +224,26 @@ class PurgeManagerTest
         assertEquals(context, documentsRequest.getContext());
         // A scheduled purge applies the settings stored when the job runs.
         assertEquals(Optional.empty(), documentsRequest.getTriggeredBy());
-        assertEquals(Optional.empty(), documentsRequest.getExpirationDate());
+        assertEquals(Optional.empty(), documentsRequest.getLimit());
+        assertEquals(Optional.empty(), documentsRequest.getStartDate());
         assertEquals(List.of("adminTools", "purge", "deletedAttachments", SUBWIKI),
             requestCaptor.getAllValues().get(1).getId());
-        verify(this.attachmentsHandler, never()).countExpired(eq(MAIN_WIKI), any());
+        // A disabled item type is not counted.
+        verify(this.attachmentsHandler, never()).countExpired(eq(MAIN_WIKI), any(), any());
+    }
+
+    @Test
+    void dispatchDuePurgesCountsInTheTimeZoneOfTheServer() throws Exception
+    {
+        when(this.policyResolver.getSettings(MAIN_WIKI, DELETED_DOCUMENTS)).thenReturn(Optional.of(ENABLED));
+
+        this.purgeManager.dispatchDuePurges();
+
+        ArgumentCaptor<ZonedDateTime> nowCaptor = ArgumentCaptor.forClass(ZonedDateTime.class);
+        verify(this.documentsHandler).countExpired(eq(MAIN_WIKI), eq(ENABLED), nowCaptor.capture());
+        assertEquals(ZoneId.systemDefault(), nowCaptor.getValue().getZone());
+        // Nothing expired: no job is started.
+        verify(this.jobExecutor, never()).execute(anyString(), any());
     }
 
     @Test
@@ -228,10 +253,9 @@ class PurgeManagerTest
         when(this.jobExecutor.getJob(PurgeJobRequest.getJobId(MAIN_WIKI, DELETED_DOCUMENTS))).thenReturn(runningJob);
         Job finishedJob = mockJob(JobStatus.State.FINISHED);
         when(this.jobExecutor.getJob(PurgeJobRequest.getJobId(MAIN_WIKI, DELETED_ATTACHMENTS))).thenReturn(finishedJob);
-        when(this.policyResolver.getExpirationDate(eq(MAIN_WIKI), any(), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
-        when(this.documentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(5L);
-        when(this.attachmentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(2L);
+        when(this.policyResolver.getSettings(eq(MAIN_WIKI), any())).thenReturn(Optional.of(ENABLED));
+        when(this.documentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(5L);
+        when(this.attachmentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(2L);
 
         this.purgeManager.dispatchDuePurges();
 
@@ -244,11 +268,9 @@ class PurgeManagerTest
     @Test
     void dispatchDuePurgesContinuesAfterAnError() throws Exception
     {
-        when(this.policyResolver.getExpirationDate(eq(MAIN_WIKI), eq(DELETED_DOCUMENTS), any())).thenThrow(
-            new XWikiException());
-        when(this.policyResolver.getExpirationDate(eq(MAIN_WIKI), eq(DELETED_ATTACHMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
-        when(this.attachmentsHandler.countExpired(MAIN_WIKI, EXPIRATION_DATE)).thenReturn(2L);
+        when(this.policyResolver.getSettings(MAIN_WIKI, DELETED_DOCUMENTS)).thenThrow(new XWikiException());
+        when(this.policyResolver.getSettings(MAIN_WIKI, DELETED_ATTACHMENTS)).thenReturn(Optional.of(ENABLED));
+        when(this.attachmentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(2L);
 
         this.purgeManager.dispatchDuePurges();
 
@@ -260,91 +282,74 @@ class PurgeManagerTest
     @Test
     void startManualPurge() throws Exception
     {
-        when(this.retentionCalculator.getExpirationDate(any(), eq(10), eq(IntervalUnit.YEARS))).thenReturn(
-            EXPIRATION_DATE);
-        when(this.documentsHandler.countExpired(SUBWIKI, EXPIRATION_DATE)).thenReturn(3L);
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, 10, IntervalUnit.YEARS);
+        Instant before = Instant.now();
 
-        assertTrue(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 10, IntervalUnit.YEARS, USER));
+        assertTrue(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, limit, USER));
 
-        // The limit chosen by the user applies, whatever the settings, and the job removes the items counted now.
+        // The limit chosen by the user applies at the time the purge was started, whatever the settings.
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
         verify(this.jobExecutor).execute(eq("admintools.purge"), requestCaptor.capture());
         PurgeJobRequest request = (PurgeJobRequest) requestCaptor.getValue();
         assertEquals(Optional.of(USER), request.getTriggeredBy());
-        assertEquals(Optional.of(EXPIRATION_DATE), request.getExpirationDate());
-        verify(this.policyResolver, never()).getExpirationDate(anyString(), any(), any());
+        assertEquals(Optional.of(limit), request.getLimit());
+        Instant startDate = request.getStartDate().orElseThrow();
+        assertFalse(startDate.isBefore(before) || startDate.isAfter(Instant.now()));
+        // The items are not counted again: the user already saw how many items the purge removes.
+        verify(this.documentsHandler, never()).countExpired(anyString(), any(), any());
+        verify(this.policyResolver, never()).getSettings(anyString(), any());
     }
 
     @Test
-    void startManualPurgeWithZeroLimit() throws Exception
+    void startManualPurgeWhenThePreviousPurgeIsRunning() throws Exception
     {
-        // A limit of 0 empties the recycle bin: the job removes every item deleted until the purge started.
-        when(this.retentionCalculator.getExpirationDate(any(), eq(0), eq(IntervalUnit.DAYS))).thenReturn(
-            EXPIRATION_DATE);
-        when(this.documentsHandler.countExpired(SUBWIKI, EXPIRATION_DATE)).thenReturn(7L);
+        Job runningJob = mockJob(JobStatus.State.WAITING);
+        when(this.jobExecutor.getJob(PurgeJobRequest.getJobId(SUBWIKI, DELETED_DOCUMENTS))).thenReturn(runningJob);
 
-        assertTrue(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 0, IntervalUnit.DAYS, USER));
+        assertFalse(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, ENABLED, USER));
 
-        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
-        verify(this.jobExecutor).execute(eq("admintools.purge"), requestCaptor.capture());
-        assertEquals(Optional.of(EXPIRATION_DATE), ((PurgeJobRequest) requestCaptor.getValue()).getExpirationDate());
-    }
-
-    @Test
-    void startManualPurgeWithoutExpiredItems() throws Exception
-    {
-        when(this.retentionCalculator.getExpirationDate(any(), eq(1), eq(IntervalUnit.MONTHS))).thenReturn(
-            EXPIRATION_DATE);
-        when(this.documentsHandler.countExpired(SUBWIKI, EXPIRATION_DATE)).thenReturn(0L);
-
-        assertFalse(this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1, IntervalUnit.MONTHS, USER));
-
-        verify(this.jobExecutor, never()).getJob(any());
         verify(this.jobExecutor, never()).execute(anyString(), any());
     }
 
     @Test
     void startManualPurgeWithInvalidLimit() throws Exception
     {
-        assertThrows(IllegalArgumentException.class,
-            () -> this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, -1, IntervalUnit.DAYS, USER));
-        assertThrows(IllegalArgumentException.class,
-            () -> this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1, null, USER));
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, -1, IntervalUnit.DAYS);
+        doThrow(new IllegalArgumentException("Invalid limit")).when(this.settingsMapper)
+            .checkLimit(DELETED_DOCUMENTS, limit);
 
-        // The interval can't be larger than the one of the settings.
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, 1001, IntervalUnit.YEARS, USER));
-        assertEquals("Invalid purge limit [1001 YEARS]: the interval must be between 0 and 1000, with a unit.",
-            exception.getMessage());
+        // The limit is checked with the rules of the settings, before anything else.
+        assertEquals("Invalid limit", assertThrows(IllegalArgumentException.class,
+            () -> this.purgeManager.startManualPurge(SUBWIKI, DELETED_DOCUMENTS, limit, USER)).getMessage());
 
-        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
-        verify(this.documentsHandler, never()).countExpired(anyString(), any());
+        verify(this.jobExecutor, never()).getJob(any());
         verify(this.jobExecutor, never()).execute(anyString(), any());
-    }
-
-    @Test
-    void checkLimit()
-    {
-        // The smallest and the largest intervals are valid: unlike the settings, a manual purge accepts 0, which
-        // purges every item deleted until now.
-        this.purgeManager.checkLimit(0, IntervalUnit.DAYS);
-        this.purgeManager.checkLimit(1000, IntervalUnit.YEARS);
-
-        assertThrows(IllegalArgumentException.class, () -> this.purgeManager.checkLimit(-1, IntervalUnit.DAYS));
-        assertThrows(IllegalArgumentException.class, () -> this.purgeManager.checkLimit(1001, IntervalUnit.DAYS));
-        assertThrows(IllegalArgumentException.class, () -> this.purgeManager.checkLimit(1, null));
     }
 
     @Test
     void countExpired() throws Exception
     {
-        when(this.retentionCalculator.getExpirationDate(any(), eq(7), eq(IntervalUnit.DAYS))).thenReturn(
-            EXPIRATION_DATE);
-        when(this.attachmentsHandler.countExpired(SUBWIKI, EXPIRATION_DATE)).thenReturn(7L);
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS);
+        when(this.attachmentsHandler.countExpired(eq(SUBWIKI), eq(limit), any())).thenReturn(7L);
 
-        assertEquals(7L, this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, 7, IntervalUnit.DAYS));
+        assertEquals(7L, this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, limit));
+
+        ArgumentCaptor<ZonedDateTime> nowCaptor = ArgumentCaptor.forClass(ZonedDateTime.class);
+        verify(this.attachmentsHandler).countExpired(eq(SUBWIKI), eq(limit), nowCaptor.capture());
+        assertEquals(ZoneId.systemDefault(), nowCaptor.getValue().getZone());
+    }
+
+    @Test
+    void countExpiredWithInvalidLimit() throws Exception
+    {
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, -1, IntervalUnit.DAYS);
+        doThrow(new IllegalArgumentException("Invalid limit")).when(this.settingsMapper)
+            .checkLimit(DELETED_ATTACHMENTS, limit);
+
         assertThrows(IllegalArgumentException.class,
-            () -> this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, -1, IntervalUnit.DAYS));
+            () -> this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, limit));
+
+        verify(this.attachmentsHandler, never()).countExpired(anyString(), any(), any());
     }
 
     /**
@@ -353,8 +358,8 @@ class PurgeManagerTest
     private void assertNoLicense()
     {
         JobException exception = assertThrows(JobException.class, () -> this.purgeManager.dispatchDuePurges());
-        assertEquals("The automatic purge of the recycle bins was not started, since the Admin Tools license is not "
-            + "active.", exception.getMessage());
+        assertEquals("The automatic purge was not started, since the Admin Tools license is not active.",
+            exception.getMessage());
     }
 
     /**

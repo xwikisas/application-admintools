@@ -19,7 +19,7 @@
  */
 package com.xwiki.admintools.purge;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
@@ -29,10 +29,13 @@ import org.xwiki.stability.Unstable;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Purges one item type from the recycle bin of a wiki. There is one implementation per {@link PurgeType}, whose hint
- * is the identifier of the type. No rights are checked: the callers must do it.
+ * Purges the items of one type from a wiki. There is one implementation per {@link PurgeType}, whose hint is the
+ * identifier of the type. The limit of a purge is given as item type settings, from the stored settings or chosen for
+ * a manual purge, and is applied relative to a given time; its mode is ignored. No rights are checked: the callers
+ * must do it.
  *
  * @version $Id$
  * @since 1.5
@@ -42,27 +45,28 @@ import com.xwiki.admintools.purge.model.PurgeType;
 public interface PurgeHandler
 {
     /**
-     * Count the items of a wiki that were deleted before the expiration date, which a purge with the same expiration
-     * date would remove.
+     * Count the items of a wiki that are past a limit, which a purge with the same limit and time would remove.
      *
      * @param wikiId the identifier of the wiki
-     * @param expirationDate the items deleted before this date are counted
-     * @return the number of items deleted before the expiration date
+     * @param limit the limit of the purge
+     * @param now the time the limit is applied at, whose time zone is used for the calendar units
+     * @return the number of items past the limit
      * @throws QueryException if the items can't be counted
      */
-    long countExpired(String wikiId, Instant expirationDate) throws QueryException;
+    long countExpired(String wikiId, PurgeTypeSettings limit, ZonedDateTime now) throws QueryException;
 
     /**
-     * Permanently delete the items of a wiki that were deleted before the expiration date. An item that can't be
-     * deleted is skipped and reported in the returned entry, and the purge goes on with the next items. If the next
-     * items can't be loaded, the purge stops, and the returned entry has the {@link PurgeStatus#INTERRUPTED} status.
+     * Permanently delete the items of a wiki that are past a limit. An item that can't be deleted is skipped and
+     * reported in the returned entry, and the purge goes on with the next items. If the next items can't be loaded,
+     * the purge stops, and the returned entry has the {@link PurgeStatus#INTERRUPTED} status.
      *
      * @param wikiId the identifier of the wiki
-     * @param expirationDate the items deleted before this date are purged
-     * @param date when the purge runs, stored in the returned entry
+     * @param limit the limit of the purge
+     * @param now the time the limit is applied at, whose time zone is used for the calendar units; it is also the
+     *     date stored in the returned entry
      * @param triggeredBy the user who started the purge manually, or {@code null} for a scheduled purge; it is only
      *     stored in the returned entry
      * @return the history entry describing the purge
      */
-    PurgeHistoryEntry purge(String wikiId, Instant expirationDate, Instant date, DocumentReference triggeredBy);
+    PurgeHistoryEntry purge(String wikiId, PurgeTypeSettings limit, ZonedDateTime now, DocumentReference triggeredBy);
 }

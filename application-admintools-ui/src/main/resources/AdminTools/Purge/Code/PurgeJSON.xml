@@ -183,10 +183,16 @@
       #if ($wikiTypeSettings.unit.isPresent())
         #set ($unitId = $wikiTypeSettings.unit.get().id)
       #end
+      ## Only the settings of a history have a number of versions.
+      #set ($maxVersions = '')
+      #if ($wikiTypeSettings.maxVersions &amp;&amp; $wikiTypeSettings.maxVersions.isPresent())
+        #set ($maxVersions = $wikiTypeSettings.maxVersions.get())
+      #end
       #set ($discard = $wikiData.types.put($type, {
         'mode': $modeId,
         'interval': $interval,
         'unit': $unitId,
+        'maxVersions': $maxVersions,
         'defaultLabel': $purgeDefaultLabel
       }))
     #end
@@ -368,11 +374,16 @@
       #set ($discard = $failures.add({'item': $parts[0], 'error': $error}))
     #end
     #getPurgeDate($failuresEntry)
-    #set ($recycleBinView = 'deletedDocs')
-    #if ($typeId == 'deletedAttachments')
-      #set ($recycleBinView = 'deletedAttachments')
+    ## The failed items of a recycle bin can be found in it; a history has no such page.
+    #set ($recycleBinURL = '')
+    #if (!$purgeHistoryTypes.contains($typeId))
+      #set ($recycleBinView = 'deletedDocs')
+      #if ($typeId == 'deletedAttachments')
+        #set ($recycleBinView = 'deletedAttachments')
+      #end
+      #set ($allDocsReference = $services.model.createDocumentReference($wikiId, 'Main', 'AllDocs'))
+      #set ($recycleBinURL = $xwiki.getURL($allDocsReference, 'view', "view=${recycleBinView}"))
     #end
-    #set ($allDocsReference = $services.model.createDocumentReference($wikiId, 'Main', 'AllDocs'))
     ## The summary is rendered here, since only the server side translations handle plural forms.
     #if ($failures.size() &lt; $failuresEntry.failedCount)
       #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.shown',
@@ -387,7 +398,7 @@
       'summary': $failuresSummary,
       'failedCount': $failuresEntry.failedCount,
       'failures': $failures,
-      'recycleBinURL': $xwiki.getURL($allDocsReference, 'view', "view=${recycleBinView}")
+      'recycleBinURL': $recycleBinURL
     })
   #else
     #set ($discard = $response.setStatus(404))

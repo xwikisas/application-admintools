@@ -19,11 +19,15 @@
  */
 package com.xwiki.admintools.test.po.modals;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 /**
- * Represents the modal purging the recycle bin of a wiki now.
+ * Represents the modal purging a wiki now: the deleted items and the old page versions. The purge is confirmed in a
+ * second step, which shows what each selected item type would remove.
  *
  * @version $Id$
  */
@@ -89,26 +93,71 @@ public class AutoPurgeNowModalView extends AbstractAutoPurgeModalView
     }
 
     /**
-     * Start purging the selected item types. The modal closes and the purge history of the wiki opens.
+     * Click the purge button, and wait until the selected item types are counted and the purge has to be confirmed.
+     *
+     * @return what the purge of each selected item type would remove, e.g. "Deleted pages: 1 item"
+     */
+    public List<String> purge()
+    {
+        submit();
+        getDriver().waitUntilCondition(driver -> isConfirmationDisplayed());
+        return this.container.findElements(By.cssSelector(".purge-confirm-counts li")).stream()
+            .map(WebElement::getText).collect(Collectors.toList());
+    }
+
+    /**
+     * Click the purge button when the selected item types have nothing to purge: no purge is started, the modal stays
+     * open, and a notification says so.
+     *
+     * @return the message of the notification
+     */
+    public String purgeNothing()
+    {
+        submit();
+        By notification = By.cssSelector(".xnotification-info");
+        getDriver().waitUntilElementIsVisible(notification);
+        return getDriver().findElement(notification).getText();
+    }
+
+    /**
+     * @return {@code true} if the purge has to be confirmed
+     */
+    public boolean isConfirmationDisplayed()
+    {
+        return this.container.findElement(By.className("purge-step-confirm")).isDisplayed();
+    }
+
+    /**
+     * Go back from the confirmation to the selection of the item types and their limits.
+     */
+    public void back()
+    {
+        this.container.findElement(By.className("purge-back")).click();
+        getDriver().waitUntilCondition(driver -> !isConfirmationDisplayed());
+    }
+
+    /**
+     * Confirm the purge. The modal closes and the purge history of the wiki opens.
      *
      * @return the history modal
      */
-    public AutoPurgeHistoryModalView purge()
+    public AutoPurgeHistoryModalView confirm()
     {
         // Created before it opens, so that it opens without the fade effect.
         AutoPurgeHistoryModalView historyModal = new AutoPurgeHistoryModalView();
-        submit();
+        this.container.findElement(By.className("purge-confirm")).click();
         waitForClosed();
         historyModal.waitUntilDisplayed();
         return historyModal;
     }
 
     /**
-     * @return {@code true} if the purge button can be clicked
+     * @return {@code true} if the purge button is shown and can be clicked
      */
     public boolean isPurgeEnabled()
     {
-        return this.container.findElement(By.cssSelector("button[type='submit']")).isEnabled();
+        WebElement button = this.container.findElement(By.cssSelector("button[type='submit']"));
+        return button.isDisplayed() && button.isEnabled();
     }
 
     /**

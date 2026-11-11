@@ -135,20 +135,29 @@
     'nothingExpired',
     'expired',
     'expiredOne',
+    'expiredVersions',
+    'expiredVersionOne',
+    'nothingToPurge',
+    'nothingToPurge.type',
     'error.400',
     'error.401',
     'error.402',
     'error.403',
     'error.404',
     'error.generic',
-    'error.number'
+    'error.number',
+    'error.noLimit'
   ]
 });
 
 require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], function($, l10n) {
   'use strict';
 
-  const types = ['deletedDocuments', 'deletedAttachments'];
+  const types = ['deletedDocuments', 'deletedAttachments', 'pageHistory'];
+  // A history can also be limited by a number of versions, and needs an age limit, a number of versions, or both. Its
+  // versions are counted only when a purge is submitted, since counting them is costly.
+  const historyTypes = ['pageHistory'];
+  const isHistory = type =&gt; historyTypes.includes(type);
   const restURL = XWiki.contextPath + '/rest/admintools/autopurge';
   const jsonURL = new XWiki.Document(XWiki.Model.resolve('AdminTools.Purge.Code.PurgeJSON',
     XWiki.EntityType.DOCUMENT)).getURL('get');
@@ -208,32 +217,39 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
   };
 
   /**
-   * Add the interval and unit of an enabled item type to the submitted data. They are left out for an item type that
-   * is not enabled, which keeps its stored ones for when it is enabled again.
+   * Add the limit of an enabled item type to the submitted data: its interval and unit, and for a history, its number
+   * of versions. They are left out for an item type that is not enabled, which keeps its stored ones for when it is
+   * enabled again, and for a limit of a history that is left empty, which then doesn't apply.
    */
-  const addInterval = function(data, typeContainer, type) {
-    const interval = getInterval(typeContainer);
+  const addLimit = function(data, typeContainer, type) {
+    const interval = getNumber(typeContainer.find('.purge-interval'));
     if (interval) {
       data[type + 'Interval'] = interval;
       data[type + 'Unit'] = typeContainer.find('.purge-unit').val();
     }
+    const maxVersions = isHistory(type) ? getNumber(typeContainer.find('.purge-max-versions')) : null;
+    if (maxVersions) {
+      data[type + 'MaxVersions'] = maxVersions;
+    }
   };
 
   /**
-   * Get the interval of an item type, if it is a valid one.
+   * Get the value of a number field, if it is set and valid.
    */
-  const getInterval = function(typeContainer) {
-    const input = typeContainer.find('.purge-interval');
-    return getNumberError(input) ? null : input.val();
+  const getNumber = function(input) {
+    return input.val() === '' || getNumberError(input) ? null : input.val();
   };
 
   /**
-   * Check a number field against its `min` and `max` attributes.
+   * Check a number field against its `min` and `max` attributes. An empty field is valid if it is not required.
    *
    * @return the translated error message, or `null` if the value is valid
    */
   const getNumberError = function(input) {
     const value = input.val();
+    if (value === '' &amp;&amp; !input.prop('required')) {
+      return null;
+    }
     const min = parseInt(input.attr('min'), 10);
     const max = parseInt(input.attr('max'), 10);
     if (!/^\d+$/.test(value) || parseInt(value, 10) &lt; min || parseInt(value, 10) &gt; max) {
@@ -252,18 +268,54 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     inputs.each(function() {
       const input = $(this);
       const error = getNumberError(input);
-      // The message goes under the fields of the interval, or under the field itself.
+      // The message goes under the fields of the limit, or under the field itself. The fields of a history hold two
+      // numbers, so each message is removed only by the check of its own field.
       const fields = input.closest('.purge-interval-fields');
       const messageAnchor = fields.length ? fields : input;
-      messageAnchor.next('.purge-error').remove();
-      input.attr('aria-invalid', error ? 'true' : 'false').closest('.form-group').toggleClass('has-error', !!error);
+      messageAnchor.nextAll('.purge-error').filter((index, message) =&gt; $(message).data('input') === this.id).remove();
+      input.attr('aria-invalid', error ? 'true' : 'false');
       if (error) {
-        $('&lt;span class="help-block purge-error"&gt;').text(error).insertAfter(messageAnchor);
+        $('&lt;span class="help-block purge-error"&gt;').data('input', this.id).text(error).insertAfter(messageAnchor);
       }
+      const formGroup = input.closest('.form-group');
+      formGroup.toggleClass('has-error', formGroup.find('.purge-error').length &gt; 0);
     });
     const invalidInputs = inputs.filter('[aria-invalid="true"]');
     invalidInputs.first().trigger('focus');
     return invalidInputs.length === 0;
+  };
+
+  /**
+   * Check that the enabled limits of the given item types that are histories have an age limit, a number of versions,
+   * or both, and show a translated message under the fields of each history without a limit.
+   *
+   * @return `true` if every history has a limit
+   */
+  const validateHistoryLimits = function(typeContainers) {
+    let valid = true;
+    typeContainers.filter((index, typeContainer) =&gt; isHistory($(typeContainer).data('type'))).each(function() {
+      const typeContainer = $(this);
+      typeContainer.find('.purge-limit-error').remove();
+      const inputs = typeContainer.find('.purge-interval:enabled, .purge-max-versions:enabled');
+      if (inputs.length &amp;&amp; inputs.get().every(input =&gt; input.value === '')) {
+        valid = false;
+        typeContainer.addClass('has-error');
+        $('&lt;span class="help-block purge-error purge-limit-error"&gt;').text(l10n.get('error.noLimit'))
+          .insertAfter(typeContainer.find('.purge-history-limits'));
+      }
+    });
+    return valid;
+  };
+
+  /**
+   * Check the enabled limits of the given item types: their numbers, and that each history has a limit.
+   *
+   * @return `true` if the limits are valid
+   */
+  const validateLimits = function(typeContainers) {
+    // Both checks run, so that all the errors are shown.
+    const numbersValid = validateNumbers(typeContainers.find('input[type="number"]:enabled'));
+    return validateHistoryLimits(typeContainers) &amp;&amp; numbersValid;
   };
 
   /**
@@ -285,8 +337,10 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     validateNumbers($(this).find('input[type="number"]:enabled'));
   });
 
-  // The error of a setting is shown while it is typed, not only when the settings are saved.
+  // The error of a setting is shown while it is typed, not only when the settings are saved. A missing limit is only
+  // reported when the settings are saved, since a limit is often emptied before the other one is set.
   $(document).on('input', '#purgeDefaultsForm input[type="number"], #purgeWikiForm input[type="number"]', function() {
+    $(this).closest('.purge-type').find('.purge-limit-error').remove();
     validateNumbers($(this));
   });
 
@@ -310,7 +364,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       state[type] = {
         enabled: typeContainer.find('.purge-enable').prop('checked'),
         interval: typeContainer.find('.purge-interval').val(),
-        unit: typeContainer.find('.purge-unit').val()
+        unit: typeContainer.find('.purge-unit').val(),
+        maxVersions: typeContainer.find('.purge-max-versions').val()
       };
     });
     return state;
@@ -323,6 +378,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       typeContainer.find('.purge-enable').prop('checked', state[type].enabled);
       typeContainer.find('.purge-interval').val(state[type].interval);
       typeContainer.find('.purge-unit').val(state[type].unit);
+      typeContainer.find('.purge-max-versions').val(state[type].maxVersions);
       updateDefaultFields(typeContainer);
     });
   };
@@ -343,7 +399,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     event.preventDefault();
     const form = $(this);
     // The fields of the item types that are not purged automatically are disabled, and not checked.
-    if (!validateNumbers(form.find('input[type="number"]:enabled'))) {
+    const limitsValid = validateLimits(form.find('.purge-type'));
+    if (!validateNumbers(form.find('[name="maxHistoryEntries"]')) || !limitsValid) {
       return;
     }
     const data = {maxHistoryEntries: form.find('[name="maxHistoryEntries"]').val()};
@@ -352,7 +409,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       const enabled = typeContainer.find('.purge-enable').prop('checked');
       data[type + 'Mode'] = enabled ? 'enabled' : 'disabled';
       if (enabled) {
-        addInterval(data, typeContainer, type);
+        addLimit(data, typeContainer, type);
       }
     });
     const state = getDefaultsFormState(form);
@@ -398,6 +455,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       typeContainer.find('.purge-interval').val(settings.interval);
       // An item type that is not enabled can have no stored unit: months is selected, as in the other forms.
       typeContainer.find('.purge-unit').val(settings.unit || 'months');
+      typeContainer.find('.purge-max-versions').val(settings.maxVersions);
       updateCustomFields(typeContainer);
     });
     modal.modal('show');
@@ -421,7 +479,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     event.preventDefault();
     const form = $(this);
     // Only the custom limits are enabled, and checked.
-    if (!validateNumbers(form.find('input[type="number"]:enabled'))) {
+    if (!validateLimits(form.find('.purge-type'))) {
       return;
     }
     const data = {};
@@ -430,7 +488,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       const mode = typeContainer.find('.purge-mode:checked').val();
       data[type + 'Mode'] = mode;
       if (mode === 'enabled') {
-        addInterval(data, typeContainer, type);
+        addLimit(data, typeContainer, type);
       }
     });
     updateWikiSettings('POST', data);
@@ -442,12 +500,13 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
 
   // The manual purge of a wiki.
   /**
-   * Enable the purge button only when a selected item type has items older than its limit.
+   * Enable the purge button when a selected item type has items older than its limit, or is a history, whose versions
+   * are counted once the purge is submitted.
    */
   const updatePurgeButton = function(form) {
-    const hasItems = form.find('input[name="type"]:checked').closest('.purge-type').get()
-      .some(typeContainer =&gt; $(typeContainer).data('count') &gt; 0);
-    form.find('button[type="submit"]').prop('disabled', !hasItems);
+    const canPurge = form.find('input[name="type"]:checked').closest('.purge-type').get()
+      .some(typeContainer =&gt; isHistory($(typeContainer).data('type')) || $(typeContainer).data('count') &gt; 0);
+    form.find('button[type="submit"]').prop('disabled', !canPurge);
   };
 
   /**
@@ -472,14 +531,22 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
   let previewParams;
   let previewTimeout;
 
+  // A missing value is set as an empty field, since jQuery reads the field when the value is undefined.
+  const orEmpty = value =&gt; value === undefined ? '' : value;
+
+  const getPreviewURL = function(form) {
+    return restURL + getWikiPath(form.closest('.modal').data('wikiId')) + '/preview';
+  };
+
   /**
-   * Count the items past the limit of each item type. The first time, the limits are the stored ones, which fill the
-   * fields; afterwards, they are the ones in the fields.
+   * Count the items past the limit of each item type that is not a history. The first time, the limits are the stored
+   * ones, which fill the fields of every item type; afterwards, they are the ones in the fields.
    */
   const updatePreview = function(form, fillFields) {
-    const params = {};
+    const countedTypes = types.filter(type =&gt; !isHistory(type));
+    const params = {type: countedTypes};
     if (!fillFields) {
-      types.forEach(type =&gt; addInterval(params, getTypeContainer(form, type), type));
+      countedTypes.forEach(type =&gt; addLimit(params, getTypeContainer(form, type), type));
     }
     const paramsJSON = JSON.stringify(params);
     if (!fillFields &amp;&amp; paramsJSON === previewParams) {
@@ -487,9 +554,9 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     }
     previewParams = paramsJSON;
     const requestNumber = ++previewRequest;
-    form.find('.purge-count').text('(' + l10n.get('loading') + ')');
-    const previewURL = restURL + getWikiPath(form.closest('.modal').data('wikiId')) + '/preview';
-    $.getJSON(previewURL, params).done(function(preview) {
+    countedTypes.forEach(type =&gt; getTypeContainer(form, type).find('.purge-count')
+      .text('(' + l10n.get('loading') + ')'));
+    $.ajax({url: getPreviewURL(form), data: params, dataType: 'json', traditional: true}).done(function(preview) {
       if (requestNumber !== previewRequest) {
         return;
       }
@@ -497,12 +564,16 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
         const typeContainer = getTypeContainer(form, type);
         const typePreview = preview[type];
         if (fillFields) {
-          typeContainer.find('.purge-interval').val(typePreview.interval);
-          typeContainer.find('.purge-unit').val(typePreview.unit);
+          // A limit that is not stored leaves its field empty, and months is selected without a stored unit.
+          typeContainer.find('.purge-interval').val(orEmpty(typePreview.interval));
+          typeContainer.find('.purge-unit').val(typePreview.unit || 'months');
+          typeContainer.find('.purge-max-versions').val(orEmpty(typePreview.maxVersions));
           typeContainer.find('.purge-disabled-note').toggleClass('hidden', typePreview.enabled);
         }
-        // An invalid limit was not sent, so its count is the one of the stored limit.
-        showCount(typeContainer, getInterval(typeContainer) ? typePreview.count : undefined);
+        if (!isHistory(type)) {
+          // An invalid limit was not sent, so its count is the one of the stored limit.
+          showCount(typeContainer, getNumber(typeContainer.find('.purge-interval')) ? typePreview.count : undefined);
+        }
       });
       updatePurgeButton(form);
     }).fail(function(xhr) {
@@ -513,6 +584,15 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     });
   };
 
+  /**
+   * Show the step selecting the item types and their limits, or the step confirming the purge.
+   */
+  const showPurgeStep = function(form, confirm) {
+    form.find('.purge-step-select, button[type="submit"]').toggleClass('hidden', confirm);
+    form.find('.purge-step-confirm, .purge-back, .purge-confirm').toggleClass('hidden', !confirm);
+    form.find('.purge-confirm').prop('disabled', false);
+  };
+
   $(document).on('click', '.purge-now', function() {
     // A preview still waiting for the modal of another wiki would replace the one of this wiki.
     clearTimeout(previewTimeout);
@@ -520,23 +600,30 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     const modal = $('#purgeNowModal').data({wikiId: wiki.wikiId, wiki: wiki});
     const form = modal.find('form');
     setWikiName(modal, wiki.wikiName);
+    showPurgeStep(form, false);
     form.find('input[name="type"]').prop('checked', false);
     form.find('.purge-interval-fields :input').prop('disabled', true);
     form.find('.purge-type').removeData('count');
-    form.find('.purge-interval').val('');
+    form.find('.purge-count').text('');
+    form.find('.purge-interval, .purge-max-versions').val('');
     form.find('.purge-disabled-note, .purge-nothing-started').addClass('hidden');
     updatePurgeButton(form);
     modal.modal('show');
     updatePreview(form, true);
   });
 
-  // Count the items again once the user stops changing a limit.
-  $(document).on('input change', '#purgeNowForm .purge-interval, #purgeNowForm .purge-unit', function() {
+  // Count the items again once the user stops changing a limit. The versions of a history are counted on submit.
+  $(document).on('input change', '#purgeNowForm input[type="number"], #purgeNowForm .purge-unit', function() {
     const form = $(this).closest('form');
     const typeContainer = $(this).closest('.purge-type');
+    typeContainer.find('.purge-limit-error').remove();
+    const valid = validateNumbers(typeContainer.find('input[type="number"]'));
+    if (isHistory(typeContainer.data('type'))) {
+      return;
+    }
     clearTimeout(previewTimeout);
     // An invalid limit isn't counted, and its item type can't be purged until it is fixed.
-    if (!validateNumbers(typeContainer.find('.purge-interval'))) {
+    if (!valid) {
       showCount(typeContainer, undefined);
       updatePurgeButton(form);
       return;
@@ -553,22 +640,73 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     updatePurgeButton($(this).closest('form'));
   });
 
+  /**
+   * @return the label of what the purge of an item type would remove
+   */
+  const getConfirmCountLabel = function(type, count) {
+    if (count === 0) {
+      return l10n.get('nothingToPurge.type');
+    } else if (isHistory(type)) {
+      return count === 1 ? l10n.get('expiredVersionOne') : l10n.get('expiredVersions', count);
+    } else {
+      return count === 1 ? l10n.get('expiredOne') : l10n.get('expired', count);
+    }
+  };
+
+  // Count what the purge of each selected item type would remove, with its limit, then ask for a confirmation, unless
+  // there is nothing to purge.
   $(document).on('submit', '#purgeNowForm', function(event) {
     event.preventDefault();
     const modal = $('#purgeNowModal');
     const form = $(this);
+    const selectedTypes = form.find('input[name="type"]:checked').map((index, input) =&gt; input.value).get();
     // Only the limits of the selected item types are checked.
-    if (!validateNumbers(form.find('input[name="type"]:checked').closest('.purge-type').find('.purge-interval'))) {
+    if (!validateLimits(form.find('input[name="type"]:checked').closest('.purge-type'))) {
       return;
     }
-    const wiki = modal.data('wiki');
-    const data = {type: form.find('input[name="type"]:checked').map((index, input) =&gt; input.value).get()};
-    data.type.forEach(type =&gt; addInterval(data, getTypeContainer(form, type), type));
+    const data = {type: selectedTypes};
+    selectedTypes.forEach(type =&gt; addLimit(data, getTypeContainer(form, type), type));
     form.find('.purge-nothing-started').addClass('hidden');
     form.find('button[type="submit"]').prop('disabled', true);
-    post(getWikiPath(wiki.wikiId) + '/purge', data).done(function(jobIds) {
+    const notification = new XWiki.widgets.Notification(l10n.get('loading'), 'inprogress');
+    $.ajax({url: getPreviewURL(form), data: data, dataType: 'json', traditional: true}).done(function(preview) {
+      notification.hide();
+      // The server doesn't count the items again, so the item types with nothing to purge are left out.
+      const typesToPurge = selectedTypes.filter(type =&gt; preview[type].count &gt; 0);
+      if (typesToPurge.length === 0) {
+        new XWiki.widgets.Notification(l10n.get('nothingToPurge'), 'info');
+        updatePurgeButton(form);
+        return;
+      }
+      const counts = form.find('.purge-confirm-counts').empty();
+      selectedTypes.forEach(type =&gt; {
+        const typeLabel = getTypeContainer(form, type).find('.purge-type-label').text();
+        counts.append($('&lt;li&gt;').append($('&lt;strong&gt;').text(typeLabel),
+          document.createTextNode(': ' + getConfirmCountLabel(type, preview[type].count))));
+      });
+      modal.data('purgeData', Object.assign(data, {type: typesToPurge}));
+      showPurgeStep(form, true);
+    }).fail(function(xhr) {
+      notification.replace(new XWiki.widgets.Notification(getErrorMessage(xhr), 'error'));
+      updatePurgeButton(form);
+    });
+  });
+
+  $(document).on('click', '#purgeNowForm .purge-back', function() {
+    const form = $(this).closest('form');
+    showPurgeStep(form, false);
+    updatePurgeButton(form);
+  });
+
+  $(document).on('click', '#purgeNowForm .purge-confirm', function() {
+    const modal = $('#purgeNowModal');
+    const form = $(this).closest('form');
+    const wiki = modal.data('wiki');
+    $(this).prop('disabled', true);
+    post(getWikiPath(wiki.wikiId) + '/purge', modal.data('purgeData')).done(function(jobIds) {
       if (jobIds.length === 0) {
-        // Nothing older than the limits, or a purge of the wiki already running.
+        // The purges of the selected item types are already running.
+        showPurgeStep(form, false);
         form.find('.purge-nothing-started').removeClass('hidden');
         updatePurgeButton(form);
       } else {
@@ -577,7 +715,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
         openHistory(wiki);
       }
     }).fail(function() {
-      updatePurgeButton(form);
+      form.find('.purge-confirm').prop('disabled', false);
     });
   });
 
@@ -658,7 +796,9 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
         const itemCell = $('&lt;td&gt;').text(failure.item);
         tableBody.append($('&lt;tr&gt;').append(itemCell, $('&lt;td&gt;').text(failure.error)));
       });
-      modal.find('.purge-recycle-bin').attr('href', failures.recycleBinURL).removeClass('hidden');
+      // A history has no recycle bin.
+      modal.find('.purge-recycle-bin').attr('href', failures.recycleBinURL || '#')
+        .toggleClass('hidden', !failures.recycleBinURL);
     }).fail(function() {
       new XWiki.widgets.Notification(l10n.get('loadFailed'), 'error');
     });

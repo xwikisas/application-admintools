@@ -21,6 +21,7 @@ package com.xwiki.admintools.test.ui;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +39,9 @@ import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.panels.test.po.ApplicationsPanel;
+import org.xwiki.rest.model.jaxb.History;
+import org.xwiki.rest.model.jaxb.HistorySummary;
+import org.xwiki.rest.resources.pages.PageHistoryResource;
 import org.xwiki.test.docker.junit5.TestConfiguration;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.docker.junit5.servletengine.ServletEngine;
@@ -105,6 +109,21 @@ class AdminToolsIT
     private static final String DELETED_DOCUMENTS_COLUMN = "Deleted pages";
 
     private static final String DELETED_ATTACHMENTS_COLUMN = "Deleted attachments";
+
+    private static final String PAGE_HISTORY = "pageHistory";
+
+    private static final String PAGE_HISTORY_COLUMN = "Page history";
+
+    /**
+     * A page with more versions than any other page of the test wiki, so that a purge keeping the versions above the
+     * number of versions of the other pages purges only its versions.
+     */
+    private static final DocumentReference HISTORY_FIXTURE_REF =
+        new DocumentReference("xwiki", "TestSpace", "AutoPurgeHistory");
+
+    private static final int HISTORY_FIXTURE_VERSIONS = 30;
+
+    private static final String HISTORY_KEPT_VERSIONS = "25";
 
     private static final DocumentReference PURGE_HISTORY_REF =
         new DocumentReference("xwiki", Arrays.asList("AdminTools", "Purge", "Wikis"), "xwiki");
@@ -453,15 +472,22 @@ class AdminToolsIT
         assertTrue(defaultsModal.isIntervalEnabled(DELETED_DOCUMENTS));
         defaultsModal.setInterval(DELETED_DOCUMENTS, "10", "years");
         defaultsModal.setHistorySize("500");
+        // The page history needs an age limit, a number of versions, or both.
+        defaultsModal.setEnabled(PAGE_HISTORY, true);
+        defaultsModal.setInterval(PAGE_HISTORY, "", "months");
         defaultsModal.submit();
-        assertEquals(List.of("Enter a whole number between 1 and 200."), defaultsModal.getErrorMessages());
+        assertEquals(List.of("Set an age limit, a number of versions, or both.",
+            "Enter a whole number between 1 and 200."), defaultsModal.getErrorMessages());
         assertTrue(defaultsModal.isDisplayed());
+        defaultsModal.setMaxVersions(PAGE_HISTORY, "50");
         defaultsModal.setHistorySize("20");
         defaultsModal.submit();
         defaultsModal.waitUntilClosed();
         purgePage.waitForNotificationSuccessMessage("The settings were saved.");
         purgePage.waitUntilDefaultsSummaryContains("Deleted pages: purged after 10 years");
+        assertTrue(purgePage.getDefaultsSummary().contains("Page history: old versions purged (at most 50 versions)"));
         purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, DELETED_DOCUMENTS_COLUMN, "Default · 10 years");
+        purgePage.waitUntilWikiCellContains(MAIN_WIKI_NAME, PAGE_HISTORY_COLUMN, "Default · at most 50 versions");
         // The changes of a cancelled edit are undone when the modal opens again.
         defaultsModal = purgePage.openDefaultsModal();
         defaultsModal.setEnabled(DELETED_DOCUMENTS, false);
@@ -470,6 +496,9 @@ class AdminToolsIT
         assertTrue(defaultsModal.isEnabled(DELETED_DOCUMENTS));
         assertTrue(defaultsModal.isIntervalEnabled(DELETED_DOCUMENTS));
         assertEquals("10", defaultsModal.getInterval(DELETED_DOCUMENTS));
+        // The age limit left out of the page history is not stored.
+        assertEquals("", defaultsModal.getInterval(PAGE_HISTORY));
+        assertEquals("50", defaultsModal.getMaxVersions(PAGE_HISTORY));
         defaultsModal.close();
 
         // Customize the deleted attachments of the wiki, then go back to the defaults.
@@ -478,6 +507,7 @@ class AdminToolsIT
         assertEquals("inherit", wikiModal.getSelectedMode(DELETED_ATTACHMENTS));
         assertEquals("10 years", wikiModal.getDefaultLabel(DELETED_DOCUMENTS));
         assertEquals("disabled", wikiModal.getDefaultLabel(DELETED_ATTACHMENTS));
+        assertEquals("at most 50 versions", wikiModal.getDefaultLabel(PAGE_HISTORY));
         wikiModal.selectMode(DELETED_ATTACHMENTS, "enabled");
         wikiModal.setInterval(DELETED_ATTACHMENTS, "2", "weeks");
         wikiModal.submit();
@@ -507,9 +537,10 @@ class AdminToolsIT
     @Order(9)
     void manualPurgeTest(TestUtils testUtils) throws Exception
     {
-        // Relies on the state left by the scheduled purge test: the predefined history, and the deleted pages purged
-        // after 10 years by default.
+        // Relies on the state left by the scheduled purge test: the predefined history, the deleted pages purged
+        // after 10 years by default, and the page history limited to 50 versions by default.
         addOldRecycleBinItems(testUtils);
+        addPageVersions(testUtils);
         AutoPurgePage purgePage = AutoPurgePage.gotoPage();
 
         // Purge the old items now, even the deleted attachments, whose automatic purge is disabled.
@@ -518,6 +549,10 @@ class AdminToolsIT
         assertEquals("10", purgeNowModal.getInterval(DELETED_DOCUMENTS));
         assertEquals("years", purgeNowModal.getUnit(DELETED_DOCUMENTS));
         assertFalse(purgeNowModal.isAutoPurgeDisabledNoteDisplayed(DELETED_DOCUMENTS));
+        // The versions of the pages are counted only when the purge is submitted.
+        assertEquals("", purgeNowModal.getCount(PAGE_HISTORY));
+        assertEquals("", purgeNowModal.getInterval(PAGE_HISTORY));
+        assertEquals("50", purgeNowModal.getMaxVersions(PAGE_HISTORY));
         assertTrue(purgeNowModal.isAutoPurgeDisabledNoteDisplayed(DELETED_ATTACHMENTS));
         assertFalse(purgeNowModal.isPurgeEnabled());
         // The limit of an item type can be changed once the item type is selected.
@@ -539,20 +574,43 @@ class AdminToolsIT
         assertEquals(List.of(), purgeNowModal.getErrorMessages());
         assertTrue(purgeNowModal.isPurgeEnabled());
         purgeNowModal.select(DELETED_DOCUMENTS);
+        // Only the versions of the page with the most versions are past this number of versions.
+        purgeNowModal.select(PAGE_HISTORY);
+        purgeNowModal.setMaxVersions(PAGE_HISTORY, HISTORY_KEPT_VERSIONS);
+
+        // The purge is confirmed once the selected item types are counted, and can still be changed.
+        List<String> expectedCounts =
+            List.of("Deleted pages: 1 item", "Deleted attachments: 1 item", "Page history: up to 5 versions");
+        assertEquals(expectedCounts, purgeNowModal.purge());
+        purgeNowModal.back();
+        assertTrue(purgeNowModal.isPurgeEnabled());
+        assertEquals(expectedCounts, purgeNowModal.purge());
 
         // The history of the wiki opens, showing the purges while they run, then their outcome.
-        AutoPurgeHistoryModalView historyModal = purgeNowModal.purge();
+        AutoPurgeHistoryModalView historyModal = purgeNowModal.confirm();
         TableLayoutElement historyTable = historyModal.getHistoryTable();
-        historyTable.waitUntilRowCountEqualsTo(5);
+        historyTable.waitUntilRowCountEqualsTo(6);
         historyModal.waitUntilNoPurgeInProgress();
         historyTable = historyModal.getHistoryTable();
-        assertEquals(5, historyTable.countRows());
-        for (int row = 1; row <= 2; row++) {
+        assertEquals(6, historyTable.countRows());
+        // The purges ran in parallel, so their order is not known.
+        Map<String, String> removedCounts = new HashMap<>();
+        for (int row = 1; row <= 3; row++) {
             assertEquals("Success", historyTable.getCell("Status", row).getText());
-            assertEquals("1", historyTable.getCell("Removed", row).getText());
             assertTrue(historyTable.getCell("Triggered by", row).getText().startsWith("Manual"));
+            removedCounts.put(historyTable.getCell("Item", row).getText(),
+                historyTable.getCell("Removed", row).getText());
         }
+        assertEquals(Map.of(DELETED_DOCUMENTS_COLUMN, "1", DELETED_ATTACHMENTS_COLUMN, "1", PAGE_HISTORY_COLUMN, "5"),
+            removedCounts);
         historyModal.close();
+        // The oldest versions of the page are deleted, and its current version is kept.
+        History history = testUtils.rest().get(PageHistoryResource.class, HISTORY_FIXTURE_REF);
+        List<String> versions =
+            history.getHistorySummaries().stream().map(HistorySummary::getVersion).collect(Collectors.toList());
+        assertEquals(Integer.parseInt(HISTORY_KEPT_VERSIONS), versions.size());
+        assertTrue(versions.contains(HISTORY_FIXTURE_VERSIONS + ".1"));
+        assertFalse(versions.contains("5.1"));
 
         // The failures of the older purge are no longer shown, and nothing older is left.
         purgePage = AutoPurgePage.gotoPage();
@@ -560,6 +618,11 @@ class AdminToolsIT
         assertFalse(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN).contains("View the"));
         purgeNowModal = purgePage.openPurgeNowModal(MAIN_WIKI_NAME);
         purgeNowModal.waitUntilCount(DELETED_DOCUMENTS, "(nothing older)");
+        // Without anything to purge, no purge is started.
+        purgeNowModal.select(PAGE_HISTORY);
+        purgeNowModal.setMaxVersions(PAGE_HISTORY, HISTORY_KEPT_VERSIONS);
+        assertEquals("There is nothing to purge with the selected limits.", purgeNowModal.purgeNothing());
+        assertFalse(purgeNowModal.isConfirmationDisplayed());
         purgeNowModal.close();
     }
 
@@ -589,7 +652,7 @@ class AdminToolsIT
         testUtils.updateObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, 0, "deletedDocumentsInterval", "5000");
         testUtils.addObject(PURGE_SETTINGS_REF, PURGE_SETTINGS_CLASSNAME, "wiki", "xwiki", "deletedDocumentsMode",
             "enabled", "deletedAttachmentsMode", "enabled", "deletedAttachmentsInterval", "2000",
-            "deletedAttachmentsUnit", "days");
+            "deletedAttachmentsUnit", "days", "pageHistoryMode", "enabled", "pageHistoryMaxVersions", "0");
         purgePage = AutoPurgePage.gotoPage();
         assertTrue(purgePage.getDefaultsSummary().contains("Deleted pages: purged after invalid limit (5,000 years)"));
         assertTrue(purgePage.isDefaultsSummaryWarning(DELETED_DOCUMENTS));
@@ -599,11 +662,15 @@ class AdminToolsIT
         assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN)
             .contains("Custom · invalid limit (2,000 days)"));
         assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, DELETED_ATTACHMENTS_COLUMN));
+        assertTrue(purgePage.getWikiCell(MAIN_WIKI_NAME, PAGE_HISTORY_COLUMN)
+            .contains("Custom · invalid limit (at most 0 versions)"));
+        assertTrue(purgePage.isWikiCellWarning(MAIN_WIKI_NAME, PAGE_HISTORY_COLUMN));
 
         // The invalid limits are reported as soon as the settings of the wiki are opened.
         wikiModal = purgePage.openWikiModal(MAIN_WIKI_NAME);
         wikiModal.waitUntilErrorMessagesShown();
-        assertEquals(List.of(INTERVAL_ERROR, INTERVAL_ERROR), wikiModal.getErrorMessages());
+        assertEquals(List.of(INTERVAL_ERROR, INTERVAL_ERROR, "Enter a whole number between 1 and 1000."),
+            wikiModal.getErrorMessages());
         assertEquals("", wikiModal.getInterval(DELETED_DOCUMENTS));
         assertEquals("2000", wikiModal.getInterval(DELETED_ATTACHMENTS));
         // The settings of the wiki can still be removed.
@@ -849,6 +916,16 @@ class AdminToolsIT
         testUtils.rest().attachFile(RECENT_DELETED_ATTACHMENT_REF, "content".getBytes(), true);
         testUtils.rest().deleteAttachement(RECENT_DELETED_ATTACHMENT_REF);
         assertEquals("backdated", testUtils.createPage(BACKDATE_FIXTURE_REF, BACKDATE_SCRIPT).getContent());
+    }
+
+    /**
+     * Save a page as many times as {@link #HISTORY_FIXTURE_VERSIONS}, so that it has that many versions.
+     */
+    private void addPageVersions(TestUtils testUtils) throws Exception
+    {
+        for (int version = 1; version <= HISTORY_FIXTURE_VERSIONS; version++) {
+            testUtils.rest().savePage(HISTORY_FIXTURE_REF, "Version " + version, "Page with many versions");
+        }
     }
 
     /**

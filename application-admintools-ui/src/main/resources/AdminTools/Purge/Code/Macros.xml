@@ -37,8 +37,10 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-## The identifiers of the item types and of the interval units, in display order.
-#set ($purgeTypes = ['deletedDocuments', 'deletedAttachments'])
+## The identifiers of the item types and of the interval units, in display order. A history item type can also be
+## limited by a number of versions, and needs an age limit, a number of versions, or both.
+#set ($purgeTypes = ['deletedDocuments', 'deletedAttachments', 'pageHistory'])
+#set ($purgeHistoryTypes = ['pageHistory'])
 #set ($purgeUnits = ['days', 'weeks', 'months', 'years'])
 #set ($purgeStatuses = ['success', 'partial', 'failed', 'interrupted'])
 #set ($purgeModes = ['inherit', 'enabled', 'disabled'])
@@ -80,14 +82,28 @@
   #end
 #end
 
-## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", or "no retention" for an interval of 0,
-## which purges every deleted item at each daily run. A stored limit can only be invalid after a manual edit: a missing
-## interval or unit, or an interval out of the range accepted by the forms. The label then warns about it, and
-## $purgeIntervalWarning is true. A larger interval than the range is still used by the purge, so it is shown.
+## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", "1 month, at most 50 versions" or "at most
+## 50 versions" for a history, or "no retention" for an interval of 0, which purges every deleted item, or every version
+## but the current one, at each daily run. A stored limit can only be invalid after a manual edit: a missing interval or
+## unit, or a number out of the range accepted by the forms. The label then warns about it, and $purgeIntervalWarning
+## is true. A number out of the range is still used by the purge, so it is shown.
 #macro (getPurgeIntervalLabel $settings)
   #set ($purgeIntervalWarning = false)
   #set ($purgeIntervalZero = false)
-  #if ($settings.interval.isPresent() &amp;&amp; $settings.unit.isPresent())
+  ## Only the settings of a history have a number of versions.
+  #set ($maxVersionsLabel = '')
+  #if ($settings.maxVersions &amp;&amp; $settings.maxVersions.isPresent())
+    #set ($maxVersions = $settings.maxVersions.get())
+    #set ($maxVersionsLabel = $services.localization.render('adminTools.purge.limit.maxVersions', [$maxVersions]))
+    #if ($maxVersions &lt; 1 || $maxVersions &gt; 1000)
+      #set ($purgeIntervalWarning = true)
+      #set ($maxVersionsLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
+        [$maxVersionsLabel]))
+    #end
+  #end
+  #if ($maxVersionsLabel != '' &amp;&amp; !$settings.interval.isPresent() &amp;&amp; !$settings.unit.isPresent())
+    #set ($purgeIntervalLabel = $maxVersionsLabel)
+  #elseif ($settings.interval.isPresent() &amp;&amp; $settings.unit.isPresent())
     #set ($purgeInterval = $settings.interval.get())
     #set ($purgeIntervalLabel = $services.localization.render("adminTools.purge.interval.${settings.unit.get().id}",
       [$purgeInterval]))
@@ -98,6 +114,10 @@
       #set ($purgeIntervalWarning = true)
       #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
         [$purgeIntervalLabel]))
+    #end
+    #if ($maxVersionsLabel != '' &amp;&amp; !$purgeIntervalZero)
+      #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.limit.both',
+        [$purgeIntervalLabel, $maxVersionsLabel]))
     #end
   #else
     #set ($purgeIntervalWarning = true)
@@ -115,6 +135,9 @@
     #if ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeIntervalZero)
       #set ($discard = $purgeDefaultsSummary.put($type,
         $services.localization.render('adminTools.purge.defaults.enabled.noRetention')))
+    #elseif ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeHistoryTypes.contains($type))
+      #set ($discard = $purgeDefaultsSummary.put($type,
+        $services.localization.render('adminTools.purge.defaults.history.enabled', [$purgeDefaultLabel])))
     #elseif ($purgeDefaults.get($type).mode.id == 'enabled')
       #set ($discard = $purgeDefaultsSummary.put($type,
         $services.localization.render('adminTools.purge.defaults.enabled', [$purgeDefaultLabel])))
@@ -128,8 +151,13 @@
 #end
 
 ## The fields of the interval of an item type, e.g. "Keep for [n] [unit]", with the label of the given key. The
-## interval is between 0 and 1000: 0 purges every deleted item.
-#macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey)
+## interval is between 0 and 1000: 0 purges every deleted item. A history has its own label, its interval is optional,
+## and it has a second field, for the number of versions kept, between 1 and 1000, followed by the hint of the given key.
+#macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey $historyHintKey)
+  #set ($history = $purgeHistoryTypes.contains($type))
+  #if ($history)
+    #set ($labelKey = 'adminTools.purge.form.history.olderThan')
+  #end
   ## Months is selected when there is no stored unit.
   #set ($selectedUnit = 'months')
   #set ($interval = '')
@@ -141,11 +169,19 @@
       #set ($interval = $settings.interval.get())
     #end
   #end
+  #set ($maxVersions = '')
+  #if ($history &amp;&amp; $settings &amp;&amp; $settings.maxVersions.isPresent())
+    #set ($maxVersions = $settings.maxVersions.get())
+  #end
+  ## The two limits of a history are on two rows.
+  #if ($history)
+    &lt;div class="purge-history-limits"&gt;
+  #end
   &lt;span class="purge-interval-fields form-inline"&gt;
     &lt;label for="${idPrefix}${type}Interval"&gt;$escapetool.xml(
       $services.localization.render($labelKey))&lt;/label&gt;
     &lt;input type="number" class="form-control input-sm purge-interval" id="${idPrefix}${type}Interval"
-      name="${type}Interval" min="0" max="1000" required value="$interval"
+      name="${type}Interval" min="0" max="1000" #if (!$history)required#end value="$interval"
       #if ($disabled)disabled#end/&gt;
     &lt;label class="sr-only" for="${idPrefix}${type}Unit"&gt;$escapetool.xml($services.localization.render(
       'adminTools.purge.form.unit'))&lt;/label&gt;
@@ -157,6 +193,16 @@
       #end
     &lt;/select&gt;
   &lt;/span&gt;
+  #if ($history)
+      &lt;span class="purge-interval-fields form-inline"&gt;
+        &lt;label for="${idPrefix}${type}MaxVersions"&gt;$escapetool.xml(
+          $services.localization.render('adminTools.purge.form.history.maxVersions'))&lt;/label&gt;
+        &lt;input type="number" class="form-control input-sm purge-max-versions" id="${idPrefix}${type}MaxVersions"
+          name="${type}MaxVersions" min="1" max="1000" value="$maxVersions" #if ($disabled)disabled#end/&gt;
+      &lt;/span&gt;
+      &lt;p class="xHint purge-history-hint"&gt;$escapetool.xml($services.localization.render($historyHintKey))&lt;/p&gt;
+    &lt;/div&gt;
+  #end
 #end
 
 ## The modal header, with its title.
@@ -217,7 +263,7 @@
                     $escapetool.xml($services.localization.render("adminTools.purge.form.${type}.enable"))&lt;/label&gt;
                 &lt;/div&gt;
                 #purgeIntervalFields('purgeDefaults' $type $typeDefaults $fieldsDisabled
-                  'adminTools.purge.form.keepFor')
+                  'adminTools.purge.form.keepFor' 'adminTools.purge.form.history.hint')
               &lt;/div&gt;
             #end
             &lt;div class="form-group"&gt;
@@ -270,7 +316,8 @@
                 &lt;div class="radio"&gt;
                   &lt;label&gt;&lt;input type="radio" class="purge-mode" name="${type}Mode" value="enabled"/&gt;
                     $escapetool.xml($services.localization.render('adminTools.purge.form.custom'))&lt;/label&gt;
-                  #purgeIntervalFields('purgeWiki' $type $NULL true 'adminTools.purge.form.keepFor')
+                  #purgeIntervalFields('purgeWiki' $type $NULL true 'adminTools.purge.form.keepFor'
+                    'adminTools.purge.form.history.hint')
                 &lt;/div&gt;
                 &lt;div class="radio"&gt;
                   &lt;label&gt;&lt;input type="radio" class="purge-mode" name="${type}Mode" value="disabled"/&gt;
@@ -296,7 +343,8 @@
 #end
 
 ## The modal starting a purge of a wiki, with a limit for each item type. The JavaScript fills the limits with the
-## stored ones, and shows how many items are past them.
+## stored ones, and shows how many deleted items are past them. The versions of a history are counted only once the
+## purge is submitted, since counting them is costly: a confirmation step then shows what each item type would remove.
 #macro (purgeNowModal)
   &lt;div class="modal fade purge-modal" id="purgeNowModal" tabindex="-1" role="dialog"
     aria-labelledby="purgeNowModalLabel"&gt;
@@ -309,30 +357,43 @@
             &lt;p&gt;&lt;strong class="purge-wiki-name"&gt;&lt;/strong&gt;&lt;/p&gt;
             &lt;div class="alert alert-danger"&gt;$escapetool.xml($services.localization.render(
               'adminTools.purge.now.warning'))&lt;/div&gt;
-            &lt;p class="xHint"&gt;$escapetool.xml($services.localization.render(
-              'adminTools.purge.now.zeroHint'))&lt;/p&gt;
-            #foreach ($type in $purgeTypes)
-              &lt;div class="form-group purge-type" data-type="$type"&gt;
-                &lt;div class="checkbox"&gt;
-                  &lt;label&gt;&lt;input type="checkbox" name="type" value="$type"/&gt;
-                    &lt;span&gt;$escapetool.xml($services.localization.render("adminTools.purge.type.$type"))
-                    &lt;span class="text-muted purge-count"&gt;&lt;/span&gt;&lt;/span&gt;&lt;/label&gt;
+            &lt;div class="purge-step-select"&gt;
+              &lt;p class="xHint"&gt;$escapetool.xml($services.localization.render(
+                'adminTools.purge.now.zeroHint'))&lt;/p&gt;
+              #foreach ($type in $purgeTypes)
+                &lt;div class="form-group purge-type" data-type="$type"&gt;
+                  &lt;div class="checkbox"&gt;
+                    &lt;label&gt;&lt;input type="checkbox" name="type" value="$type"/&gt;
+                      &lt;span&gt;&lt;span class="purge-type-label"&gt;$escapetool.xml(
+                        $services.localization.render("adminTools.purge.type.$type"))&lt;/span&gt;
+                      &lt;span class="text-muted purge-count"&gt;&lt;/span&gt;&lt;/span&gt;&lt;/label&gt;
+                  &lt;/div&gt;
+                  ## The limit of an item type can be changed once the item type is selected.
+                  #purgeIntervalFields('purgeNow' $type $NULL true 'adminTools.purge.now.olderThan'
+                    'adminTools.purge.now.history.hint')
+                  &lt;p class="xHint purge-disabled-note hidden"&gt;$escapetool.xml($services.localization.render(
+                    'adminTools.purge.now.autoPurgeDisabled'))&lt;/p&gt;
                 &lt;/div&gt;
-                ## The limit of an item type can be changed once the item type is selected.
-                #purgeIntervalFields('purgeNow' $type $NULL true 'adminTools.purge.now.olderThan')
-                &lt;p class="xHint purge-disabled-note hidden"&gt;$escapetool.xml($services.localization.render(
-                  'adminTools.purge.now.autoPurgeDisabled'))&lt;/p&gt;
-              &lt;/div&gt;
-            #end
+              #end
+            &lt;/div&gt;
+            ## The confirmation step, listing what the purge of each selected item type would remove.
+            &lt;div class="purge-step-confirm hidden"&gt;
+              &lt;p&gt;$escapetool.xml($services.localization.render('adminTools.purge.now.confirm'))&lt;/p&gt;
+              &lt;ul class="purge-confirm-counts"&gt;&lt;/ul&gt;
+            &lt;/div&gt;
             ## Shown when the purge could not start any job.
             &lt;div class="alert alert-warning purge-nothing-started hidden"&gt;$escapetool.xml(
               $services.localization.render('adminTools.purge.now.nothingStarted'))&lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-default purge-back hidden"&gt;$escapetool.xml(
+              $services.localization.render('adminTools.purge.now.back'))&lt;/button&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;$escapetool.xml(
               $services.localization.render('cancel'))&lt;/button&gt;
             &lt;button type="submit" class="btn btn-danger" disabled&gt;$escapetool.xml($services.localization.render(
               'adminTools.purge.now.purge'))&lt;/button&gt;
+            &lt;button type="button" class="btn btn-danger purge-confirm hidden"&gt;$escapetool.xml(
+              $services.localization.render('adminTools.purge.now.confirmButton'))&lt;/button&gt;
           &lt;/div&gt;
         &lt;/form&gt;
       &lt;/div&gt;

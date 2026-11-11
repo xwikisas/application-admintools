@@ -48,17 +48,17 @@ import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
 import com.xwiki.admintools.purge.internal.job.PurgeJob;
 import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
-import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
 import com.xwiki.admintools.purge.internal.store.PurgeHistoryStore;
 import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
 import com.xwiki.admintools.purge.internal.store.mapper.PurgeSettingsMapper;
 import com.xwiki.admintools.purge.jobs.PurgeJobRequest;
-import com.xwiki.admintools.purge.model.IntervalUnit;
+import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 import com.xwiki.licensing.Licensor;
 
 /**
- * Starts the purge jobs of the recycle bins and counts the items they would remove. No rights are checked: the callers
+ * Starts the purge jobs and counts the items they would remove. No rights are checked: the callers
  * must do it.
  *
  * @version $Id$
@@ -89,13 +89,13 @@ public class PurgeManager
     private PurgePolicyResolver policyResolver;
 
     @Inject
-    private RetentionCalculator retentionCalculator;
-
-    @Inject
     private PurgeSettingsStore settingsStore;
 
     @Inject
     private PurgeHistoryStore historyStore;
+
+    @Inject
+    private PurgeSettingsMapper settingsMapper;
 
     @Inject
     private Map<String, PurgeHandler> handlers;
@@ -120,8 +120,7 @@ public class PurgeManager
     public void dispatchDuePurges() throws JobException, WikiManagerException
     {
         if (!isLicensed()) {
-            throw new JobException("The automatic purge of the recycle bins was not started, since the Admin Tools "
-                + "license is not active.");
+            throw new JobException("The automatic purge was not started, since the Admin Tools license is not active.");
         }
         Collection<String> wikiIds = this.wikiDescriptorManager.getAllIds();
         removeDataOfDeletedWikis(wikiIds);
@@ -138,52 +137,39 @@ public class PurgeManager
     }
 
     /**
-     * Start a job purging the items of an item type of a wiki that are older than a limit chosen by the user, whatever
-     * the settings of the wiki, even if the item type is disabled. No job is started if there are no such items, or if
-     * the previous purge job of the same wiki and item type is still queued or running. The expiration date is computed
-     * when the purge is started, so that the job removes the items past the limit at that time, whatever the time the
-     * job runs.
+     * Start a job purging the items of an item type of a wiki that are past a limit chosen by the user, whatever the
+     * settings of the wiki, even if the item type is disabled. The items are not counted first: the user already saw
+     * how many items the purge removes. No job is started if the previous purge job of the same wiki and item type is
+     * still queued or running. The limit is applied at the time the purge is started, so that the job removes the items
+     * past the limit at that time, whatever the time the job runs.
      *
      * @param wikiId the identifier of the wiki to purge
      * @param type the item type to purge
-     * @param interval the number of units the deleted items are kept for, between 0 and 1000; 0 purges every item
-     *     deleted until now
-     * @param unit the unit of the interval
+     * @param limit the limit chosen by the user, whose mode is ignored
      * @param triggeredBy the user who started the purge
      * @return {@code true} if the job was started
      * @throws IllegalArgumentException if the limit is invalid
-     * @throws QueryException if the expired items can't be counted
      * @throws ComponentLookupException if the context can't be saved for the job
      * @throws JobException if the job can't be started
      */
-    public boolean startManualPurge(String wikiId, PurgeType type, int interval, IntervalUnit unit,
-        DocumentReference triggeredBy) throws QueryException, ComponentLookupException, JobException
+    public boolean startManualPurge(String wikiId, PurgeType type, PurgeTypeSettings limit,
+        DocumentReference triggeredBy) throws ComponentLookupException, JobException
     {
-        Instant expirationDate = getManualExpirationDate(interval, unit);
-        if (this.handlers.get(type.getId()).countExpired(wikiId, expirationDate) == 0) {
-            this.logger.debug(
-                "Skipped the manual purge of [{}] on wiki [{}], since it has no items older than " + "[{} {}].",
-                type.getId(), wikiId, interval, unit.getId());
-            return false;
-        }
-        return start(wikiId, type, triggeredBy, expirationDate);
+        checkLimit(type, limit);
+        return start(wikiId, type, triggeredBy, limit, Instant.now());
     }
 
     /**
-     * Check the limit of a manual purge: its interval must be between 0 and the largest interval of the settings, and
-     * it needs a unit. Unlike the settings, a manual purge accepts 0, which purges every item deleted until now.
+     * Check the limit of a manual purge, with the rules of the settings of an enabled item type, except that the
+     * interval can be 0, which purges every item deleted until now.
      *
-     * @param interval the number of units the deleted items are kept for
-     * @param unit the unit of the interval
+     * @param type the item type
+     * @param limit the limit chosen by the user, whose mode is ignored
      * @throws IllegalArgumentException if the limit is invalid
      */
-    public void checkLimit(int interval, IntervalUnit unit)
+    public void checkLimit(PurgeType type, PurgeTypeSettings limit)
     {
-        if (interval < 0 || interval > PurgeSettingsMapper.MAX_INTERVAL || unit == null) {
-            throw new IllegalArgumentException(
-                String.format("Invalid purge limit [%d %s]: the interval must be between 0 and %d, with a unit.",
-                    interval, unit, PurgeSettingsMapper.MAX_INTERVAL));
-        }
+        this.settingsMapper.checkLimit(type, limit);
     }
 
     /**
@@ -223,26 +209,25 @@ public class PurgeManager
     }
 
     /**
-     * Count the items of an item type of a wiki that are older than a limit, which a manual purge with the same limit
-     * would remove.
+     * Count the items of an item type of a wiki that are past a limit, which a manual purge with the same limit would
+     * remove.
      *
      * @param wikiId the identifier of the wiki
      * @param type the item type
-     * @param interval the number of units the deleted items are kept for, between 0 and 1000; 0 counts every item
-     *     deleted until now
-     * @param unit the unit of the interval
-     * @return the number of items deleted before the limit
+     * @param limit the limit chosen by the user, whose mode is ignored
+     * @return the number of items past the limit
      * @throws IllegalArgumentException if the limit is invalid
      * @throws QueryException if the items can't be counted
      */
-    public long countExpired(String wikiId, PurgeType type, int interval, IntervalUnit unit) throws QueryException
+    public long countExpired(String wikiId, PurgeType type, PurgeTypeSettings limit) throws QueryException
     {
-        return this.handlers.get(type.getId()).countExpired(wikiId, getManualExpirationDate(interval, unit));
+        checkLimit(type, limit);
+        return this.handlers.get(type.getId()).countExpired(wikiId, limit, now());
     }
 
     /**
-     * Start a job purging an item type of a wiki with the stored settings. No job is started if the item type has no
-     * expired items, for example because it is disabled. The job applies the limit stored when it runs.
+     * Start a job purging an item type of a wiki with the stored settings. No job is started if the item type is
+     * disabled or has no items past its limit. The job applies the settings stored when it runs.
      *
      * @param wikiId the identifier of the wiki to purge
      * @param type the item type to purge
@@ -254,30 +239,23 @@ public class PurgeManager
     private void startScheduledPurge(String wikiId, PurgeType type)
         throws XWikiException, QueryException, ComponentLookupException, JobException
     {
-        // The scheduler fires at the time of the server, so the limits are computed in the same time zone.
-        Optional<Instant> expirationDate =
-            this.policyResolver.getExpirationDate(wikiId, type, ZonedDateTime.now(ZoneId.systemDefault()));
-        if (expirationDate.isEmpty()
-            || this.handlers.get(type.getId()).countExpired(wikiId, expirationDate.get()) == 0)
-        {
+        Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type)
+            .filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED);
+        if (settings.isEmpty() || this.handlers.get(type.getId()).countExpired(wikiId, settings.get(), now()) == 0) {
             this.logger.debug("Skipped the purge of [{}] on wiki [{}], since it has no expired items.", type.getId(),
                 wikiId);
             return;
         }
-        start(wikiId, type, null, null);
+        start(wikiId, type, null, null, null);
     }
 
     /**
-     * @param interval the number of units the deleted items are kept for
-     * @param unit the unit of the interval
-     * @return the date before which the deleted items are past the limit of a manual purge, computed in the time zone
-     *     of the server
-     * @throws IllegalArgumentException if the limit is invalid
+     * @return the current time in the time zone of the server, which the scheduler fires at, so that the limits are
+     *     applied in the same time zone
      */
-    private Instant getManualExpirationDate(int interval, IntervalUnit unit)
+    private ZonedDateTime now()
     {
-        checkLimit(interval, unit);
-        return this.retentionCalculator.getExpirationDate(ZonedDateTime.now(ZoneId.systemDefault()), interval, unit);
+        return ZonedDateTime.now(ZoneId.systemDefault());
     }
 
     /**
@@ -287,14 +265,14 @@ public class PurgeManager
      * @param wikiId the identifier of the wiki to purge
      * @param type the item type to purge
      * @param triggeredBy the user who started the purge manually, or {@code null} for a scheduled purge
-     * @param expirationDate the items deleted before this date are purged, or {@code null} to apply the settings
-     *     stored when the job runs
+     * @param limit the limit chosen by the user, or {@code null} to apply the settings stored when the job runs
+     * @param startDate when the manual purge was started, or {@code null} for a scheduled purge
      * @return {@code true} if the job was started
      * @throws ComponentLookupException if the context can't be saved for the job
      * @throws JobException if the job can't be started
      */
     private synchronized boolean start(String wikiId, PurgeType type, DocumentReference triggeredBy,
-        Instant expirationDate) throws ComponentLookupException, JobException
+        PurgeTypeSettings limit, Instant startDate) throws ComponentLookupException, JobException
     {
         Job job = this.jobExecutor.getJob(PurgeJobRequest.getJobId(wikiId, type));
         if (job != null && job.getStatus().getState() != JobStatus.State.FINISHED) {
@@ -302,7 +280,7 @@ public class PurgeManager
                 type.getId(), wikiId);
             return false;
         }
-        PurgeJobRequest request = new PurgeJobRequest(wikiId, type, triggeredBy, expirationDate);
+        PurgeJobRequest request = new PurgeJobRequest(wikiId, type, triggeredBy, limit, startDate);
         request.setContext(this.contextStoreManager.save(JOB_CONTEXT));
         this.jobExecutor.execute(PurgeJob.JOB_TYPE, request);
         return true;

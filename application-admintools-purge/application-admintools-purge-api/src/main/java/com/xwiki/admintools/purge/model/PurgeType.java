@@ -36,18 +36,27 @@ public enum PurgeType
     /**
      * Pages (documents) that were deleted to the recycle bin.
      */
-    DELETED_DOCUMENTS("deletedDocuments"),
+    DELETED_DOCUMENTS("deletedDocuments", false),
 
     /**
      * Attachments that were deleted to the recycle bin.
      */
-    DELETED_ATTACHMENTS("deletedAttachments");
+    DELETED_ATTACHMENTS("deletedAttachments", false),
+
+    /**
+     * The versions of the pages (documents), except their current version. Its settings are
+     * {@link HistoryPurgeTypeSettings}, which can also limit the number of versions kept.
+     */
+    PAGE_HISTORY("pageHistory", true);
 
     private final String id;
 
-    PurgeType(String id)
+    private final boolean history;
+
+    PurgeType(String id, boolean history)
     {
         this.id = id;
+        this.history = history;
     }
 
     /**
@@ -56,6 +65,15 @@ public enum PurgeType
     public String getId()
     {
         return this.id;
+    }
+
+    /**
+     * @return {@code true} if the type purges the versions of a history, whose settings are
+     *     {@link HistoryPurgeTypeSettings}, {@code false} if it purges the items of a recycle bin
+     */
+    public boolean isHistory()
+    {
+        return this.history;
     }
 
     /**

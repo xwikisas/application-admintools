@@ -28,11 +28,12 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * A request to purge one item type from the recycle bin of a wiki. A scheduled purge holds no limit: the job applies
- * the settings stored when it runs. A manual purge holds the expiration date computed from the limit chosen when it
- * was started, so that it removes the items past that limit at that time, whatever the settings.
+ * A request to purge one item type of a wiki. A scheduled purge holds no limit: the job applies the settings stored
+ * when it runs. A manual purge holds the limit chosen by the user and the time it was started, so that it removes the
+ * items past that limit at that time, whatever the settings.
  *
  * @version $Id$
  * @since 1.5
@@ -48,7 +49,9 @@ public class PurgeJobRequest extends AbstractRequest
 
     private final DocumentReference triggeredBy;
 
-    private final Instant expirationDate;
+    private final PurgeTypeSettings limit;
+
+    private final Instant startDate;
 
     /**
      * Create a request to purge an item type of a wiki. The job status is not serialized, since the result of the
@@ -57,16 +60,20 @@ public class PurgeJobRequest extends AbstractRequest
      * @param wikiId the identifier of the wiki
      * @param type the item type to purge
      * @param triggeredBy the user who started the purge manually, or {@code null} for a scheduled purge
-     * @param expirationDate the items deleted before this date are purged, or {@code null} to apply the settings
-     *     stored when the job runs; a manual purge must pass it, computed from the limit chosen by the user, since
-     *     without it the job applies the stored settings and skips a disabled item type, like a scheduled purge
+     * @param limit the limit chosen by the user, whose mode is ignored, or {@code null} to apply the settings stored
+     *     when the job runs; a manual purge must pass it, since without it the job applies the stored settings and
+     *     skips a disabled item type, like a scheduled purge
+     * @param startDate when the manual purge was started, which the limit is applied at, or {@code null} for a
+     *     scheduled purge, which applies the stored settings at the time the job runs
      */
-    public PurgeJobRequest(String wikiId, PurgeType type, DocumentReference triggeredBy, Instant expirationDate)
+    public PurgeJobRequest(String wikiId, PurgeType type, DocumentReference triggeredBy, PurgeTypeSettings limit,
+        Instant startDate)
     {
         this.wikiId = wikiId;
         this.type = type;
         this.triggeredBy = triggeredBy;
-        this.expirationDate = expirationDate;
+        this.limit = limit;
+        this.startDate = startDate;
         setId(getJobId(wikiId, type));
         setStatusSerialized(false);
         setStatusLogIsolated(false);
@@ -107,11 +114,20 @@ public class PurgeJobRequest extends AbstractRequest
     }
 
     /**
-     * @return the date before which the deleted items are purged, or an empty value if the job applies the settings
-     *     stored when it runs
+     * @return the limit chosen by the user for a manual purge, or an empty value if the job applies the settings stored
+     *     when it runs
      */
-    public Optional<Instant> getExpirationDate()
+    public Optional<PurgeTypeSettings> getLimit()
     {
-        return Optional.ofNullable(this.expirationDate);
+        return Optional.ofNullable(this.limit);
+    }
+
+    /**
+     * @return when the manual purge was started, which its limit is applied at, or an empty value for a scheduled
+     *     purge
+     */
+    public Optional<Instant> getStartDate()
+    {
+        return Optional.ofNullable(this.startDate);
     }
 }

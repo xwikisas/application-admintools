@@ -184,7 +184,11 @@
 }
 .purge-form .radio {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+}
+.purge-form .radio .purge-error {
+  flex-basis: 100%;
 }
 .purge-interval-fields {
   display: inline-flex;
@@ -195,10 +199,39 @@
 .purge-interval-fields label {
   margin: 0;
 }
+/* The two limits of a history, one row each, apart so that their fields don't touch, with their labels in one column
+   so that their fields are aligned. The hint and the messages of the fields take a whole row, under the fields. The
+   flex basis keeps the limits next to the "Custom" choice of the wiki settings, whatever the length of the hint. */
+.purge-history-limits {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: .5em;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0 0 .5em 1.5em;
+}
+.purge-history-limits .purge-history-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+/* The "Custom" choice of a history is on the row of its first limit. */
+.purge-form .radio:has(.purge-history-limits) {
+  align-items: baseline;
+}
+.purge-history-limits .purge-interval-fields {
+  display: contents;
+}
+.purge-history-limits .purge-error {
+  grid-column: 1 / -1;
+  margin: 0;
+}
 .purge-interval-fields .form-control {
   width: auto;
 }
-.purge-interval-fields .purge-interval {
+.purge-interval-fields .purge-interval,
+.purge-interval-fields .purge-max-versions {
   width: 6em;
 }
 .purge-custom {

@@ -19,21 +19,25 @@
  */
 package com.xwiki.admintools.purge.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.xwiki.stability.Unstable;
 
 /**
- * The automatic purge settings of one item type, as configured globally or for a specific wiki. The interval and unit
- * can be missing: only an enabled item type needs them.
+ * The automatic purge settings of one item type, as configured globally or for a specific wiki, or the limit chosen
+ * for a manual purge. The interval and unit can be missing: only an enabled item type needs them. The item types that
+ * accept more settings use a subclass.
  *
  * @version $Id$
  * @since 1.5
  */
 @Unstable
-public final class PurgeTypeSettings
+public class PurgeTypeSettings implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+
     private final PurgeMode mode;
 
     private final Integer interval;
@@ -81,7 +85,8 @@ public final class PurgeTypeSettings
     }
 
     /**
-     * Compare with other item type settings. They are equal when they have the same mode, interval and unit.
+     * Compare with other item type settings. They are equal when they are of the same class and have the same mode,
+     * interval and unit.
      *
      * @param object the object to compare with
      * @return {@code true} if the given object is equal item type settings, {@code false} otherwise
@@ -92,7 +97,8 @@ public final class PurgeTypeSettings
         if (this == object) {
             return true;
         }
-        if (!(object instanceof PurgeTypeSettings)) {
+        // The same class, so that settings are never equal to the settings of a subclass, which hold more values.
+        if (object == null || getClass() != object.getClass()) {
             return false;
         }
         PurgeTypeSettings other = (PurgeTypeSettings) object;
