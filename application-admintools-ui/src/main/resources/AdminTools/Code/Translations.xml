@@ -309,10 +309,11 @@ adminTools.purge.js.nothingExpired=nothing older
 adminTools.purge.js.expired={0} items
 adminTools.purge.js.expiredOne=1 item
 adminTools.purge.js.error.400=The values are invalid.
-adminTools.purge.js.error.401=Only the administrators of the main wiki can manage the auto purge.
+adminTools.purge.js.error.401=Your session expired. Log in again and retry.
 adminTools.purge.js.error.402=The license of Admin Tools is not active.
-adminTools.purge.js.error.403=Your session expired. Reload the page and try again.
+adminTools.purge.js.error.403=Only the administrators of the main wiki can manage the auto purge. If you are one, reload the page and try again.
 adminTools.purge.js.error.404=The wiki no longer exists.
+adminTools.purge.js.error.409=The stored auto purge settings of this wiki are invalid. Edit and save them, then try again.
 adminTools.purge.js.error.generic=The request failed. Check the logs for details.
 adminTools.purge.js.error.number=Enter a whole number between {0} and {1}.
 

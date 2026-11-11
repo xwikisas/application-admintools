@@ -101,9 +101,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * Start purging the recycle bin of a wiki now, with a limit chosen for each item type, whatever the settings of the
      * wiki, even for a disabled item type. The form field {@code type}, which can be repeated, holds the identifiers of
      * the item types to purge, and the form fields {@code <typeId>Interval} and {@code <typeId>Unit} the limit of each
-     * of them, an interval between 0 and 1000: the items deleted before it are purged, and 0 purges every item
-     * deleted until now. An item type is not purged if its previous purge is still queued or running, or if it has no
-     * items past the limit.
+     * of them, an interval between 0 and 1000: the items deleted before it are purged, and 0 purges every item deleted
+     * until now. An item type is not purged if its previous purge is still queued or running, or if it has no items
+     * past the limit.
      *
      * @param wikiId the identifier of the wiki
      * @return status code 202 with the JSON list of the identifiers of the started jobs; 400 if no item type is given,
@@ -129,7 +129,7 @@ public interface AutoPurgeResource extends XWikiRestComponent
      *     automatic purge of the item type is enabled for the wiki; {@code interval} and {@code unit}, the limit used;
      *     {@code count}, the number of items past the limit; 400 if a requested limit is invalid; 401 if the user is
      *     not logged in; 402 if the license is not active; 403 if the user is not an admin of the main wiki; 404 if the
-     *     wiki doesn't exist
+     *     wiki doesn't exist; 409 if the settings stored for the wiki, or the defaults it inherits, are invalid
      * @throws XWikiRestException if an error occurred while counting the items
      */
     @GET

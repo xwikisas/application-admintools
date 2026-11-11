@@ -369,9 +369,38 @@ class DefaultAutoPurgeResourceTest
 
         // A requested interval below 0 is rejected by the purge manager, instead of being skipped.
         mockLimit("deletedDocuments", "-1", "days");
-        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, -1, IntervalUnit.DAYS)).thenThrow(
-            new IllegalArgumentException("Invalid purge limit"));
+        doThrow(new IllegalArgumentException("Invalid purge limit")).when(this.purgeManager).checkLimit(-1,
+            IntervalUnit.DAYS);
         assertEquals(400, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        // The requested limits are checked before anything is counted.
+        verify(this.purgeManager, never()).countExpired(anyString(), any(), anyInt(), any());
+    }
+
+    @Test
+    void previewPurgeWithInvalidStoredSettings() throws Exception
+    {
+        // A stored limit out of range, which can only come from a manual edit, is rejected by the purge manager.
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenReturn(
+            Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 2000, IntervalUnit.DAYS)));
+        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, 2000, IntervalUnit.DAYS)).thenThrow(
+            new IllegalArgumentException("Invalid purge limit"));
+        mockLimit("deletedAttachments", "1", "years");
+
+        // The request is valid, so the stored settings are reported instead of the request.
+        Response response = this.resource.previewPurge(SUBWIKI);
+        assertEquals(409, response.getStatus());
+        assertNull(response.getEntity());
+
+        // Invalid default settings, such as a stored history size below 1, are reported the same way.
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenThrow(
+            new IllegalArgumentException("The purge history size must be at least 1, but was [0]."));
+        assertEquals(409, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
+            this.logCapture.getMessage(0));
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
+            this.logCapture.getMessage(1));
     }
 
     @Test

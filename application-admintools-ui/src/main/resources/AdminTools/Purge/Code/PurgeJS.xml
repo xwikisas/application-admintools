@@ -140,6 +140,7 @@
     'error.402',
     'error.403',
     'error.404',
+    'error.409',
     'error.generic',
     'error.number'
   ]
@@ -160,7 +161,7 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
   const maxRefreshDuration = 5 * 60 * 1000;
 
   const getErrorMessage = function(xhr) {
-    return l10n.get([400, 401, 402, 403, 404].includes(xhr.status) ? 'error.' + xhr.status : 'error.generic');
+    return l10n.get([400, 401, 402, 403, 404, 409].includes(xhr.status) ? 'error.' + xhr.status : 'error.generic');
   };
 
   /**
