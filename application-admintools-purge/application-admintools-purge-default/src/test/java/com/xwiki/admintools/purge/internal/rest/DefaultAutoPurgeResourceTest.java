@@ -380,13 +380,27 @@ class DefaultAutoPurgeResourceTest
         doThrow(new AccessDeniedException(Right.ADMIN, USER, new WikiReference(MAIN_WIKI))).when(
             this.authorizationManager).checkAccess(Right.ADMIN, USER, new WikiReference(MAIN_WIKI));
 
-        assertEquals(401, this.resource.saveDefaultSettings().getStatus());
-        assertEquals(401, this.resource.previewPurge(SUBWIKI).getStatus());
+        assertEquals(403, this.resource.saveDefaultSettings().getStatus());
+        assertEquals(403, this.resource.previewPurge(SUBWIKI).getStatus());
 
         verify(this.settingsStore, never()).saveGlobalSettings(any(), anyInt());
         verify(this.policyResolver, never()).getSettings(anyString(), any());
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(1));
+    }
+
+    @Test
+    void requestFromGuest() throws Exception
+    {
+        when(this.context.getUserReference()).thenReturn(null);
+        doThrow(new AccessDeniedException(Right.ADMIN, null, new WikiReference(MAIN_WIKI))).when(
+            this.authorizationManager).checkAccess(Right.ADMIN, null, new WikiReference(MAIN_WIKI));
+
+        // A guest might get the rights by logging in.
+        assertEquals(401, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        verify(this.purgeManager, never()).startManualPurge(anyString(), any(), anyInt(), any(), any());
+        assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
     }
 
     @Test
