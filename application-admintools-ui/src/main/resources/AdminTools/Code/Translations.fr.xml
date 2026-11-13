@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * 02110-1301 USA, or see the FSF site: https://www.fsf.org.
 -->
 
 <xwikidoc version="1.5" reference="AdminTools.Code.Translations" locale="fr">
@@ -171,6 +171,48 @@ adminTools.dashboard.instanceUsage.specific.recycleBins.hint=Voir la taille de l
 adminTools.dashboard.instanceUsage.specific.emptyPages=Voir les pages vides
 adminTools.dashboard.instanceUsage.specific.emptyPages.hint=Voir les pages vides de tous les wikis
 
+## Purge
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsMode=Purge automatique des pages supprimées
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsMode.hint=Choisir si les pages supprimées doivent être purgées automatiquement
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsMode_inherit=Utiliser le mode par défaut
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsMode_enabled=Activé
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsMode_disabled=Désactivé
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsInterval=Conserver les pages supprimées pendant
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsInterval.hint=Les pages supprimées qui sont restées dans la corbeille plus longtemps que cela seront purgées
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsUnit=Unité
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsUnit_days=Jours
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsUnit_weeks=Semaines
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsUnit_months=Mois
+AdminTools.Purge.Code.SettingsClass_deletedDocumentsUnit_years=Années
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsMode=Purge automatique des pièces jointes
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsMode.hint=Choisir si les pièces jointes doivent être purgées automatiquement
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsMode_inherit=Utiliser le mode par défaut
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsMode_enabled=Activé
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsMode_disabled=Désactivé
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsInterval=Conserver les pièces jointes supprimées pendant
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsInterval.hint=Les pièces jointes supprimées qui sont restées dans la corbeille plus longtemps que cela seront purgées
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsUnit=Unité
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsUnit_days=Jours
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsUnit_weeks=Semaines
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsUnit_months=Mois
+AdminTools.Purge.Code.SettingsClass_deletedAttachmentsUnit_years=Années
+AdminTools.Purge.Code.SettingsClass_maxHistoryEntries=Taille de l'historique de purge
+AdminTools.Purge.Code.SettingsClass_maxHistoryEntries.hint=Combien d'entrées de purge sont conservées pour chaque type d'item pour chacun des wikis (entre 1 et 200)
+AdminTools.Purge.Code.SettingsClass_wiki=Wiki
+AdminTools.Purge.Code.SettingsClass_wiki.hint=Le wiki auquel ces paramètres s'appliquent ; laisser vide pour le paramètre par défaut dans tous les wikis
+AdminTools.Purge.Code.HistoryClass_type=Item
+AdminTools.Purge.Code.HistoryClass_date=Date
+AdminTools.Purge.Code.HistoryClass_triggeredBy=Déclenché par
+AdminTools.Purge.Code.HistoryClass_removedCount=Supprimés
+AdminTools.Purge.Code.HistoryClass_failedCount=Échecs
+AdminTools.Purge.Code.HistoryClass_failures=Défaillances
+AdminTools.Purge.Code.HistoryClass_latest=Entrée la plus récente de ce type d'item
+AdminTools.Purge.Code.HistoryClass_status=Statut
+AdminTools.Purge.Code.HistoryClass_status_success=Réussite
+AdminTools.Purge.Code.HistoryClass_status_partial=Partiel
+AdminTools.Purge.Code.HistoryClass_status_failed=Échec
+AdminTools.Purge.Code.HistoryClass_status_interrupted=Interrompu
+
 ## Security
 adminTools.dashboard.security.activeEncoding=Encodage actif
 adminTools.dashboard.security.configurationEncoding=Encodage de la configuration
@@ -261,7 +303,7 @@ adminTools.dashboard.cloud.description=Voir les stats sur votre instance Cloud.
 adminTools.dashboard.cloud.limits.numberOfUsersInNetworkGroup=Utilisateurs dans le groupe Network : {0}
 adminTools.dashboard.cloud.limits.numberOfWikis=Nombre de wikis : {0}
 adminTools.dashboard.cloud.limits.numberOfUsers=Nombre d''utilisateurs : {0}
-adminTools.dashboard.cloud.limits.numberOfUsersInPayingGroup=Utilisateurs dans le groupe XWikiNetworkPayments : {0}
+adminTools.dashboard.cloud.limits.numberOfUsersInPayingGroup=Utilisateurs dans le groupe XWikiNetworkPayments : {0}
 adminTools.dashboard.cloud.limits.storage=Stockage (Mo) : {0}
 adminTools.dashboard.cloud.limits.supportLevel=Niveau de support : {0}
 adminTools.dashboard.cloud.limits.timeLeft=Le contrat expire le : {0}
