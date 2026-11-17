@@ -498,8 +498,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
         const typeContainer = getTypeContainer(form, type);
         const typePreview = preview[type];
         if (fillFields) {
-          // Without a stored limit, the fields keep their values: an empty interval and the selected unit. The
-          // interval and the unit are always returned together, and 0 is a valid interval.
+          // Without a stored limit, the fields keep the values set when the modal opened: an empty interval and the
+          // default unit. The interval and the unit are always returned together, and 0 is a valid interval.
           if (typePreview.interval !== undefined) {
             typeContainer.find('.purge-interval').val(typePreview.interval);
             typeContainer.find('.purge-unit').val(typePreview.unit);
@@ -529,6 +529,10 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
     form.find('.purge-interval-fields :input').prop('disabled', true);
     form.find('.purge-type').removeData('count');
     form.find('.purge-interval').val('');
+    // The default unit, until the preview replaces it with the stored one, so that no unit is kept from another wiki.
+    form.find('.purge-unit option').prop('selected', function() {
+      return this.defaultSelected;
+    });
     form.find('.purge-disabled-note, .purge-nothing-started').addClass('hidden');
     updatePurgeButton(form);
     modal.modal('show');
