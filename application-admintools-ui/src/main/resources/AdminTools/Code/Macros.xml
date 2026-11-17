@@ -281,7 +281,7 @@
             &lt;a class="btn btn-primary" href="$escapetool.xml($xwiki.getURL($allDocsReference, 'view',
               $escapetool.url({'view': 'deletedDocs'})))"&gt;
               $escapetool.xml($services.localization.render(
-                'adminTools.dashboard.healthcheck.modal.wikiBins.viewTrashBin'))&lt;/a&gt;
+                'adminTools.dashboard.healthcheck.modal.wikiBins.viewRecycleBin'))&lt;/a&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))&lt;/button&gt;
           &lt;/div&gt;

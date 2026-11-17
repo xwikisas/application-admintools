@@ -162,7 +162,7 @@ public class PurgeManager
         Instant expirationDate = getManualExpirationDate(interval, unit);
         if (this.handlers.get(type.getId()).countExpired(wikiId, expirationDate) == 0) {
             this.logger.debug(
-                "Skipped the manual purge of [{}] on wiki [{}], since it has no items older than " + "[{} {}].",
+                "Skipped the manual purge of [{}] on wiki [{}], since it has no items older than [{} {}].",
                 type.getId(), wikiId, interval, unit.getId());
             return false;
         }

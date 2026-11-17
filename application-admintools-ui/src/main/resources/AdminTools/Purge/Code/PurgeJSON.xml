@@ -84,8 +84,12 @@
   #else
     #set ($purgeStatusText = $services.localization.render("AdminTools.Purge.Code.HistoryClass_status_${statusId}"))
   #end
-  #set ($purgeStatusClasses = {'success': 'success', 'partial': 'warning', 'failed': 'danger',
-    'interrupted': 'default'})
+  #set ($purgeStatusClasses = {
+    'success': 'success',
+    'partial': 'warning',
+    'failed': 'danger',
+    'interrupted': 'default'
+  })
   #set ($purgeStatusLabel =
     "&lt;span class='label label-$purgeStatusClasses.get($statusId)'&gt;$escapetool.xml($purgeStatusText)&lt;/span&gt;")
 #end
@@ -107,15 +111,15 @@
     #if ($statusId == 'success')
       #set ($lastPurgeTitle = $services.localization.render('adminTools.purge.status.success.hint',
         [$purgeDate, $entry.removedCount]))
-      #set ($purgeLastPurgeHTML = "&lt;span class='text-success' title='$escapetool.xml($lastPurgeTitle)'&gt;
-        $services.icon.renderHTML('check') $escapetool.xml($purgeDate)&lt;/span&gt;")
+      #set ($purgeLastPurgeHTML = "&lt;span class='text-success' title='$escapetool.xml($lastPurgeTitle)'&gt;" +
+        "$services.icon.renderHTML('check') $escapetool.xml($purgeDate)&lt;/span&gt;")
     #elseif ($statusId == 'interrupted')
       #set ($lastPurgeTitle = $services.localization.render('adminTools.purge.status.interrupted.hint',
         [$purgeDate, $entry.removedCount]))
       #set ($interruptedLabel = $services.localization.render(
         'AdminTools.Purge.Code.HistoryClass_status_interrupted'))
-      #set ($purgeLastPurgeHTML = "&lt;span class='label label-default' title='$escapetool.xml($lastPurgeTitle)'&gt;
-        $escapetool.xml($interruptedLabel)&lt;/span&gt;")
+      #set ($purgeLastPurgeHTML = "&lt;span class='label label-default' title='$escapetool.xml($lastPurgeTitle)'&gt;" +
+        "$escapetool.xml($interruptedLabel)&lt;/span&gt;")
       ## An interrupted purge keeps the failures that happened before it stopped.
       #if ($entry.failedCount &gt; 0)
         #getPurgeFailuresLink($wiki.wikiId $wiki.wikiName $type $entry.failedCount)
@@ -131,8 +135,8 @@
         #set ($lastPurgeClass = 'text-danger')
       #end
       #getPurgeFailuresLink($wiki.wikiId $wiki.wikiName $type $entry.failedCount)
-      #set ($purgeLastPurgeHTML = "&lt;span class='$lastPurgeClass' title='$escapetool.xml($lastPurgeTitle)'&gt;
-        $lastPurgeIcon $escapetool.xml($purgeDate)&lt;/span&gt;&lt;br/&gt;$purgeFailuresLink")
+      #set ($purgeLastPurgeHTML = "&lt;span class='$lastPurgeClass' title='$escapetool.xml($lastPurgeTitle)'&gt;" +
+        "$lastPurgeIcon $escapetool.xml($purgeDate)&lt;/span&gt;&lt;br/&gt;$purgeFailuresLink")
     #end
   #end
 #end
@@ -151,9 +155,17 @@
   #set ($wikis = $services.adminToolsAutoPurge.getWikis($filters, "$!request.dir", $offset, $limit))
   #set ($wikiRows = [])
   #foreach ($wiki in $wikis.rows)
-    #set ($row = {'wikiId': $wiki.wikiId, 'wikiName': $wiki.wikiName, 'doc_viewable': true})
+    #set ($row = {
+      'wikiId': $wiki.wikiId,
+      'wikiName': $wiki.wikiName,
+      'doc_viewable': true
+    })
     ## The values needed by the JavaScript to edit the settings of the wiki.
-    #set ($wikiData = {'wikiId': $wiki.wikiId, 'wikiName': $wiki.wikiName, 'types': {}})
+    #set ($wikiData = {
+      'wikiId': $wiki.wikiId,
+      'wikiName': $wiki.wikiName,
+      'types': {}
+    })
     #foreach ($type in $purgeTypes)
       #set ($wikiTypeSettings = $wiki.get($type))
       #set ($typeDefaults = $purgeDefaults.get($type))
@@ -172,8 +184,8 @@
       #set ($entry = $wiki.get("${type}LastPurge"))
       #getPurgeLastPurgeHTML($wiki $type $entry)
       #set ($discard = $row.put($type,
-        "&lt;div class='$policyClass'&gt;$escapetool.xml($purgePolicyLabel)&lt;/div&gt;
-        &lt;div&gt;$purgeLastPurgeHTML&lt;/div&gt;"))
+        "&lt;div class='$policyClass'&gt;$escapetool.xml($purgePolicyLabel)&lt;/div&gt;" +
+        "&lt;div&gt;$purgeLastPurgeHTML&lt;/div&gt;"))
       ## A missing stored interval or unit leaves the field empty.
       #set ($interval = '')
       #if ($wikiTypeSettings.interval.isPresent())
@@ -193,8 +205,11 @@
     #set ($wikiDataAttribute = $escapetool.xml($jsontool.serialize($wikiData)))
     ## The CSS classes of the button of each action: its style, and the class used by the JavaScript. The purge
     ## deletes items permanently, so it is red.
-    #set ($actionClasses = {'purge': 'btn-danger purge-now', 'edit': 'btn-default purge-edit',
-      'history': 'btn-default purge-history'})
+    #set ($actionClasses = {
+      'purge': 'btn-danger purge-now',
+      'edit': 'btn-default purge-edit',
+      'history': 'btn-default purge-history'
+    })
     #set ($actions = [])
     #foreach ($action in $actionClasses.entrySet())
       #set ($actionLabel = $services.localization.render("adminTools.purge.action.${action.key}"))
@@ -350,10 +365,13 @@
   #set ($wikiId = "$!request.wikiId")
   #set ($typeId = "$!request.type")
   #set ($failuresEntry = $NULL)
-  #foreach ($entry in $services.adminToolsAutoPurge.getHistory($wikiId))
-    #if ($entry.type.id == $typeId)
-      #set ($failuresEntry = $entry)
-      #break
+  ## Without a wiki or an item type, there are no failures to show.
+  #if ($wikiId != '' &amp;&amp; $typeId != '')
+    #foreach ($entry in $services.adminToolsAutoPurge.getHistory($wikiId))
+      #if ($entry.type.id == $typeId)
+        #set ($failuresEntry = $entry)
+        #break
+      #end
     #end
   #end
   #if ($failuresEntry)
