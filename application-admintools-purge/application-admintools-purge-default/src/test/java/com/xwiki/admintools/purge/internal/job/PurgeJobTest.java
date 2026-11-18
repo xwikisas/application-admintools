@@ -181,6 +181,19 @@ class PurgeJobTest
     }
 
     @Test
+    void scheduledPurgeListingOnlySkippedItemsIsNotRecorded() throws Exception
+    {
+        // Nothing was removed and nothing failed: the skipped items listed alone don't fill the history.
+        PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), null, SUCCESS, 0, 0,
+            List.of("skippedAttachments\t2"));
+        when(this.documentsHandler.purge(eq(WIKI_ID), eq(ENABLED), any(), eq(null))).thenReturn(entry);
+
+        run(DELETED_DOCUMENTS, null, null, null);
+
+        verify(this.historyStore, never()).addEntry(anyString(), any());
+    }
+
+    @Test
     void scheduledPurgeInterruptedIsRecorded() throws Exception
     {
         // Nothing was removed before the purge was interrupted, but the interruption is still recorded.

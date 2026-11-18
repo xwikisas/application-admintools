@@ -51,11 +51,13 @@ import com.xpn.xwiki.web.XWikiRequest;
 import com.xwiki.admintools.purge.internal.PurgeManager;
 import com.xwiki.admintools.purge.internal.policy.PurgePolicyResolver;
 import com.xwiki.admintools.purge.internal.store.PurgeSettingsStore;
+import com.xwiki.admintools.purge.internal.store.mapper.PurgeSettingsMapper;
 import com.xwiki.admintools.purge.model.HistoryPurgeTypeSettings;
 import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
+import static com.xwiki.admintools.purge.model.PurgeType.ATTACHMENT_HISTORY;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.PAGE_HISTORY;
@@ -77,7 +79,7 @@ import static org.mockito.Mockito.when;
  * @version $Id$
  */
 @ComponentTest
-@ComponentList(PurgeRequestReader.class)
+@ComponentList({ PurgeRequestReader.class, PurgeSettingsMapper.class })
 class DefaultAutoPurgeResourceTest
 {
     private static final String MAIN_WIKI = "xwiki";
@@ -156,6 +158,8 @@ class DefaultAutoPurgeResourceTest
         // The history is limited only by its number of versions.
         mockTypeFields("pageHistory", "enabled", "", "");
         when(this.request.getParameter(HISTORY_MAX_VERSIONS)).thenReturn("50");
+        mockTypeFields("attachmentHistory", "enabled", "1", "years");
+        when(this.request.getParameter("attachmentHistoryMaxVersions")).thenReturn("10");
         when(this.request.getParameter("maxHistoryEntries")).thenReturn("20");
 
         assertEquals(204, this.resource.saveDefaultSettings().getStatus());
@@ -163,7 +167,8 @@ class DefaultAutoPurgeResourceTest
         verify(this.settingsStore).saveGlobalSettings(
             Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS),
                 DELETED_ATTACHMENTS, new PurgeTypeSettings(PurgeMode.DISABLED, 0, IntervalUnit.MONTHS), PAGE_HISTORY,
-                new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 50)), 20);
+                new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 50), ATTACHMENT_HISTORY,
+                new HistoryPurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.YEARS, 10)), 20);
     }
 
     @Test
@@ -172,11 +177,12 @@ class DefaultAutoPurgeResourceTest
         mockTypeFields("deletedDocuments", "inherit", "1", "months");
         mockTypeFields("deletedAttachments", "inherit", "1", "months");
         mockTypeFields("pageHistory", "inherit", "1", "months");
+        mockTypeFields("attachmentHistory", "inherit", "1", "months");
 
         assertEquals(204, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
-        verify(this.settingsStore).saveWikiSettings(SUBWIKI,
-            Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, HISTORY_INHERIT));
+        verify(this.settingsStore).saveWikiSettings(SUBWIKI, Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS,
+            INHERIT, PAGE_HISTORY, HISTORY_INHERIT, ATTACHMENT_HISTORY, HISTORY_INHERIT));
     }
 
     @Test
@@ -184,6 +190,7 @@ class DefaultAutoPurgeResourceTest
     {
         mockTypeFields("deletedAttachments", "inherit", "1", "months");
         mockTypeFields("pageHistory", "inherit", "1", "months");
+        mockTypeFields("attachmentHistory", "inherit", "1", "months");
         mockTypeFields("deletedDocuments", "sometimes", "7", "days");
         assertEquals(400, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
@@ -216,12 +223,14 @@ class DefaultAutoPurgeResourceTest
         mockTypeFields("deletedDocuments", "enabled", null, "days");
         mockTypeFields("deletedAttachments", "inherit", " ", "");
         mockTypeFields("pageHistory", "disabled", null, null);
+        mockTypeFields("attachmentHistory", "disabled", null, null);
 
         assertEquals(204, this.resource.saveWikiSettings(SUBWIKI).getStatus());
 
         verify(this.settingsStore).saveWikiSettings(SUBWIKI,
             Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, null, IntervalUnit.DAYS),
                 DELETED_ATTACHMENTS, new PurgeTypeSettings(PurgeMode.INHERIT, null, null), PAGE_HISTORY,
+                new HistoryPurgeTypeSettings(PurgeMode.DISABLED, null, null, null), ATTACHMENT_HISTORY,
                 new HistoryPurgeTypeSettings(PurgeMode.DISABLED, null, null, null)));
     }
 
@@ -352,6 +361,9 @@ class DefaultAutoPurgeResourceTest
             Optional.of(new PurgeTypeSettings(PurgeMode.DISABLED, 7, IntervalUnit.DAYS)));
         // The stored limit applies to the pages, and the requested one to the attachments, although they are disabled.
         mockLimit("deletedAttachments", "1", "years");
+        // Without requested item types, the histories are not counted, since counting them can be slow.
+        when(this.policyResolver.getSettings(SUBWIKI, PAGE_HISTORY)).thenReturn(
+            Optional.of(new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 5)));
         when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, limit(1, IntervalUnit.MONTHS)))
             .thenReturn(7L);
         when(this.purgeManager.countExpired(SUBWIKI, DELETED_ATTACHMENTS, limit(1, IntervalUnit.YEARS)))
@@ -364,8 +376,9 @@ class DefaultAutoPurgeResourceTest
         assertEquals(200, response.getStatus());
         assertEquals("{\"deletedDocuments\":{\"enabled\":true,\"interval\":1,\"unit\":\"months\",\"count\":7},"
             + "\"deletedAttachments\":{\"enabled\":false,\"interval\":1,\"unit\":\"years\",\"count\":2},"
-            + "\"pageHistory\":{\"enabled\":false}}",
+            + "\"pageHistory\":{\"enabled\":true,\"maxVersions\":5},\"attachmentHistory\":{\"enabled\":false}}",
             response.getEntity());
+        verify(this.purgeManager, never()).countExpired(eq(SUBWIKI), eq(PAGE_HISTORY), any());
     }
 
     @Test
@@ -381,7 +394,7 @@ class DefaultAutoPurgeResourceTest
         assertEquals(200, response.getStatus());
         assertEquals("{\"deletedDocuments\":{\"enabled\":false},"
             + "\"deletedAttachments\":{\"enabled\":false,\"interval\":0,\"unit\":\"days\",\"count\":4},"
-            + "\"pageHistory\":{\"enabled\":false}}",
+            + "\"pageHistory\":{\"enabled\":false},\"attachmentHistory\":{\"enabled\":false}}",
             response.getEntity());
         verify(this.purgeManager, never()).countExpired(eq(SUBWIKI), eq(DELETED_DOCUMENTS), any());
     }
@@ -399,7 +412,7 @@ class DefaultAutoPurgeResourceTest
 
         assertEquals(200, response.getStatus());
         assertEquals("{\"deletedDocuments\":{\"enabled\":true},\"deletedAttachments\":{\"enabled\":false},"
-            + "\"pageHistory\":{\"enabled\":false}}", response.getEntity());
+            + "\"pageHistory\":{\"enabled\":false},\"attachmentHistory\":{\"enabled\":false}}", response.getEntity());
         verify(this.purgeManager, never()).countExpired(anyString(), any(), any());
     }
 
@@ -410,8 +423,12 @@ class DefaultAutoPurgeResourceTest
             Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS)));
         when(this.policyResolver.getSettings(SUBWIKI, PAGE_HISTORY)).thenReturn(
             Optional.of(new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 20)));
+        PurgeTypeSettings attachmentHistoryLimit = new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 3);
+        when(this.policyResolver.getSettings(SUBWIKI, ATTACHMENT_HISTORY))
+            .thenReturn(Optional.of(attachmentHistoryLimit));
+        when(this.purgeManager.countExpired(SUBWIKI, ATTACHMENT_HISTORY, attachmentHistoryLimit)).thenReturn(4L);
         // Only the requested item types are counted, with the requested limit or the stored one.
-        when(this.request.getParameterValues("type")).thenReturn(new String[] { "pageHistory" });
+        when(this.request.getParameterValues("type")).thenReturn(new String[] { "pageHistory", "attachmentHistory" });
         mockLimit("pageHistory", "1", "years");
         when(this.request.getParameter(HISTORY_MAX_VERSIONS)).thenReturn("5");
         PurgeTypeSettings limit = new HistoryPurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.YEARS, 5);
@@ -423,7 +440,7 @@ class DefaultAutoPurgeResourceTest
         assertEquals("{\"deletedDocuments\":{\"enabled\":true,\"interval\":1,\"unit\":\"months\"},"
             + "\"deletedAttachments\":{\"enabled\":false},"
             + "\"pageHistory\":{\"enabled\":true,\"interval\":1,\"unit\":\"years\",\"maxVersions\":5,"
-            + "\"count\":12}}",
+            + "\"count\":12},\"attachmentHistory\":{\"enabled\":true,\"maxVersions\":3,\"count\":4}}",
             response.getEntity());
         verify(this.purgeManager, never()).countExpired(eq(SUBWIKI), eq(DELETED_DOCUMENTS), any());
     }

@@ -59,7 +59,7 @@ public class PurgeSettingsMapper
      * The largest interval, high enough for any real limit and low enough to keep the date computations valid. It is
      * also the largest limit of a manual purge.
      */
-    public static final int MAX_INTERVAL = 1000;
+    private static final int MAX_INTERVAL = 1000;
 
     /**
      * The smallest number of versions kept by a history item type: 1 keeps only the current version.
@@ -222,6 +222,8 @@ public class PurgeSettingsMapper
     }
 
     /**
+     * Create the settings of an item type, with the class matching the item type.
+     *
      * @param type the item type
      * @param mode how the automatic purge is configured for the item type
      * @param interval the interval, or {@code null} if it is missing
@@ -230,7 +232,7 @@ public class PurgeSettingsMapper
      *     is not a history
      * @return the settings of the item type, as {@link HistoryPurgeTypeSettings} for a history item type
      */
-    private PurgeTypeSettings createSettings(PurgeType type, PurgeMode mode, Integer interval, IntervalUnit unit,
+    public PurgeTypeSettings createSettings(PurgeType type, PurgeMode mode, Integer interval, IntervalUnit unit,
         Integer maxVersions)
     {
         return type.isHistory() ? new HistoryPurgeTypeSettings(mode, interval, unit, maxVersions)
@@ -280,7 +282,8 @@ public class PurgeSettingsMapper
 
     /**
      * Check the settings of every item type before they are written. Every item type must have settings, the global
-     * settings can't inherit, and the limit of every item type must pass {@link #checkLimit}.
+     * settings can't inherit, and the limit of every item type must pass
+     * {@link #checkLimit(PurgeType, PurgeTypeSettings, boolean, String)}.
      *
      * @param typeSettings the settings of every item type
      * @param global {@code true} for the global settings, {@code false} for the settings of a wiki
@@ -304,22 +307,22 @@ public class PurgeSettingsMapper
 
     /**
      * Check the limit of a manual purge, which follows the rules of the limit of an enabled item type, see
-     * {@link #writeSettings(BaseObject, String, Map)}: an interval between 0 and 1000, which purges every item deleted
-     * until now, with a unit, and for a history item type, a number of versions between 1 and 1000 instead, or as well.
+     * {@link #writeSettings(BaseObject, String, Map)}: an interval between 0 and 1000, which purges every item until
+     * now, with a unit, and for a history item type, a number of versions between 1 and 1000 instead, or as well.
      *
      * @param type the item type
      * @param limit the limit chosen by the user, whose mode is ignored
      * @throws IllegalArgumentException if the limit is invalid
      */
-    public void checkLimit(PurgeType type, PurgeTypeSettings limit) throws IllegalArgumentException
+    public void checkLimit(PurgeType type, PurgeTypeSettings limit)
     {
         checkLimit(type, limit, true, MANUAL_PURGE);
     }
 
     /**
      * Check the limit of an item type before it is written or used. An enabled item type needs an interval and a unit,
-     * unless it is a history item type limited by a number of versions; an enabled history item type that has both
-     * limits needs both an interval and a unit too. An item type that is not enabled can leave them out, to keep its
+     * unless it is a history item type limited by a number of versions; a history item type that gives an interval or a
+     * unit needs both. An item type that is not enabled can leave them out, to keep its
      * stored ones. A given interval must be between {@link #MIN_INTERVAL} and {@link #MAX_INTERVAL}, and a given number
      * of versions between {@link #MIN_VERSIONS} and {@link #MAX_VERSIONS}, whatever the mode, so that no invalid value
      * is written. A given unit is always valid.
@@ -333,7 +336,7 @@ public class PurgeSettingsMapper
      */
     private void checkLimit(PurgeType type, PurgeTypeSettings settings, boolean enabled, String settingsName)
     {
-        Integer maxVersions = getMaxVersions(settings).orElse(null);
+        Integer maxVersions = settings.getMaxVersions().orElse(null);
         boolean ageLimitGiven = settings.getInterval().isPresent() || settings.getUnit().isPresent();
         if (enabled && (maxVersions == null || ageLimitGiven)) {
             checkAgeLimit(type, settings, settingsName);
@@ -384,16 +387,6 @@ public class PurgeSettingsMapper
     }
 
     /**
-     * @param settings the settings of an item type
-     * @return the number of versions kept, or an empty value if the settings don't limit it
-     */
-    private Optional<Integer> getMaxVersions(PurgeTypeSettings settings)
-    {
-        return settings instanceof HistoryPurgeTypeSettings ? ((HistoryPurgeTypeSettings) settings).getMaxVersions()
-            : Optional.empty();
-    }
-
-    /**
      * Check the purge history size before it is written.
      *
      * @param maxHistoryEntries the number of purge history entries kept for each item type of each wiki
@@ -431,7 +424,7 @@ public class PurgeSettingsMapper
                 clearValue(object, unitProperty);
             }
             if (type.isHistory()) {
-                writeNumber(object, type.getId() + MAX_VERSIONS_SUFFIX, getMaxVersions(settings).orElse(null),
+                writeNumber(object, type.getId() + MAX_VERSIONS_SUFFIX, settings.getMaxVersions().orElse(null),
                     enabled);
             }
         }

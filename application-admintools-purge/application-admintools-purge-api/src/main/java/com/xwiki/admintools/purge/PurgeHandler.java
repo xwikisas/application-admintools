@@ -45,12 +45,15 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 public interface PurgeHandler
 {
     /**
-     * Count the items of a wiki that are past a limit, which a purge with the same limit and time would remove.
+     * Count the items of a wiki that are past a limit, which a purge with the same limit and time would remove. A
+     * history item type, see {@link com.xwiki.admintools.purge.model.PurgeType#isHistory()}, may count more than its
+     * purge removes, and stops counting at 1000, since counting a whole history can be slow: the page history counts
+     * the versions past the limit, and the attachment history counts the attachments that may have versions past it.
      *
      * @param wikiId the identifier of the wiki
      * @param limit the limit of the purge
      * @param now the time the limit is applied at, whose time zone is used for the calendar units
-     * @return the number of items past the limit
+     * @return the number of items past the limit, at most 1000 for a history item type
      * @throws QueryException if the items can't be counted
      */
     long countExpired(String wikiId, PurgeTypeSettings limit, ZonedDateTime now) throws QueryException;

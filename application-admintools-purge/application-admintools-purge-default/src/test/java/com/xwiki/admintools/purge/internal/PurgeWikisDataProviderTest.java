@@ -43,6 +43,7 @@ import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
+import static com.xwiki.admintools.purge.model.PurgeType.ATTACHMENT_HISTORY;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.PAGE_HISTORY;
@@ -93,9 +94,12 @@ class PurgeWikisDataProviderTest
         when(this.wikiDescriptorManager.getAll()).thenAnswer(invocation -> new ArrayList<>(
             List.of(mockWiki("xwiki", "Main wiki"), mockWiki("beta", "Beta"), mockWiki("alpha", "alpha"))));
         when(this.settingsStore.getSettingsOfWikis(any())).thenReturn(
-            Map.of("xwiki", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT),
-                "beta", Map.of(DELETED_DOCUMENTS, ENABLED, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT),
-                "alpha", Map.of(DELETED_DOCUMENTS, ENABLED, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, HISTORY)));
+            Map.of("xwiki", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT,
+                    ATTACHMENT_HISTORY, INHERIT),
+                "beta", Map.of(DELETED_DOCUMENTS, ENABLED, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT,
+                    ATTACHMENT_HISTORY, INHERIT),
+                "alpha", Map.of(DELETED_DOCUMENTS, ENABLED, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, HISTORY,
+                    ATTACHMENT_HISTORY, INHERIT)));
         when(this.historyStore.getLatestEntries(any())).thenReturn(Map.of("alpha", Map.of(DELETED_DOCUMENTS, SUCCESS)));
     }
 
@@ -113,6 +117,7 @@ class PurgeWikisDataProviderTest
         expectedRow.put("deletedDocumentsLastPurge", SUCCESS);
         expectedRow.put("deletedAttachments", INHERIT);
         expectedRow.put("pageHistory", HISTORY);
+        expectedRow.put("attachmentHistory", INHERIT);
         assertEquals(expectedRow, getRows(result).get(0));
         // Without a status filter, the newest purges are read only for the wikis of the page.
         verify(this.historyStore).getLatestEntries(List.of("alpha", "beta", "xwiki"));
@@ -164,9 +169,12 @@ class PurgeWikisDataProviderTest
         when(this.wikiDescriptorManager.getAll()).thenAnswer(invocation -> new ArrayList<>(
             List.of(mockWiki("zeta", null), mockWiki("beta", " "), mockWiki("alpha", "Alpha"))));
         when(this.settingsStore.getSettingsOfWikis(any())).thenReturn(
-            Map.of("zeta", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT),
-                "beta", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT),
-                "alpha", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT)));
+            Map.of("zeta", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT,
+                    ATTACHMENT_HISTORY, INHERIT),
+                "beta", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT,
+                    ATTACHMENT_HISTORY, INHERIT),
+                "alpha", Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT,
+                    ATTACHMENT_HISTORY, INHERIT)));
 
         // A wiki without a pretty name is named, sorted and filtered by its identifier.
         Map<String, Object> result = this.provider.getWikis(Map.of(), "asc", 0, 10);

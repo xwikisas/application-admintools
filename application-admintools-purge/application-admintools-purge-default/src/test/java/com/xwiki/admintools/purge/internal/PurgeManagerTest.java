@@ -137,7 +137,11 @@ class PurgeManagerTest
 
     @MockComponent
     @Named("pageHistory")
-    private PurgeHandler historyHandler;
+    private PurgeHandler pageHistoryHandler;
+
+    @MockComponent
+    @Named("attachmentHistory")
+    private PurgeHandler attachmentHistoryHandler;
 
     @MockComponent
     private PurgeSettingsMapper settingsMapper;
@@ -254,11 +258,12 @@ class PurgeManagerTest
         Job finishedJob = mockJob(JobStatus.State.FINISHED);
         when(this.jobExecutor.getJob(PurgeJobRequest.getJobId(MAIN_WIKI, DELETED_ATTACHMENTS))).thenReturn(finishedJob);
         when(this.policyResolver.getSettings(eq(MAIN_WIKI), any())).thenReturn(Optional.of(ENABLED));
-        when(this.documentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(5L);
         when(this.attachmentsHandler.countExpired(eq(MAIN_WIKI), eq(ENABLED), any())).thenReturn(2L);
 
         this.purgeManager.dispatchDuePurges();
 
+        // The item type whose previous purge is still running is not even counted, since counting can be slow.
+        verify(this.documentsHandler, never()).countExpired(anyString(), any(), any());
         // Only the job whose previous run is finished is started again.
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
         verify(this.jobExecutor).execute(eq("admintools.purge"), requestCaptor.capture());

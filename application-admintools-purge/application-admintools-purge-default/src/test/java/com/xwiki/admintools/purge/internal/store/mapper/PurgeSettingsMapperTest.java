@@ -20,6 +20,7 @@
 package com.xwiki.admintools.purge.internal.store.mapper;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,6 +41,7 @@ import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
+import static com.xwiki.admintools.purge.model.PurgeType.ATTACHMENT_HISTORY;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.PAGE_HISTORY;
@@ -263,6 +265,10 @@ class PurgeSettingsMapperTest
         verify(this.object).setIntValue(HISTORY_INTERVAL, 3);
         verify(this.object).setStringValue(HISTORY_UNIT, "months");
         verify(this.object).setIntValue(HISTORY_MAX_VERSIONS, 10);
+        verify(this.object).setStringValue("attachmentHistoryMode", "enabled");
+        verify(this.object).setIntValue("attachmentHistoryInterval", 3);
+        verify(this.object).setStringValue("attachmentHistoryUnit", "months");
+        verify(this.object).setIntValue("attachmentHistoryMaxVersions", 10);
         verify(this.object).setIntValue(MAX_HISTORY_ENTRIES, 30);
         verify(this.object, never()).safeget(anyString());
     }
@@ -460,12 +466,17 @@ class PurgeSettingsMapperTest
         return property;
     }
 
+    /**
+     * Set the same stored settings for every history item type.
+     */
     private void mockHistorySettings(String mode, int interval, String unit, int maxVersions)
     {
-        when(this.object.getStringValue(HISTORY_MODE)).thenReturn(mode);
-        when(this.object.getIntValue(HISTORY_INTERVAL, MISSING)).thenReturn(interval);
-        when(this.object.getStringValue(HISTORY_UNIT)).thenReturn(unit);
-        when(this.object.getIntValue(HISTORY_MAX_VERSIONS, MISSING)).thenReturn(maxVersions);
+        for (String type : List.of(PAGE_HISTORY.getId(), ATTACHMENT_HISTORY.getId())) {
+            when(this.object.getStringValue(type + "Mode")).thenReturn(mode);
+            when(this.object.getIntValue(type + "Interval", MISSING)).thenReturn(interval);
+            when(this.object.getStringValue(type + "Unit")).thenReturn(unit);
+            when(this.object.getIntValue(type + "MaxVersions", MISSING)).thenReturn(maxVersions);
+        }
     }
 
     private void assertInvalidGlobalSettings(String expectedMessage, Map<PurgeType, PurgeTypeSettings> settings,
@@ -501,6 +512,9 @@ class PurgeSettingsMapperTest
         assertEquals(expectedMessage, exception.getMessage());
     }
 
+    /**
+     * @return the settings of every item type, with the same settings for every history item type
+     */
     private static Map<PurgeType, PurgeTypeSettings> settings(PurgeTypeSettings documents,
         PurgeTypeSettings attachments, PurgeTypeSettings history)
     {
@@ -508,6 +522,7 @@ class PurgeSettingsMapperTest
         settings.put(DELETED_DOCUMENTS, documents);
         settings.put(DELETED_ATTACHMENTS, attachments);
         settings.put(PAGE_HISTORY, history);
+        settings.put(ATTACHMENT_HISTORY, history);
         return settings;
     }
 }

@@ -58,8 +58,7 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 import com.xwiki.licensing.Licensor;
 
 /**
- * Starts the purge jobs and counts the items they would remove. No rights are checked: the callers
- * must do it.
+ * Starts the purge jobs and counts the items they would remove. No rights are checked: the callers must do it.
  *
  * @version $Id$
  * @since 1.5
@@ -160,8 +159,7 @@ public class PurgeManager
     }
 
     /**
-     * Check the limit of a manual purge, with the rules of the settings of an enabled item type, except that the
-     * interval can be 0, which purges every item deleted until now.
+     * Check the limit of a manual purge, with the rules of the settings of an enabled item type.
      *
      * @param type the item type
      * @param limit the limit chosen by the user, whose mode is ignored
@@ -227,7 +225,8 @@ public class PurgeManager
 
     /**
      * Start a job purging an item type of a wiki with the stored settings. No job is started if the item type is
-     * disabled or has no items past its limit. The job applies the settings stored when it runs.
+     * disabled, if its previous purge is not finished, or if it has no items past its limit, which is checked last
+     * since counting can be costly. The job applies the settings stored when it runs.
      *
      * @param wikiId the identifier of the wiki to purge
      * @param type the item type to purge
@@ -241,7 +240,10 @@ public class PurgeManager
     {
         Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type)
             .filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED);
-        if (settings.isEmpty() || this.handlers.get(type.getId()).countExpired(wikiId, settings.get(), now()) == 0) {
+        if (settings.isEmpty() || isRunning(wikiId, type)) {
+            return;
+        }
+        if (this.handlers.get(type.getId()).countExpired(wikiId, settings.get(), now()) == 0) {
             this.logger.debug("Skipped the purge of [{}] on wiki [{}], since it has no expired items.", type.getId(),
                 wikiId);
             return;
@@ -274,15 +276,28 @@ public class PurgeManager
     private synchronized boolean start(String wikiId, PurgeType type, DocumentReference triggeredBy,
         PurgeTypeSettings limit, Instant startDate) throws ComponentLookupException, JobException
     {
-        Job job = this.jobExecutor.getJob(PurgeJobRequest.getJobId(wikiId, type));
-        if (job != null && job.getStatus().getState() != JobStatus.State.FINISHED) {
-            this.logger.debug("Skipped the purge of [{}] on wiki [{}], since its previous purge is not finished.",
-                type.getId(), wikiId);
+        if (isRunning(wikiId, type)) {
             return false;
         }
         PurgeJobRequest request = new PurgeJobRequest(wikiId, type, triggeredBy, limit, startDate);
         request.setContext(this.contextStoreManager.save(JOB_CONTEXT));
         this.jobExecutor.execute(PurgeJob.JOB_TYPE, request);
         return true;
+    }
+
+    /**
+     * @param wikiId the identifier of the wiki
+     * @param type the item type
+     * @return {@code true} if the previous purge job of the wiki and item type is still queued or running
+     */
+    private boolean isRunning(String wikiId, PurgeType type)
+    {
+        Job job = this.jobExecutor.getJob(PurgeJobRequest.getJobId(wikiId, type));
+        if (job != null && job.getStatus().getState() != JobStatus.State.FINISHED) {
+            this.logger.debug("Skipped the purge of [{}] on wiki [{}], since its previous purge is not finished.",
+                type.getId(), wikiId);
+            return true;
+        }
+        return false;
     }
 }

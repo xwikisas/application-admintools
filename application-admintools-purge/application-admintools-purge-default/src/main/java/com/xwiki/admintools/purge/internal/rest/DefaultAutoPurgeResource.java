@@ -181,7 +181,13 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                 XWikiRequest request = this.xcontextProvider.get().getRequest();
                 Set<PurgeType> countedTypes = this.requestReader.readTypes(request);
                 if (countedTypes.isEmpty()) {
-                    countedTypes = EnumSet.allOf(PurgeType.class);
+                    // Counting a history scans all its versions, so it is done only when requested.
+                    countedTypes = EnumSet.noneOf(PurgeType.class);
+                    for (PurgeType type : PurgeType.values()) {
+                        if (!type.isHistory()) {
+                            countedTypes.add(type);
+                        }
+                    }
                 }
                 Map<String, Map<String, Object>> preview = new LinkedHashMap<>();
                 for (PurgeType type : PurgeType.values()) {

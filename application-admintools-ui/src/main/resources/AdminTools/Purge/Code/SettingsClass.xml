@@ -46,6 +46,84 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <attachmentHistoryInterval>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>attachmentHistoryInterval</name>
+      <number>14</number>
+      <numberType>integer</numberType>
+      <prettyName>attachmentHistoryInterval</prettyName>
+      <size>10</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </attachmentHistoryInterval>
+    <attachmentHistoryMaxVersions>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>attachmentHistoryMaxVersions</name>
+      <number>16</number>
+      <numberType>integer</numberType>
+      <prettyName>attachmentHistoryMaxVersions</prettyName>
+      <size>10</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+    </attachmentHistoryMaxVersions>
+    <attachmentHistoryMode>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>inherit</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>attachmentHistoryMode</name>
+      <number>13</number>
+      <picker>0</picker>
+      <prettyName>attachmentHistoryMode</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>inherit|enabled|disabled</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </attachmentHistoryMode>
+    <attachmentHistoryUnit>
+      <cache>0</cache>
+      <customDisplay/>
+      <defaultValue>months</defaultValue>
+      <disabled>0</disabled>
+      <displayType>select</displayType>
+      <freeText>forbidden</freeText>
+      <hint/>
+      <largeStorage>0</largeStorage>
+      <multiSelect>0</multiSelect>
+      <name>attachmentHistoryUnit</name>
+      <number>15</number>
+      <picker>0</picker>
+      <prettyName>attachmentHistoryUnit</prettyName>
+      <relationalStorage>0</relationalStorage>
+      <separator> </separator>
+      <separators>|, </separators>
+      <size>1</size>
+      <sort>none</sort>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <values>days|weeks|months|years</values>
+      <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+    </attachmentHistoryUnit>
     <deletedAttachmentsInterval>
       <customDisplay/>
       <disabled>0</disabled>

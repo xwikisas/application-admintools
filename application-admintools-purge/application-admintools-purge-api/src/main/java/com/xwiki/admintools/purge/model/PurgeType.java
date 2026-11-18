@@ -47,7 +47,14 @@ public enum PurgeType
      * The versions of the pages (documents), except their current version. Its settings are
      * {@link HistoryPurgeTypeSettings}, which can also limit the number of versions kept.
      */
-    PAGE_HISTORY("pageHistory", true);
+    PAGE_HISTORY("pageHistory", true),
+
+    /**
+     * The versions of the attachments, except their current version. Its settings are
+     * {@link HistoryPurgeTypeSettings}, which can also limit the number of versions kept. Only the histories stored on
+     * the file system are purged.
+     */
+    ATTACHMENT_HISTORY("attachmentHistory", true);
 
     private final String id;
 

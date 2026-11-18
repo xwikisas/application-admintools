@@ -19,10 +19,12 @@
  */
 package com.xwiki.admintools.purge.internal.handler;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.OptionalLong;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -32,10 +34,12 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
+import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
@@ -45,7 +49,8 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
  * Purges the items of one type in batches, in the context of the purged wiki. The limit is checked first, so that an
  * incomplete limit fails the purge instead of interrupting it. Each item is purged on its own, so that an item that
  * can't be purged is only reported, and the purge goes on with the next items. If the next items can't be loaded, the
- * purge is interrupted, and the history entry still reports what was done.
+ * purge is interrupted, and the history entry still reports what was done. The dates are handled as {@link Instant}s,
+ * and converted only here to the {@link Date}s of the platform APIs.
  *
  * @version $Id$
  * @since 1.5
@@ -59,14 +64,14 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     protected static final int BATCH_SIZE = 100;
 
     /**
+     * Separates the item from the error in a failure line.
+     */
+    protected static final String FAILURE_SEPARATOR = "\t";
+
+    /**
      * The number of failures listed in a history entry, and logged. The number of failed items is always exact.
      */
     private static final int MAX_FAILURES = 100;
-
-    /**
-     * Separates the item from the error in a failure line.
-     */
-    private static final String FAILURE_SEPARATOR = "\t";
 
     /**
      * The logger, shared with the subclasses: a subclass field with the same name would hide this one from the
@@ -75,8 +80,17 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     @Inject
     protected Logger logger;
 
+    /**
+     * The query manager, shared with the subclasses for the same reason as {@link #logger}.
+     */
+    @Inject
+    protected QueryManager queryManager;
+
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
+
+    @Inject
+    private RetentionCalculator retentionCalculator;
 
     @Override
     public PurgeHistoryEntry purge(String wikiId, PurgeTypeSettings limit, ZonedDateTime now,
@@ -98,11 +112,14 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
                 batch = getBatch(wikiId, limit, now, lastId);
                 for (Long id : batch) {
                     lastId = id;
-                    OptionalLong removed = attemptItemPurge(wikiId, id, limit, now, wikiContext, failures);
-                    if (removed.isPresent()) {
-                        removedCount += removed.getAsLong();
-                    } else {
+                    try {
+                        removedCount += purgeItem(id, limit, now, wikiContext);
+                    } catch (Exception e) {
                         failedCount++;
+                        if (e instanceof PartialPurgeException) {
+                            removedCount += ((PartialPurgeException) e).getRemovedCount();
+                        }
+                        addFailure(wikiId, id, e, failures);
                     }
                 }
             } while (batch.size() == BATCH_SIZE);
@@ -154,17 +171,49 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
      * @return the number of removed units, counted in the history entry: 1 for an item that is deleted as a whole
      * @throws XWikiException if the item can't be purged
      * @throws QueryException if the data needed to purge the item can't be loaded
+     * @throws PartialPurgeException if only some parts of the item could be purged
      */
     protected abstract long purgeItem(long id, PurgeTypeSettings limit, ZonedDateTime now, XWikiContext wikiContext)
-        throws XWikiException, QueryException;
+        throws XWikiException, QueryException, PartialPurgeException;
 
     /**
      * @param wikiId the identifier of the wiki
      * @param id the identifier of an item that couldn't be purged
-     * @return the name of the item, as listed in the failures of a history entry, or its identifier if the name can't
-     *     be loaded
+     * @return the name of the item, as listed in the failures of a history entry, or an empty value if the item no
+     *     longer exists
+     * @throws QueryException if the name can't be loaded
      */
-    protected abstract String getItemName(String wikiId, long id);
+    protected abstract Optional<String> loadItemName(String wikiId, long id) throws QueryException;
+
+    /**
+     * @param limit the limit of a purge
+     * @param now the time the limit is applied at
+     * @return the date before which the items are past the age limit, or {@code null} if the limit has no interval or
+     *     no unit
+     */
+    protected Instant getExpirationDate(PurgeTypeSettings limit, ZonedDateTime now)
+    {
+        return limit.getInterval().isPresent() && limit.getUnit().isPresent()
+            ? this.retentionCalculator.getExpirationDate(now, limit.getInterval().get(), limit.getUnit().get()) : null;
+    }
+
+    /**
+     * @param instant an instant, or {@code null}
+     * @return the same instant as a date of the platform APIs, or {@code null}
+     */
+    protected Date toDate(Instant instant)
+    {
+        return instant != null ? Date.from(instant) : null;
+    }
+
+    /**
+     * @param date a date of the platform APIs, or {@code null}
+     * @return the same date as an instant, or {@code null}
+     */
+    protected Instant toInstant(Date date)
+    {
+        return date != null ? date.toInstant() : null;
+    }
 
     /**
      * @param fullName the full name of a page
@@ -177,42 +226,41 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     }
 
     /**
-     * Purge one item. An item that can't be purged is listed in the failures and logged, with its error, as long as the
-     * list of failures is not full.
+     * List an item that couldn't be purged in the failures, and log it with its error, as long as the list of failures
+     * is not full.
      *
      * @param wikiId the identifier of the wiki
      * @param id the identifier of the item
-     * @param limit the limit of the purge
-     * @param now the time the limit is applied at
-     * @param wikiContext the context, whose wiki is the wiki of the item
+     * @param error the error that occurred
      * @param failures the failures listed so far, to which the failure of this item is added
-     * @return the number of removed units, or an empty value if the item couldn't be purged
      */
-    private OptionalLong attemptItemPurge(String wikiId, long id, PurgeTypeSettings limit, ZonedDateTime now,
-        XWikiContext wikiContext, List<String> failures)
+    private void addFailure(String wikiId, long id, Exception error, List<String> failures)
     {
-        try {
-            return OptionalLong.of(purgeItem(id, limit, now, wikiContext));
-        } catch (Exception e) {
-            // The failures listed in the history are also logged, with the same limit.
-            if (failures.size() < MAX_FAILURES) {
-                String itemName = getItemName(wikiId, id);
-                this.logger.warn("Failed to purge the [{}] item [{}] on wiki [{}].", getType().getId(), itemName,
-                    wikiId, e);
-                failures.add(getFailure(itemName, e));
-            }
-            return OptionalLong.empty();
+        // The failures listed in the history are also logged, with the same limit.
+        if (failures.size() < MAX_FAILURES) {
+            String itemName = getItemName(wikiId, id);
+            this.logger.warn("Failed to purge the [{}] item [{}] on wiki [{}].", getType().getId(), itemName, wikiId,
+                error);
+            // The error of a partial purge describes each failed part.
+            String message = error instanceof PartialPurgeException ? error.getMessage()
+                : ExceptionUtils.getRootCauseMessage(error);
+            failures.add(itemName.replace(FAILURE_SEPARATOR, " ") + FAILURE_SEPARATOR + message);
         }
     }
 
     /**
-     * @param item the name of the item that couldn't be purged
-     * @param error the error that occurred
-     * @return the failure line
+     * @param wikiId the identifier of the wiki
+     * @param id the identifier of an item that couldn't be purged
+     * @return the name of the item, or its identifier if the name can't be loaded
      */
-    private String getFailure(String item, Exception error)
+    private String getItemName(String wikiId, long id)
     {
-        return item.replace(FAILURE_SEPARATOR, " ") + FAILURE_SEPARATOR + ExceptionUtils.getRootCauseMessage(error);
+        try {
+            return loadItemName(wikiId, id).orElse(String.valueOf(id));
+        } catch (Exception e) {
+            // The name only describes the failure, so failing to load it must not stop the purge.
+            return String.valueOf(id);
+        }
     }
 
     /**

@@ -26,9 +26,9 @@ import org.xwiki.stability.Unstable;
 
 /**
  * The automatic purge settings of a history item type, see {@link PurgeType#isHistory()}: besides the age limit of the
- * versions, they can limit the number of versions kept. A version is purged as soon as it is past either limit, and
- * the current version is always kept. The age limit and the number of versions can each be missing, but an enabled
- * item type needs at least one of them.
+ * versions, they can set the number of versions kept. When both are set, a version is purged only if it is past both
+ * limits: it is older than the age limit, and beyond the newest versions kept. The current version is always kept.
+ * The age limit and the number of versions can each be missing, but an enabled item type needs at least one of them.
  *
  * @version $Id$
  * @since 1.5
@@ -59,6 +59,7 @@ public final class HistoryPurgeTypeSettings extends PurgeTypeSettings
     /**
      * @return the number of versions kept, the current one included, or an empty value if there is no such limit
      */
+    @Override
     public Optional<Integer> getMaxVersions()
     {
         return Optional.ofNullable(this.maxVersions);

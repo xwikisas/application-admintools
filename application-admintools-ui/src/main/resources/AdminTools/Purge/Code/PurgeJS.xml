@@ -137,6 +137,10 @@
     'expiredOne',
     'expiredVersions',
     'expiredVersionOne',
+    'expiredAttachments',
+    'expiredAttachmentOne',
+    'expiredVersionsMore',
+    'expiredAttachmentsMore',
     'nothingToPurge',
     'nothingToPurge.type',
     'error.400',
@@ -153,10 +157,10 @@
 require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], function($, l10n) {
   'use strict';
 
-  const types = ['deletedDocuments', 'deletedAttachments', 'pageHistory'];
-  // A history can also be limited by a number of versions, and needs an age limit, a number of versions, or both. Its
-  // versions are counted only when a purge is submitted, since counting them is costly.
-  const historyTypes = ['pageHistory'];
+  const types = ['deletedDocuments', 'deletedAttachments', 'pageHistory', 'attachmentHistory'];
+  // A history can also keep a number of versions, and needs an age limit, a number of versions, or both. Its versions
+  // are counted only when a purge is submitted, since counting them is costly.
+  const historyTypes = ['pageHistory', 'attachmentHistory'];
   const isHistory = type =&gt; historyTypes.includes(type);
   const restURL = XWiki.contextPath + '/rest/admintools/autopurge';
   const jsonURL = new XWiki.Document(XWiki.Model.resolve('AdminTools.Purge.Code.PurgeJSON',
@@ -272,7 +276,8 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
       // numbers, so each message is removed only by the check of its own field.
       const fields = input.closest('.purge-interval-fields');
       const messageAnchor = fields.length ? fields : input;
-      messageAnchor.nextAll('.purge-error').filter((index, message) =&gt; $(message).data('input') === this.id).remove();
+      messageAnchor.nextAll('.purge-error').filter((index, message) =&gt; $(message).data('input') === this.id)
+        .remove();
       input.attr('aria-invalid', error ? 'true' : 'false');
       if (error) {
         $('&lt;span class="help-block purge-error"&gt;').data('input', this.id).text(error).insertAfter(messageAnchor);
@@ -644,9 +649,20 @@ require(['jquery', 'xwiki-l10n!admin-tools-purge-messages', 'bootstrap'], functi
    * @return the label of what the purge of an item type would remove
    */
   const getConfirmCountLabel = function(type, count) {
+    // The count of a history stops at a maximum, since counting a whole history can be slow.
+    const countStopped = isHistory(type) &amp;&amp; count &gt;= Number($('#purgeNowForm').data('maxHistoryCount'));
     if (count === 0) {
       return l10n.get('nothingToPurge.type');
+    } else if (type === 'attachmentHistory') {
+      // The attachment history counts the attachments that may have old versions, not their versions.
+      if (countStopped) {
+        return l10n.get('expiredAttachmentsMore', count.toLocaleString());
+      }
+      return count === 1 ? l10n.get('expiredAttachmentOne') : l10n.get('expiredAttachments', count);
     } else if (isHistory(type)) {
+      if (countStopped) {
+        return l10n.get('expiredVersionsMore', count.toLocaleString());
+      }
       return count === 1 ? l10n.get('expiredVersionOne') : l10n.get('expiredVersions', count);
     } else {
       return count === 1 ? l10n.get('expiredOne') : l10n.get('expired', count);

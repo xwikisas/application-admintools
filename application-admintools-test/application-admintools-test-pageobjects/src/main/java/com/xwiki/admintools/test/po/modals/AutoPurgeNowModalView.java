@@ -26,8 +26,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 /**
- * Represents the modal purging a wiki now: the deleted items and the old page versions. The purge is confirmed in a
- * second step, which shows what each selected item type would remove.
+ * Represents the modal purging a wiki now: the deleted items and the old versions of pages and attachments. The purge
+ * is confirmed in a second step, which shows what each selected item type would remove.
  *
  * @version $Id$
  */

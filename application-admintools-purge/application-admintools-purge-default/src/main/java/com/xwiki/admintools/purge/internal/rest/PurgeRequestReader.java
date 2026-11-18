@@ -26,13 +26,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.web.XWikiRequest;
-import com.xwiki.admintools.purge.model.HistoryPurgeTypeSettings;
+import com.xwiki.admintools.purge.internal.store.mapper.PurgeSettingsMapper;
 import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeType;
@@ -60,6 +61,9 @@ public class PurgeRequestReader
     private static final String MAX_VERSIONS_SUFFIX = "MaxVersions";
 
     private static final String INVALID_VALUE = "Invalid value [%s] for [%s].";
+
+    @Inject
+    private PurgeSettingsMapper settingsMapper;
 
     /**
      * Read the item types of the repeatable field {@code type}.
@@ -95,10 +99,11 @@ public class PurgeRequestReader
     {
         Map<PurgeType, PurgeTypeSettings> typeSettings = new EnumMap<>(PurgeType.class);
         for (PurgeType type : PurgeType.values()) {
-            String mode = type.getId() + "Mode";
-            String modeValue = request.getParameter(mode);
-            typeSettings.put(type, createSettings(type, PurgeMode.fromId(modeValue)
-                    .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, modeValue, mode))),
+            String modeField = type.getId() + "Mode";
+            String modeValue = request.getParameter(modeField);
+            PurgeMode mode = PurgeMode.fromId(modeValue)
+                .orElseThrow(() -> new IllegalArgumentException(String.format(INVALID_VALUE, modeValue, modeField)));
+            typeSettings.put(type, this.settingsMapper.createSettings(type, mode,
                 readNumber(request, type.getId() + INTERVAL_SUFFIX).orElse(null), readUnit(request, type).orElse(null),
                 readMaxVersions(request, type).orElse(null)));
         }
@@ -128,8 +133,8 @@ public class PurgeRequestReader
             throw new IllegalArgumentException(
                 String.format("The limit of [%s] needs both an interval and a unit.", type.getId()));
         }
-        return Optional.of(createSettings(type, PurgeMode.ENABLED, interval.orElse(null), unit.orElse(null),
-            maxVersions.orElse(null)));
+        return Optional.of(this.settingsMapper.createSettings(type, PurgeMode.ENABLED, interval.orElse(null),
+            unit.orElse(null), maxVersions.orElse(null)));
     }
 
     /**
@@ -138,8 +143,8 @@ public class PurgeRequestReader
      */
     public boolean hasLimit(PurgeTypeSettings settings)
     {
-        return (settings.getInterval().isPresent() && settings.getUnit().isPresent()) || getMaxVersions(
-            settings).isPresent();
+        return (settings.getInterval().isPresent() && settings.getUnit().isPresent())
+            || settings.getMaxVersions().isPresent();
     }
 
     /**
@@ -153,34 +158,8 @@ public class PurgeRequestReader
         Map<String, Object> fields = new LinkedHashMap<>();
         limit.getInterval().ifPresent(interval -> fields.put("interval", interval));
         limit.getUnit().ifPresent(unit -> fields.put("unit", unit.getId()));
-        getMaxVersions(limit).ifPresent(maxVersions -> fields.put("maxVersions", maxVersions));
+        limit.getMaxVersions().ifPresent(maxVersions -> fields.put("maxVersions", maxVersions));
         return fields;
-    }
-
-    /**
-     * @param type the item type
-     * @param mode how the automatic purge is configured for the item type
-     * @param interval the interval, or {@code null} if it is missing
-     * @param unit the unit of the interval, or {@code null} if it is missing
-     * @param maxVersions the number of versions kept, or {@code null} if it is missing; always missing for an item
-     *     type that is not a history
-     * @return the settings of the item type, as {@link HistoryPurgeTypeSettings} for a history item type
-     */
-    private PurgeTypeSettings createSettings(PurgeType type, PurgeMode mode, Integer interval, IntervalUnit unit,
-        Integer maxVersions)
-    {
-        return type.isHistory() ? new HistoryPurgeTypeSettings(mode, interval, unit, maxVersions)
-            : new PurgeTypeSettings(mode, interval, unit);
-    }
-
-    /**
-     * @param settings the settings of an item type
-     * @return the number of versions kept, or an empty value if the settings don't limit it
-     */
-    private Optional<Integer> getMaxVersions(PurgeTypeSettings settings)
-    {
-        return settings instanceof HistoryPurgeTypeSettings ? ((HistoryPurgeTypeSettings) settings).getMaxVersions()
-            : Optional.empty();
     }
 
     /**

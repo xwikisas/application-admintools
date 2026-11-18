@@ -37,10 +37,20 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-## The identifiers of the item types and of the interval units, in display order. A history item type can also be
-## limited by a number of versions, and needs an age limit, a number of versions, or both.
-#set ($purgeTypes = ['deletedDocuments', 'deletedAttachments', 'pageHistory'])
-#set ($purgeHistoryTypes = ['pageHistory'])
+## The identifiers of the item types and of the interval units, in display order. A history item type can also keep a
+## number of versions, and needs an age limit, a number of versions, or both: with both, a version is purged only if it
+## is past both.
+#set ($purgeTypes = ['deletedDocuments', 'deletedAttachments', 'pageHistory', 'attachmentHistory'])
+#set ($purgeHistoryTypes = ['pageHistory', 'attachmentHistory'])
+## The translation keys of the hints shown only for some history item types.
+#set ($purgeHistoryTypeHints = {'attachmentHistory': 'adminTools.purge.form.attachmentHistory.hint'})
+## The limits of the Java code: the interval of a limit (PurgeSettingsMapper.MAX_INTERVAL), the number of versions
+## kept by a history (PurgeSettingsMapper.MIN_VERSIONS and MAX_VERSIONS), and the count of a history, which stops
+## there (AbstractHistoryPurgeHandler.MAX_COUNT).
+#set ($purgeMaxInterval = 1000)
+#set ($purgeMinVersions = 1)
+#set ($purgeMaxVersions = 1000)
+#set ($purgeMaxHistoryCount = 1000)
 #set ($purgeUnits = ['days', 'weeks', 'months', 'years'])
 #set ($purgeStatuses = ['success', 'partial', 'failed', 'interrupted'])
 #set ($purgeModes = ['inherit', 'enabled', 'disabled'])
@@ -82,27 +92,32 @@
   #end
 #end
 
-## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", "1 month, at most 50 versions" or "at most
-## 50 versions" for a history, or "no retention" for an interval of 0, which purges every deleted item, or every version
-## but the current one, at each daily run. A stored limit can only be invalid after a manual edit: a missing interval or
-## unit, or a number out of the range accepted by the forms. The label then warns about it, and $purgeIntervalWarning
+## Set $purgeIntervalLabel to the limit of enabled settings, e.g. "1 month", "1 month, keeping at least 50 versions"
+## or "at most 50 versions" for a history, or "no retention" for an interval of 0, which purges every deleted item, or
+## every version that is not kept, at each daily run. A stored limit can only be invalid after a manual edit: a missing
+## interval or unit, or a number out of the range accepted by the forms. The label then warns about it, and $purgeIntervalWarning
 ## is true. A number out of the range is still used by the purge, so it is shown.
 #macro (getPurgeIntervalLabel $settings)
   #set ($purgeIntervalWarning = false)
   #set ($purgeIntervalZero = false)
-  ## Only the settings of a history have a number of versions.
-  #set ($maxVersionsLabel = '')
-  #if ($settings.maxVersions &amp;&amp; $settings.maxVersions.isPresent())
-    #set ($maxVersions = $settings.maxVersions.get())
-    #set ($maxVersionsLabel = $services.localization.render('adminTools.purge.limit.maxVersions', [$maxVersions]))
-    #if ($maxVersions &lt; 1 || $maxVersions &gt; 1000)
+  ## Only the settings of a history have a number of versions. Alone, it is the most versions kept; with an age limit,
+  ## the versions it keeps are kept whatever their age.
+  #set ($purgeVersionsLabel = '')
+  #if ($settings.maxVersions.isPresent())
+    #set ($purgeKeptVersions = $settings.maxVersions.get())
+    #set ($purgeVersionsKey = 'adminTools.purge.limit.maxVersions')
+    #if ($settings.interval.isPresent() || $settings.unit.isPresent())
+      #set ($purgeVersionsKey = 'adminTools.purge.limit.keptVersions')
+    #end
+    #set ($purgeVersionsLabel = $services.localization.render($purgeVersionsKey, [$purgeKeptVersions]))
+    #if ($purgeKeptVersions &lt; $purgeMinVersions || $purgeKeptVersions &gt; $purgeMaxVersions)
       #set ($purgeIntervalWarning = true)
-      #set ($maxVersionsLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
-        [$maxVersionsLabel]))
+      #set ($purgeVersionsLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
+        [$purgeVersionsLabel]))
     #end
   #end
-  #if ($maxVersionsLabel != '' &amp;&amp; !$settings.interval.isPresent() &amp;&amp; !$settings.unit.isPresent())
-    #set ($purgeIntervalLabel = $maxVersionsLabel)
+  #if ($purgeVersionsLabel != '' &amp;&amp; !$settings.interval.isPresent() &amp;&amp; !$settings.unit.isPresent())
+    #set ($purgeIntervalLabel = $purgeVersionsLabel)
   #elseif ($settings.interval.isPresent() &amp;&amp; $settings.unit.isPresent())
     #set ($purgeInterval = $settings.interval.get())
     #set ($purgeIntervalLabel = $services.localization.render("adminTools.purge.interval.${settings.unit.get().id}",
@@ -110,14 +125,14 @@
     #if ($purgeInterval == 0)
       #set ($purgeIntervalZero = true)
       #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.zero'))
-    #elseif ($purgeInterval &lt; 0 || $purgeInterval &gt; 1000)
+    #elseif ($purgeInterval &lt; 0 || $purgeInterval &gt; $purgeMaxInterval)
       #set ($purgeIntervalWarning = true)
       #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.interval.outOfRange',
         [$purgeIntervalLabel]))
     #end
-    #if ($maxVersionsLabel != '' &amp;&amp; !$purgeIntervalZero)
+    #if ($purgeVersionsLabel != '')
       #set ($purgeIntervalLabel = $services.localization.render('adminTools.purge.limit.both',
-        [$purgeIntervalLabel, $maxVersionsLabel]))
+        [$purgeIntervalLabel, $purgeVersionsLabel]))
     #end
   #else
     #set ($purgeIntervalWarning = true)
@@ -132,12 +147,13 @@
   #foreach ($type in $purgeTypes)
     #getPurgeLabels($purgeDefaults.get($type) $NULL)
     #set ($discard = $purgeDefaultsSummary.put("${type}Warning", $purgeDefaultWarning))
-    #if ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeIntervalZero)
-      #set ($discard = $purgeDefaultsSummary.put($type,
-        $services.localization.render('adminTools.purge.defaults.enabled.noRetention')))
-    #elseif ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeHistoryTypes.contains($type))
+    ## The label of a history describes its age limit of 0 with the versions it keeps.
+    #if ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeHistoryTypes.contains($type))
       #set ($discard = $purgeDefaultsSummary.put($type,
         $services.localization.render('adminTools.purge.defaults.history.enabled', [$purgeDefaultLabel])))
+    #elseif ($purgeDefaults.get($type).mode.id == 'enabled' &amp;&amp; $purgeIntervalZero)
+      #set ($discard = $purgeDefaultsSummary.put($type,
+        $services.localization.render('adminTools.purge.defaults.enabled.noRetention')))
     #elseif ($purgeDefaults.get($type).mode.id == 'enabled')
       #set ($discard = $purgeDefaultsSummary.put($type,
         $services.localization.render('adminTools.purge.defaults.enabled', [$purgeDefaultLabel])))
@@ -150,59 +166,70 @@
     $services.localization.render('adminTools.purge.defaults.historySize', [$purgeMaxHistoryEntries])))
 #end
 
-## The fields of the interval of an item type, e.g. "Keep for [n] [unit]", with the label of the given key. The
-## interval is between 0 and 1000: 0 purges every deleted item. A history has its own label, its interval is optional,
-## and it has a second field, for the number of versions kept, between 1 and 1000, followed by the hint of the given key.
+## The fields of the limit of an item type, with the label of the given key for the interval of a recycle bin, and the
+## hint of the given key for the limits of a history.
 #macro (purgeIntervalFields $idPrefix $type $settings $disabled $labelKey $historyHintKey)
-  #set ($history = $purgeHistoryTypes.contains($type))
-  #if ($history)
-    #set ($labelKey = 'adminTools.purge.form.history.olderThan')
+  #if ($purgeHistoryTypes.contains($type))
+    #purgeHistoryLimitFields($idPrefix $type $settings $disabled $historyHintKey)
+  #else
+    #purgeAgeFields($idPrefix $type $settings $disabled $labelKey true)
   #end
-  ## Months is selected when there is no stored unit.
-  #set ($selectedUnit = 'months')
-  #set ($interval = '')
+#end
+
+## The fields of the age limit of an item type, e.g. "Keep for [n] [unit]", with the label of the given key. The
+## interval is between 0 and $purgeMaxInterval: 0 purges every item. The unit is months when there is no stored unit.
+#macro (purgeAgeFields $idPrefix $type $settings $disabled $labelKey $required)
+  #set ($purgeFieldUnit = 'months')
+  #set ($purgeFieldInterval = '')
   #if ($settings)
     #if ($settings.unit.isPresent())
-      #set ($selectedUnit = $settings.unit.get().id)
+      #set ($purgeFieldUnit = $settings.unit.get().id)
     #end
     #if ($settings.interval.isPresent())
-      #set ($interval = $settings.interval.get())
+      #set ($purgeFieldInterval = $settings.interval.get())
     #end
-  #end
-  #set ($maxVersions = '')
-  #if ($history &amp;&amp; $settings &amp;&amp; $settings.maxVersions.isPresent())
-    #set ($maxVersions = $settings.maxVersions.get())
-  #end
-  ## The two limits of a history are on two rows.
-  #if ($history)
-    &lt;div class="purge-history-limits"&gt;
   #end
   &lt;span class="purge-interval-fields form-inline"&gt;
     &lt;label for="${idPrefix}${type}Interval"&gt;$escapetool.xml(
       $services.localization.render($labelKey))&lt;/label&gt;
     &lt;input type="number" class="form-control input-sm purge-interval" id="${idPrefix}${type}Interval"
-      name="${type}Interval" min="0" max="1000" #if (!$history)required#end value="$interval"
+      name="${type}Interval" min="0" max="$purgeMaxInterval" #if ($required)required#end value="$purgeFieldInterval"
       #if ($disabled)disabled#end/&gt;
     &lt;label class="sr-only" for="${idPrefix}${type}Unit"&gt;$escapetool.xml($services.localization.render(
       'adminTools.purge.form.unit'))&lt;/label&gt;
     &lt;select class="form-control input-sm purge-unit" id="${idPrefix}${type}Unit" name="${type}Unit"
       #if ($disabled)disabled#end&gt;
       #foreach ($unit in $purgeUnits)
-        &lt;option value="$unit" #if ($selectedUnit == $unit)selected#end&gt;$escapetool.xml(
+        &lt;option value="$unit" #if ($purgeFieldUnit == $unit)selected#end&gt;$escapetool.xml(
           $services.localization.render("adminTools.purge.unit.$unit"))&lt;/option&gt;
       #end
     &lt;/select&gt;
   &lt;/span&gt;
-  #if ($history)
-      &lt;span class="purge-interval-fields form-inline"&gt;
-        &lt;label for="${idPrefix}${type}MaxVersions"&gt;$escapetool.xml(
-          $services.localization.render('adminTools.purge.form.history.maxVersions'))&lt;/label&gt;
-        &lt;input type="number" class="form-control input-sm purge-max-versions" id="${idPrefix}${type}MaxVersions"
-          name="${type}MaxVersions" min="1" max="1000" value="$maxVersions" #if ($disabled)disabled#end/&gt;
-      &lt;/span&gt;
-      &lt;p class="xHint purge-history-hint"&gt;$escapetool.xml($services.localization.render($historyHintKey))&lt;/p&gt;
-    &lt;/div&gt;
+#end
+
+## The limits of a history item type, on two rows: the optional age limit, and the number of versions kept, between
+## $purgeMinVersions and $purgeMaxVersions. They are followed by the hint of the given key, then by the hint of the item
+## type, if it has one.
+#macro (purgeHistoryLimitFields $idPrefix $type $settings $disabled $hintKey)
+  #set ($purgeFieldMaxVersions = '')
+  #if ($settings &amp;&amp; $settings.maxVersions.isPresent())
+    #set ($purgeFieldMaxVersions = $settings.maxVersions.get())
   #end
+  &lt;div class="purge-history-limits"&gt;
+    #purgeAgeFields($idPrefix $type $settings $disabled 'adminTools.purge.form.history.olderThan' false)
+    &lt;span class="purge-interval-fields form-inline"&gt;
+      &lt;label for="${idPrefix}${type}MaxVersions"&gt;$escapetool.xml(
+        $services.localization.render("adminTools.purge.form.${type}.maxVersions"))&lt;/label&gt;
+      &lt;input type="number" class="form-control input-sm purge-max-versions" id="${idPrefix}${type}MaxVersions"
+        name="${type}MaxVersions" min="$purgeMinVersions" max="$purgeMaxVersions" value="$purgeFieldMaxVersions"
+        #if ($disabled)disabled#end/&gt;
+    &lt;/span&gt;
+    &lt;p class="xHint purge-history-hint"&gt;$escapetool.xml($services.localization.render($hintKey))&lt;/p&gt;
+    #if ($purgeHistoryTypeHints.containsKey($type))
+      &lt;p class="xHint purge-history-hint"&gt;$escapetool.xml(
+        $services.localization.render($purgeHistoryTypeHints.get($type)))&lt;/p&gt;
+    #end
+  &lt;/div&gt;
 #end
 
 ## The modal header, with its title.
@@ -351,7 +378,7 @@
     &lt;div class="modal-dialog" role="document"&gt;
       &lt;div class="modal-content"&gt;
         ## The fields are validated by the JavaScript, with translated messages, and only for the selected types.
-        &lt;form id="purgeNowForm" class="purge-form" novalidate&gt;
+        &lt;form id="purgeNowForm" class="purge-form" data-max-history-count="$purgeMaxHistoryCount" novalidate&gt;
           #purgeModalHeader('purgeNowModal' 'adminTools.purge.now.modal.title')
           &lt;div class="modal-body"&gt;
             &lt;p&gt;&lt;strong class="purge-wiki-name"&gt;&lt;/strong&gt;&lt;/p&gt;

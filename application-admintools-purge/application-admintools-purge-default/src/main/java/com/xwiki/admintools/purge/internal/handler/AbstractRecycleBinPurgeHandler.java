@@ -21,18 +21,14 @@ package com.xwiki.admintools.purge.internal.handler;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
-
-import javax.inject.Inject;
+import java.util.Optional;
 
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
-import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
@@ -59,12 +55,6 @@ public abstract class AbstractRecycleBinPurgeHandler extends AbstractPurgeHandle
      * Loads the columns naming an item, only for the items that can't be deleted.
      */
     private static final String NAME_QUERY = "select %s from %s as item where item.id = :id";
-
-    @Inject
-    private QueryManager queryManager;
-
-    @Inject
-    private RetentionCalculator retentionCalculator;
 
     @Override
     public long countExpired(String wikiId, PurgeTypeSettings limit, ZonedDateTime now) throws QueryException
@@ -98,17 +88,12 @@ public abstract class AbstractRecycleBinPurgeHandler extends AbstractPurgeHandle
     }
 
     @Override
-    protected String getItemName(String wikiId, long id)
+    protected Optional<String> loadItemName(String wikiId, long id) throws QueryException
     {
-        try {
-            List<Object[]> names =
-                this.queryManager.createQuery(String.format(NAME_QUERY, getItemNameColumns(), getEntityName()),
-                    Query.HQL).setWiki(wikiId).bindValue("id", id).execute();
-            return names.isEmpty() ? String.valueOf(id) : getItemName(names.get(0));
-        } catch (Exception e) {
-            // The name only describes the failure, so failing to load it must not stop the purge.
-            return String.valueOf(id);
-        }
+        List<Object[]> names =
+            this.queryManager.createQuery(String.format(NAME_QUERY, getItemNameColumns(), getEntityName()), Query.HQL)
+                .setWiki(wikiId).bindValue("id", id).execute();
+        return names.stream().findFirst().map(this::getItemName);
     }
 
     /**
@@ -143,26 +128,17 @@ public abstract class AbstractRecycleBinPurgeHandler extends AbstractPurgeHandle
      * @param now the time the limit is applied at
      * @return the query on the items of the wiki deleted before the expiration date
      * @throws QueryException if the query can't be created
+     * @throws IllegalArgumentException if the limit has no interval or no unit
      */
     private Query createExpiredItemsQuery(String statement, String wikiId, PurgeTypeSettings limit,
         ZonedDateTime now) throws QueryException
     {
-        // The limit is checked before the query is created.
-        Date expirationDate = Date.from(getExpirationDate(limit, now));
+        Instant expirationDate = getExpirationDate(limit, now);
+        if (expirationDate == null) {
+            throw missingLimit();
+        }
         return this.queryManager.createQuery(String.format(statement, getEntityName()), Query.HQL).setWiki(wikiId)
-            .bindValue(EXPIRATION_DATE, expirationDate);
-    }
-
-    /**
-     * @param limit the limit of the purge, which must have an interval and a unit
-     * @param now the time the limit is applied at
-     * @return the date before which the deleted items are purged
-     * @throws IllegalArgumentException if the limit has no interval or no unit
-     */
-    private Instant getExpirationDate(PurgeTypeSettings limit, ZonedDateTime now)
-    {
-        return this.retentionCalculator.getExpirationDate(now, limit.getInterval().orElseThrow(this::missingLimit),
-            limit.getUnit().orElseThrow(this::missingLimit));
+            .bindValue(EXPIRATION_DATE, toDate(expirationDate));
     }
 
     /**

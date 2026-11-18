@@ -85,6 +85,15 @@ public class PurgeTypeSettings implements Serializable
     }
 
     /**
+     * @return the number of versions kept by a history item type, see {@link HistoryPurgeTypeSettings}; always an
+     *     empty value for the other item types, which don't limit it
+     */
+    public Optional<Integer> getMaxVersions()
+    {
+        return Optional.empty();
+    }
+
+    /**
      * Compare with other item type settings. They are equal when they are of the same class and have the same mode,
      * interval and unit.
      *

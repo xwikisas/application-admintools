@@ -172,12 +172,12 @@ class PageHistoryPurgeHandlerTest
     void countExpiredWithBothLimits() throws Exception
     {
         Query query = mockQuery(pagesQuery(COUNT_COLUMNS + OLD_VERSION_COUNT,
-            HAS_OLD_VERSIONS + " or " + HAS_TOO_MANY_VERSIONS));
-        // A version is purged as soon as it is past either limit: 10 versions, 3 too old and 5 too many purge 5; 4
-        // versions, all too old, purge 3, since the current version is kept.
-        when(query.<Object[]>execute()).thenReturn(List.of(new Object[] { 1L, 10L, 3L }, new Object[] { 2L, 4L, 4L }));
+            HAS_OLD_VERSIONS + " and " + HAS_TOO_MANY_VERSIONS));
+        // A version is purged only if it is past both limits: 10 versions, 3 too old and 5 too many purge 3; 8
+        // versions, all too old and 3 too many, purge 3.
+        when(query.<Object[]>execute()).thenReturn(List.of(new Object[] { 1L, 10L, 3L }, new Object[] { 2L, 8L, 8L }));
 
-        assertEquals(8, this.handler.countExpired(WIKI_ID,
+        assertEquals(6, this.handler.countExpired(WIKI_ID,
             new HistoryPurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS, 5), NOW));
 
         verify(query).setWiki(WIKI_ID);
@@ -208,14 +208,31 @@ class PageHistoryPurgeHandlerTest
         Query query = mockQuery(pagesQuery(COUNT_COLUMNS + OLD_VERSION_COUNT, HAS_OLD_VERSIONS));
         List<Object[]> fullBatch = new ArrayList<>();
         for (long id = 1; id <= 1000; id++) {
-            fullBatch.add(new Object[] { id, 2L, 1L });
+            fullBatch.add(new Object[] { id, 1L, 1L });
         }
-        when(query.<Object[]>execute()).thenReturn(fullBatch, List.<Object[]>of(new Object[] { 1001L, 2L, 1L }));
+        // The pages of the first batch have a single version, which is never purged.
+        when(query.<Object[]>execute()).thenReturn(fullBatch, List.<Object[]>of(new Object[] { 1001L, 3L, 2L }));
 
-        assertEquals(1001, this.handler.countExpired(WIKI_ID, AGE_LIMIT, NOW));
+        assertEquals(2, this.handler.countExpired(WIKI_ID, AGE_LIMIT, NOW));
 
         verify(query, times(2)).setLimit(1000);
         verify(query).bindValue(LAST_ID, 1000L);
+    }
+
+    @Test
+    void countExpiredStopsAtTheMaximum() throws Exception
+    {
+        Query query = mockQuery(pagesQuery(COUNT_COLUMNS + OLD_VERSION_COUNT, HAS_OLD_VERSIONS));
+        List<Object[]> fullBatch = new ArrayList<>();
+        for (long id = 1; id <= 1000; id++) {
+            fullBatch.add(new Object[] { id, 3L, 2L });
+        }
+        when(query.<Object[]>execute()).thenReturn(fullBatch);
+
+        // Counting a whole history can be slow, so it stops at 1000 versions, without loading the next batch.
+        assertEquals(1000, this.handler.countExpired(WIKI_ID, AGE_LIMIT, NOW));
+
+        verify(query).setLimit(1000);
     }
 
     @Test
@@ -247,22 +264,28 @@ class PageHistoryPurgeHandlerTest
             List.of()), entry);
         // Each translation has its own history.
         verify(this.wiki).getDocument(new DocumentReference(PAGE, Locale.FRENCH), this.wikiContext);
+        // The history cached by the page may be outdated, so it is loaded again from the store before the purge.
+        verify(this.document).setDocumentArchive((XWikiDocumentArchive) null);
         verify(this.wiki).deleteDocumentVersions(this.document, "1.1", "1.2", false, this.wikiContext);
     }
 
     @Test
     void purgeWithBothLimits() throws Exception
     {
-        mockBatch(pagesQuery(PAGE_ID, HAS_OLD_VERSIONS + " or " + HAS_TOO_MANY_VERSIONS), 1L);
+        mockBatch(pagesQuery(PAGE_ID, HAS_OLD_VERSIONS + " and " + HAS_TOO_MANY_VERSIONS), 1L);
         mockName("Space.Page", "");
+        PurgeTypeSettings limit = new HistoryPurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS, 2);
+        mockVersions(OLD, OLD, OLD, RECENT);
+
+        // The 2 newest versions are kept, although one of them is too old.
+        assertEquals(2, this.handler.purge(WIKI_ID, limit, NOW, USER).getRemovedCount());
+        verify(this.wiki).deleteDocumentVersions(this.document, "1.1", "1.2", false, this.wikiContext);
+
         mockVersions(OLD, RECENT, RECENT, RECENT);
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID,
-            new HistoryPurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS, 2), NOW, USER);
-
-        // The versions beyond the 2 newest ones are purged, although only the first one is too old.
-        assertEquals(2, entry.getRemovedCount());
-        verify(this.wiki).deleteDocumentVersions(this.document, "1.1", "1.2", false, this.wikiContext);
+        // Only the first version is too old, although there are 2 versions beyond the 2 newest ones.
+        assertEquals(1, this.handler.purge(WIKI_ID, limit, NOW, USER).getRemovedCount());
+        verify(this.wiki).deleteDocumentVersions(this.document, "1.1", "1.1", false, this.wikiContext);
     }
 
     @Test
@@ -386,6 +409,8 @@ class PageHistoryPurgeHandlerTest
     }
 
     /**
+     * Set the page translations to purge.
+     *
      * @param statement the statement of the query selecting the page translations to purge
      * @param ids the identifiers of the page translations to purge, as one batch
      * @throws QueryException never
@@ -396,6 +421,8 @@ class PageHistoryPurgeHandlerTest
     }
 
     /**
+     * Set the name of the page translation to purge.
+     *
      * @param fullName the full name of the page translation
      * @param language the language of the page translation
      * @throws QueryException never

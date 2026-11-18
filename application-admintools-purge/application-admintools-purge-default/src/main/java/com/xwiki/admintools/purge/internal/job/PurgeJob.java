@@ -49,9 +49,9 @@ import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Purges an item type of a wiki, applying the limit stored when the job runs, and records the
- * result in the purge history. The jobs of an item type share one group, so the wikis are purged one after another,
- * while the item types are purged in parallel.
+ * Purges an item type of a wiki, with the limit of its request or, for a scheduled purge, the settings stored when the
+ * job runs, and records the result in the purge history. The jobs of an item type share one group, so the wikis are
+ * purged one after another, while the item types are purged in parallel.
  *
  * @version $Id$
  * @since 1.5
@@ -98,7 +98,8 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
      * Purge the item type, and record the purge in the history. A manual purge removes the items past the limit of its
      * request, at the time it was started; a scheduled purge applies the stored settings, and does nothing if the item
      * type is disabled for the wiki. Nothing is done for a wiki deleted after the job was queued. A scheduled purge is
-     * recorded only when it removed items, or when it didn't succeed. If the job fails, a failed entry is recorded.
+     * recorded only when it removed items, or when it didn't succeed, so that the history isn't filled with purges
+     * that did nothing. If the job fails, a failed entry is recorded.
      *
      * @throws JobException if the item type can't be purged
      */
