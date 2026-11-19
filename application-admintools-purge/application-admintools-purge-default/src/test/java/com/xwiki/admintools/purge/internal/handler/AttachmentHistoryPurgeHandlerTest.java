@@ -347,33 +347,17 @@ class AttachmentHistoryPurgeHandlerTest
     }
 
     @Test
-    void purgeSkipsAttachmentsBeingUploaded() throws Exception
+    void purgeHistoryWithoutTheCurrentVersion() throws Exception
     {
-        mockAttachment(FILE_NAME, OLD, OLD, RECENT);
-        // The history lists a version newer than the current version of the attachment.
-        this.store.getHistory(FILE_NAME).metadata.add(revision("1.4", RECENT));
+        mockAttachment(FILE_NAME, OLD, OLD, OLD);
+        // A purge stopped by a crash left a history without the current version, whose content is stored apart.
+        this.store.getHistory(FILE_NAME).metadata.remove(2);
 
-        assertEquals(0, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
+        // The newest version listed by the history is kept.
+        assertEquals(1, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
 
-        assertEquals(List.of("1.1", "1.2", "1.3", "1.4"), this.store.getStoredVersions(FILE_NAME));
-        assertEquals(0, this.store.writes);
-    }
-
-    @Test
-    void purgeAddsTheMissingCurrentVersion() throws Exception
-    {
-        mockAttachment(FILE_NAME, OLD, OLD, RECENT);
-        // A purge stopped by a crash after deleting the old versions left no history, nor the file of the current
-        // version in an older store.
-        StoredHistory history = this.store.getHistory(FILE_NAME);
-        history.metadata = null;
-        history.files.clear();
-
-        assertEquals(0, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
-
-        assertEquals(List.of("1.3"), this.store.getStoredVersions(FILE_NAME));
-        // The content of the current version is copied from the attachment.
-        assertEquals(List.of("1.3"), this.store.writtenContents);
+        assertEquals(List.of("1.2"), this.store.getStoredVersions(FILE_NAME));
+        assertEquals(List.of(), this.store.writtenContents);
     }
 
     @Test
