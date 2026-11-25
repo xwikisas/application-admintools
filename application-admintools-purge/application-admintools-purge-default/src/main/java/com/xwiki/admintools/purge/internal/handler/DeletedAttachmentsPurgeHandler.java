@@ -37,7 +37,7 @@ import com.xwiki.admintools.purge.model.PurgeType;
 @Component
 @Named(DeletedAttachmentsPurgeHandler.HINT)
 @Singleton
-public class DeletedAttachmentsPurgeHandler extends AbstractPurgeHandler
+public class DeletedAttachmentsPurgeHandler extends AbstractRecycleBinPurgeHandler
 {
     /**
      * The hint for the component, which is the identifier of {@link PurgeType#DELETED_ATTACHMENTS}.

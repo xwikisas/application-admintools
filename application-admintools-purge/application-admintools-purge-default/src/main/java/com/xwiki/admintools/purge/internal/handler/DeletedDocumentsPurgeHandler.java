@@ -22,7 +22,6 @@ package com.xwiki.admintools.purge.internal.handler;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 
 import com.xpn.xwiki.XWikiContext;
@@ -38,7 +37,7 @@ import com.xwiki.admintools.purge.model.PurgeType;
 @Component
 @Named(DeletedDocumentsPurgeHandler.HINT)
 @Singleton
-public class DeletedDocumentsPurgeHandler extends AbstractPurgeHandler
+public class DeletedDocumentsPurgeHandler extends AbstractRecycleBinPurgeHandler
 {
     /**
      * The hint for the component, which is the identifier of {@link PurgeType#DELETED_DOCUMENTS}.
@@ -66,9 +65,7 @@ public class DeletedDocumentsPurgeHandler extends AbstractPurgeHandler
     @Override
     protected String getItemName(Object[] item)
     {
-        String fullName = (String) item[0];
-        String language = (String) item[1];
-        return StringUtils.isEmpty(language) ? fullName : String.format("%s (%s)", fullName, language);
+        return getPageName((String) item[0], (String) item[1]);
     }
 
     @Override

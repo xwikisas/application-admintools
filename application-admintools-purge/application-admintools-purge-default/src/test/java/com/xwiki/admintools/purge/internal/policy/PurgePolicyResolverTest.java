@@ -19,9 +19,6 @@
  */
 package com.xwiki.admintools.purge.internal.policy;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,12 +37,7 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,10 +49,6 @@ import static org.mockito.Mockito.when;
 class PurgePolicyResolverTest
 {
     private static final String WIKI_ID = "subwiki";
-
-    private static final ZonedDateTime NOW = ZonedDateTime.of(2026, 10, 30, 1, 0, 0, 0, ZoneId.of("Europe/Paris"));
-
-    private static final Instant EXPIRATION_DATE = Instant.parse("2026-10-23T00:00:00Z");
 
     private static final PurgeTypeSettings GLOBAL_ENABLED =
         new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS);
@@ -74,46 +62,6 @@ class PurgePolicyResolverTest
 
     @MockComponent
     private PurgeSettingsStore settingsStore;
-
-    @MockComponent
-    private RetentionCalculator retentionCalculator;
-
-    @Test
-    void getExpirationDateWithWikiSettings() throws Exception
-    {
-        mockSettings(GLOBAL_ENABLED,
-            Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, 7, IntervalUnit.DAYS)));
-        when(this.retentionCalculator.getExpirationDate(NOW, 7, IntervalUnit.DAYS)).thenReturn(EXPIRATION_DATE);
-
-        assertEquals(Optional.of(EXPIRATION_DATE), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-    }
-
-    @Test
-    void getExpirationDateWithInheritedSettings() throws Exception
-    {
-        when(this.retentionCalculator.getExpirationDate(NOW, 1, IntervalUnit.MONTHS)).thenReturn(EXPIRATION_DATE);
-
-        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, INHERIT));
-        assertEquals(Optional.of(EXPIRATION_DATE), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        // A wiki without settings for the item type inherits them too.
-        mockSettings(GLOBAL_ENABLED, Map.of());
-        assertEquals(Optional.of(EXPIRATION_DATE), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-    }
-
-    @Test
-    void getExpirationDateWhenDisabled() throws Exception
-    {
-        // Disabled by the wiki, although enabled by default.
-        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, DISABLED));
-        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        // Disabled by default, and inherited by the wiki.
-        mockSettings(DISABLED, Map.of(DELETED_DOCUMENTS, INHERIT));
-        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
-    }
 
     @Test
     void getSettings() throws Exception
@@ -132,38 +80,6 @@ class PurgePolicyResolverTest
         // An item type left out of the default settings has no settings for the wikis that inherit them.
         mockSettings(null, Map.of(DELETED_DOCUMENTS, INHERIT));
         assertEquals(Optional.empty(), this.resolver.getSettings(WIKI_ID, DELETED_DOCUMENTS));
-    }
-
-    @Test
-    void getExpirationDateWithMissingLimit() throws Exception
-    {
-        // An enabled item type without a stored interval or unit, which can only come from a manual edit, fails
-        // instead of being purged with a guessed limit.
-        mockSettings(GLOBAL_ENABLED, Map.of(DELETED_DOCUMENTS, new PurgeTypeSettings(PurgeMode.ENABLED, null,
-            IntervalUnit.DAYS)));
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-        assertEquals("The automatic purge of [deletedDocuments] is enabled on wiki [subwiki], but its interval or unit "
-            + "is missing.", exception.getMessage());
-
-        mockSettings(new PurgeTypeSettings(PurgeMode.ENABLED, 1, null), Map.of(DELETED_DOCUMENTS, INHERIT));
-        assertThrows(IllegalStateException.class,
-            () -> this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
-    }
-
-    @Test
-    void getExpirationDateWithoutGlobalSettings() throws Exception
-    {
-        // An item type without global settings is not purged for the wikis that inherit them.
-        mockSettings(null, Map.of(DELETED_DOCUMENTS, INHERIT));
-        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        mockSettings(null, Map.of());
-        assertEquals(Optional.empty(), this.resolver.getExpirationDate(WIKI_ID, DELETED_DOCUMENTS, NOW));
-
-        verify(this.retentionCalculator, never()).getExpirationDate(any(), anyInt(), any());
     }
 
     /**

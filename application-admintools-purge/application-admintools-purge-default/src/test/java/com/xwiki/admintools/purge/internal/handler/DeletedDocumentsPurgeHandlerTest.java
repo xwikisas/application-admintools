@@ -20,6 +20,7 @@
 package com.xwiki.admintools.purge.internal.handler;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,11 +47,16 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.store.XWikiRecycleBinStoreInterface;
+import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
+import com.xwiki.admintools.purge.model.IntervalUnit;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
+import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,7 +71,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link DeletedDocumentsPurgeHandler} and the purge loop of {@link AbstractPurgeHandler}.
+ * Unit tests for {@link DeletedDocumentsPurgeHandler}, the recycle bin queries of
+ * {@link AbstractRecycleBinPurgeHandler} and the purge loop of {@link AbstractPurgeHandler}.
  *
  * @version $Id$
  */
@@ -78,7 +85,11 @@ class DeletedDocumentsPurgeHandlerTest
 
     private static final Instant EXPIRATION_DATE = Instant.parse("2026-09-30T01:00:00Z");
 
-    private static final Instant DATE = Instant.parse("2026-10-30T01:00:00Z");
+    private static final ZonedDateTime NOW = ZonedDateTime.parse("2026-10-30T01:00:00Z");
+
+    private static final Instant DATE = NOW.toInstant();
+
+    private static final PurgeTypeSettings LIMIT = new PurgeTypeSettings(PurgeMode.ENABLED, 1, IntervalUnit.MONTHS);
 
     private static final DocumentReference USER = new DocumentReference("xwiki", "XWiki", "Admin");
 
@@ -101,6 +112,9 @@ class DeletedDocumentsPurgeHandlerTest
 
     @MockComponent
     private Provider<XWikiContext> wikiContextProvider;
+
+    @MockComponent
+    private RetentionCalculator retentionCalculator;
 
     @Mock
     private XWikiContext wikiContext;
@@ -126,6 +140,7 @@ class DeletedDocumentsPurgeHandlerTest
         when(this.wikiContext.getWikiId()).thenReturn(CURRENT_WIKI_ID);
         when(this.wikiContext.getWiki()).thenReturn(this.wiki);
         when(this.wiki.getRecycleBinStore()).thenReturn(this.recycleBinStore);
+        when(this.retentionCalculator.getExpirationDate(NOW, 1, IntervalUnit.MONTHS)).thenReturn(EXPIRATION_DATE);
     }
 
     @Test
@@ -143,7 +158,7 @@ class DeletedDocumentsPurgeHandlerTest
             Query.HQL)).thenReturn(query);
         when(query.execute()).thenReturn(List.of(42L));
 
-        assertEquals(42, this.handler.countExpired(WIKI_ID, EXPIRATION_DATE));
+        assertEquals(42, this.handler.countExpired(WIKI_ID, LIMIT, NOW));
 
         verify(query).setWiki(WIKI_ID);
         verify(query).bindValue("expirationDate", Date.from(EXPIRATION_DATE));
@@ -154,7 +169,7 @@ class DeletedDocumentsPurgeHandlerTest
     {
         when(this.batchQuery.<Long>execute()).thenReturn(getIds(1, 100), getIds(101, 1));
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, USER);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, USER);
 
         assertEquals(
             new PurgeHistoryEntry(PurgeType.DELETED_DOCUMENTS, DATE, USER, PurgeStatus.SUCCESS, 101, 0, List.of()),
@@ -180,7 +195,7 @@ class DeletedDocumentsPurgeHandlerTest
         doThrow(new IllegalStateException("Broken")).when(this.recycleBinStore)
             .deleteFromRecycleBin(101, this.wikiContext, true);
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, null);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, null);
 
         assertEquals(PurgeStatus.PARTIAL, entry.getStatus());
         assertEquals(1, entry.getRemovedCount());
@@ -206,7 +221,7 @@ class DeletedDocumentsPurgeHandlerTest
         doThrow(new IllegalStateException("Broken")).when(this.recycleBinStore)
             .deleteFromRecycleBin(1, this.wikiContext, true);
 
-        assertEquals(PurgeStatus.FAILED, this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, USER).getStatus());
+        assertEquals(PurgeStatus.FAILED, this.handler.purge(WIKI_ID, LIMIT, NOW, USER).getStatus());
         assertEquals("Failed to purge the [deletedDocuments] item [Space.Page] on wiki [subwiki].",
             this.logCapture.getMessage(0));
     }
@@ -222,7 +237,7 @@ class DeletedDocumentsPurgeHandlerTest
         doThrow(new IllegalStateException("Broken")).when(this.recycleBinStore)
             .deleteFromRecycleBin(anyLong(), same(this.wikiContext), eq(true));
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, USER);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, USER);
 
         // An item whose name can't be found, or loaded for any reason, is listed with its identifier.
         assertEquals(
@@ -246,7 +261,7 @@ class DeletedDocumentsPurgeHandlerTest
         when(this.batchQuery.<Long>execute()).thenReturn(getIds(1, 100))
             .thenThrow(new QueryException("Timeout", this.batchQuery, null));
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, USER);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, USER);
 
         // The items removed until then are still reported.
         assertEquals(
@@ -263,7 +278,7 @@ class DeletedDocumentsPurgeHandlerTest
     {
         when(this.batchQuery.execute()).thenThrow(new QueryException("Timeout", this.batchQuery, null));
 
-        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, EXPIRATION_DATE, DATE, null);
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, LIMIT, NOW, null);
 
         assertEquals(PurgeStatus.INTERRUPTED, entry.getStatus());
         assertEquals(0, entry.getRemovedCount());
@@ -272,6 +287,28 @@ class DeletedDocumentsPurgeHandlerTest
         assertEquals(
             "Interrupted the purge of [deletedDocuments] on wiki [subwiki], since the next items can't be " + "loaded.",
             this.logCapture.getMessage(0));
+    }
+
+    @Test
+    void limitWithoutInterval()
+    {
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, null, IntervalUnit.MONTHS);
+
+        assertEquals("The limit of the purge of [deletedDocuments] has no interval or no unit.",
+            assertThrows(IllegalArgumentException.class, () -> this.handler.countExpired(WIKI_ID, limit, NOW))
+                .getMessage());
+        // The purge fails before going through the items, instead of being interrupted.
+        assertThrows(IllegalArgumentException.class, () -> this.handler.purge(WIKI_ID, limit, NOW, USER));
+        verify(this.wikiContext, never()).setWikiId(WIKI_ID);
+    }
+
+    @Test
+    void limitWithoutUnit()
+    {
+        PurgeTypeSettings limit = new PurgeTypeSettings(PurgeMode.ENABLED, 1, null);
+
+        assertThrows(IllegalArgumentException.class, () -> this.handler.countExpired(WIKI_ID, limit, NOW));
+        assertThrows(IllegalArgumentException.class, () -> this.handler.purge(WIKI_ID, limit, NOW, USER));
     }
 
     /**

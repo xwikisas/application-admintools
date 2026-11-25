@@ -47,8 +47,10 @@ import com.xwiki.admintools.purge.model.PurgeMode;
 import com.xwiki.admintools.purge.model.PurgeType;
 import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
+import static com.xwiki.admintools.purge.model.PurgeType.ATTACHMENT_HISTORY;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_ATTACHMENTS;
 import static com.xwiki.admintools.purge.model.PurgeType.DELETED_DOCUMENTS;
+import static com.xwiki.admintools.purge.model.PurgeType.PAGE_HISTORY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,7 +80,8 @@ class PurgeSettingsStoreTest
             INHERIT);
 
     private static final Map<PurgeType, PurgeTypeSettings> INHERITED_SETTINGS =
-        Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT);
+        Map.of(DELETED_DOCUMENTS, INHERIT, DELETED_ATTACHMENTS, INHERIT, PAGE_HISTORY, INHERIT, ATTACHMENT_HISTORY,
+            INHERIT);
 
     /**
      * The settings objects of the settings page; a removed object leaves a {@code null} in the list.

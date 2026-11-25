@@ -97,6 +97,10 @@
 ## The link opening the failures of the newest purge of an item type of a wiki.
 #macro (getPurgeFailuresLink $wikiId $wikiName $type $failedCount)
   #set ($purgeFailuresLabel = $services.localization.render('adminTools.purge.status.viewFailures', [$failedCount]))
+  ## A purge without failed items can still list the items it skipped.
+  #if ($failedCount == 0)
+    #set ($purgeFailuresLabel = $services.localization.render('adminTools.purge.status.viewDetails'))
+  #end
   #set ($purgeFailuresLink = "&lt;a href='#' role='button' class='purge-failures'
     data-wiki-id='$escapetool.xml($wikiId)' data-wiki-name='$escapetool.xml($wikiName)'
     data-type='$escapetool.xml($type)'&gt;$escapetool.xml($purgeFailuresLabel)&lt;/a&gt;")
@@ -195,10 +199,16 @@
       #if ($wikiTypeSettings.unit.isPresent())
         #set ($unitId = $wikiTypeSettings.unit.get().id)
       #end
+      ## Only the settings of a history have a number of versions.
+      #set ($maxVersions = '')
+      #if ($wikiTypeSettings.maxVersions &amp;&amp; $wikiTypeSettings.maxVersions.isPresent())
+        #set ($maxVersions = $wikiTypeSettings.maxVersions.get())
+      #end
       #set ($discard = $wikiData.types.put($type, {
         'mode': $modeId,
         'interval': $interval,
         'unit': $unitId,
+        'maxVersions': $maxVersions,
         'defaultLabel': $purgeDefaultLabel
       }))
     #end
@@ -376,6 +386,7 @@
   #end
   #if ($failuresEntry)
     #set ($failures = [])
+    #set ($listedFailures = 0)
     #foreach ($line in $failuresEntry.failures)
       ## Each line is the item, then a tab and the root cause of the failure.
       #set ($parts = $line.split('\t', 2))
@@ -383,18 +394,37 @@
       #if ($parts.size() &gt; 1)
         #set ($error = $parts[1])
       #end
-      #set ($discard = $failures.add({'item': $parts[0], 'error': $error}))
+      ## The number of attachments skipped by the purge of the attachment history is written with a marker item (see
+      ## AttachmentHistoryPurgeHandler.SKIPPED_ATTACHMENTS), so that it is translated here. It is not a failure.
+      #if ($parts[0] == 'skippedAttachments' &amp;&amp; $error.matches('[0-9]+'))
+        #set ($discard = $failures.add({
+          'item': $services.localization.render('adminTools.purge.failures.skippedAttachments'),
+          'error': $services.localization.render('adminTools.purge.failures.skippedAttachments.hint',
+            [$mathtool.toInteger($error)])
+        }))
+      #else
+        #set ($listedFailures = $listedFailures + 1)
+        #set ($discard = $failures.add({'item': $parts[0], 'error': $error}))
+      #end
     #end
     #getPurgeDate($failuresEntry)
-    #set ($recycleBinView = 'deletedDocs')
-    #if ($typeId == 'deletedAttachments')
-      #set ($recycleBinView = 'deletedAttachments')
+    ## The failed items of a recycle bin can be found in it; a history has no such page.
+    #set ($recycleBinURL = '')
+    #if (!$purgeHistoryTypes.contains($typeId))
+      #set ($recycleBinView = 'deletedDocs')
+      #if ($typeId == 'deletedAttachments')
+        #set ($recycleBinView = 'deletedAttachments')
+      #end
+      #set ($allDocsReference = $services.model.createDocumentReference($wikiId, 'Main', 'AllDocs'))
+      #set ($recycleBinURL = $xwiki.getURL($allDocsReference, 'view', "view=${recycleBinView}"))
     #end
-    #set ($allDocsReference = $services.model.createDocumentReference($wikiId, 'Main', 'AllDocs'))
-    ## The summary is rendered here, since only the server side translations handle plural forms.
-    #if ($failures.size() &lt; $failuresEntry.failedCount)
+    ## The summary is rendered here, since only the server side translations handle plural forms. Only some failed
+    ## items are listed when there are many.
+    #if ($listedFailures &lt; $failuresEntry.failedCount)
       #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.shown',
-        [$failures.size(), $failuresEntry.failedCount]))
+        [$listedFailures, $failuresEntry.failedCount]))
+    #elseif ($failuresEntry.failedCount == 0)
+      #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.none'))
     #else
       #set ($failuresSummary = $services.localization.render('adminTools.purge.failures.summary.all',
         [$failuresEntry.failedCount]))
@@ -405,7 +435,7 @@
       'summary': $failuresSummary,
       'failedCount': $failuresEntry.failedCount,
       'failures': $failures,
-      'recycleBinURL': $xwiki.getURL($allDocsReference, 'view', "view=${recycleBinView}")
+      'recycleBinURL': $recycleBinURL
     })
   #else
     #set ($discard = $response.setStatus(404))

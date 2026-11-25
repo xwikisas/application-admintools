@@ -121,6 +121,28 @@ public abstract class AbstractAutoPurgeModalView extends BaseModal
     }
 
     /**
+     * Set the number of versions kept by a history item type.
+     *
+     * @param type the identifier of the history item type
+     * @param maxVersions the number of versions, typed as is; empty to leave the field empty
+     */
+    public void setMaxVersions(String type, String maxVersions)
+    {
+        WebElement input = getTypeContainer(type).findElement(By.className("purge-max-versions"));
+        input.clear();
+        input.sendKeys(maxVersions);
+    }
+
+    /**
+     * @param type the identifier of a history item type
+     * @return the number of versions kept by the item type, as typed
+     */
+    public String getMaxVersions(String type)
+    {
+        return getTypeContainer(type).findElement(By.className("purge-max-versions")).getAttribute("value");
+    }
+
+    /**
      * Click the submit button of the modal.
      */
     public void submit()

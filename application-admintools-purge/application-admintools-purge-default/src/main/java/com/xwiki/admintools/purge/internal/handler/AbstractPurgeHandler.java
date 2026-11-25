@@ -20,31 +20,37 @@
 package com.xwiki.admintools.purge.internal.handler;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xwiki.admintools.purge.PurgeHandler;
+import com.xwiki.admintools.purge.internal.policy.RetentionCalculator;
 import com.xwiki.admintools.purge.model.PurgeHistoryEntry;
 import com.xwiki.admintools.purge.model.PurgeStatus;
 import com.xwiki.admintools.purge.model.PurgeType;
+import com.xwiki.admintools.purge.model.PurgeTypeSettings;
 
 /**
- * Purges the items of one recycle bin in batches. Each item is deleted on its own, so that an item that can't be
- * deleted is only reported, and the purge goes on with the next items. If the next items can't be loaded, the purge is
- * interrupted, and the history entry still reports what was done.
+ * Purges the items of one type in batches, in the context of the purged wiki. The limit is checked first, so that an
+ * incomplete limit fails the purge instead of interrupting it. Each item is purged on its own, so that an item that
+ * can't be purged is only reported, and the purge goes on with the next items. If the next items can't be loaded, the
+ * purge is interrupted, and the history entry still reports what was done. The dates are handled as {@link Instant}s,
+ * and converted only here to the {@link Date}s of the platform APIs.
  *
  * @version $Id$
  * @since 1.5
@@ -52,9 +58,15 @@ import com.xwiki.admintools.purge.model.PurgeType;
 public abstract class AbstractPurgeHandler implements PurgeHandler
 {
     /**
-     * The number of items loaded at once.
+     * The number of items loaded at once: {@link #getBatch} loads at most this many items, and the purge stops after a
+     * batch with fewer items.
      */
-    private static final int BATCH_SIZE = 100;
+    protected static final int BATCH_SIZE = 100;
+
+    /**
+     * Separates the item from the error in a failure line.
+     */
+    protected static final String FAILURE_SEPARATOR = "\t";
 
     /**
      * The number of failures listed in a history entry, and logged. The number of failed items is always exact.
@@ -62,65 +74,52 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     private static final int MAX_FAILURES = 100;
 
     /**
-     * Separates the item from the error in a failure line.
+     * The logger, shared with the subclasses: a subclass field with the same name would hide this one from the
+     * component manager, which injects the fields by name.
      */
-    private static final String FAILURE_SEPARATOR = "\t";
-
-    private static final String EXPIRATION_DATE = "expirationDate";
-
-    private static final String COUNT_QUERY = "select count(item.id) from %s as item where item.date < :expirationDate";
-
-    /**
-     * Loads the identifiers of the next batch of items, after the last item of the previous batch. Paging by offset
-     * can't be used, since the items that can't be deleted stay in the recycle bin while the others disappear. Only the
-     * identifiers are selected, so that the database can answer from its indexes.
-     */
-    private static final String BATCH_QUERY =
-        "select item.id from %s as item where item.date < :expirationDate and item.id > :lastId order by item.id";
-
-    /**
-     * Loads the columns naming an item, only for the items that can't be deleted.
-     */
-    private static final String NAME_QUERY = "select %s from %s as item where item.id = :id";
-
     @Inject
-    private QueryManager queryManager;
+    protected Logger logger;
+
+    /**
+     * The query manager, shared with the subclasses for the same reason as {@link #logger}.
+     */
+    @Inject
+    protected QueryManager queryManager;
 
     @Inject
     private Provider<XWikiContext> wikiContextProvider;
 
     @Inject
-    private Logger logger;
+    private RetentionCalculator retentionCalculator;
 
     @Override
-    public long countExpired(String wikiId, Instant expirationDate) throws QueryException
+    public PurgeHistoryEntry purge(String wikiId, PurgeTypeSettings limit, ZonedDateTime now,
+        DocumentReference triggeredBy)
     {
-        List<Long> result = createExpiredItemsQuery(COUNT_QUERY, wikiId, expirationDate).execute();
-        return result.get(0);
-    }
-
-    @Override
-    public PurgeHistoryEntry purge(String wikiId, Instant expirationDate, Instant date, DocumentReference triggeredBy)
-    {
+        checkLimit(limit);
         long removedCount = 0;
         long failedCount = 0;
         boolean interrupted = false;
         List<String> failures = new ArrayList<>();
         XWikiContext wikiContext = this.wikiContextProvider.get();
         String currentWikiId = wikiContext.getWikiId();
-        // The recycle bin stores delete the items from the database of the context wiki.
+        // The stores delete the items from the database of the context wiki.
         wikiContext.setWikiId(wikiId);
         try {
             long lastId = Long.MIN_VALUE;
             List<Long> batch;
             do {
-                batch = getBatch(wikiId, expirationDate, lastId);
+                batch = getBatch(wikiId, limit, now, lastId);
                 for (Long id : batch) {
                     lastId = id;
-                    if (deleteItem(wikiId, id, wikiContext, failures)) {
-                        removedCount++;
-                    } else {
+                    try {
+                        removedCount += purgeItem(id, limit, now, wikiContext);
+                    } catch (Exception e) {
                         failedCount++;
+                        if (e instanceof PartialPurgeException) {
+                            removedCount += ((PartialPurgeException) e).getRemovedCount();
+                        }
+                        addFailure(wikiId, id, e, failures);
                     }
                 }
             } while (batch.size() == BATCH_SIZE);
@@ -131,8 +130,8 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
         } finally {
             wikiContext.setWikiId(currentWikiId);
         }
-        return new PurgeHistoryEntry(getType(), date, triggeredBy, getStatus(interrupted, removedCount, failedCount),
-            removedCount, failedCount, failures);
+        return new PurgeHistoryEntry(getType(), now.toInstant(), triggeredBy,
+            getStatus(interrupted, removedCount, failedCount), removedCount, failedCount, failures);
     }
 
     /**
@@ -141,98 +140,123 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     protected abstract PurgeType getType();
 
     /**
-     * @return the name of the Hibernate entity of the recycle bin items, as used in queries
+     * Check that a limit has the values this item type needs.
+     *
+     * @param limit the limit of a purge
+     * @throws IllegalArgumentException if the limit is incomplete
      */
-    protected abstract String getEntityName();
+    protected abstract void checkLimit(PurgeTypeSettings limit);
 
     /**
-     * @return the columns that name an item, prefixed with {@code item.} and separated by commas, as used in queries
+     * Load the identifiers of the next {@link #BATCH_SIZE} items to purge, after the last item of the previous batch.
+     * Paging by offset can't be used, since the items that can't be purged stay while the others disappear.
+     *
+     * @param wikiId the identifier of the wiki
+     * @param limit the limit of the purge
+     * @param now the time the limit is applied at
+     * @param lastId the identifier of the last item of the previous batch
+     * @return the identifiers of the next items, at most {@link #BATCH_SIZE}, in increasing order
+     * @throws QueryException if the items can't be loaded
      */
-    protected abstract String getItemNameColumns();
+    protected abstract List<Long> getBatch(String wikiId, PurgeTypeSettings limit, ZonedDateTime now, long lastId)
+        throws QueryException;
 
     /**
-     * @param item the values of {@link #getItemNameColumns()} for an item
-     * @return the name of the item, as listed in the failures of a history entry
-     */
-    protected abstract String getItemName(Object[] item);
-
-    /**
-     * Permanently delete an item from the recycle bin of the context wiki.
+     * Permanently purge an item of the context wiki.
      *
      * @param id the identifier of the item
+     * @param limit the limit of the purge
+     * @param now the time the limit is applied at
      * @param wikiContext the context, whose wiki is the wiki of the item
-     * @throws XWikiException if the item can't be deleted
+     * @return the number of removed units, counted in the history entry: 1 for an item that is deleted as a whole
+     * @throws XWikiException if the item can't be purged
+     * @throws QueryException if the data needed to purge the item can't be loaded
+     * @throws PartialPurgeException if only some parts of the item could be purged
      */
-    protected abstract void delete(long id, XWikiContext wikiContext) throws XWikiException;
+    protected abstract long purgeItem(long id, PurgeTypeSettings limit, ZonedDateTime now, XWikiContext wikiContext)
+        throws XWikiException, QueryException, PartialPurgeException;
 
     /**
-     * Delete one item from the recycle bin. An item that can't be deleted is listed in the failures and logged, with
-     * its error, as long as the list of failures is not full.
+     * @param wikiId the identifier of the wiki
+     * @param id the identifier of an item that couldn't be purged
+     * @return the name of the item, as listed in the failures of a history entry, or an empty value if the item no
+     *     longer exists
+     * @throws QueryException if the name can't be loaded
+     */
+    protected abstract Optional<String> loadItemName(String wikiId, long id) throws QueryException;
+
+    /**
+     * @param limit the limit of a purge
+     * @param now the time the limit is applied at
+     * @return the date before which the items are past the age limit, or {@code null} if the limit has no interval or
+     *     no unit
+     */
+    protected Instant getExpirationDate(PurgeTypeSettings limit, ZonedDateTime now)
+    {
+        return limit.getInterval().isPresent() && limit.getUnit().isPresent()
+            ? this.retentionCalculator.getExpirationDate(now, limit.getInterval().get(), limit.getUnit().get()) : null;
+    }
+
+    /**
+     * @param instant an instant, or {@code null}
+     * @return the same instant as a date of the platform APIs, or {@code null}
+     */
+    protected Date toDate(Instant instant)
+    {
+        return instant != null ? Date.from(instant) : null;
+    }
+
+    /**
+     * @param date a date of the platform APIs, or {@code null}
+     * @return the same date as an instant, or {@code null}
+     */
+    protected Instant toInstant(Date date)
+    {
+        return date != null ? date.toInstant() : null;
+    }
+
+    /**
+     * @param fullName the full name of a page
+     * @param language the language of the page translation, empty for the default translation
+     * @return the name of the page translation, as listed in the failures of a history entry
+     */
+    protected String getPageName(String fullName, String language)
+    {
+        return StringUtils.isEmpty(language) ? fullName : String.format("%s (%s)", fullName, language);
+    }
+
+    /**
+     * List an item that couldn't be purged in the failures, and log it with its error, as long as the list of failures
+     * is not full.
      *
      * @param wikiId the identifier of the wiki
      * @param id the identifier of the item
-     * @param wikiContext the context, whose wiki is the wiki of the item
+     * @param error the error that occurred
      * @param failures the failures listed so far, to which the failure of this item is added
-     * @return {@code true} if the item was deleted
      */
-    private boolean deleteItem(String wikiId, long id, XWikiContext wikiContext, List<String> failures)
+    private void addFailure(String wikiId, long id, Exception error, List<String> failures)
     {
-        try {
-            delete(id, wikiContext);
-            return true;
-        } catch (Exception e) {
-            // The failures listed in the history are also logged, with the same limit.
-            if (failures.size() < MAX_FAILURES) {
-                String itemName = getItemName(wikiId, id);
-                this.logger.warn("Failed to purge the [{}] item [{}] on wiki [{}].", getType().getId(), itemName,
-                    wikiId, e);
-                failures.add(getFailure(itemName, e));
-            }
-            return false;
+        // The failures listed in the history are also logged, with the same limit.
+        if (failures.size() < MAX_FAILURES) {
+            String itemName = getItemName(wikiId, id);
+            this.logger.warn("Failed to purge the [{}] item [{}] on wiki [{}].", getType().getId(), itemName, wikiId,
+                error);
+            // The error of a partial purge describes each failed part.
+            String message = error instanceof PartialPurgeException ? error.getMessage()
+                : ExceptionUtils.getRootCauseMessage(error);
+            failures.add(itemName.replace(FAILURE_SEPARATOR, " ") + FAILURE_SEPARATOR + message);
         }
     }
 
     /**
-     * Load the identifiers of the next items to purge.
-     *
      * @param wikiId the identifier of the wiki
-     * @param expirationDate the items deleted before this date are purged
-     * @param lastId the identifier of the last item of the previous batch
-     * @return the identifiers of the next items, in increasing order
-     * @throws QueryException if the items can't be loaded
-     */
-    private List<Long> getBatch(String wikiId, Instant expirationDate, long lastId) throws QueryException
-    {
-        return createExpiredItemsQuery(BATCH_QUERY, wikiId, expirationDate).bindValue("lastId", lastId)
-            .setLimit(BATCH_SIZE).execute();
-    }
-
-    /**
-     * @param statement a query on the expired items, where {@code %s} is replaced by the entity of the items
-     * @param wikiId the identifier of the wiki
-     * @param expirationDate the items deleted before this date are expired
-     * @return the query on the expired items of the wiki
-     * @throws QueryException if the query can't be created
-     */
-    private Query createExpiredItemsQuery(String statement, String wikiId, Instant expirationDate)
-        throws QueryException
-    {
-        return this.queryManager.createQuery(String.format(statement, getEntityName()), Query.HQL).setWiki(wikiId)
-            .bindValue(EXPIRATION_DATE, Date.from(expirationDate));
-    }
-
-    /**
-     * @param wikiId the identifier of the wiki
-     * @param id the identifier of an item that couldn't be deleted
+     * @param id the identifier of an item that couldn't be purged
      * @return the name of the item, or its identifier if the name can't be loaded
      */
     private String getItemName(String wikiId, long id)
     {
         try {
-            List<Object[]> names =
-                this.queryManager.createQuery(String.format(NAME_QUERY, getItemNameColumns(), getEntityName()),
-                    Query.HQL).setWiki(wikiId).bindValue("id", id).execute();
-            return names.isEmpty() ? String.valueOf(id) : getItemName(names.get(0));
+            return loadItemName(wikiId, id).orElse(String.valueOf(id));
         } catch (Exception e) {
             // The name only describes the failure, so failing to load it must not stop the purge.
             return String.valueOf(id);
@@ -240,19 +264,9 @@ public abstract class AbstractPurgeHandler implements PurgeHandler
     }
 
     /**
-     * @param item the name of the item that couldn't be deleted
-     * @param error the error that occurred
-     * @return the failure line
-     */
-    private String getFailure(String item, Exception error)
-    {
-        return item.replace(FAILURE_SEPARATOR, " ") + FAILURE_SEPARATOR + ExceptionUtils.getRootCauseMessage(error);
-    }
-
-    /**
-     * @param interrupted {@code true} if the purge stopped before going through all the expired items
-     * @param removedCount the number of removed items
-     * @param failedCount the number of items that couldn't be removed
+     * @param interrupted {@code true} if the purge stopped before going through all the items to purge
+     * @param removedCount the number of removed units
+     * @param failedCount the number of items that couldn't be purged
      * @return the outcome of the purge
      */
     private PurgeStatus getStatus(boolean interrupted, long removedCount, long failedCount)
