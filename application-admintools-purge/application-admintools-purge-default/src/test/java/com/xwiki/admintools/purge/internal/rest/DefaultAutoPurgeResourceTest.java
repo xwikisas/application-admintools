@@ -491,6 +491,22 @@ class DefaultAutoPurgeResourceTest
     }
 
     @Test
+    void previewPurgeWithInvalidStoredHistoryLimit() throws Exception
+    {
+        // A history isn't counted by default, but its stored limit is still checked, since it fills the purge fields.
+        PurgeTypeSettings invalidLimit = new HistoryPurgeTypeSettings(PurgeMode.ENABLED, null, null, 0);
+        when(this.policyResolver.getSettings(SUBWIKI, PAGE_HISTORY)).thenReturn(Optional.of(invalidLimit));
+        doThrow(new IllegalArgumentException("Invalid purge limit")).when(this.purgeManager)
+            .checkLimit(PAGE_HISTORY, invalidLimit);
+
+        assertEquals(409, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        verify(this.purgeManager, never()).countExpired(eq(SUBWIKI), eq(PAGE_HISTORY), any());
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
+            this.logCapture.getMessage(0));
+    }
+
+    @Test
     void requestWithoutAdminRights() throws Exception
     {
         doThrow(new AccessDeniedException(Right.ADMIN, USER, new WikiReference(MAIN_WIKI))).when(

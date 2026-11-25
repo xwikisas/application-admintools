@@ -152,7 +152,7 @@ class PurgeJobTest
         Instant before = Instant.now();
         run(DELETED_DOCUMENTS, null, null, null);
 
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        verifyRecorded(entry, before);
         // The stored settings apply at the time the job runs, in the time zone of the server.
         assertEquals(ZoneId.systemDefault(), nowCaptor.getValue().getZone());
         assertFalse(nowCaptor.getValue().toInstant().isBefore(before));
@@ -175,9 +175,10 @@ class PurgeJobTest
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), null, FAILED, 0, 1, null);
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(ENABLED), any(), eq(null))).thenReturn(entry);
 
+        Instant before = Instant.now();
         run(DELETED_DOCUMENTS, null, null, null);
 
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        verifyRecorded(entry, before);
     }
 
     @Test
@@ -201,20 +202,24 @@ class PurgeJobTest
             new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), null, INTERRUPTED, 0, 0, null);
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(ENABLED), any(), eq(null))).thenReturn(entry);
 
+        Instant before = Instant.now();
         run(DELETED_DOCUMENTS, null, null, null);
 
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        verifyRecorded(entry, before);
     }
 
     @Test
     void manualPurgeIsAlwaysRecorded() throws Exception
     {
-        PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), USER, SUCCESS, 0, 0, null);
+        // The handler dates the entry at the time the limit applies at, which is when the purge was started.
+        PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, START_DATE, USER, SUCCESS, 0, 0, null);
         when(this.documentsHandler.purge(WIKI_ID, LIMIT, START_TIME, USER)).thenReturn(entry);
 
+        Instant before = Instant.now();
         run(DELETED_DOCUMENTS, USER, LIMIT, START_DATE);
 
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        // The entry is dated when the job ran, even if the purge waited in the queue since it was started.
+        verifyRecorded(entry, before);
     }
 
     @Test
@@ -224,12 +229,13 @@ class PurgeJobTest
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_ATTACHMENTS, Instant.now(), USER, SUCCESS, 2, 0, null);
         when(this.attachmentsHandler.purge(WIKI_ID, LIMIT, START_TIME, USER)).thenReturn(entry);
 
+        Instant before = Instant.now();
         run(DELETED_ATTACHMENTS, USER, LIMIT, START_DATE);
 
         // The limit applies at the time the purge was started, and the stored settings don't matter, even if the item
         // type is disabled.
         verify(this.policyResolver, never()).getSettings(any(), any());
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        verifyRecorded(entry, before);
     }
 
     @Test
@@ -243,7 +249,7 @@ class PurgeJobTest
         run(DELETED_DOCUMENTS, USER, LIMIT, null);
 
         assertFalse(nowCaptor.getValue().toInstant().isBefore(before));
-        verify(this.historyStore).addEntry(WIKI_ID, entry);
+        verifyRecorded(entry, before);
     }
 
     @Test
@@ -302,6 +308,7 @@ class PurgeJobTest
     {
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), USER, SUCCESS, 1, 0, null);
         when(this.documentsHandler.purge(WIKI_ID, LIMIT, START_TIME, USER)).thenReturn(entry);
+        Instant before = Instant.now();
         IllegalStateException saveError = new IllegalStateException("Can't save");
         doThrow(saveError).when(this.historyStore).addEntry(anyString(), any());
 
@@ -313,8 +320,36 @@ class PurgeJobTest
         assertEquals(List.of(saveError), List.of(exception.getSuppressed()));
         ArgumentCaptor<PurgeHistoryEntry> entryCaptor = ArgumentCaptor.forClass(PurgeHistoryEntry.class);
         verify(this.historyStore, times(2)).addEntry(eq(WIKI_ID), entryCaptor.capture());
-        assertSame(entry, entryCaptor.getAllValues().get(0));
+        assertRecordedAsRun(entry, entryCaptor.getAllValues().get(0), before);
         assertEquals(FAILED, entryCaptor.getAllValues().get(1).getStatus());
+    }
+
+    /**
+     * Check that the job recorded the entry returned by the handler, dated when the job ran.
+     *
+     * @param entry the entry returned by the handler
+     * @param before a time before the job ran
+     */
+    private void verifyRecorded(PurgeHistoryEntry entry, Instant before) throws Exception
+    {
+        ArgumentCaptor<PurgeHistoryEntry> entryCaptor = ArgumentCaptor.forClass(PurgeHistoryEntry.class);
+        verify(this.historyStore).addEntry(eq(WIKI_ID), entryCaptor.capture());
+        assertRecordedAsRun(entry, entryCaptor.getValue(), before);
+    }
+
+    /**
+     * Check that a recorded entry is the entry returned by the handler, dated when the job ran.
+     *
+     * @param entry the entry returned by the handler
+     * @param recorded the recorded entry
+     * @param before a time before the job ran
+     */
+    private void assertRecordedAsRun(PurgeHistoryEntry entry, PurgeHistoryEntry recorded, Instant before)
+    {
+        assertFalse(recorded.getDate().isBefore(before));
+        assertFalse(recorded.getDate().isAfter(Instant.now()));
+        assertEquals(new PurgeHistoryEntry(entry.getType(), recorded.getDate(), entry.getTriggeredBy().orElse(null),
+            entry.getStatus(), entry.getRemovedCount(), entry.getFailedCount(), entry.getFailures()), recorded);
     }
 
     /**

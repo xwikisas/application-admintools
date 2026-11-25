@@ -141,7 +141,10 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
             PurgeHistoryEntry entry = this.handlers.get(type.getId()).purge(wikiId, limit, limitTime, triggeredBy);
             // The history store skips the entry if the wiki was deleted in the meantime.
             if (triggeredBy != null || entry.getRemovedCount() > 0 || entry.getStatus() != PurgeStatus.SUCCESS) {
-                this.historyStore.addEntry(wikiId, entry);
+                // The handler dates the entry at the time the limit is applied at, which is when a manual purge was
+                // started: the entry is dated when the job ran instead, like the entry of a failed job.
+                this.historyStore.addEntry(wikiId, new PurgeHistoryEntry(type, now.toInstant(), triggeredBy,
+                    entry.getStatus(), entry.getRemovedCount(), entry.getFailedCount(), entry.getFailures()));
             }
         } catch (Exception e) {
             JobException exception =

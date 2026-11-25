@@ -347,45 +347,32 @@ class AttachmentHistoryPurgeHandlerTest
     }
 
     @Test
-    void purgeHistoryWithoutTheCurrentVersion() throws Exception
+    void purgeReportsAHistoryWithoutTheCurrentVersion() throws Exception
     {
         mockAttachment(FILE_NAME, OLD, OLD, OLD);
-        // A purge stopped by a crash left a history without the current version, whose content is stored apart.
+        // A purge stopped by a crash after its first step left a history listing only the versions to delete.
         this.store.getHistory(FILE_NAME).metadata.remove(2);
 
-        // The newest version listed by the history is kept.
-        assertEquals(1, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
+        PurgeHistoryEntry entry = this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER);
 
-        assertEquals(List.of("1.2"), this.store.getStoredVersions(FILE_NAME));
-        assertEquals(List.of(), this.store.writtenContents);
-    }
+        assertEquals(PurgeStatus.FAILED, entry.getStatus());
+        assertEquals(0, entry.getRemovedCount());
+        assertEquals(List.of(PAGE_NAME + "\tfile.txt: IllegalStateException: The history of the attachment doesn't "
+            + "list its current version [1.3]."), entry.getFailures());
 
-    @Test
-    void purgeRepairsTheHistoryWhenTheAttachmentIsUploadedBeforeTheHistoryIsDeleted() throws Exception
-    {
-        mockAttachment(FILE_NAME, OLD, OLD, RECENT);
-        // An upload saves the history listing only the old versions with its own, after the first step.
-        this.store.beforeLoad.put(3, () -> uploadVersion(List.of("1.1", "1.2")));
+        // A purge stopped by a crash after its second step left no history at all.
+        this.store.getHistory(FILE_NAME).metadata = null;
+        assertEquals(1, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getFailedCount());
 
-        assertEquals(0, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
-
-        // Nothing is deleted, and the history lists every version again.
-        assertEquals(List.of("1.1", "1.2", "1.3", "1.4"), this.store.getStoredVersions(FILE_NAME));
-        assertEquals(Set.of("1.1", "1.2", "1.3", "1.4"), this.store.getFiles(FILE_NAME));
-    }
-
-    @Test
-    void purgeRepairsTheHistoryWhenItIsSavedAfterItIsDeleted() throws Exception
-    {
-        mockAttachment(FILE_NAME, OLD, OLD, RECENT);
-        // An upload saves the history it loaded before the old versions were deleted, with its own version.
-        this.store.beforeLoad.put(4, () -> uploadVersion(List.of("1.1", "1.2", "1.3")));
-
-        assertEquals(0, this.handler.purge(WIKI_ID, AGE_LIMIT, NOW, USER).getRemovedCount());
-
-        // The history no longer lists the deleted versions.
-        assertEquals(List.of("1.3", "1.4"), this.store.getStoredVersions(FILE_NAME));
-        assertEquals(Set.of("1.3", "1.4"), this.store.getFiles(FILE_NAME));
+        // The history is left as it is, to be fixed by hand, and the page isn't even loaded.
+        assertEquals(0, this.store.writes);
+        assertEquals(Set.of("1.1", "1.2", "1.3"), this.store.getFiles(FILE_NAME));
+        verify(this.wiki, never()).getDocument(any(DocumentReference.class), any(XWikiContext.class));
+        for (int i = 0; i < 4; i += 2) {
+            assertEquals("Failed to purge the history of the attachment [file.txt] of the page [subwiki:Space.Page].",
+                this.logCapture.getMessage(i));
+            assertEquals(PAGE_FAILURE, this.logCapture.getMessage(i + 1));
+        }
     }
 
     @Test
@@ -520,30 +507,6 @@ class AttachmentHistoryPurgeHandlerTest
     }
 
     /**
-     * Simulate an upload of {@link #FILE_NAME} at version 1.4, which saves the given versions with its own.
-     *
-     * @param versions the versions listed by the history loaded by the upload
-     */
-    private void uploadVersion(List<String> versions)
-    {
-        StoredHistory history = this.store.getHistory(FILE_NAME);
-        history.metadata = versions.stream().map(version -> revision(version, OLD)).collect(Collectors.toList());
-        history.metadata.add(revision("1.4", RECENT));
-        history.files.add("1.4");
-        mockCurrentVersion("1.4");
-    }
-
-    /**
-     * @param version the version of the revision
-     * @param date the date of the revision
-     * @return a revision of {@link #FILE_NAME}
-     */
-    private XWikiAttachment revision(String version, Date date)
-    {
-        return revision(FILE_NAME, version, date);
-    }
-
-    /**
      * @param fileName the name of the attachment
      * @param version the version of the revision
      * @param date the date of the revision
@@ -593,11 +556,6 @@ class AttachmentHistoryPurgeHandlerTest
 
         private final List<String> writtenContents = new ArrayList<>();
 
-        /**
-         * Actions run before the n-th load of a history, counted from 1.
-         */
-        private final Map<Integer, Runnable> beforeLoad = new HashMap<>();
-
         private int loads;
 
         private int writes;
@@ -627,7 +585,6 @@ class AttachmentHistoryPurgeHandlerTest
             boolean bTransaction)
         {
             this.loads++;
-            this.beforeLoad.getOrDefault(this.loads, () -> { }).run();
             List<XWikiAttachment> metadata = getHistory(attachment.getFilename()).metadata;
             return new ListArchive(attachment, metadata != null ? metadata : List.of());
         }

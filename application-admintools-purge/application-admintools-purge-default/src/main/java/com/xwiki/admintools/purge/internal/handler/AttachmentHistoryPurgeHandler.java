@@ -67,11 +67,13 @@ import com.xwiki.admintools.purge.model.PurgeTypeSettings;
  * The platform has no API to delete some versions of an attachment, so the file store is used in three steps that only
  * write the list of versions, never their content: save a history listing only the versions to delete, delete the
  * history, which deletes the files of the listed versions, then save a history listing the versions kept, whose files
- * are still there. The stored history and the current version of the attachment are checked again before each step:
- * if an upload changed them, the attachment is left for the next purge, and its history is repaired so that it lists
- * the versions whose files exist. If a step fails, the history is repaired the same way. An upload saved between the
- * last check and the deletion of the history can still lose its version from the history, while its content stays the
- * current content of the attachment, which is stored apart from the history.
+ * are still there. An attachment saved since it was queried has another version, and is left for the next purge
+ * before anything is written. If a step fails, the history is repaired so that it lists the versions whose files
+ * exist. A save during the three steps, which follow each other within milliseconds, is not detected: it can leave
+ * versions out of the history, or get their files deleted. The current content of the attachment is stored apart from
+ * the history, and is never affected. A crash between the steps leaves the versions kept out of the history, whose
+ * files stay on disk: the history then doesn't list the current version of the attachment, and is reported as failed
+ * at each purge, until it is fixed by hand.
  *
  * @version $Id$
  * @since 1.5
@@ -121,11 +123,13 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
      */
     private static final String CANDIDATES = "attach.archiveStore = :store and attach.version <> :firstVersion";
 
-    private static final String PAGES_QUERY = "select distinct attach.docId from XWikiAttachment as attach where "
-        + CANDIDATES + " and attach.docId > :lastId order by attach.docId";
+    private static final String PAGES_QUERY =
+        "select distinct attach.docId from XWikiAttachment as attach where " + CANDIDATES
+            + " and attach.docId > :lastId order by attach.docId";
 
-    private static final String COUNT_QUERY = "select attach.id, attach.version from XWikiAttachment as attach where "
-        + CANDIDATES + " and attach.id > :lastId order by attach.id";
+    private static final String COUNT_QUERY =
+        "select attach.id, attach.version from XWikiAttachment as attach where " + CANDIDATES
+            + " and attach.id > :lastId order by attach.id";
 
     private static final String PAGE_ATTACHMENTS_QUERY = "select doc.fullName, attach.filename, attach.version "
         + "from XWikiAttachment as attach, XWikiDocument as doc where doc.id = attach.docId and " + CANDIDATES
@@ -167,11 +171,10 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
     }
 
     /**
-     * Count the attachments that may have versions past the limit, up to {@link #MAX_COUNT}, from their version
-     * numbers only, without loading their histories: an attachment at version {@code 1.N} has at most N versions, and
-     * the dates of its versions are unknown. The count is thus an upper bound, and the purge deletes only the versions
-     * that are really past the limit. The version number doesn't decrease after a purge, so the count rarely goes back
-     * to 0.
+     * Count the attachments that may have versions past the limit, up to {@link #MAX_COUNT}, from their version numbers
+     * only, without loading their histories: an attachment at version {@code 1.N} has at most N versions, and the dates
+     * of its versions are unknown. The count is thus an upper bound, and the purge deletes only the versions that are
+     * really past the limit. The version number doesn't decrease after a purge, so the count rarely goes back to 0.
      *
      * @param wikiId the identifier of the wiki
      * @param limit the limit of the purge
@@ -190,8 +193,9 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
         long lastId = Long.MIN_VALUE;
         List<Object[]> attachments;
         do {
-            attachments = createCandidatesQuery(COUNT_QUERY, wikiId).bindValue(LAST_ID, lastId)
-                .setLimit(COUNT_BATCH_SIZE).execute();
+            attachments =
+                createCandidatesQuery(COUNT_QUERY, wikiId).bindValue(LAST_ID, lastId).setLimit(COUNT_BATCH_SIZE)
+                    .execute();
             for (Object[] attachment : attachments) {
                 lastId = (Long) attachment[0];
                 if (getVersionNumber((String) attachment[1]) > keptVersions) {
@@ -217,7 +221,7 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
 
     /**
      * Delete the versions past the limit of the attachments of a page, oldest first. The current version of an
-     * attachment is never deleted. An attachment that no longer exists, or that was changed during the purge, is
+     * attachment is never deleted. An attachment that no longer exists, or that was saved since it was queried, is
      * skipped.
      *
      * @param id the identifier of the page
@@ -274,8 +278,8 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
     }
 
     /**
-     * Delete the versions of an attachment that are past the limit. Its history is read without loading its page,
-     * which is loaded only if versions have to be deleted. The newest version listed by the history is never deleted.
+     * Delete the versions of an attachment that are past the limit. Its history is read without loading its page, which
+     * is loaded only if versions have to be deleted. The newest version listed by the history is never deleted.
      *
      * @param reference the page of the attachment
      * @param fileName the name of the attachment
@@ -285,22 +289,33 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
      * @param context the context, whose wiki is the wiki of the attachment
      * @return the number of deleted versions
      * @throws XWikiException if the page or the history can't be loaded, saved or deleted
+     * @throws IllegalStateException if the history doesn't list the current version of the attachment
      */
-    private long purgeAttachment(DocumentReference reference, String fileName, String version,
-        PurgeTypeSettings limit, ZonedDateTime now, XWikiContext context) throws XWikiException
+    private long purgeAttachment(DocumentReference reference, String fileName, String version, PurgeTypeSettings limit,
+        ZonedDateTime now, XWikiContext context) throws XWikiException
     {
         AttachmentVersioningStore store = this.fileStoreProvider.get();
         // The store finds the history from the page reference and the name of the attachment only, so an attachment
         // of a page that isn't loaded is enough to read it.
         List<XWikiAttachment> revisions =
             loadRevisions(store, new XWikiAttachment(new XWikiDocument(reference), fileName), context);
+        // The history lists the current version, unless a purge was stopped between its steps, e.g. by a crash: the
+        // versions it kept are then missing from the history, and only a manual fix can list them again.
+        if (revisions.isEmpty()
+            || getVersionNumber(revisions.get(revisions.size() - 1).getVersion()) < getVersionNumber(version))
+        {
+            throw new IllegalStateException(
+                String.format("The history of the attachment doesn't list its current version [%s].", version));
+        }
         int versionsToPurge = getVersionsToPurge(revisions, limit, now);
         if (versionsToPurge == 0) {
             return 0;
         }
+        // A save of the attachment since it was queried changes its version: the attachment is then left for the next
+        // purge, before anything is written.
         XWikiAttachment attachment = context.getWiki().getDocument(reference, context).getExactAttachment(fileName);
-        if (attachment == null || !FILE_STORE.equals(attachment.getArchiveStore())
-            || !version.equals(attachment.getVersion()))
+        if (attachment == null || !FILE_STORE.equals(attachment.getArchiveStore()) || !version.equals(
+            attachment.getVersion()))
         {
             this.logger.debug("Skipped the attachment [{}] of the page [{}], since it was changed.", fileName,
                 reference);
@@ -324,51 +339,39 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
     private int getVersionsToPurge(List<XWikiAttachment> revisions, PurgeTypeSettings limit, ZonedDateTime now)
     {
         // A version without a date is never old enough.
-        List<Instant> dates = revisions.stream()
-            .map(revision -> Optional.ofNullable(toInstant(revision.getDate())).orElse(Instant.MAX))
-            .collect(Collectors.toList());
+        List<Instant> dates =
+            revisions.stream().map(revision -> Optional.ofNullable(toInstant(revision.getDate())).orElse(Instant.MAX))
+                .collect(Collectors.toList());
         return (int) getVersionsToPurge(revisions.size(), getLeadingOldVersions(dates, getExpirationDate(limit, now)),
             limit.getMaxVersions().orElse(null));
     }
 
     /**
-     * Delete the oldest versions of an attachment in three steps that only write the list of versions, checking the
-     * attachment again before each step.
+     * Delete the oldest versions of an attachment in three steps that only write the list of versions: save a history
+     * listing only the versions to delete, delete the history, which deletes the files of the versions it lists, and
+     * save a history listing the versions kept. If a step fails, the history is repaired.
      *
      * @param store the file store of the attachment histories
      * @param attachment the attachment
      * @param revisions the versions of the attachment, oldest first, the current one last
      * @param versionsToPurge the number of oldest versions to delete, lower than the number of versions
      * @param context the context, whose wiki is the wiki of the attachment
-     * @return the number of deleted versions, or 0 if the attachment was changed during the purge
-     * @throws XWikiException if the history can't be loaded, saved or deleted
+     * @return the number of deleted versions
+     * @throws XWikiException if the history can't be saved or deleted
      */
     private long deleteVersions(AttachmentVersioningStore store, XWikiAttachment attachment,
         List<XWikiAttachment> revisions, int versionsToPurge, XWikiContext context) throws XWikiException
     {
         List<XWikiAttachment> toDelete = revisions.subList(0, versionsToPurge);
         List<XWikiAttachment> toKeep = revisions.subList(versionsToPurge, revisions.size());
-        // The versions the stored history should list, the versions whose files were deleted, and the versions whose
-        // files exist.
-        List<XWikiAttachment> expected = revisions;
+        // The versions whose files were deleted, and the versions whose files exist, for the repair.
         List<XWikiAttachment> deleted = List.of();
         List<XWikiAttachment> existing = revisions;
         try {
-            if (!canWrite(store, attachment, expected, deleted, existing, context)) {
-                return 0;
-            }
             store.saveArchive(new RevisionsArchive(attachment, toDelete), context, true);
-            expected = toDelete;
-            if (!canWrite(store, attachment, expected, deleted, existing, context)) {
-                return 0;
-            }
             store.deleteArchive(attachment, context, true);
-            expected = List.of();
             deleted = toDelete;
             existing = toKeep;
-            if (!canWrite(store, attachment, expected, deleted, existing, context)) {
-                return 0;
-            }
             store.saveArchive(new RevisionsArchive(attachment, toKeep), context, true);
             return versionsToPurge;
         } catch (Exception e) {
@@ -378,41 +381,10 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
     }
 
     /**
-     * Check that the stored history and the current version of an attachment didn't change since the last step. If
-     * they changed, e.g. because of an upload, the history is repaired and the attachment is left for the next purge.
-     *
-     * @param store the file store of the attachment histories
-     * @param attachment the attachment
-     * @param expected the versions the stored history should list
-     * @param deleted the versions whose files were deleted by the purge
-     * @param existing the versions whose files exist, as known by the purge
-     * @param context the context, whose wiki is the wiki of the attachment
-     * @return {@code true} if the next step can be done, {@code false} if the attachment was changed
-     * @throws XWikiException if the stored history or the page of the attachment can't be loaded
-     */
-    private boolean canWrite(AttachmentVersioningStore store, XWikiAttachment attachment,
-        List<XWikiAttachment> expected, List<XWikiAttachment> deleted, List<XWikiAttachment> existing,
-        XWikiContext context) throws XWikiException
-    {
-        XWikiAttachment current = context.getWiki()
-            .getDocument(attachment.getReference().getDocumentReference(), context)
-            .getExactAttachment(attachment.getFilename());
-        if (getVersions(loadRevisions(store, attachment, context)).equals(getVersions(expected)) && current != null
-            && attachment.getVersion().equals(current.getVersion()))
-        {
-            return true;
-        }
-        this.logger.debug("Skipped the attachment [{}], since it was changed during the purge.",
-            attachment.getReference());
-        repair(store, attachment, deleted, existing, context);
-        return false;
-    }
-
-    /**
-     * Repair the stored history of an attachment after a step failed or the attachment was changed: it lists the
-     * versions whose files exist, i.e. the versions known by the purge and the versions saved by others, except the
-     * versions whose files were deleted. Only the list of versions is written, and only if it changes. A failure is
-     * logged with the versions, so that the history can be fixed.
+     * Repair the stored history of an attachment after a step failed: it lists the versions whose files exist, i.e.
+     * the versions known by the purge and the versions saved by others, except the versions whose files were deleted.
+     * Only the list of versions is written, and only if it changes. A failure is logged with the versions, so that the
+     * history can be fixed.
      *
      * @param store the file store of the attachment histories
      * @param attachment the attachment
@@ -487,14 +459,15 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
 
     /**
      * @param wikiId the identifier of the wiki
-     * @return the number of attachments with old versions whose history is not stored on the file system, or 0 if
-     *     they can't be counted
+     * @return the number of attachments with old versions whose history is not stored on the file system, or 0 if they
+     *     can't be counted
      */
     private long countSkipped(String wikiId)
     {
         try {
-            List<Long> counts = this.queryManager.createQuery(SKIPPED_QUERY, Query.HQL).setWiki(wikiId)
-                .bindValue(STORE, FILE_STORE).bindValue(FIRST_VERSION, SINGLE_VERSION).execute();
+            List<Long> counts =
+                this.queryManager.createQuery(SKIPPED_QUERY, Query.HQL).setWiki(wikiId).bindValue(STORE, FILE_STORE)
+                    .bindValue(FIRST_VERSION, SINGLE_VERSION).execute();
             return counts.isEmpty() || counts.get(0) == null ? 0 : counts.get(0);
         } catch (QueryException e) {
             this.logger.warn("Failed to count the attachments skipped by the purge of [{}] on wiki [{}].",
@@ -516,8 +489,8 @@ public class AttachmentHistoryPurgeHandler extends AbstractHistoryPurgeHandler
     }
 
     /**
-     * History of an attachment listing the given versions only, so that the file store writes only them. The content
-     * of a version is written only if its file is missing, so saving existing versions writes only the list.
+     * History of an attachment listing the given versions only, so that the file store writes only them. The content of
+     * a version is written only if its file is missing, so saving existing versions writes only the list.
      */
     private static final class RevisionsArchive extends XWikiAttachmentArchive
     {

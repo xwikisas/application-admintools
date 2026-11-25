@@ -179,25 +179,8 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
         return handle(wikiId, false,
             String.format("Failed to count the expired items of wiki [%s].", wikiId), () -> {
                 XWikiRequest request = this.xcontextProvider.get().getRequest();
-                Set<PurgeType> countedTypes = this.requestReader.readTypes(request);
-                if (countedTypes.isEmpty()) {
-                    // Counting a history scans all its versions, so it is done only when requested.
-                    countedTypes = EnumSet.noneOf(PurgeType.class);
-                    for (PurgeType type : PurgeType.values()) {
-                        if (!type.isHistory()) {
-                            countedTypes.add(type);
-                        }
-                    }
-                }
-                // Read and check every requested limit first, so that the request is rejected if one is invalid.
-                Map<PurgeType, PurgeTypeSettings> requestedLimits = new LinkedHashMap<>();
-                for (PurgeType type : PurgeType.values()) {
-                    Optional<PurgeTypeSettings> requestedLimit = this.requestReader.readLimit(request, type);
-                    if (requestedLimit.isPresent()) {
-                        this.purgeManager.checkLimit(type, requestedLimit.get());
-                        requestedLimits.put(type, requestedLimit.get());
-                    }
-                }
+                Set<PurgeType> countedTypes = readCountedTypes(request);
+                Map<PurgeType, PurgeTypeSettings> requestedLimits = readRequestedLimits(request);
                 Map<String, Map<String, Object>> preview = new LinkedHashMap<>();
                 try {
                     for (PurgeType type : PurgeType.values()) {
@@ -210,22 +193,64 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                             settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).isPresent());
                         if (limit.isPresent()) {
                             PurgeTypeSettings typeLimit = limit.get();
+                            // The purge manager rejects an invalid stored limit, even for an item type not counted.
+                            this.purgeManager.checkLimit(type, typeLimit);
                             typePreview.putAll(this.requestReader.getLimitFields(typeLimit));
                             if (countedTypes.contains(type)) {
-                                // The purge manager rejects an invalid stored limit.
                                 typePreview.put("count", this.purgeManager.countExpired(wikiId, type, typeLimit));
                             }
                         }
                         preview.put(type.getId(), typePreview);
                     }
+                    return Response.ok(OBJECT_MAPPER.writeValueAsString(preview)).type(MediaType.APPLICATION_JSON_TYPE)
+                        .build();
                 } catch (IllegalArgumentException e) {
                     // The requested limits are valid, so the stored settings are at fault, not the request.
                     this.logger.error("The stored automatic purge settings of wiki [{}] are invalid.", wikiId, e);
                     return Response.status(Response.Status.CONFLICT).build();
                 }
-                return Response.ok(OBJECT_MAPPER.writeValueAsString(preview)).type(MediaType.APPLICATION_JSON_TYPE)
-                    .build();
             });
+    }
+
+    /**
+     * @param request the preview request
+     * @return the item types to count: the requested ones, or every item type but the histories, since counting a
+     *     history scans all its versions
+     * @throws IllegalArgumentException if a requested item type is unknown
+     */
+    private Set<PurgeType> readCountedTypes(XWikiRequest request)
+    {
+        Set<PurgeType> countedTypes = this.requestReader.readTypes(request);
+        if (countedTypes.isEmpty()) {
+            countedTypes = EnumSet.noneOf(PurgeType.class);
+            for (PurgeType type : PurgeType.values()) {
+                if (!type.isHistory()) {
+                    countedTypes.add(type);
+                }
+            }
+        }
+        return countedTypes;
+    }
+
+    /**
+     * Read and check every requested limit, so that the request is rejected before anything is counted if one is
+     * invalid.
+     *
+     * @param request the preview request
+     * @return the requested limits, by item type
+     * @throws IllegalArgumentException if a requested limit is invalid
+     */
+    private Map<PurgeType, PurgeTypeSettings> readRequestedLimits(XWikiRequest request)
+    {
+        Map<PurgeType, PurgeTypeSettings> requestedLimits = new LinkedHashMap<>();
+        for (PurgeType type : PurgeType.values()) {
+            Optional<PurgeTypeSettings> requestedLimit = this.requestReader.readLimit(request, type);
+            if (requestedLimit.isPresent()) {
+                this.purgeManager.checkLimit(type, requestedLimit.get());
+                requestedLimits.put(type, requestedLimit.get());
+            }
+        }
+        return requestedLimits;
     }
 
     /**
