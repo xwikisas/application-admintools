@@ -39,10 +39,14 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.store.XWikiStoreInterface;
 
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -103,14 +107,23 @@ class PurgePageManagerTest
     }
 
     @Test
-    void getDocumentCopy() throws Exception
+    void loadDocument() throws Exception
     {
-        DocumentReference reference = mock(DocumentReference.class);
-        XWikiDocument copy = mock(XWikiDocument.class);
-        when(this.wiki.getDocument(reference, this.wikiContext)).thenReturn(this.document);
-        when(this.document.clone()).thenReturn(copy);
+        DocumentReference reference = new DocumentReference("subwiki", "Space", "Page");
+        XWikiStoreInterface notCacheStore = mock(XWikiStoreInterface.class);
+        XWikiDocument loadedDocument = mock(XWikiDocument.class);
+        when(this.wikiContext.getWikiId()).thenReturn("xwiki");
+        when(this.wiki.getNotCacheStore()).thenReturn(notCacheStore);
+        when(notCacheStore.loadXWikiDoc(argThat(document -> reference.equals(document.getDocumentReference())),
+            same(this.wikiContext))).thenReturn(loadedDocument);
 
-        assertSame(copy, this.pageManager.getDocumentCopy(reference));
+        assertSame(loadedDocument, this.pageManager.loadDocument(reference));
+        // The page is loaded from the database of its wiki, then the current wiki is restored.
+        InOrder order = inOrder(this.wikiContext, notCacheStore);
+        order.verify(this.wikiContext).setWikiId("subwiki");
+        order.verify(notCacheStore).loadXWikiDoc(any(), same(this.wikiContext));
+        order.verify(this.wikiContext).setWikiId("xwiki");
+        verify(this.wiki, never()).getDocument(any(DocumentReference.class), any(XWikiContext.class));
     }
 
     @Test

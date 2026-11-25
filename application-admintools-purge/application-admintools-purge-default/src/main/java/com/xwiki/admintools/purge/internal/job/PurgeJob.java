@@ -29,6 +29,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.job.AbstractJob;
 import org.xwiki.job.DefaultJobStatus;
@@ -63,6 +64,11 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
      */
     public static final String JOB_TYPE = "admintools.purge";
 
+    /**
+     * The item of the failure recorded when the job fails, followed by the separator of the failure lines.
+     */
+    private static final String JOB_ERROR = "Job error\t";
+
     @Inject
     private PurgePolicyResolver policyResolver;
 
@@ -88,9 +94,10 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
     }
 
     /**
-     * Purge the item type if it is enabled for the wiki, and record the purge in the history. Nothing is done for a
-     * wiki deleted after the job was queued. A scheduled purge is recorded only when it removed items, or when it
-     * didn't succeed.
+     * Purge the item type, and record the purge in the history. A manual purge removes the items deleted before the
+     * expiration date of its request; a scheduled purge applies the stored settings, and does nothing if the item type
+     * is disabled for the wiki. Nothing is done for a wiki deleted after the job was queued. A scheduled purge is
+     * recorded only when it removed items, or when it didn't succeed. If the job fails, a failed entry is recorded.
      *
      * @throws JobException if the item type can't be purged
      */
@@ -108,20 +115,53 @@ public class PurgeJob extends AbstractJob<PurgeJobRequest, DefaultJobStatus<Purg
                     type.getId(), wikiId);
                 return;
             }
-            Optional<Instant> expirationDate = this.policyResolver.getExpirationDate(wikiId, type, now);
-            if (expirationDate.isEmpty()) {
-                this.logger.debug("Skipped the purge of [{}] on wiki [{}], since it is disabled.", type.getId(),
-                    wikiId);
-                return;
+            Instant expirationDate;
+            if (this.request.getExpirationDate().isPresent()) {
+                // A manual purge removes the items past the limit chosen by the user when it was started, whatever
+                // the settings of the wiki, even if the item type is disabled.
+                expirationDate = this.request.getExpirationDate().get();
+            } else {
+                // A scheduled purge applies the settings stored when the job runs, since the job may have waited
+                // behind the purges of other wikis, and does nothing if the item type is disabled.
+                Optional<Instant> storedExpirationDate = this.policyResolver.getExpirationDate(wikiId, type, now);
+                if (storedExpirationDate.isEmpty()) {
+                    this.logger.debug("Skipped the purge of [{}] on wiki [{}], since it is disabled.", type.getId(),
+                        wikiId);
+                    return;
+                }
+                expirationDate = storedExpirationDate.get();
             }
             PurgeHistoryEntry entry =
-                this.handlers.get(type.getId()).purge(wikiId, expirationDate.get(), now.toInstant(), triggeredBy);
+                this.handlers.get(type.getId()).purge(wikiId, expirationDate, now.toInstant(), triggeredBy);
             // The history store skips the entry if the wiki was deleted in the meantime.
             if (triggeredBy != null || entry.getRemovedCount() > 0 || entry.getStatus() != PurgeStatus.SUCCESS) {
                 this.historyStore.addEntry(wikiId, entry);
             }
         } catch (Exception e) {
-            throw new JobException(String.format("Failed to purge [%s] on wiki [%s].", type.getId(), wikiId), e);
+            JobException exception =
+                new JobException(String.format("Failed to purge [%s] on wiki [%s].", type.getId(), wikiId), e);
+            // The error is listed as a failure, so that the history tells why the purge failed.
+            recordFailure(wikiId, new PurgeHistoryEntry(type, now.toInstant(), triggeredBy, PurgeStatus.FAILED, 0, 0,
+                List.of(JOB_ERROR + ExceptionUtils.getRootCauseMessage(e))), exception);
+            throw exception;
+        }
+    }
+
+    /**
+     * Record a failed entry in the history when the job fails, so that the purge doesn't disappear without a trace.
+     * The entry doesn't count the items, which are unknown, and lists the error of the job as its only failure. If the
+     * entry can't be recorded either, e.g. because the history can't be saved, its error is added to the job error.
+     *
+     * @param wikiId the identifier of the purged wiki
+     * @param entry the failed entry
+     * @param exception the error of the job
+     */
+    private void recordFailure(String wikiId, PurgeHistoryEntry entry, JobException exception)
+    {
+        try {
+            this.historyStore.addEntry(wikiId, entry);
+        } catch (Exception e) {
+            exception.addSuppressed(e);
         }
     }
 }

@@ -94,7 +94,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, null), typeSettings, maxHistoryEntries);
             this.pageManager.save(document, "Updated the automatic purge defaults.");
         } finally {
@@ -161,7 +161,7 @@ public class PurgeSettingsStore
             if (!this.wikiDescriptorManager.exists(wikiId)) {
                 throw new IllegalArgumentException(String.format("The wiki [%s] doesn't exist.", wikiId));
             }
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             this.mapper.writeSettings(getOrCreateSettingsObject(document, wikiId), wikiId, typeSettings);
             this.pageManager.save(document,
                 String.format("Updated the automatic purge settings of wiki [%s].", wikiId));
@@ -182,7 +182,7 @@ public class PurgeSettingsStore
         Lock lock = this.pageManager.getGlobalLock();
         lock.lock();
         try {
-            XWikiDocument document = this.pageManager.getDocumentCopy(this.references.getSettingsPageReference());
+            XWikiDocument document = this.pageManager.loadDocument(this.references.getSettingsPageReference());
             Optional<BaseObject> object = getSettingsObject(document, wikiId);
             if (object.isPresent()) {
                 document.removeXObject(object.get());

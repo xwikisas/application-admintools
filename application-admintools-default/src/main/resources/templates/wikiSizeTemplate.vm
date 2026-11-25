@@ -59,6 +59,13 @@
             'adminTools.dashboard.instanceUsage.specific.emptyPages.hint'))">
               $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.emptyPages'))
           </a></li>
+        #set ($purgeReference = $services.model.createDocumentReference($xcontext.mainWikiName, ['AdminTools', 'Purge'],
+          'WebHome'))
+        <li><a href="$escapetool.xml($xwiki.getURL($purgeReference))"
+            title="$escapetool.xml($services.localization.render(
+            'adminTools.dashboard.instanceUsage.specific.autoPurge.hint'))">
+              $escapetool.xml($services.localization.render('adminTools.dashboard.instanceUsage.specific.autoPurge'))
+          </a></li>
       </ul>
     </div>
     #pagesOverNumberOfCommentsModal($spamLimit)

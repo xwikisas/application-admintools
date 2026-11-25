@@ -56,7 +56,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +105,7 @@ class PurgeJobTest
     @Test
     void getTypeAndGroupPath()
     {
-        this.job.initialize(new PurgeJobRequest(WIKI_ID, DELETED_ATTACHMENTS, null));
+        this.job.initialize(new PurgeJobRequest(WIKI_ID, DELETED_ATTACHMENTS, null, null));
 
         assertEquals("admintools.purge", this.job.getType());
         assertEquals(List.of("adminTools", "purge", "deletedAttachments"), this.job.getGroupPath().getPath());
@@ -112,14 +114,19 @@ class PurgeJobTest
     @Test
     void request()
     {
-        PurgeJobRequest request = new PurgeJobRequest(WIKI_ID, DELETED_DOCUMENTS, null);
+        PurgeJobRequest request = new PurgeJobRequest(WIKI_ID, DELETED_DOCUMENTS, null, null);
 
         assertEquals(List.of("adminTools", "purge", "deletedDocuments", WIKI_ID), request.getId());
         assertEquals(WIKI_ID, request.getWikiId());
         assertEquals(DELETED_DOCUMENTS, request.getType());
         assertTrue(request.getTriggeredBy().isEmpty());
+        assertTrue(request.getExpirationDate().isEmpty());
         assertFalse(request.isStatusSerialized());
         assertFalse(request.isStatusLogIsolated());
+
+        PurgeJobRequest manualRequest = new PurgeJobRequest(WIKI_ID, DELETED_DOCUMENTS, USER, EXPIRATION_DATE);
+        assertEquals(Optional.of(USER), manualRequest.getTriggeredBy());
+        assertEquals(Optional.of(EXPIRATION_DATE), manualRequest.getExpirationDate());
     }
 
     @Test
@@ -133,7 +140,7 @@ class PurgeJobTest
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), dateCaptor.capture(), eq(null))).thenReturn(
             entry);
 
-        run(DELETED_DOCUMENTS, null);
+        run(DELETED_DOCUMENTS, null, null);
 
         verify(this.historyStore).addEntry(WIKI_ID, entry);
         // The expiration date and the date of the entry are computed from the same moment.
@@ -148,7 +155,7 @@ class PurgeJobTest
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_ATTACHMENTS, Instant.now(), null, SUCCESS, 0, 0, null);
         when(this.attachmentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(null))).thenReturn(entry);
 
-        run(DELETED_ATTACHMENTS, null);
+        run(DELETED_ATTACHMENTS, null, null);
 
         verify(this.historyStore, never()).addEntry(anyString(), any());
     }
@@ -161,7 +168,7 @@ class PurgeJobTest
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), null, FAILED, 0, 1, null);
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(null))).thenReturn(entry);
 
-        run(DELETED_DOCUMENTS, null);
+        run(DELETED_DOCUMENTS, null, null);
 
         verify(this.historyStore).addEntry(WIKI_ID, entry);
     }
@@ -176,7 +183,7 @@ class PurgeJobTest
             new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), null, INTERRUPTED, 0, 0, null);
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(null))).thenReturn(entry);
 
-        run(DELETED_DOCUMENTS, null);
+        run(DELETED_DOCUMENTS, null, null);
 
         verify(this.historyStore).addEntry(WIKI_ID, entry);
     }
@@ -184,13 +191,24 @@ class PurgeJobTest
     @Test
     void manualPurgeIsAlwaysRecorded() throws Exception
     {
-        when(this.policyResolver.getExpirationDate(eq(WIKI_ID), eq(DELETED_DOCUMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
         PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), USER, SUCCESS, 0, 0, null);
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(USER))).thenReturn(entry);
 
-        run(DELETED_DOCUMENTS, USER);
+        run(DELETED_DOCUMENTS, USER, EXPIRATION_DATE);
 
+        verify(this.historyStore).addEntry(WIKI_ID, entry);
+    }
+
+    @Test
+    void manualPurgeAppliesTheLimitOfItsRequest() throws Exception
+    {
+        PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_ATTACHMENTS, Instant.now(), USER, SUCCESS, 2, 0, null);
+        when(this.attachmentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(USER))).thenReturn(entry);
+
+        run(DELETED_ATTACHMENTS, USER, EXPIRATION_DATE);
+
+        // The stored settings don't matter, even if the item type is disabled.
+        verify(this.policyResolver, never()).getExpirationDate(any(), any(), any());
         verify(this.historyStore).addEntry(WIKI_ID, entry);
     }
 
@@ -199,7 +217,7 @@ class PurgeJobTest
     {
         when(this.wikiDescriptorManager.exists(WIKI_ID)).thenReturn(false);
 
-        run(DELETED_DOCUMENTS, USER);
+        run(DELETED_DOCUMENTS, USER, EXPIRATION_DATE);
 
         verify(this.policyResolver, never()).getExpirationDate(any(), any(), any());
         verify(this.documentsHandler, never()).purge(anyString(), any(), any(), any());
@@ -212,7 +230,7 @@ class PurgeJobTest
         when(this.policyResolver.getExpirationDate(eq(WIKI_ID), eq(DELETED_DOCUMENTS), any())).thenReturn(
             Optional.empty());
 
-        run(DELETED_DOCUMENTS, USER);
+        run(DELETED_DOCUMENTS, null, null);
 
         verify(this.documentsHandler, never()).purge(anyString(), any(), any(), any());
         verify(this.historyStore, never()).addEntry(anyString(), any());
@@ -221,16 +239,44 @@ class PurgeJobTest
     @Test
     void errorFailsTheJob() throws Exception
     {
-        when(this.policyResolver.getExpirationDate(eq(WIKI_ID), eq(DELETED_DOCUMENTS), any())).thenReturn(
-            Optional.of(EXPIRATION_DATE));
         IllegalStateException error = new IllegalStateException("Broken");
         when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(USER))).thenThrow(error);
 
-        JobException exception = assertThrows(JobException.class, () -> run(DELETED_DOCUMENTS, USER));
+        JobException exception =
+            assertThrows(JobException.class, () -> run(DELETED_DOCUMENTS, USER, EXPIRATION_DATE));
 
         assertEquals("Failed to purge [deletedDocuments] on wiki [subwiki].", exception.getMessage());
         assertSame(error, exception.getCause());
-        verify(this.historyStore, never()).addEntry(anyString(), any());
+        // The failure is recorded in the history, without counts, with the error as its only failure.
+        ArgumentCaptor<PurgeHistoryEntry> entryCaptor = ArgumentCaptor.forClass(PurgeHistoryEntry.class);
+        verify(this.historyStore).addEntry(eq(WIKI_ID), entryCaptor.capture());
+        PurgeHistoryEntry entry = entryCaptor.getValue();
+        assertEquals(DELETED_DOCUMENTS, entry.getType());
+        assertEquals(FAILED, entry.getStatus());
+        assertEquals(Optional.of(USER), entry.getTriggeredBy());
+        assertEquals(0, entry.getRemovedCount());
+        assertEquals(0, entry.getFailedCount());
+        assertEquals(List.of("Job error\tIllegalStateException: Broken"), entry.getFailures());
+    }
+
+    @Test
+    void historyErrorFailsTheJob() throws Exception
+    {
+        PurgeHistoryEntry entry = new PurgeHistoryEntry(DELETED_DOCUMENTS, Instant.now(), USER, SUCCESS, 1, 0, null);
+        when(this.documentsHandler.purge(eq(WIKI_ID), eq(EXPIRATION_DATE), any(), eq(USER))).thenReturn(entry);
+        IllegalStateException saveError = new IllegalStateException("Can't save");
+        doThrow(saveError).when(this.historyStore).addEntry(anyString(), any());
+
+        JobException exception =
+            assertThrows(JobException.class, () -> run(DELETED_DOCUMENTS, USER, EXPIRATION_DATE));
+
+        // The purge can't be recorded, and neither can the failed entry: both errors are kept by the job.
+        assertSame(saveError, exception.getCause());
+        assertEquals(List.of(saveError), List.of(exception.getSuppressed()));
+        ArgumentCaptor<PurgeHistoryEntry> entryCaptor = ArgumentCaptor.forClass(PurgeHistoryEntry.class);
+        verify(this.historyStore, times(2)).addEntry(eq(WIKI_ID), entryCaptor.capture());
+        assertSame(entry, entryCaptor.getAllValues().get(0));
+        assertEquals(FAILED, entryCaptor.getAllValues().get(1).getStatus());
     }
 
     /**
@@ -238,10 +284,11 @@ class PurgeJobTest
      *
      * @param type the item type to purge
      * @param triggeredBy the user who started the purge, or {@code null} for a scheduled purge
+     * @param expirationDate the expiration date of a manual purge, or {@code null} for a scheduled purge
      */
-    private void run(PurgeType type, DocumentReference triggeredBy) throws JobException
+    private void run(PurgeType type, DocumentReference triggeredBy, Instant expirationDate) throws JobException
     {
-        this.job.initialize(new PurgeJobRequest(WIKI_ID, type, triggeredBy));
+        this.job.initialize(new PurgeJobRequest(WIKI_ID, type, triggeredBy, expirationDate));
         this.job.runInternal();
     }
 }

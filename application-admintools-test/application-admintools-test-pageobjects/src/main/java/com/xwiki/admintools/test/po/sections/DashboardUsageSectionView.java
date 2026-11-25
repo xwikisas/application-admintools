@@ -28,6 +28,7 @@ import com.xwiki.admintools.test.po.modals.CommentsSpamModalView;
 import com.xwiki.admintools.test.po.modals.EmptyPagesModalView;
 import com.xwiki.admintools.test.po.modals.RecycleBinsModalView;
 import com.xwiki.admintools.test.po.modals.WikisSizeModalView;
+import com.xwiki.admintools.test.po.pages.AutoPurgePage;
 
 /**
  * Represents actions that can be done on the usage section from within the AdminTools application.
@@ -50,6 +51,9 @@ public class DashboardUsageSectionView extends ViewPage
 
     @FindBy(css = "a[href='#emptyPagesData']")
     private WebElement emptyPagesModalHyperLink;
+
+    @FindBy(css = ".specific-stats a[href$='/AdminTools/Purge/']")
+    private WebElement autoPurgeHyperLink;
 
     /**
      * Open the wikis size modal.
@@ -89,5 +93,18 @@ public class DashboardUsageSectionView extends ViewPage
         emptyPagesModalHyperLink.click();
         this.getDriver().waitUntilElementIsVisible(By.id("emptyPagesData"));
         return new EmptyPagesModalView(By.id("emptyPagesData"));
+    }
+
+    /**
+     * Open the page configuring the automatic purge of the recycle bins.
+     *
+     * @return the page
+     */
+    public AutoPurgePage clickAutoPurgeLink()
+    {
+        getDriver().addPageNotYetReloadedMarker();
+        autoPurgeHyperLink.click();
+        getDriver().waitUntilPageIsReloaded();
+        return new AutoPurgePage();
     }
 }

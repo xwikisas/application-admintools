@@ -48,4 +48,12 @@ public class RecycleBinsModalView extends BaseModal
     {
         content.findElement(By.cssSelector("div.modal-footer > .btn-default")).click();
     }
+
+    /**
+     * @return the URL of the button of the footer opening the deleted pages of the current wiki
+     */
+    public String getViewTrashBinURL()
+    {
+        return content.findElement(By.cssSelector("div.modal-footer > a.btn-primary")).getAttribute("href");
+    }
 }

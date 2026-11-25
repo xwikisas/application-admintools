@@ -60,8 +60,41 @@ public class PurgePolicyResolver
      * @param now when the purge runs
      * @return the expiration date, or an empty value if the item type is not purged on the wiki
      * @throws XWikiException if the settings can't be loaded
+     * @throws IllegalStateException if the item type is purged on the wiki, but the stored interval or unit is missing
      */
     public Optional<Instant> getExpirationDate(String wikiId, PurgeType type, ZonedDateTime now) throws XWikiException
+    {
+        return getSettings(wikiId, type).filter(settings -> settings.getMode() == PurgeMode.ENABLED).map(
+            settings -> this.retentionCalculator.getExpirationDate(now,
+                settings.getInterval().orElseThrow(() -> missingLimit(wikiId, type)),
+                settings.getUnit().orElseThrow(() -> missingLimit(wikiId, type))));
+    }
+
+    /**
+     * @param wikiId the identifier of the wiki
+     * @param type the item type
+     * @return the error of an enabled item type whose stored interval or unit is missing, which can only come from a
+     *     manual edit
+     */
+    private IllegalStateException missingLimit(String wikiId, PurgeType type)
+    {
+        return new IllegalStateException(String.format(
+            "The automatic purge of [%s] is enabled on wiki [%s], but its interval or unit is missing.", type.getId(),
+            wikiId));
+    }
+
+    /**
+     * Get the settings that apply to an item type on a wiki: the settings of the wiki, or the default settings if the
+     * wiki inherits them.
+     *
+     * @param wikiId the identifier of a wiki
+     * @param type an item type
+     * @return the settings that apply, either {@link PurgeMode#ENABLED} or {@link PurgeMode#DISABLED}, with the stored
+     *     interval and unit even if the item type is disabled; an empty value if the wiki inherits the default settings
+     *     and they leave the item type out, in which case it is not purged
+     * @throws XWikiException if the settings can't be loaded
+     */
+    public Optional<PurgeTypeSettings> getSettings(String wikiId, PurgeType type) throws XWikiException
     {
         Optional<PurgeTypeSettings> settings = Optional.ofNullable(this.settingsStore.getWikiSettings(wikiId).get(type))
             .filter(wikiSettings -> wikiSettings.getMode() != PurgeMode.INHERIT);
@@ -69,8 +102,6 @@ public class PurgePolicyResolver
             // Not in a lambda, since loading the global settings can throw a checked exception.
             settings = this.settingsStore.getGlobalSettings().getTypeSettings(type);
         }
-        return settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).map(
-            typeSettings -> this.retentionCalculator.getExpirationDate(now, typeSettings.getInterval(),
-                typeSettings.getUnit()));
+        return settings;
     }
 }
