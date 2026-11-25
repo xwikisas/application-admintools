@@ -49,12 +49,16 @@ public class RetentionCalculator
      *     every item deleted until now is expired
      * @param unit the unit of the interval
      * @return the instant before which deleted items must be purged
+     * @throws IllegalArgumentException if the interval is negative, or if the unit is missing
      */
-    public Instant getExpirationDate(ZonedDateTime now, int interval, IntervalUnit unit)
+    public Instant getExpirationDate(ZonedDateTime now, int interval, IntervalUnit unit) throws IllegalArgumentException
     {
         if (interval < 0) {
             throw new IllegalArgumentException(
                 String.format("The purge interval must be at least 0, but was [%d].", interval));
+        }
+        if (unit == null) {
+            throw new IllegalArgumentException("The purge interval unit is missing.");
         }
         ZonedDateTime expirationDate;
         switch (unit) {

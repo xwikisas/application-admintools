@@ -39,9 +39,13 @@
   <content>{{include reference="AdminTools.Purge.Code.Macros"/}}
 
 {{velocity}}
-#set ($mainReference = $services.model.createDocumentReference('', ['AdminTools', 'Code'], 'ConfigurationClass'))
+## The automatic purge covers every wiki, so it needs the license and the admin right of the main wiki, like its script
+## service.
+#set ($mainWikiReference = $services.model.createWikiReference($xcontext.mainWikiName))
+#set ($mainReference = $services.model.createDocumentReference($xcontext.mainWikiName, ['AdminTools', 'Code'],
+  'ConfigurationClass'))
 #if ($services.licensing.licensor.hasLicensureForEntity($mainReference))
-  #if ($hasAdmin)
+  #if ($services.security.authorization.hasAccess('admin', $xcontext.userReference, $mainWikiReference))
     #set ($discard = $xwiki.jsx.use('AdminTools.Purge.Code.PurgeJS'))
     #loadPurgeDefaults()
     {{translation key="adminTools.purge.description"/}}

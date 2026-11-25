@@ -54,7 +54,8 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * keeps its stored ones.
      *
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
-     *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid
+     *     not logged in; 402 if the license is not active; 403 if the user is not an admin of the main wiki, or if the
+     *     form token is invalid
      * @throws XWikiRestException if an error occurred while saving the settings
      */
     @POST
@@ -71,8 +72,8 @@ public interface AutoPurgeResource extends XWikiRestComponent
      *
      * @param wikiId the identifier of the wiki
      * @return status code 204 if the settings were saved; 400 if a setting is missing or invalid; 401 if the user is
-     *     not an admin of the main wiki; 402 if the license is not active; 403 if the form token is invalid; 404 if the
-     *     wiki doesn't exist
+     *     not logged in; 402 if the license is not active; 403 if the user is not an admin of the main wiki, or if the
+     *     form token is invalid; 404 if the wiki doesn't exist
      * @throws XWikiRestException if an error occurred while saving the settings
      */
     @POST
@@ -86,8 +87,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      * Remove the automatic purge settings of a wiki, so that it uses the default settings for every item type.
      *
      * @param wikiId the identifier of the wiki
-     * @return status code 204 if the wiki has no settings of its own anymore; 401 if the user is not an admin of the
-     *     main wiki; 402 if the license is not active; 403 if the form token is invalid; 404 if the wiki doesn't exist
+     * @return status code 204 if the wiki has no settings of its own anymore; 401 if the user is not logged in; 402 if
+     *     the license is not active; 403 if the user is not an admin of the main wiki, or if the form token is invalid;
+     *     404 if the wiki doesn't exist
      * @throws XWikiRestException if an error occurred while removing the settings
      */
     @DELETE
@@ -109,8 +111,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      *
      * @param wikiId the identifier of the wiki
      * @return status code 202 with the JSON list of the identifiers of the started jobs; 400 if no item type is given,
-     *     if one is unknown, or if a limit is missing or invalid; 401 if the user is not an admin of the main wiki; 402
-     *     if the license is not active; 403 if the form token is invalid; 404 if the wiki doesn't exist
+     *     if one is unknown, or if a limit is missing or invalid; 401 if the user is not logged in; 402 if the license
+     *     is not active; 403 if the user is not an admin of the main wiki, or if the form token is invalid; 404 if the
+     *     wiki doesn't exist
      * @throws XWikiRestException if an error occurred while starting the purge
      */
     @POST
@@ -133,8 +136,9 @@ public interface AutoPurgeResource extends XWikiRestComponent
      *     automatic purge of the item type is enabled for the wiki; {@code interval}, {@code unit} and
      *     {@code maxVersions}, the parts of the limit used; {@code count}, the number of items past the limit, only for
      *     a counted item type, as described by {@link com.xwiki.admintools.purge.PurgeHandler#countExpired}; 400 if
-     *     a requested limit or item type is invalid; 401 if the user is not an admin of the main wiki; 402 if the
-     *     license is not active; 404 if the wiki doesn't exist
+     *     a requested limit or item type is invalid; 401 if the user is not logged in; 402 if the license is not
+     *     active; 403 if the user is not an admin of the main wiki; 404 if the wiki doesn't exist; 409 if the settings
+     *     stored for the wiki, or the defaults it inherits, are invalid
      * @throws XWikiRestException if an error occurred while counting the items
      */
     @GET

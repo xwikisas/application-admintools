@@ -189,24 +189,39 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
                         }
                     }
                 }
-                Map<String, Map<String, Object>> preview = new LinkedHashMap<>();
+                // Read and check every requested limit first, so that the request is rejected if one is invalid.
+                Map<PurgeType, PurgeTypeSettings> requestedLimits = new LinkedHashMap<>();
                 for (PurgeType type : PurgeType.values()) {
-                    Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type);
-                    // Without a complete stored limit, the item type is counted only for a requested limit.
-                    Optional<PurgeTypeSettings> limit = this.requestReader.readLimit(request, type)
-                        .or(() -> settings.filter(this.requestReader::hasLimit));
-                    Map<String, Object> typePreview = new LinkedHashMap<>();
-                    typePreview.put("enabled",
-                        settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).isPresent());
-                    if (limit.isPresent()) {
-                        PurgeTypeSettings typeLimit = limit.get();
-                        typePreview.putAll(this.requestReader.getLimitFields(typeLimit));
-                        if (countedTypes.contains(type)) {
-                            // The purge manager rejects an invalid limit.
-                            typePreview.put("count", this.purgeManager.countExpired(wikiId, type, typeLimit));
-                        }
+                    Optional<PurgeTypeSettings> requestedLimit = this.requestReader.readLimit(request, type);
+                    if (requestedLimit.isPresent()) {
+                        this.purgeManager.checkLimit(type, requestedLimit.get());
+                        requestedLimits.put(type, requestedLimit.get());
                     }
-                    preview.put(type.getId(), typePreview);
+                }
+                Map<String, Map<String, Object>> preview = new LinkedHashMap<>();
+                try {
+                    for (PurgeType type : PurgeType.values()) {
+                        Optional<PurgeTypeSettings> settings = this.policyResolver.getSettings(wikiId, type);
+                        // Without a complete stored limit, the item type is counted only for a requested limit.
+                        Optional<PurgeTypeSettings> limit = Optional.ofNullable(requestedLimits.get(type))
+                            .or(() -> settings.filter(this.requestReader::hasLimit));
+                        Map<String, Object> typePreview = new LinkedHashMap<>();
+                        typePreview.put("enabled",
+                            settings.filter(typeSettings -> typeSettings.getMode() == PurgeMode.ENABLED).isPresent());
+                        if (limit.isPresent()) {
+                            PurgeTypeSettings typeLimit = limit.get();
+                            typePreview.putAll(this.requestReader.getLimitFields(typeLimit));
+                            if (countedTypes.contains(type)) {
+                                // The purge manager rejects an invalid stored limit.
+                                typePreview.put("count", this.purgeManager.countExpired(wikiId, type, typeLimit));
+                            }
+                        }
+                        preview.put(type.getId(), typePreview);
+                    }
+                } catch (IllegalArgumentException e) {
+                    // The requested limits are valid, so the stored settings are at fault, not the request.
+                    this.logger.error("The stored automatic purge settings of wiki [{}] are invalid.", wikiId, e);
+                    return Response.status(Response.Status.CONFLICT).build();
                 }
                 return Response.ok(OBJECT_MAPPER.writeValueAsString(preview)).type(MediaType.APPLICATION_JSON_TYPE)
                     .build();
@@ -215,8 +230,9 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
 
     /**
      * Run an automatic purge request, once {@link #checkRequest(String, boolean)} accepts it. A missing or invalid
-     * parameter is reported with status code 400. The responses of failed requests have no content, so that they expose
-     * nothing.
+     * parameter is reported with status code 400. Missing rights are reported with status code 401 to a guest, who
+     * might get them by logging in, and with 403 to a logged-in user. The responses of failed requests have no content,
+     * so that they expose nothing.
      *
      * @param wikiId the identifier of the wiki the request is about, or {@code null} for the default settings
      * @param modifying {@code true} if the request changes something, so it needs a valid form token
@@ -231,7 +247,10 @@ public class DefaultAutoPurgeResource extends XWikiResource implements AutoPurge
             return rejection.isPresent() ? rejection.get() : request.call();
         } catch (AccessDeniedException e) {
             this.logger.warn("Failed to access the automatic purge due to restricted rights.");
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            // A guest has no user reference: 401 tells them to log in, while 403 tells a logged-in user that logging in
+            // again won't help.
+            return Response.status(this.xcontextProvider.get().getUserReference() == null ? Response.Status.UNAUTHORIZED
+                : Response.Status.FORBIDDEN).build();
         } catch (IllegalArgumentException e) {
             this.logger.debug("Rejected an invalid automatic purge request.", e);
             return Response.status(Response.Status.BAD_REQUEST).build();

@@ -456,9 +456,38 @@ class DefaultAutoPurgeResourceTest
 
         // A requested interval below 0 is rejected by the purge manager, instead of being skipped.
         mockLimit("deletedDocuments", "-1", "days");
-        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, limit(-1, IntervalUnit.DAYS))).thenThrow(
-            new IllegalArgumentException("Invalid purge limit"));
+        doThrow(new IllegalArgumentException("Invalid purge limit")).when(this.purgeManager)
+            .checkLimit(DELETED_DOCUMENTS, limit(-1, IntervalUnit.DAYS));
         assertEquals(400, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        // The requested limits are checked before anything is counted.
+        verify(this.purgeManager, never()).countExpired(anyString(), any(), any());
+    }
+
+    @Test
+    void previewPurgeWithInvalidStoredSettings() throws Exception
+    {
+        // A stored limit out of range, which can only come from a manual edit, is rejected by the purge manager.
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenReturn(
+            Optional.of(new PurgeTypeSettings(PurgeMode.ENABLED, 2000, IntervalUnit.DAYS)));
+        when(this.purgeManager.countExpired(SUBWIKI, DELETED_DOCUMENTS, limit(2000, IntervalUnit.DAYS))).thenThrow(
+            new IllegalArgumentException("Invalid purge limit"));
+        mockLimit("deletedAttachments", "1", "years");
+
+        // The request is valid, so the stored settings are reported instead of the request.
+        Response response = this.resource.previewPurge(SUBWIKI);
+        assertEquals(409, response.getStatus());
+        assertNull(response.getEntity());
+
+        // Invalid default settings, such as a stored history size below 1, are reported the same way.
+        when(this.policyResolver.getSettings(SUBWIKI, DELETED_DOCUMENTS)).thenThrow(
+            new IllegalArgumentException("The purge history size must be at least 1, but was [0]."));
+        assertEquals(409, this.resource.previewPurge(SUBWIKI).getStatus());
+
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
+            this.logCapture.getMessage(0));
+        assertEquals("The stored automatic purge settings of wiki [subwiki] are invalid.",
+            this.logCapture.getMessage(1));
     }
 
     @Test
@@ -467,13 +496,27 @@ class DefaultAutoPurgeResourceTest
         doThrow(new AccessDeniedException(Right.ADMIN, USER, new WikiReference(MAIN_WIKI))).when(
             this.authorizationManager).checkAccess(Right.ADMIN, USER, new WikiReference(MAIN_WIKI));
 
-        assertEquals(401, this.resource.saveDefaultSettings().getStatus());
-        assertEquals(401, this.resource.previewPurge(SUBWIKI).getStatus());
+        assertEquals(403, this.resource.saveDefaultSettings().getStatus());
+        assertEquals(403, this.resource.previewPurge(SUBWIKI).getStatus());
 
         verify(this.settingsStore, never()).saveGlobalSettings(any(), anyInt());
         verify(this.policyResolver, never()).getSettings(anyString(), any());
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
         assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(1));
+    }
+
+    @Test
+    void requestFromGuest() throws Exception
+    {
+        when(this.context.getUserReference()).thenReturn(null);
+        doThrow(new AccessDeniedException(Right.ADMIN, null, new WikiReference(MAIN_WIKI))).when(
+            this.authorizationManager).checkAccess(Right.ADMIN, null, new WikiReference(MAIN_WIKI));
+
+        // A guest might get the rights by logging in.
+        assertEquals(401, this.resource.purgeWiki(SUBWIKI).getStatus());
+
+        verify(this.purgeManager, never()).startManualPurge(anyString(), any(), any(), any());
+        assertEquals("Failed to access the automatic purge due to restricted rights.", this.logCapture.getMessage(0));
     }
 
     @Test
